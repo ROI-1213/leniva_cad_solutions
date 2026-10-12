@@ -111,7 +111,7 @@ export const PrathamMiniPage: React.FC = () => {
 
   // Series Printers
   const prathamSeries = [
-    { name: 'Pratham Mini', vol: '170 × 170 × 170 mm', tag: 'Classroom & Lab', active: true, img: '/images/products/pratham-mini.png' },
+    { name: 'Pratham Mini', vol: '120 × 120 × 120 mm', tag: 'Classroom & Lab', active: true, img: '/images/products/pratham-mini.png' },
     { name: 'Pratham Desktop', vol: '200 × 200 × 250 mm', tag: 'Studio Series', link: '/products/pratham-desktop', img: '/images/products/pratham-desktop.png' },
     { name: 'Pratham 3 Rapid', vol: '350 × 350 × 350 mm', tag: '500 mm/s CoreXY', link: '/products/pratham-3-rapid', img: '/images/products/pratham-3-rapid.png' },
     { name: 'Pratham 3.0', vol: '300 × 300 × 300 mm', tag: '24/7 Factory Workhorse', link: '/products/pratham-3', img: '/images/products/pratham-3-0.png' },
@@ -214,7 +214,7 @@ export const PrathamMiniPage: React.FC = () => {
               <div className="grid grid-cols-3 gap-3 pt-2">
                 <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-1">
                   <span className="text-[10px] font-mono uppercase font-bold text-slate-400 block">BUILD VOLUME</span>
-                  <div className="text-sm sm:text-base font-black text-slate-950 font-mono">170 × 170 × 170 mm</div>
+                  <div className="text-sm sm:text-base font-black text-slate-950 font-mono">120 × 120 × 120 mm</div>
                   <span className="text-[10px] text-red-600 font-semibold block">Up to 200 mm custom</span>
                 </div>
 
@@ -528,7 +528,7 @@ export const PrathamMiniPage: React.FC = () => {
               <p className="text-xs text-slate-500 font-semibold mt-0.5">Compact Footprint. Practical Build Space.</p>
             </div>
             <div className="bg-slate-900 text-white rounded-2xl p-4 text-center space-y-1 font-mono">
-              <div className="text-2xl font-black text-white">170 × 170 × 170 mm</div>
+              <div className="text-2xl font-black text-white">120 × 120 × 120 mm</div>
               <div className="text-[10px] text-emerald-400 font-semibold">Customizable up to 200 × 200 × 200 mm</div>
               <div className="text-[10px] text-slate-400 pt-1">Ideal for 80% of classroom &amp; lab prototypes</div>
             </div>
@@ -643,7 +643,7 @@ export const PrathamMiniPage: React.FC = () => {
             {activeSpecTab === 'print' && (
               <div className="divide-y divide-slate-100">
                 <div className="grid grid-cols-2 p-3.5 bg-slate-50/50"><span className="font-bold text-slate-700">Technology</span><span className="text-slate-900 font-mono">Fused Filament Fabrication (FFF / FDM)</span></div>
-                <div className="grid grid-cols-2 p-3.5"><span className="font-bold text-slate-700">Standard Build Volume</span><span className="text-slate-900 font-mono font-bold">170 × 170 × 170 mm</span></div>
+                <div className="grid grid-cols-2 p-3.5"><span className="font-bold text-slate-700">Standard Build Volume</span><span className="text-slate-900 font-mono font-bold">120 × 120 × 120 mm</span></div>
                 <div className="grid grid-cols-2 p-3.5 bg-slate-50/50"><span className="font-bold text-slate-700">Customizable Volume</span><span className="text-slate-900 font-mono">Up to 200 × 200 × 200 mm</span></div>
                 <div className="grid grid-cols-2 p-3.5"><span className="font-bold text-slate-700">Layer Resolution</span><span className="text-slate-900 font-mono font-bold">0.1 – 0.3 mm (100 – 300 microns)</span></div>
                 <div className="grid grid-cols-2 p-3.5 bg-slate-50/50"><span className="font-bold text-slate-700">Print Speed</span><span className="text-slate-900 font-mono">Up to 120 mm/s</span></div>

@@ -52,7 +52,7 @@ export const ProductsPage: React.FC = () => {
       id: 'fdm',
       title: 'FDM 3D Printers',
       tag: 'PRATHAM SERIES',
-      description: 'Industrial CoreXY & heated-chamber FDM systems from 170 mm desktop to 1-meter giants.',
+      description: 'Industrial CoreXY & heated-chamber FDM systems from 120 mm desktop to 1-meter giants.',
       icon: Printer,
       route: '/products/fdm-3d-printers',
       accent: 'border-slate-300 hover:border-slate-800',

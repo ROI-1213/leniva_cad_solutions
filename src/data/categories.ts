@@ -25,7 +25,7 @@ export const productCategories: CategoryInfo[] = [
     productCount: 7,
     keyBenefits: [
       'Engineered for continuous 24/7 industrial production',
-      'Wide build envelopes from desktop (170mm) to giant format (1000mm)',
+      'Wide build envelopes from desktop (120mm) to giant format (1000mm)',
       'Compatible with PLA, ABS, PETG, TPU, Nylon, and Carbon-Fiber composites',
       'High-speed kinematic motion options delivering up to 500 mm/s',
     ],

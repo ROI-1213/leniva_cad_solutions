@@ -93,7 +93,7 @@ export const Header: React.FC = () => {
       route: '/products/fdm-3d-printers',
       description: 'Industrial and desktop FDM systems with build volumes up to 1 meter.',
       products: [
-        { name: 'Pratham Mini', slug: 'pratham-mini', spec: '170 × 170 × 170 mm' },
+        { name: 'Pratham Mini', slug: 'pratham-mini', spec: '120 × 120 × 120 mm' },
         { name: 'Pratham Desktop', slug: 'pratham-desktop', spec: '200 × 200 × 250 mm' },
         { name: 'Pratham 3.0', slug: 'pratham-3', spec: '300 × 300 × 300 mm' },
         { name: 'Pratham 5.0', slug: 'pratham-5', spec: '500 × 500 × 500 mm' },
@@ -217,6 +217,7 @@ export const Header: React.FC = () => {
 
   const shopLinks = [
     { name: 'All Store Catalog', route: '/shop' },
+    { name: 'CAD Software Solutions', route: '/shop?category=cad-software' },
     { name: '3D Printers & Scanners (Products)', route: '/shop/products' },
     { name: '3D Printer Filaments (PLA & PLA+)', route: '/shop/filaments' },
     { name: 'FDM 3D Printers', route: '/shop/fdm' },

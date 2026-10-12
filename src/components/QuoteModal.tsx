@@ -195,6 +195,9 @@ export const QuoteModal: React.FC = () => {
                     className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none bg-white"
                   >
                     <option value="">Select product or service...</option>
+                    {formData.productOrService && (
+                      <option value={formData.productOrService}>{formData.productOrService}</option>
+                    )}
                     <optgroup label="FDM 3D Printers">
                       <option value="Pratham Mini">Pratham Mini</option>
                       <option value="Pratham Desktop">Pratham Desktop</option>
@@ -222,6 +225,8 @@ export const QuoteModal: React.FC = () => {
                     <optgroup label="CAD Software – ARES (Graebert)">
                       <option value="ARES Standard">ARES Standard</option>
                       <option value="ARES Commander">ARES Commander</option>
+                      <option value="ARES Kudo">ARES Kudo</option>
+                      <option value="ARES Touch">ARES Touch</option>
                       <option value="ARES Trinity">ARES Trinity</option>
                       <option value="ARES Mechanical">ARES Mechanical</option>
                       <option value="ARES Electrical">ARES Electrical</option>

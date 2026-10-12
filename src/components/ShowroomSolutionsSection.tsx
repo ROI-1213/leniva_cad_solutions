@@ -134,7 +134,7 @@ const showcaseCategories: ShowcaseCategorySection[] = [
         nameAccent: 'Mini',
         subtitle: 'Compact Learning & Prototyping FDM',
         description: 'Compact educational and lab 3D printing system with flexible magnetic PEI bed and quiet motor drivers.',
-        modelsCount: '170 × 170 × 170 mm',
+        modelsCount: '120 × 120 × 120 mm',
         badgeLabel: 'Compact Series',
         image: '/images/products/pratham-mini.png',
         link: '/products/pratham-mini',

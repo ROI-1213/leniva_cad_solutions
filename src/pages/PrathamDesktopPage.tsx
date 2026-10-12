@@ -223,7 +223,7 @@ export const PrathamDesktopPage: React.FC = () => {
   const relatedModels = [
     {
       name: 'Pratham Mini',
-      buildVolume: '170 × 170 × 170 mm',
+      buildVolume: '120 × 120 × 120 mm',
       tagline: 'Compact Power for Precision Prototyping',
       image: '/images/products/pratham-mini.png',
       slug: '/products/pratham-mini',

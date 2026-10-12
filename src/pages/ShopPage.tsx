@@ -16,6 +16,8 @@ import {
   SlidersHorizontal,
   ChevronDown,
   Sparkles,
+  Laptop,
+  Monitor,
 } from 'lucide-react'
 import { shopItems } from '../data/shop'
 import { useApp } from '../context/AppContext'
@@ -62,8 +64,12 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
   // Sidebar / Dropdown options
   const filterOptions = [
     { id: 'all', label: 'All Catalog (All Sections)', icon: Layers, count: shopItems.length },
-    { id: 'products', label: '3D Printers & Scanners (Products)', icon: Box, count: shopItems.filter(i => i.category !== 'make3d-filaments').length },
+    { id: 'cad-software', label: 'CAD & 3D Design Software', icon: Laptop, count: shopItems.filter(i => i.category === 'cad-software').length },
+    { id: 'products', label: '3D Printers & Scanners (Hardware)', icon: Box, count: shopItems.filter(i => ['fdm', 'dlp', 'lcd', 'scanners'].includes(i.category)).length },
     { id: 'make3d-filaments', label: '3D Printer Filaments (PLA & PLA+)', icon: CircleDot, count: shopItems.filter(i => i.category === 'make3d-filaments').length },
+    { id: 'ares', label: 'ARES DWG CAD (Graebert)', icon: Monitor, count: shopItems.filter(i => i.category === 'cad-software' && i.brand === 'Graebert').length },
+    { id: 'sketchup', label: 'SketchUp 3D Modeling (Trimble)', icon: Box, count: shopItems.filter(i => i.category === 'cad-software' && i.brand === 'Trimble').length },
+    { id: 'chaos', label: 'Chaos Visualization (V-Ray & Enscape)', icon: Sparkles, count: shopItems.filter(i => i.category === 'cad-software' && i.brand === 'Chaos').length },
     { id: 'fdm', label: 'FDM 3D Printers', icon: Printer, count: shopItems.filter(i => i.category === 'fdm').length },
     { id: 'dlp', label: 'DLP 3D Printers', icon: Printer, count: shopItems.filter(i => i.category === 'dlp').length },
     { id: 'lcd', label: 'Industrial LCD Printers', icon: Printer, count: shopItems.filter(i => i.category === 'lcd').length },
@@ -88,6 +94,22 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
   }
 
   // Grouped products
+  const cadItems = useMemo(() => {
+    return filterList(shopItems.filter(i => i.category === 'cad-software'))
+  }, [inStockOnly, searchQuery])
+
+  const aresItems = useMemo(() => {
+    return filterList(shopItems.filter(i => i.category === 'cad-software' && i.brand === 'Graebert'))
+  }, [inStockOnly, searchQuery])
+
+  const sketchupItems = useMemo(() => {
+    return filterList(shopItems.filter(i => i.category === 'cad-software' && i.brand === 'Trimble'))
+  }, [inStockOnly, searchQuery])
+
+  const chaosItems = useMemo(() => {
+    return filterList(shopItems.filter(i => i.category === 'cad-software' && i.brand === 'Chaos'))
+  }, [inStockOnly, searchQuery])
+
   const printerItems = useMemo(() => {
     return filterList(shopItems.filter(i => ['fdm', 'dlp', 'lcd'].includes(i.category)))
   }, [inStockOnly, searchQuery])
@@ -115,8 +137,14 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
   // Total matching count
   const totalVisibleCount = useMemo(() => {
     if (selectedCategory === 'all') {
-      return printerItems.length + scannerItems.length + filamentItems.length
+      return cadItems.length + printerItems.length + scannerItems.length + filamentItems.length
     }
+    if (selectedCategory === 'cad-software' || selectedCategory === 'software') {
+      return cadItems.length
+    }
+    if (selectedCategory === 'ares') return aresItems.length
+    if (selectedCategory === 'sketchup') return sketchupItems.length
+    if (selectedCategory === 'chaos') return chaosItems.length
     if (selectedCategory === 'products') {
       return printerItems.length + scannerItems.length
     }
@@ -128,12 +156,13 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
     if (selectedCategory === 'lcd') return lcdItems.length
     if (selectedCategory === 'scanners') return scannerItems.length
     return 0
-  }, [selectedCategory, printerItems, scannerItems, filamentItems, fdmItems, dlpItems, lcdItems])
+  }, [selectedCategory, cadItems, aresItems, sketchupItems, chaosItems, printerItems, scannerItems, filamentItems, fdmItems, dlpItems, lcdItems])
 
   // Card component
   const ProductCard: React.FC<{ item: ShopItem }> = ({ item }) => {
     const inWishlist = isInWishlist(item.id)
     const isFilament = item.category === 'make3d-filaments'
+    const isCad = item.category === 'cad-software'
 
     return (
       <div className="bg-white rounded-2xl border border-slate-200 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden group">
@@ -149,7 +178,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
           />
           <div className="absolute top-3 left-3 flex flex-col gap-1 items-start z-10">
             <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white rounded shadow-xs ${
-              isFilament ? 'bg-red-600' : 'bg-slate-900/85 backdrop-blur-sm'
+              isFilament ? 'bg-red-600' : isCad ? 'bg-blue-600' : 'bg-slate-900/85 backdrop-blur-sm'
             }`}>
               {item.categoryName}
             </span>
@@ -253,7 +282,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
                 <Link
                   to={`/products/${item.productSlug}`}
                   className="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl transition-colors flex items-center justify-center cursor-pointer"
-                  title="View Specs"
+                  title="View Specs & Details"
                 >
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
@@ -296,23 +325,23 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
           <div className="space-y-2">
             <span className="text-xs font-bold uppercase tracking-wider text-red-600 flex items-center space-x-1.5">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Official Hardware & Consumables Catalog</span>
+              <span>Official Software, Hardware & Consumables Catalog</span>
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-              3D Printers, 3D Scanners & Engineering Filaments
+              CAD Software, 3D Printers, 3D Scanners & Engineering Filaments
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
-              Explore industrial Make3D additive machines, 3DeVOK metrology scanners, and official Make3D PLA & PLA+ filaments with authorized technical support.
+              Explore official Graebert ARES, Trimble SketchUp & Chaos software licenses, alongside industrial Make3D additive machines, 3DeVOK metrology scanners, and genuine 3D printing filaments with authorized technical support.
             </p>
           </div>
           <div className="flex items-center space-x-6 text-xs text-slate-500 border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6 shrink-0">
             <div>
-              <strong className="block text-slate-900 font-bold text-sm">Official Partner</strong>
-              <span>Make3D & 3DeVOK authorized</span>
+              <strong className="block text-slate-900 font-bold text-sm">Authorized Official Partner</strong>
+              <span>Graebert • Trimble • Chaos • Make3D • 3DeVOK</span>
             </div>
             <div>
               <strong className="block text-slate-900 font-bold text-sm">Dedicated Technical Service</strong>
-              <span>On-site onboarding & warranty</span>
+              <span>License deployment, onboarding & warranty</span>
             </div>
           </div>
         </div>
@@ -325,7 +354,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search 3D printers, scanners, or filament colours..."
+              placeholder="Search CAD software, 3D printers, scanners, or filaments..."
               className="w-full pl-9 pr-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all"
             />
             <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
@@ -339,7 +368,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
             )}
           </div>
 
-          {/* DROPDOWN SELECTOR FOR PRODUCTS AND FILAMENTS */}
+          {/* DROPDOWN SELECTOR FOR SECTIONS */}
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center space-x-2">
               <label htmlFor="shop-dropdown" className="text-xs font-bold text-slate-700 whitespace-nowrap flex items-center space-x-1">
@@ -353,9 +382,13 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
                   onChange={e => handleCategoryChange(e.target.value)}
                   className="appearance-none bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-red-500 focus:outline-none cursor-pointer shadow-xs transition-colors"
                 >
-                  <option value="all">🌟 All Sections (Printers, Scanners & Filaments)</option>
+                  <option value="all">🌟 All Sections (CAD, Printers, Scanners & Filaments)</option>
+                  <option value="cad-software">💻 CAD & 3D Design Software (Graebert, Trimble & Chaos)</option>
                   <option value="products">📦 3D Printers & Scanners (Hardware Products)</option>
                   <option value="make3d-filaments">🧵 3D Printer Filaments (Make3D PLA & PLA+)</option>
+                  <option value="ares">📐 ARES CAD (Graebert)</option>
+                  <option value="sketchup">🏗️ SketchUp 3D Modeling (Trimble)</option>
+                  <option value="chaos">🎨 Chaos Visualization (V-Ray & Enscape)</option>
                   <option value="fdm">🖨️ FDM 3D Printers</option>
                   <option value="dlp">💡 DLP 3D Printers</option>
                   <option value="lcd">🖥️ Industrial LCD Printers</option>
@@ -391,6 +424,17 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
             All Items ({shopItems.length})
           </button>
           <button
+            onClick={() => handleCategoryChange('cad-software')}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center space-x-1.5 ${
+              selectedCategory === 'cad-software' || selectedCategory === 'ares' || selectedCategory === 'sketchup' || selectedCategory === 'chaos'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'bg-white text-slate-700 border border-slate-200 hover:border-blue-200 hover:bg-blue-50/50'
+            }`}
+          >
+            <Laptop className="w-3.5 h-3.5 text-blue-600" />
+            <span>CAD Software ({shopItems.filter(i => i.category === 'cad-software').length})</span>
+          </button>
+          <button
             onClick={() => handleCategoryChange('products')}
             className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center space-x-1.5 ${
               selectedCategory === 'products'
@@ -399,7 +443,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
             }`}
           >
             <Box className="w-3.5 h-3.5" />
-            <span>3D Printers & Scanners ({shopItems.filter(i => i.category !== 'make3d-filaments').length})</span>
+            <span>3D Printers & Scanners ({shopItems.filter(i => ['fdm', 'dlp', 'lcd', 'scanners'].includes(i.category)).length})</span>
           </button>
           <button
             onClick={() => handleCategoryChange('make3d-filaments')}
@@ -411,6 +455,36 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
           >
             <CircleDot className="w-3.5 h-3.5 text-red-600" />
             <span>3D Printer Filaments ({shopItems.filter(i => i.category === 'make3d-filaments').length})</span>
+          </button>
+          <button
+            onClick={() => handleCategoryChange('ares')}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
+              selectedCategory === 'ares'
+                ? 'bg-slate-800 text-white'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+            }`}
+          >
+            ARES CAD
+          </button>
+          <button
+            onClick={() => handleCategoryChange('sketchup')}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
+              selectedCategory === 'sketchup'
+                ? 'bg-slate-800 text-white'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+            }`}
+          >
+            SketchUp
+          </button>
+          <button
+            onClick={() => handleCategoryChange('chaos')}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
+              selectedCategory === 'chaos'
+                ? 'bg-slate-800 text-white'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+            }`}
+          >
+            Chaos Rendering
           </button>
           <button
             onClick={() => handleCategoryChange('fdm')}
@@ -501,7 +575,27 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
               </div>
             </div>
 
-            {/* Quick Links Banner */}
+            {/* Quick Links Banner 1: CAD Software Hub */}
+            <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-xl border border-blue-100 space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 block">
+                CAD Software Hub
+              </span>
+              <h4 className="text-xs font-bold text-slate-900">
+                Official DWG CAD & 3D Tools
+              </h4>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                Explore perpetual Graebert ARES, SketchUp Pro subscriptions & Chaos photorealistic rendering.
+              </p>
+              <Link
+                to="/products/cad-software"
+                className="inline-flex items-center space-x-1 text-xs font-bold text-blue-600 hover:text-blue-700 pt-1"
+              >
+                <span>Explore CAD Software Hub</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+
+            {/* Quick Links Banner 2: Make3D Filaments */}
             <div className="p-4 bg-gradient-to-br from-red-50 to-rose-50/50 rounded-xl border border-red-100 space-y-2">
               <span className="text-[10px] font-bold uppercase tracking-wider text-red-600 block">
                 Dedicated Showcase
@@ -542,7 +636,88 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
             ) : (
               <>
                 {/* ======================================================== */}
-                {/* SECTION 1: 3D PRINTERS & ADDITIVE SYSTEMS (PRODUCTS)    */}
+                {/* SECTION 1: CAD & 3D ENGINEERING SOFTWARE                 */}
+                {/* ======================================================== */}
+                {(selectedCategory === 'all' ||
+                  selectedCategory === 'cad-software' ||
+                  selectedCategory === 'software' ||
+                  selectedCategory === 'ares' ||
+                  selectedCategory === 'sketchup' ||
+                  selectedCategory === 'chaos') &&
+                  (selectedCategory === 'ares'
+                    ? aresItems
+                    : selectedCategory === 'sketchup'
+                    ? sketchupItems
+                    : selectedCategory === 'chaos'
+                    ? chaosItems
+                    : cadItems
+                  ).length > 0 && (
+                    <section id="section-cad-software" className="space-y-4">
+                      {/* Section Header */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 gap-2">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                            <Laptop className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <h2 className="text-lg font-black text-slate-950 tracking-tight">
+                                CAD & 3D Engineering Software
+                              </h2>
+                              <span className="px-2 py-0.5 text-[10px] font-bold bg-blue-50 text-blue-700 rounded-full">
+                                {(selectedCategory === 'ares'
+                                  ? aresItems
+                                  : selectedCategory === 'sketchup'
+                                  ? sketchupItems
+                                  : selectedCategory === 'chaos'
+                                  ? chaosItems
+                                  : cadItems
+                                ).length} Software Solutions
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500">
+                              Official DWG CAD, 3D modeling, BIM workflows & photorealistic rendering engines by Graebert, Trimble & Chaos
+                            </p>
+                          </div>
+                        </div>
+
+                        {selectedCategory === 'all' ? (
+                          <button
+                            onClick={() => handleCategoryChange('cad-software')}
+                            className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center space-x-1 cursor-pointer self-start sm:self-auto"
+                          >
+                            <span>View All CAD Software</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </button>
+                        ) : (
+                          <Link
+                            to="/products/cad-software"
+                            className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center space-x-1 self-start sm:self-auto"
+                          >
+                            <span>Full Software Hub</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </Link>
+                        )}
+                      </div>
+
+                      {/* Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {(selectedCategory === 'ares'
+                          ? aresItems
+                          : selectedCategory === 'sketchup'
+                          ? sketchupItems
+                          : selectedCategory === 'chaos'
+                          ? chaosItems
+                          : cadItems
+                        ).map(item => (
+                          <ProductCard key={item.id} item={item} />
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                {/* ======================================================== */}
+                {/* SECTION 2: 3D PRINTERS & ADDITIVE SYSTEMS (PRODUCTS)    */}
                 {/* ======================================================== */}
                 {(selectedCategory === 'all' ||
                   selectedCategory === 'products' ||
@@ -600,7 +775,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
                   )}
 
                 {/* ======================================================== */}
-                {/* SECTION 2: 3D METROLOGY & PRECISION SCANNERS (PRODUCTS) */}
+                {/* SECTION 3: 3D METROLOGY & PRECISION SCANNERS (PRODUCTS) */}
                 {/* ======================================================== */}
                 {(selectedCategory === 'all' ||
                   selectedCategory === 'products' ||
@@ -649,7 +824,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
                   )}
 
                 {/* ======================================================== */}
-                {/* SECTION 3: MAKE3D 3D PRINTER FILAMENTS (FILAMENTS)      */}
+                {/* SECTION 4: MAKE3D 3D PRINTER FILAMENTS (FILAMENTS)      */}
                 {/* ======================================================== */}
                 {(selectedCategory === 'all' ||
                   selectedCategory === 'make3d-filaments' ||
