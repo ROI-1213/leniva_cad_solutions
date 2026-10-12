@@ -588,10 +588,13 @@ export const Header: React.FC = () => {
                       <div className="mt-6 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
                         <span>Need tailored machine specifications or CAD configuration advice?</span>
                         <button
-                          onClick={() => openQuoteModal('General Inquiry')}
-                          className="font-bold text-red-600 hover:text-red-800"
+                          onClick={() => {
+                            setActiveMegaMenu(null)
+                            openQuoteModal('3D Printer Inquiry')
+                          }}
+                          className="font-bold text-red-600 hover:text-red-800 cursor-pointer"
                         >
-                          Talk to an Engineer →
+                          Request a Quote →
                         </button>
                       </div>
                     </div>
