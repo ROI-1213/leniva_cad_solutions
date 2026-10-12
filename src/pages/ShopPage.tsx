@@ -331,7 +331,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
               CAD Software, 3D Printers, 3D Scanners & Engineering Filaments
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
-              Explore official Graebert ARES, Trimble SketchUp & Chaos software licenses, alongside industrial Make3D additive machines, 3DeVOK metrology scanners, and genuine 3D printing filaments with authorized technical support.
+              Explore official Graebert ARES, Trimble SketchUp & Chaos software licenses, alongside industrial Make3D additive machines, 3DeVOK 3D scanners, and genuine 3D printing filaments with authorized technical support.
             </p>
           </div>
           <div className="flex items-center space-x-6 text-xs text-slate-500 border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6 shrink-0">
@@ -392,7 +392,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
                   <option value="fdm">🖨️ FDM 3D Printers</option>
                   <option value="dlp">💡 DLP 3D Printers</option>
                   <option value="lcd">🖥️ Industrial LCD Printers</option>
-                  <option value="scanners">📡 3D Metrology Scanners</option>
+                  <option value="scanners">📡 3D Scanners</option>
                 </select>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2.5 top-3 pointer-events-none" />
               </div>
@@ -791,7 +791,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
                           <div>
                             <div className="flex items-center space-x-2">
                               <h2 className="text-lg font-black text-slate-950 tracking-tight">
-                                Precision 3D Metrology Scanners
+                                Precision 3D Scanners
                               </h2>
                               <span className="px-2 py-0.5 text-[10px] font-bold bg-blue-50 text-blue-700 rounded-full">
                                 {scannerItems.length} Scanners

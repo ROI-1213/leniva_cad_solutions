@@ -664,7 +664,7 @@ export const Header: React.FC = () => {
                           </span>
                         </div>
                         <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
-                          FDM, DLP & LCD printers & metrology scanners
+                          FDM, DLP & LCD printers & 3D scanners
                         </p>
                       </div>
                     </Link>

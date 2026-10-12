@@ -224,7 +224,7 @@ export const DevokMQPage: React.FC = () => {
             <div className="lg:col-span-6 space-y-6">
               <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-bold uppercase tracking-wider">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Next-Gen Color 3D Metrology</span>
+                <span>Next-Gen Color 3D Scanning</span>
               </div>
 
               <div>

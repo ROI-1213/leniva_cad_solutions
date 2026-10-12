@@ -343,13 +343,13 @@ const showcaseCategories: ShowcaseCategorySection[] = [
     ],
   },
 
-  // 4. 3D SCANNERS (HIGHLIGHTED)
+  // 4. 3D SCANNERS
   {
     id: 'scanners',
-    categoryTag: '★ HIGHLIGHTED SOLUTION — PRECISION METROLOGY',
+    categoryTag: 'EXPLORE OUR',
     titlePrimary: '3D Scanners',
     titleAccent: 'Technology',
-    subtitle: 'Metrology-grade optical, laser & infrared digitizing systems for inspection, CMM and reverse engineering.',
+    subtitle: 'High-precision optical, laser & infrared digitizing systems for inspection, CMM and reverse engineering.',
     catalogLink: '/products/3d-scanners',
     catalogText: 'Explore All 3D Scanners',
     featuredImage: '/images/blogs/blog-3d-scanning-inspection.jpg',
@@ -383,13 +383,13 @@ const showcaseCategories: ShowcaseCategorySection[] = [
         id: '3devok-mt',
         name: '3DeVOK',
         nameAccent: 'MT',
-        subtitle: 'Industrial Metrology Coordinate Scanner',
+        subtitle: 'Industrial Coordinate 3D Scanner',
         description: 'VDI/VDE 2634 Part 2 certified scanner engineered for robotic inline verification and CAD comparison.',
         modelsCount: '0.04 mm Accuracy',
-        badgeLabel: 'Metrology Flagship',
+        badgeLabel: 'Industrial Flagship',
         image: '/images/scanners/3devok-mt.png',
         link: '/3d-scanners/3devok-mt',
-        quoteInquiry: '3DeVOK MT Metrology Scanner Inquiry',
+        quoteInquiry: '3DeVOK MT 3D Scanner Inquiry',
         isContain: true,
         features: [
           { icon: Award, label: '0.015mm Accuracy' },

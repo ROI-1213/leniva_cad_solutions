@@ -87,7 +87,7 @@ export const AboutPage: React.FC = () => {
               Our Technology Portfolio
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              End-to-end integration covering CAD software, industrial 3D printers, and highlighted metrology 3D scanners.
+              End-to-end integration covering CAD software, industrial 3D printers, and precision 3D scanners.
             </p>
           </div>
 
@@ -116,18 +116,15 @@ export const AboutPage: React.FC = () => {
               </p>
             </div>
 
-            {/* 3. 3D Scanning & Metrology (Third - HIGHLIGHTED) */}
-            <div className="bg-white p-6 rounded-2xl border-2 border-red-600 shadow-md space-y-3 relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-bl-xl shadow-xs">
-                ★ Highlighted
+            {/* 3. 3D Scanners (Third) */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-slate-900" />
               </div>
-              <div className="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center shadow-xs">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <div className="text-[10px] font-mono font-bold text-red-600 uppercase tracking-wider">Priority 03 • Highlighted</div>
-              <h3 className="text-base font-bold text-slate-950">3. 3D Scanners & Metrology</h3>
+              <div className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">Priority 03</div>
+              <h3 className="text-base font-bold text-slate-900">3. 3D Scanners</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                EinScan multi-functional scanners and 3DeVOK high-accuracy blue-light inspection scanners for non-contact GD&T inspection and legacy CAD reconstruction.
+                EinScan multi-functional scanners and 3DeVOK high-accuracy blue-light inspection scanners for non-contact inspection and legacy CAD reconstruction.
               </p>
             </div>
           </div>

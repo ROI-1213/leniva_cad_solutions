@@ -163,7 +163,7 @@ export const ScannersCategoryPage: React.FC = () => {
       category: 'GD&T Deviation Heatmaps',
       desc: 'Perform full 3D part-to-CAD deviation comparisons with automated color deviation maps and certified inspection reports.',
       image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
-      badge: '0.04 mm Metrology',
+      badge: '0.04 mm Accuracy',
       badgeColor: 'bg-emerald-600/10 text-emerald-700 border-emerald-600/20',
     },
     {
@@ -864,7 +864,7 @@ export const ScannersCategoryPage: React.FC = () => {
                 </div>
 
                 <div className="absolute top-4 right-4 bg-slate-800/90 backdrop-blur-sm px-3 py-1 rounded-lg text-xs font-bold text-white border border-slate-700 shadow-xs z-20">
-                  0.04 mm Metrology
+                  0.04 mm Accuracy
                 </div>
               </div>
 
@@ -1032,7 +1032,7 @@ export const ScannersCategoryPage: React.FC = () => {
               <div className="space-y-5">
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                   <div>
-                    <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">Metrology Flagship</span>
+                    <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">Industrial Flagship</span>
                     <h3 className="text-2xl font-black text-slate-900">3DeVOK MT</h3>
                   </div>
                   <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-full">
@@ -1274,7 +1274,7 @@ export const ScannersCategoryPage: React.FC = () => {
               Verified Technical Benchmarks
             </span>
             <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-              8 Key Metrology Capabilities
+              8 Key 3D Scanning Capabilities
             </h2>
             <p className="text-sm sm:text-base text-slate-600 font-normal">
               Engineered with proven optical specifications to meet rigorous production standards across industrial shop floors.
@@ -1509,7 +1509,7 @@ export const ScannersCategoryPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-3 mb-14">
             <span className="text-xs font-bold uppercase tracking-wider text-orange-600 font-mono">
-              Digital Metrology Pipeline
+              Digital 3D Scanning Pipeline
             </span>
             <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
               From Physical Object to Digital Model
@@ -1752,7 +1752,7 @@ export const ScannersCategoryPage: React.FC = () => {
             <div className="lg:col-span-7 space-y-6 relative z-10">
               <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-orange-500/10 text-orange-600 text-xs font-bold border border-orange-500/20">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Next-Gen Metrology Solutions</span>
+                <span>Next-Gen 3D Scanning Solutions</span>
               </div>
 
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight">

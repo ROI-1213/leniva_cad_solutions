@@ -44,7 +44,7 @@ export const DevokMTPage: React.FC = () => {
       id: 'render',
       label: '3D Studio Model',
       src: devokMTData.heroImage,
-      badge: 'Metrology Grade',
+      badge: 'Industrial Grade',
       subBadge: '34 Blue + 22 IR Lasers',
       desc: 'Precision laser scanning with VDI/VDE 2634 compliant accuracy.',
     },
@@ -249,7 +249,7 @@ export const DevokMTPage: React.FC = () => {
                   className="px-8 py-3.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl backdrop-blur-sm border border-white/20 transition-all flex items-center space-x-2 cursor-pointer"
                 >
                   <Phone className="w-4 h-4 text-red-400" />
-                  <span>Talk to an Industrial Metrology Expert</span>
+                  <span>Talk to an Industrial 3D Scanning Expert</span>
                 </button>
               </div>
 
@@ -266,7 +266,7 @@ export const DevokMTPage: React.FC = () => {
       </section>
 
       {/* ====================================================
-          2. MT CORE FEATURES (4 LARGE BLOCKS + METROLOGY CARD)
+          2. MT CORE FEATURES (4 LARGE BLOCKS)
          ==================================================== */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
         <div className="text-center max-w-2xl mx-auto mb-14 space-y-2">
@@ -274,7 +274,7 @@ export const DevokMTPage: React.FC = () => {
             Industrial Performance Standard
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
-            Metrology Precision Under Any Workshop Condition
+            High Precision Under Any Workshop Condition
           </h2>
           <p className="text-xs sm:text-sm text-slate-500">
             Engineered for high-volume manufacturing environments, tight aerospace tolerances, and demanding automotive toolrooms.
@@ -310,7 +310,7 @@ export const DevokMTPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Metrology & QC Assurance Banner */}
+        {/* Quality & QC Assurance Banner */}
         <div className="mt-8 bg-gradient-to-r from-slate-900 via-slate-950 to-blue-950 rounded-2xl p-6 sm:p-8 border border-slate-800 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center shrink-0">
@@ -326,7 +326,7 @@ export const DevokMTPage: React.FC = () => {
             </div>
           </div>
           <button
-            onClick={() => openQuoteModal('3DeVOK MT - Metrology Compliance Report')}
+            onClick={() => openQuoteModal('3DeVOK MT - Inspection Compliance Report')}
             className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all shadow shrink-0 cursor-pointer"
           >
             Request Calibration Certificate Spec
@@ -460,7 +460,7 @@ export const DevokMTPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
             <span className="text-xs font-bold uppercase tracking-wider text-red-600 font-mono">
-              Datasheet & Metrology Parameters
+              Datasheet & Scanning Parameters
             </span>
             <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
               Technical Specifications
@@ -570,7 +570,7 @@ export const DevokMTPage: React.FC = () => {
               Visual Portfolio
             </span>
             <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
-              Hardware Design & Laser Metrology Gallery
+              Hardware Design & Laser Scanner Gallery
             </h2>
             <p className="text-xs sm:text-sm text-slate-500">
               Click on any photograph to view high-resolution details of the 3DeVOK MT hardware and scan outputs.
@@ -611,10 +611,10 @@ export const DevokMTPage: React.FC = () => {
                 Precision Quality Control
               </span>
               <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-                Ready to Accelerate Your Metrology & Reverse Engineering?
+                Ready to Accelerate Your 3D Scanning & Reverse Engineering?
               </h2>
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Connect with our metrology application engineers to schedule an on-site demonstration with your actual workpieces or request benchmark inspection test scans.
+                Connect with our 3D scanning application engineers to schedule an on-site demonstration with your actual workpieces or request benchmark inspection test scans.
               </p>
             </div>
 

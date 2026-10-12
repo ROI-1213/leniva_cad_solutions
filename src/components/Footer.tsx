@@ -112,17 +112,14 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Col 3: 3D Scanners (Third in hierarchy - HIGHLIGHTED) */}
-          <div className="space-y-3 bg-red-950/20 p-3 rounded-xl border border-red-900/40">
-            <h4 className="font-bold text-red-400 uppercase tracking-wider text-xs flex items-center justify-between">
-              <span>3D Scanners</span>
-              <span className="px-1.5 py-0.2 bg-red-600 text-white text-[8px] font-black uppercase rounded shadow-2xs">
-                Highlighted
-              </span>
+          {/* Col 3: 3D Scanners */}
+          <div className="space-y-3">
+            <h4 className="font-bold text-white uppercase tracking-wider text-xs">
+              3D Scanners
             </h4>
-            <ul className="space-y-2 text-slate-300">
+            <ul className="space-y-2 text-slate-400">
               <li><Link to="/3d-scanners/3devok-mq" className="hover:text-red-400 transition-colors">3DeVOK MQ Color</Link></li>
-              <li><Link to="/3d-scanners/3devok-mt" className="hover:text-red-400 transition-colors">3DeVOK MT Metrology</Link></li>
+              <li><Link to="/3d-scanners/3devok-mt" className="hover:text-red-400 transition-colors">3DeVOK MT Laser</Link></li>
               <li><Link to="/products/einscan" className="hover:text-red-400 transition-colors">EINSTAR Handheld</Link></li>
               <li><Link to="/products/3d-scanners" className="hover:text-red-400 transition-colors">Optical Inspection</Link></li>
               <li><Link to="/products/3d-scanners" className="hover:text-red-400 font-semibold text-red-400">All 3D Scanners →</Link></li>

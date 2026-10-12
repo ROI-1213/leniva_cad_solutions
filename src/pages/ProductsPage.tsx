@@ -72,13 +72,13 @@ export const ProductsPage: React.FC = () => {
     },
     {
       id: 'scanners',
-      title: '3D Scanners & Metrology',
-      tag: '★ HIGHLIGHTED • METROLOGY',
+      title: '3D Scanners',
+      tag: '3DEVOK & EINSTAR',
       description: 'Handheld & optical coordinate laser digitizers capturing millions of points per second down to 0.04 mm.',
       icon: Scan,
       route: '/products/3d-scanners',
-      accent: 'border-2 border-red-600 shadow-md ring-2 ring-red-500/20',
-      badgeColor: 'bg-red-600 text-white border-red-600',
+      accent: 'border-slate-300 hover:border-slate-800',
+      badgeColor: 'bg-slate-100 text-slate-800 border-slate-200',
       flagships: ['3DeVOK MT (Hybrid Laser)', '3DeVOK MQ (Color 3D)', 'EINSTAR Handheld'],
     },
   ]
@@ -161,7 +161,7 @@ export const ProductsPage: React.FC = () => {
 
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl font-normal">
               India’s comprehensive lineup of verified additive manufacturing hardware — from high-speed CoreXY
-              industrial FDM machines and 16K jewelry DLP/LCD printers to optical metrology scanners and professional CAD suites.
+              industrial FDM machines and 16K jewelry DLP/LCD printers to high-precision 3D scanners and professional CAD suites.
             </p>
 
             <div className="pt-3 flex flex-wrap items-center gap-3">
@@ -358,19 +358,16 @@ export const ProductsPage: React.FC = () => {
             >
               DLP &amp; LCD Resin Printers
             </button>
-            {/* 3. 3D Scanners Third - HIGHLIGHTED */}
+            {/* 3. 3D Scanners Third */}
             <button
               onClick={() => setSelectedTech('scanners')}
-              className={`px-3.5 py-1.5 rounded-lg whitespace-nowrap transition-all font-bold cursor-pointer border flex items-center space-x-1.5 ${
+              className={`px-3.5 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold cursor-pointer ${
                 selectedTech === 'scanners'
-                  ? 'bg-red-600 text-white border-red-600 shadow-sm'
-                  : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                  ? 'bg-red-600 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
-              <span>3D Scanners (Metrology)</span>
-              <span className={`px-1.5 py-0.2 text-[9px] uppercase font-black rounded ${selectedTech === 'scanners' ? 'bg-white text-red-600' : 'bg-red-600 text-white'}`}>
-                ★ Highlighted
-              </span>
+              3D Scanners
             </button>
           </div>
         </div>

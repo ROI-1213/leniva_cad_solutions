@@ -66,7 +66,7 @@ export const devokMQData: ScannerProductDetail = {
   name: '3DeVOK MQ 3D Color Scanner',
   modelName: '3DeVOK MQ',
   tagline: 'High-Precision Full-Color 3D Scanning',
-  subtitle: 'Portable, Wireless & Marker-Free Color 3D Metrology',
+  subtitle: 'Portable, Wireless & Marker-Free Color 3D Scanning',
   description:
     'Capture ultra-accurate geometry and realistic color textures with the advanced 3DeVOK MQ 3D Color Scanner. Designed for engineering, inspection, reverse engineering, product design, cultural heritage, education and digital archiving.',
   trustLine:
@@ -302,7 +302,7 @@ export const devokMTData: ScannerProductDetail = {
   name: '3DeVOK MT Professional 3D Scanner',
   modelName: '3DeVOK MT',
   tagline: 'Industrial-Grade 3D Scanning. Built for Precision.',
-  subtitle: 'Metrology-Grade Multi-Laser Array with 34 Blue + 22 Infrared Lines',
+  subtitle: 'High-Precision Multi-Laser Array with 34 Blue + 22 Infrared Lines',
   description:
     'The 3DeVOK MT is a professional high-performance 3D scanner designed for reverse engineering, quality inspection, product design, 3D measurement, digital archiving, visualization and industrial applications.',
   trustLine:
@@ -333,7 +333,7 @@ export const devokMTData: ScannerProductDetail = {
     },
     {
       badge: 'ROBUST',
-      title: '0.04 mm Metrology Accuracy',
+      title: '0.04 mm High Precision Accuracy',
       description:
         'Delivers 0.05 mm fine resolution and 0.04 mm basic accuracy with vivid color restoration for demanding inspection benchmarks.',
       highlight: '0.04 mm Accuracy',
@@ -497,7 +497,7 @@ export const devokMTData: ScannerProductDetail = {
       step: '03',
       title: 'Analyze',
       description: 'Compare scan against original CAD math model with GD&T deviation heat-map analysis.',
-      stage: 'Metrology Inspection',
+      stage: 'Quality Inspection',
       icon: 'ShieldCheck',
     },
     {
@@ -511,12 +511,12 @@ export const devokMTData: ScannerProductDetail = {
   seo: {
     title: '3DeVOK MT Professional 3D Scanner | Industrial 3D Scanning | Leniva CAD Solutions',
     description:
-      'Discover the 3DeVOK MT Professional 3D Scanner at Leniva CAD Solutions. 34 blue laser lines, 22 IR lines, 0.04 mm accuracy, 0.05 mm resolution, and marker-free metrology scanning.',
+      'Discover the 3DeVOK MT Professional 3D Scanner at Leniva CAD Solutions. 34 blue laser lines, 22 IR lines, 0.04 mm accuracy, 0.05 mm resolution, and marker-free 3D laser scanning.',
     keywords: [
       '3DeVOK MT',
       'Industrial 3D Scanner',
       'Blue Laser 3D Scanner',
-      'Metrology 3D Scanner India',
+      'High-Precision 3D Scanner India',
       'Reverse Engineering Scanner',
       'Leniva CAD Solutions',
     ],
@@ -531,7 +531,7 @@ export const scannerComparisonRows = [
     winner: 'mt',
   },
   {
-    feature: 'Metrology Accuracy',
+    feature: 'Scanning Accuracy',
     mq: 'Up to 0.08 mm',
     mt: 'Up to 0.04 mm + 0.06 mm/m',
     winner: 'mt',

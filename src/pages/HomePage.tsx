@@ -326,7 +326,7 @@ export const HomePage: React.FC = () => {
                 </span>
               </h1>
               <p className="text-sm sm:text-[15px] text-slate-600 font-normal leading-relaxed max-w-2xl">
-                Official Trimble & Chaos certified CAD and rendering software, industrial FDM, DLP & LCD 3D printing systems, and high-precision metrology 3D scanners across India.
+                Official Trimble & Chaos certified CAD and rendering software, industrial FDM, DLP & LCD 3D printing systems, and high-precision 3D scanners across India.
               </p>
             </div>
 
@@ -700,12 +700,9 @@ export const HomePage: React.FC = () => {
                 <span className="w-2 h-2 bg-red-600 rounded-full shrink-0" />
                 <span>2. Industrial & Desktop 3D Printers</span>
               </div>
-              <div className="flex items-center space-x-2.5 sm:col-span-2 p-2 bg-red-50/80 border border-red-200 rounded-xl shadow-2xs">
+              <div className="flex items-center space-x-2.5 sm:col-span-2">
                 <span className="w-2 h-2 bg-red-600 rounded-full shrink-0" />
-                <span className="font-bold text-red-950">3. 3D Scanners (Professional Metrology & Reverse Engineering)</span>
-                <span className="ml-auto px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-red-600 text-white rounded-md shrink-0 shadow-2xs">
-                  Highlighted
-                </span>
+                <span>3. 3D Scanners (Professional Optical & Laser Scanning)</span>
               </div>
 
             </div>

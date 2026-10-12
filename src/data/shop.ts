@@ -722,7 +722,7 @@ export const shopItems: ShopItem[] = [
   {
     id: 'shop-3devok-mt',
     slug: '3devok-mt',
-    name: '3DeVOK MT Metrology 3D Scanner',
+    name: '3DeVOK MT 3D Scanner',
     category: 'scanners',
     categoryName: '3D Scanners',
     brand: '3DeVOK',
@@ -732,11 +732,11 @@ export const shopItems: ShopItem[] = [
     inStock: true,
     rating: 5.0,
     reviewsCount: 48,
-    badge: '0.04 mm Metrology',
+    badge: '0.04 mm Accuracy',
     isQuoteBased: true,
     productSlug: '3devok-mt',
     isContain: true,
-    shortDescription: 'Certified 0.04 mm accuracy industrial metrology scanner equipped with 34 blue laser lines and 22 infrared laser grid for shiny, black, and dark surfaces.',
+    shortDescription: 'Certified 0.04 mm accuracy industrial laser scanner equipped with 34 blue laser lines and 22 infrared laser grid for shiny, black, and dark surfaces.',
     specifications: {
       'Accuracy': 'Up to 0.04 mm (VDI/VDE 2634 compliant)',
       'Light Source': '34 Blue Cross Lasers + 22 Deep IR Lasers',
