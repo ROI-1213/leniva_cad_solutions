@@ -12,9 +12,6 @@ import {
   CheckCircle2,
   ChevronRight,
   Sparkles,
-  Zap,
-  Maximize2,
-  Cpu,
 } from 'lucide-react'
 import { products } from '../data/products'
 import { ProductCard } from '../components/ProductCard'
