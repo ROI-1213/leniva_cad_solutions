@@ -91,11 +91,11 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-2 text-slate-400">
               <li><Link to="/products/sketchup" className="hover:text-red-400 transition-colors">SketchUp Pro</Link></li>
-              <li><Link to="/cad-software/ares-standard" className="hover:text-red-400 transition-colors">ARES Standard</Link></li>
-              <li><Link to="/cad-software/ares-commander" className="hover:text-red-400 transition-colors">ARES Commander</Link></li>
+              <li><Link to="/products/ares-standard" className="hover:text-red-400 transition-colors">ARES Standard</Link></li>
+              <li><Link to="/products/ares-commander" className="hover:text-red-400 transition-colors">ARES Commander</Link></li>
               <li><Link to="/products/vray" className="hover:text-red-400 transition-colors">Chaos V-Ray</Link></li>
               <li><Link to="/products/enscape" className="hover:text-red-400 transition-colors">Chaos Enscape</Link></li>
-              <li><Link to="/products/cad-software" className="hover:text-red-400 font-semibold text-red-400">Software Suite →</Link></li>
+              <li><Link to="/products/cad-software" className="hover:text-red-400 font-semibold text-red-400">All Software Suite →</Link></li>
             </ul>
           </div>
 
@@ -103,12 +103,13 @@ export const Footer: React.FC = () => {
           <div className="space-y-3">
             <h4 className="font-bold text-white uppercase tracking-wider text-xs">3D Printers</h4>
             <ul className="space-y-2 text-slate-400">
-              <li><Link to="/products/fdm-3d-printers" className="hover:text-red-400 transition-colors">FDM 3D Printers</Link></li>
-              <li><Link to="/products/dlp-3d-printers" className="hover:text-red-400 transition-colors">DLP 3D Printers</Link></li>
-              <li><Link to="/products/industrial-lcd-3d-printers" className="hover:text-red-400 transition-colors">Industrial LCD Systems</Link></li>
               <li><Link to="/products/pratham-3-rapid" className="hover:text-red-400 transition-colors">Pratham 3 Rapid (500 mm/s)</Link></li>
               <li><Link to="/products/pratham-6" className="hover:text-red-400 transition-colors">Pratham 6.0 Large Format</Link></li>
-              <li><Link to="/products" className="hover:text-red-400 font-semibold text-red-400">Printers Catalog →</Link></li>
+              <li><Link to="/products/pratham-desktop" className="hover:text-red-400 transition-colors">Pratham Desktop</Link></li>
+              <li><Link to="/products/pratham-x" className="hover:text-red-400 transition-colors">Pratham X (1000) Giant</Link></li>
+              <li><Link to="/products/eka-ht" className="hover:text-red-400 transition-colors">EKA HT (DLP Resin)</Link></li>
+              <li><Link to="/products/eka-gt-max" className="hover:text-red-400 transition-colors">EKA GT MAX (Industrial LCD)</Link></li>
+              <li><Link to="/products" className="hover:text-red-400 font-semibold text-red-400">All 3D Printers →</Link></li>
             </ul>
           </div>
 
@@ -121,7 +122,6 @@ export const Footer: React.FC = () => {
               <li><Link to="/3d-scanners/3devok-mq" className="hover:text-red-400 transition-colors">3DeVOK MQ Color</Link></li>
               <li><Link to="/3d-scanners/3devok-mt" className="hover:text-red-400 transition-colors">3DeVOK MT Laser</Link></li>
               <li><Link to="/products/einscan" className="hover:text-red-400 transition-colors">EINSTAR Handheld</Link></li>
-              <li><Link to="/products/3d-scanners" className="hover:text-red-400 transition-colors">Optical Inspection</Link></li>
               <li><Link to="/products/3d-scanners" className="hover:text-red-400 font-semibold text-red-400">All 3D Scanners →</Link></li>
             </ul>
           </div>
