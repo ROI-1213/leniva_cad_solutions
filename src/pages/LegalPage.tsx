@@ -62,7 +62,7 @@ export const LegalPage: React.FC = () => {
         sections: [
           {
             heading: '1. Standard 12-Month Hardware Warranty',
-            body: 'All industrial 3D printers (Pratham, EKA, ZRapid) and 3DeVOK / EinScan scanners supplied by Leniva CAD Solutions include a standard 12-month manufacturer hardware warranty covering controller motherboards, stepper drivers, power supplies, galvanometer mirrors, and optical laser units.',
+            body: 'All industrial 3D printers (Pratham, EKA) and 3DeVOK / EinScan scanners supplied by Leniva CAD Solutions include a standard 12-month manufacturer hardware warranty covering controller motherboards, stepper drivers, power supplies, galvanometer mirrors, and optical laser units.',
           },
           {
             heading: '2. Consumable Wear Components',

@@ -70,7 +70,7 @@ export const services: Service[] = [
     slug: 'sla-3d-printing',
     title: 'SLA 3D Printing Services',
     shortDescription: 'Industrial laser stereolithography delivering mirror-smooth surface quality, tight dimensional tolerances, and injection-mold appearance.',
-    description: 'When cosmetic appearance, fluid-tightness, and sub-millimeter detail are paramount, Leniva’s industrial SLA service is the solution. Powered by our large-scale ZRapid iSLA systems, we manufacture models with undetectable layer steps, sharp corners, and glass-clear transparencies.',
+    description: 'When cosmetic appearance, fluid-tightness, and sub-millimeter detail are paramount, Leniva’s industrial SLA service is the solution. Powered by our large-scale industrial laser SLA systems, we manufacture models with undetectable layer steps, sharp corners, and glass-clear transparencies.',
     image: '/images/services/service-sla-printing.jpg',
     badge: 'Mirror Finish',
     applications: [
@@ -83,7 +83,7 @@ export const services: Service[] = [
     advantages: [
       'Injection-molding surface quality directly from the vat',
       'Ultra-fine laser spot capturing crisp micro-features',
-      'Single-piece builds up to 1100 mm long on iSLA 1100',
+      'Single-piece builds with large-scale monolithic envelopes',
       'Excellent paint adhesion and electroplating compatibility',
     ],
     workflow: [
@@ -95,6 +95,6 @@ export const services: Service[] = [
       { step: 6, title: 'Surface Finishing & Clear Coating', description: 'Optional wet sanding, polishing to optical clarity, priming, or color spray painting.' },
     ],
     supportedMaterials: ['Photosensitive White Resin', 'High-Impact ABS-Like Resin', 'Optical Clear Resin', 'High-Temp 150°C Resin'],
-    technologiesUsed: ['Industrial Laser SLA (ZRapid iSLA Series)'],
+    technologiesUsed: ['Industrial Laser Stereolithography (SLA)'],
   }
 ]

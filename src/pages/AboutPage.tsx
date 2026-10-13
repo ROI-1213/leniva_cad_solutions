@@ -112,7 +112,7 @@ export const AboutPage: React.FC = () => {
               <div className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">Priority 02</div>
               <h3 className="text-base font-bold text-slate-900">2. 3D Printers (Additive Hardware)</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Pratham high-speed FDM systems (up to 1-meter cubic volume), EKA micro-precision DLP/LCD resin printers, and ZRapid industrial large-format laser SLA printers.
+                Pratham high-speed FDM systems (up to 1-meter cubic volume), and EKA micro-precision DLP/LCD resin printers.
               </p>
             </div>
 
