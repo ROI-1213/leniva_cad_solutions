@@ -628,125 +628,155 @@ export const Header: React.FC = () => {
 
               {/* Shop Dropdown Menu */}
               {activeMegaMenu === 'shop' && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 w-88 animate-fade-in">
-                  <div className="bg-white rounded-2xl shadow-2xl border border-slate-200/90 p-3 space-y-2 overflow-hidden">
-                    {/* Header */}
-                    <div className="px-2 py-1 border-b border-slate-100 flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        Shop Online
-                      </span>
+                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2.5 z-50 w-[620px] max-w-[92vw] animate-fade-in">
+                  <div className="bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden">
+                    {/* Header Banner */}
+                    <div className="px-5 py-3 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
+                          <ShoppingCart className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                          Leniva Online Store
+                        </span>
+                      </div>
                       <Link
                         to="/shop"
                         onClick={() => setActiveMegaMenu(null)}
-                        className="text-[11px] font-bold text-red-600 hover:text-red-700 flex items-center space-x-0.5"
+                        className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center space-x-1 group/link"
                       >
-                        <span>All Store Items</span>
-                        <ArrowRight className="w-3 h-3" />
+                        <span>Explore All Store Products</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" />
                       </Link>
                     </div>
 
-                    {/* Section 1: CAD & 3D Design Software */}
-                    <Link
-                      to="/shop?category=cad-software"
-                      onClick={() => setActiveMegaMenu(null)}
-                      className="flex items-start space-x-3 p-2.5 rounded-xl hover:bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all group"
-                    >
-                      <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 group-hover:bg-red-600 group-hover:text-white transition-colors">
-                        <Layers className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-1.5">
-                          <span className="text-xs font-bold text-slate-900 group-hover:text-red-600 transition-colors">
-                            CAD &amp; 3D Software
-                          </span>
-                          <span className="text-[9px] font-bold px-1.5 py-0.2 bg-red-100 text-red-700 rounded">
-                            Authorized
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
-                          ARES CAD, SketchUp, Chaos V-Ray &amp; Enscape
-                        </p>
-                      </div>
-                    </Link>
-
-                    {/* Section 2: 3D Printers & Scanners (Products) */}
-                    <Link
-                      to="/shop/products"
-                      onClick={() => setActiveMegaMenu(null)}
-                      className="flex items-start space-x-3 p-2.5 rounded-xl hover:bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all group"
-                    >
-                      <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 group-hover:bg-red-600 group-hover:text-white transition-colors">
-                        <Printer className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-1.5">
-                          <span className="text-xs font-bold text-slate-900 group-hover:text-red-600 transition-colors">
-                            3D Printers &amp; Scanners
-                          </span>
-                          <span className="text-[9px] font-bold px-1.5 py-0.2 bg-slate-100 text-slate-700 rounded">
-                            Products
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
-                          FDM, DLP &amp; LCD printers &amp; 3D scanners
-                        </p>
-                      </div>
-                    </Link>
-
-                    {/* Section 3: 3D Printer Filaments */}
-                    <Link
-                      to="/shop/filaments"
-                      onClick={() => setActiveMegaMenu(null)}
-                      className="flex items-start space-x-3 p-2.5 rounded-xl hover:bg-red-50/50 border border-red-100/70 hover:border-red-200 transition-all group"
-                    >
-                      <div className="w-9 h-9 rounded-xl bg-red-100/70 text-red-600 flex items-center justify-center shrink-0 group-hover:bg-red-600 group-hover:text-white transition-colors">
-                        <CircleDot className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-1.5">
-                          <span className="text-xs font-bold text-slate-900 group-hover:text-red-600 transition-colors">
-                            3D Printer Filaments
-                          </span>
-                          <span className="text-[9px] font-bold px-1.5 py-0.2 bg-red-600 text-white rounded">
-                            Make3D
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
-                          PLA &amp; PLA+ in 8 vibrant colours (1 KG / 1.75 mm)
-                        </p>
-                      </div>
-                    </Link>
-
-                    {/* Quick sub-links */}
-                    <div className="pt-2 border-t border-slate-100 px-1 grid grid-cols-2 gap-1 text-[11px]">
+                    {/* Main Categories Section */}
+                    <div className="p-4 space-y-2.5">
+                      {/* Section 1: CAD & 3D Design Software */}
                       <Link
                         to="/shop?category=cad-software"
                         onClick={() => setActiveMegaMenu(null)}
-                        className="px-2 py-1 rounded-md text-slate-600 hover:text-red-600 hover:bg-slate-50 truncate font-medium"
+                        className="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 hover:border-red-200 hover:bg-red-50/30 transition-all duration-200 group"
                       >
-                        • CAD Software (13)
+                        <div className="flex items-center space-x-3.5 min-w-0">
+                          <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:bg-red-600 group-hover:text-white transition-colors duration-200 shadow-2xs">
+                            <Layers className="w-5 h-5" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm font-bold text-slate-900 group-hover:text-red-600 transition-colors">
+                                CAD &amp; 3D Design Software
+                              </span>
+                              <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
+                                Authorized Partner
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">
+                              Official perpetual &amp; subscription licenses for ARES CAD, Trimble SketchUp, Chaos V-Ray &amp; Enscape
+                            </p>
+                          </div>
+                        </div>
+                        <div className="w-7 h-7 rounded-lg bg-slate-50 group-hover:bg-red-100 flex items-center justify-center text-slate-400 group-hover:text-red-600 transition-colors shrink-0 ml-3">
+                          <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                        </div>
                       </Link>
+
+                      {/* Section 2: 3D Printers & Scanners */}
                       <Link
-                        to="/shop/fdm"
+                        to="/shop/products"
                         onClick={() => setActiveMegaMenu(null)}
-                        className="px-2 py-1 rounded-md text-slate-600 hover:text-red-600 hover:bg-slate-50 truncate"
+                        className="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 hover:border-red-200 hover:bg-red-50/30 transition-all duration-200 group"
                       >
-                        • FDM 3D Printers
+                        <div className="flex items-center space-x-3.5 min-w-0">
+                          <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 group-hover:bg-red-600 group-hover:text-white transition-colors duration-200 shadow-2xs">
+                            <Printer className="w-5 h-5" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm font-bold text-slate-900 group-hover:text-red-600 transition-colors">
+                                3D Printers &amp; 3D Scanners
+                              </span>
+                              <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full">
+                                Hardware Systems
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">
+                              Make3D Pratham FDM printers, EKA DLP/LCD resin systems &amp; precision digitizers
+                            </p>
+                          </div>
+                        </div>
+                        <div className="w-7 h-7 rounded-lg bg-slate-50 group-hover:bg-red-100 flex items-center justify-center text-slate-400 group-hover:text-red-600 transition-colors shrink-0 ml-3">
+                          <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                        </div>
                       </Link>
-                      <Link
-                        to="/shop/scanners"
-                        onClick={() => setActiveMegaMenu(null)}
-                        className="px-2 py-1 rounded-md text-slate-600 hover:text-red-600 hover:bg-slate-50 truncate"
-                      >
-                        • 3D Scanners
-                      </Link>
+
+                      {/* Section 3: 3D Printer Filaments */}
                       <Link
                         to="/shop/filaments"
                         onClick={() => setActiveMegaMenu(null)}
-                        className="px-2 py-1 rounded-md text-red-600 font-semibold hover:bg-red-50/60 truncate"
+                        className="flex items-center justify-between p-3.5 rounded-xl border border-red-100/80 hover:border-red-300 hover:bg-red-50/40 transition-all duration-200 group bg-red-50/10"
                       >
-                        • All 8 Filaments →
+                        <div className="flex items-center space-x-3.5 min-w-0">
+                          <div className="w-11 h-11 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0 group-hover:bg-red-600 group-hover:text-white transition-colors duration-200 shadow-2xs">
+                            <CircleDot className="w-5 h-5" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm font-bold text-slate-900 group-hover:text-red-600 transition-colors">
+                                3D Printer Filaments
+                              </span>
+                              <span className="text-[10px] font-bold px-2 py-0.5 bg-red-600 text-white rounded-full">
+                                8 Vibrant Colours
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">
+                              Genuine Make3D PLA &amp; PLA+ spools (1 KG / 1.75 mm) in stock with quick dispatch
+                            </p>
+                          </div>
+                        </div>
+                        <div className="w-7 h-7 rounded-lg bg-slate-50 group-hover:bg-red-100 flex items-center justify-center text-slate-400 group-hover:text-red-600 transition-colors shrink-0 ml-3">
+                          <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                        </div>
                       </Link>
+                    </div>
+
+                    {/* Quick Category Shortcuts Strip */}
+                    <div className="px-5 py-3 bg-slate-50/90 border-t border-slate-100">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          Quick Shortcuts
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-2">
+                        <Link
+                          to="/shop?category=cad-software"
+                          onClick={() => setActiveMegaMenu(null)}
+                          className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200/80 hover:border-red-300 hover:text-red-600 text-slate-700 text-xs font-medium text-center transition-colors shadow-2xs"
+                        >
+                          CAD Software
+                        </Link>
+                        <Link
+                          to="/shop/fdm"
+                          onClick={() => setActiveMegaMenu(null)}
+                          className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200/80 hover:border-red-300 hover:text-red-600 text-slate-700 text-xs font-medium text-center transition-colors shadow-2xs"
+                        >
+                          FDM Printers
+                        </Link>
+                        <Link
+                          to="/shop/dlp"
+                          onClick={() => setActiveMegaMenu(null)}
+                          className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200/80 hover:border-red-300 hover:text-red-600 text-slate-700 text-xs font-medium text-center transition-colors shadow-2xs"
+                        >
+                          DLP / LCD
+                        </Link>
+                        <Link
+                          to="/shop/scanners"
+                          onClick={() => setActiveMegaMenu(null)}
+                          className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200/80 hover:border-red-300 hover:text-red-600 text-slate-700 text-xs font-medium text-center transition-colors shadow-2xs"
+                        >
+                          3D Scanners
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
