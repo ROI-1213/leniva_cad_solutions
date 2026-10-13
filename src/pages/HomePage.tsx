@@ -65,6 +65,19 @@ export const HomePage: React.FC = () => {
       secondaryBtnText: 'Request Quote',
       quoteSubject: 'Pratham 3 Rapid Professional 3D Printing Solutions Inquiry',
     },
+    {
+      id: 4,
+      image: '/hero-banner-4.png',
+      alt: 'Professional CAD & 3D Design Software — ARES, SketchUp, Chaos — Leniva CAD Solutions',
+      title: 'CAD & 3D Design Software',
+      subtitle: 'Official Licenses for ARES CAD, Trimble SketchUp & Chaos Suites',
+      tag: 'ARES • SketchUp • Chaos Suites',
+      badge: 'Authorized Software Partner',
+      primaryBtnText: 'Explore CAD Software',
+      primaryBtnLink: '/products/cad-software',
+      secondaryBtnText: 'Request Quote',
+      quoteSubject: 'CAD Software Official Licensing Consultation',
+    },
   ]
 
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -108,7 +121,7 @@ export const HomePage: React.FC = () => {
                     }`}
                   >
                     <img
-                      src={`${slide.image}?v=hero_v4`}
+                      src={`${slide.image}?v=hero_v5`}
                       alt={slide.alt}
                       className="w-full h-full object-cover bg-white select-none"
                       loading="eager"
