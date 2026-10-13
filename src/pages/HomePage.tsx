@@ -52,6 +52,19 @@ export const HomePage: React.FC = () => {
       secondaryBtnText: 'Request a Demo',
       quoteSubject: 'Industrial Grade 3D Solutions Consultation',
     },
+    {
+      id: 3,
+      image: '/hero-banner-3.png',
+      alt: 'Professional 3D Printing Solutions — Pratham 3 Rapid — Leniva CAD Solutions',
+      title: 'Professional 3D Printing Solutions',
+      subtitle: 'High-Speed Precision Prototyping & Production',
+      tag: 'Pratham 3 Rapid • High-Speed FDM',
+      badge: 'Advanced Additive Manufacturing',
+      primaryBtnText: 'Explore Pratham 3 Rapid',
+      primaryBtnLink: '/products/pratham-3-rapid',
+      secondaryBtnText: 'Request Quote',
+      quoteSubject: 'Pratham 3 Rapid Professional 3D Printing Solutions Inquiry',
+    },
   ]
 
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -95,7 +108,7 @@ export const HomePage: React.FC = () => {
                     }`}
                   >
                     <img
-                      src={`${slide.image}?v=next_gen_v1`}
+                      src={`${slide.image}?v=hero_v3`}
                       alt={slide.alt}
                       className="w-full h-full object-contain bg-white select-none"
                       loading="eager"
