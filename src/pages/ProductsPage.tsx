@@ -8,8 +8,6 @@ import {
   Box,
   Scan,
   ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
   ChevronRight,
   Sparkles,
 } from 'lucide-react'
@@ -584,47 +582,6 @@ export const ProductsPage: React.FC = () => {
             </button>
           </div>
         )}
-
-        {/* ====================================================
-            6. INDUSTRIAL QUALITY & SUPPORT ASSURANCE BANNER
-           ==================================================== */}
-        <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="flex items-start space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-slate-950">Official Make3D India Warranty</h4>
-              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                All Make3D printers and 3DeVOK scanners include complete manufacturer warranty and genuine spare parts.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-slate-950">Dedicated Onsite Commissioning</h4>
-              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                Direct installation, precision calibration, and engineering team onboarding at your facility across India.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-slate-950">Free Benchmark Sample Parts</h4>
-              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                Send your CAD files to evaluate dimensional tolerances, surface finish, and mechanical properties before purchasing.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   )
