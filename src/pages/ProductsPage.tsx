@@ -12,195 +12,173 @@ import {
   CheckCircle2,
   ChevronRight,
   Sparkles,
-  Building2,
-  Tag,
+  Zap,
+  Maximize2,
+  Cpu,
 } from 'lucide-react'
 import { products } from '../data/products'
 import { ProductCard } from '../components/ProductCard'
 import { useApp } from '../context/AppContext'
 import { Product } from '../types'
 
-interface BrandGroupConfig {
+interface HardwareSectionConfig {
   id: string
-  name: string
-  shortName: string
-  partnerBadge: string
+  title: string
+  subtitle: string
+  techBadge: string
   badgeColor: string
-  logo?: string
-  accentBorder: string
+  accentColor: string
+  icon: any
   description: string
   categoryRoute: string
   categoryLabel: string
-  techCategory: 'cad' | 'fdm' | 'dlp' | 'scanners'
   matches: (p: Product) => boolean
 }
 
-const BRAND_GROUPS: BrandGroupConfig[] = [
+// 3D Printers and Hardware Sections ONLY — NO CAD software
+const PRINTER_SECTIONS: HardwareSectionConfig[] = [
   {
-    id: 'trimble',
-    name: 'Trimble (SketchUp)',
-    shortName: 'Trimble SketchUp',
-    partnerBadge: 'Official Trimble Partner',
-    badgeColor: 'bg-red-50 text-red-700 border-red-200',
-    logo: '/images/brands/sketchup.png',
-    accentBorder: 'border-red-500',
-    description: 'Industry-standard 3D architectural, engineering & conceptual design software suites with native Scan Essentials and V-Ray rendering workflows.',
-    categoryRoute: '/products/cad-software',
-    categoryLabel: 'Explore CAD Suite',
-    techCategory: 'cad',
-    matches: (p: Product) => p.brand === 'Trimble' || p.id.startsWith('sketchup'),
-  },
-  {
-    id: 'graebert',
-    name: 'Graebert (ARES Trinity CAD)',
-    shortName: 'Graebert ARES CAD',
-    partnerBadge: 'Authorized Graebert Partner',
-    badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
-    logo: '/images/brands/grabert.png',
-    accentBorder: 'border-amber-500',
-    description: 'Modern, high-performance DWG 2D/3D CAD platform spanning Desktop (ARES Commander), Cloud (ARES Kudo), and Mobile (ARES Touch).',
-    categoryRoute: '/products/cad-software',
-    categoryLabel: 'Explore ARES CAD',
-    techCategory: 'cad',
-    matches: (p: Product) => p.brand === 'Graebert' || p.id.startsWith('ares-'),
-  },
-  {
-    id: 'chaos',
-    name: 'Chaos (Photorealistic Visualization)',
-    shortName: 'Chaos Engines',
-    partnerBadge: 'Certified Chaos Partner',
-    badgeColor: 'bg-rose-50 text-rose-700 border-rose-200',
-    logo: '/images/brands/chaos.jpg',
-    accentBorder: 'border-rose-500',
-    description: 'World-leading photorealistic rendering and real-time visualization engines including Chaos V-Ray, Enscape 3D, and Chaos Corona.',
-    categoryRoute: '/products/cad-software',
-    categoryLabel: 'Explore Visualization',
-    techCategory: 'cad',
-    matches: (p: Product) => p.brand === 'Chaos' || ['vray', 'enscape', 'corona'].includes(p.id),
-  },
-  {
-    id: 'make3d-pratham',
-    name: 'Make3D — Pratham Industrial FDM Series',
-    shortName: 'Make3D Pratham FDM',
-    partnerBadge: 'Authorized Make3D Dealer',
-    badgeColor: 'bg-slate-100 text-slate-800 border-slate-300',
-    accentBorder: 'border-slate-800',
-    description: 'Designed & developed in India: Rigid CoreXY & ball screw industrial FDM printers from compact 120 mm desktop units to 1-meter monolithic workhorses.',
+    id: 'fdm',
+    title: 'FDM 3D Printers — Pratham Industrial Series',
+    subtitle: 'CoreXY & Industrial Ball Screw Systems (120 mm Desktop to 1-Meter Monolithic Giants)',
+    techBadge: 'COREXY & ALL-AXIS BALL SCREW',
+    badgeColor: 'bg-slate-100 text-slate-900 border-slate-300',
+    accentColor: '#0f172a',
+    icon: Printer,
+    description:
+      'Engineered in India for production-grade reliability: heavy-duty mild steel chassis, industrial linear guides, high-temp extruders (up to 300°C), and build envelopes scaling from space-saving 120 mm desktop prototypes to 1000 mm giant monolithic workhorses.',
     categoryRoute: '/products/fdm-3d-printers',
-    categoryLabel: 'Explore FDM Printers',
-    techCategory: 'fdm',
+    categoryLabel: 'Explore FDM Hub',
     matches: (p: Product) =>
-      (p.brand === 'Make3D' || p.brand === 'Pratham') &&
-      (p.categorySlug === 'fdm-3d-printers' || p.id.startsWith('pratham-')),
+      p.categorySlug === 'fdm-3d-printers' ||
+      p.technology.toLowerCase().includes('fdm') ||
+      p.id.startsWith('pratham-'),
   },
   {
-    id: 'make3d-eka',
-    name: 'Make3D — EKA Precision Resin Series',
-    shortName: 'Make3D EKA Resin',
-    partnerBadge: 'Ultra-Precision DLP & 16K',
+    id: 'dlp',
+    title: 'DLP Resin 3D Printers — EKA DLP Series',
+    subtitle: 'Ultra-Precision Digital Light Processing for Direct Jewelry Casting & Dental Prosthetics',
+    techBadge: 'INDUSTRIAL DLP OPTICAL ENGINE',
     badgeColor: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-    accentBorder: 'border-indigo-600',
-    description: 'Sub-micron resolution DLP and 8K/16K monochrome LCD resin systems engineered for direct jewelry casting, dental prosthetics, and micro-engineering.',
+    accentColor: '#4f46e5',
+    icon: Layers,
+    description:
+      'High-precision DLP resin systems delivering razor-sharp feature definition and sub-micron repeatability. Purpose-built for direct casting in gold and silver, dental crown/bridge patterns, and high-temp engineering micro-components.',
     categoryRoute: '/products/dlp-3d-printers',
-    categoryLabel: 'Explore Resin Systems',
-    techCategory: 'dlp',
+    categoryLabel: 'Explore DLP Hub',
     matches: (p: Product) =>
-      (p.brand === 'EKA' || (p.brand === 'Make3D' && p.id.startsWith('eka-'))) &&
-      (p.categorySlug === 'dlp-3d-printers' || p.id.startsWith('eka-')),
+      p.categorySlug === 'dlp-3d-printers' ||
+      p.technology.toLowerCase().includes('dlp') ||
+      ['eka-ht', 'eka-xl', 'eka-xle'].includes(p.id),
+  },
+  {
+    id: 'lcd',
+    title: 'Industrial LCD 3D Printers — EKA 8K & 16K Series',
+    subtitle: 'Monochrome LCD Arrays with Sub-Micron Precision for Batch Manufacturing',
+    techBadge: '8K & 16K MONOCHROME MASKING',
+    badgeColor: 'bg-purple-50 text-purple-700 border-purple-200',
+    accentColor: '#7c3aed',
+    icon: Box,
+    description:
+      'Next-generation industrial monochrome LCD resin printers engineered for continuous production and maximum throughput. Featuring ultra-fine 16K detailing, uniform parallel matrix illumination, and massive build plates for batch manufacturing.',
+    categoryRoute: '/products/industrial-lcd-3d-printers',
+    categoryLabel: 'Explore LCD Hub',
+    matches: (p: Product) =>
+      p.categorySlug === 'industrial-lcd-3d-printers' ||
+      p.technology.toLowerCase().includes('lcd') ||
+      ['eka-gt-max', 'eka-f1-16k'].includes(p.id),
   },
   {
     id: 'scanners',
-    name: '3DeVOK & SHINING 3D Scanners',
-    shortName: '3D Scanners',
-    partnerBadge: 'Precision Digitizer Solutions',
+    title: 'Precision 3D Scanners & Reverse Engineering',
+    subtitle: 'High-Speed Handheld & Optical Coordinate Laser Digitizers',
+    techBadge: 'HYBRID BLUE & IR LASER METROLOGY',
     badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    accentBorder: 'border-emerald-600',
-    description: 'High-speed handheld, optical coordinate, and hybrid laser 3D digitizers delivering sub-0.04 mm accuracy for reverse engineering and inspection.',
+    accentColor: '#059669',
+    icon: Scan,
+    description:
+      'Industrial-grade handheld and hybrid laser 3D scanners capturing millions of measurements per second down to 0.04 mm accuracy. Engineered for reverse engineering, rapid quality inspection, and full-color 3D reality capture.',
     categoryRoute: '/products/3d-scanners',
-    categoryLabel: 'Explore 3D Scanners',
-    techCategory: 'scanners',
+    categoryLabel: 'Explore Scanners Hub',
     matches: (p: Product) =>
-      p.brand === '3DeVOK' ||
-      p.brand === 'SHINING 3D' ||
       p.categorySlug === '3d-scanners' ||
-      p.technology.toLowerCase().includes('scanner'),
+      p.technology.toLowerCase().includes('scanner') ||
+      p.brand === '3DeVOK' ||
+      p.brand === 'SHINING 3D',
   },
 ]
 
 export const ProductsPage: React.FC = () => {
   const { openQuoteModal } = useApp()
-  const [selectedBrand, setSelectedBrand] = useState<string>('all')
-  const [selectedTech, setSelectedTech] = useState<string>('all')
+  const [selectedSection, setSelectedSection] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [sortBy, setSortBy] = useState<'featured' | 'name-asc' | 'name-desc'>('featured')
 
   useEffect(() => {
-    document.title = 'Products Catalog | 3D Printers, Scanners & CAD Software by Brand | Leniva CAD Solutions'
+    document.title = '3D Printers Catalog | Industrial FDM, DLP & LCD Systems | Leniva CAD Solutions'
     const metaDesc = document.querySelector('meta[name="description"]')
     if (metaDesc) {
       metaDesc.setAttribute(
         'content',
-        'Explore verified engineering solutions organized by brand: Trimble SketchUp, Graebert ARES CAD, Chaos, Make3D Pratham FDM printers, Make3D EKA resin systems, and 3DeVOK scanners.'
+        'Explore industrial Make3D 3D printers organized section-wise: Pratham FDM series (desktop to 1-meter), EKA DLP resin casting systems, and EKA 16K industrial LCD printers.'
       )
     }
   }, [])
 
-  // Technology Categories Hubs Data
+  // Technology Categories Hubs Data (Hardware only — NO CAD)
   const categoryHubs = [
-    {
-      id: 'cad',
-      title: 'CAD & Visualization Software',
-      tag: 'TRIMBLE • GRAEBERT • CHAOS',
-      description: 'Official Trimble SketchUp Pro, Graebert ARES Trinity DWG CAD, Chaos V-Ray & Enscape rendering suites.',
-      icon: Layers,
-      route: '/products/cad-software',
-      accent: 'border-red-500 hover:border-red-600',
-      badgeColor: 'bg-red-50 text-red-700 border-red-200',
-      flagships: ['SketchUp Pro', 'ARES Standard', 'ARES Commander', 'Chaos V-Ray', 'Enscape'],
-    },
     {
       id: 'fdm',
       title: 'FDM 3D Printers',
       tag: 'PRATHAM SERIES',
-      description: 'Industrial CoreXY & heated-chamber FDM systems from 120 mm desktop to 1-meter giants.',
+      description: 'Industrial CoreXY & heated-chamber FDM systems from 120 mm desktop to 1-meter monolithic giants.',
       icon: Printer,
       route: '/products/fdm-3d-printers',
-      accent: 'border-slate-300 hover:border-slate-800',
       badgeColor: 'bg-slate-100 text-slate-800 border-slate-200',
-      flagships: ['Pratham 3.0', 'Pratham 6.0', 'Pratham Desktop', 'Pratham Mini', 'Pratham 3 Rapid'],
+      flagships: ['Pratham 3.0', 'Pratham 6.0', 'Pratham Desktop', 'Pratham Mini', 'Pratham 3 Rapid', 'Pratham X (1000)'],
     },
     {
       id: 'dlp',
-      title: 'DLP & LCD Resin 3D Printers',
-      tag: 'EKA DLP & 16K MONOCHROME',
+      title: 'DLP Resin 3D Printers',
+      tag: 'EKA DLP SERIES',
       description: 'Ultra-precision resin systems for direct jewelry casting, dental models, and sub-micron micro-mechanics.',
-      icon: Box,
+      icon: Layers,
       route: '/products/dlp-3d-printers',
-      accent: 'border-slate-300 hover:border-slate-800',
-      badgeColor: 'bg-slate-100 text-slate-800 border-slate-200',
-      flagships: ['EKA HT', 'EKA XL', 'EKA XLE', 'EKA GT MAX (8K)', 'EKA F1 16K'],
+      badgeColor: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+      flagships: ['EKA HT (Casting)', 'EKA XL (Large)', 'EKA XLE (Engineering)'],
+    },
+    {
+      id: 'lcd',
+      title: 'Industrial LCD 3D Printers',
+      tag: 'EKA 8K & 16K SERIES',
+      description: 'Monochrome LCD resin systems with up to 16K resolution for high-throughput batch production.',
+      icon: Box,
+      route: '/products/industrial-lcd-3d-printers',
+      badgeColor: 'bg-purple-50 text-purple-700 border-purple-200',
+      flagships: ['EKA GT MAX (8K)', 'EKA F1 16K (Micro Detail)'],
     },
     {
       id: 'scanners',
-      title: '3D Scanners',
+      title: 'Precision 3D Scanners',
       tag: '3DEVOK & EINSTAR',
-      description: 'Handheld & optical coordinate laser digitizers capturing millions of points per second down to 0.04 mm.',
+      description: 'Handheld & optical coordinate laser digitizers capturing millions of points down to 0.04 mm accuracy.',
       icon: Scan,
       route: '/products/3d-scanners',
-      accent: 'border-slate-300 hover:border-slate-800',
-      badgeColor: 'bg-slate-100 text-slate-800 border-slate-200',
+      badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
       flagships: ['3DeVOK MT (Hybrid Laser)', '3DeVOK MQ (Color 3D)', 'EINSTAR Handheld'],
     },
   ]
 
-  // Filter individual product matching search & tech criteria
+  // Filter individual product matching search & section criteria
+  // EXCLUDES all CAD software products
   const isProductMatching = (p: Product): boolean => {
-    if (selectedTech !== 'all') {
-      if (selectedTech === 'fdm' && !p.technology.toLowerCase().includes('fdm')) return false
-      if (selectedTech === 'dlp' && !p.technology.toLowerCase().includes('dlp')) return false
-      if (selectedTech === 'lcd' && !p.technology.toLowerCase().includes('lcd')) return false
-      if (selectedTech === 'scanners' && !p.technology.toLowerCase().includes('scanner')) return false
-      if (selectedTech === 'cad' && !p.technology.toLowerCase().includes('software')) return false
+    // Explicitly exclude CAD software
+    if (
+      p.categorySlug === 'cad-software' ||
+      p.technology.toLowerCase().includes('software') ||
+      ['Trimble', 'Graebert', 'Chaos'].includes(p.brand)
+    ) {
+      return false
     }
 
     if (searchQuery) {
@@ -217,17 +195,27 @@ export const ProductsPage: React.FC = () => {
     return true
   }
 
-  // Group products by brand sections
-  const brandSections = useMemo(() => {
-    return BRAND_GROUPS.map((group) => {
-      // Find all products matching this brand
-      let brandProds = products.filter(group.matches)
+  // Filter hardware products only (strictly no CAD software)
+  const hardwareProducts = useMemo(() => {
+    return products.filter(
+      (p) =>
+        p.categorySlug !== 'cad-software' &&
+        !p.technology.toLowerCase().includes('software') &&
+        !['Trimble', 'Graebert', 'Chaos'].includes(p.brand)
+    )
+  }, [])
 
-      // Filter by search & technology
-      brandProds = brandProds.filter(isProductMatching)
+  // Group products by hardware sections
+  const activeSections = useMemo(() => {
+    return PRINTER_SECTIONS.map((section) => {
+      // Find all products matching this section
+      let sectionProds = hardwareProducts.filter(section.matches)
+
+      // Filter by search query
+      sectionProds = sectionProds.filter(isProductMatching)
 
       // Sort
-      brandProds.sort((a, b) => {
+      sectionProds.sort((a, b) => {
         if (sortBy === 'featured') {
           return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0)
         }
@@ -237,18 +225,14 @@ export const ProductsPage: React.FC = () => {
       })
 
       return {
-        ...group,
-        products: brandProds,
-        totalBrandCount: products.filter(group.matches).length,
+        ...section,
+        products: sectionProds,
+        totalSectionCount: hardwareProducts.filter(section.matches).length,
       }
     }).filter((section) => {
-      // If brand filter is active, only show the selected brand
-      if (selectedBrand !== 'all' && section.id !== selectedBrand) {
+      // If section filter is active, only show the selected section
+      if (selectedSection !== 'all' && section.id !== selectedSection) {
         return false
-      }
-      // If tech filter is active, only show if techCategory matches or has matching products
-      if (selectedTech !== 'all') {
-        if (section.products.length === 0) return false
       }
       // If search query is active, only show sections with matching products
       if (searchQuery && section.products.length === 0) {
@@ -256,16 +240,19 @@ export const ProductsPage: React.FC = () => {
       }
       return true
     })
-  }, [selectedBrand, selectedTech, searchQuery, sortBy])
+  }, [selectedSection, searchQuery, sortBy, hardwareProducts])
 
-  // Total products currently visible across all brand sections
+  // Total products currently visible across all sections
   const totalVisibleProducts = useMemo(() => {
-    return brandSections.reduce((acc, section) => acc + section.products.length, 0)
-  }, [brandSections])
+    return activeSections.reduce((acc, section) => acc + section.products.length, 0)
+  }, [activeSections])
+
+  const total3DPrintersCount = useMemo(() => {
+    return hardwareProducts.filter((p) => p.categorySlug !== '3d-scanners' && !p.technology.toLowerCase().includes('scanner')).length
+  }, [hardwareProducts])
 
   const resetFilters = () => {
-    setSelectedBrand('all')
-    setSelectedTech('all')
+    setSelectedSection('all')
     setSearchQuery('')
     setSortBy('featured')
   }
@@ -281,11 +268,11 @@ export const ProductsPage: React.FC = () => {
             Home
           </Link>
           <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-          <span className="font-semibold text-slate-900">Products Catalog</span>
+          <span className="font-semibold text-slate-900">3D Printers</span>
         </nav>
 
         {/* ====================================================
-            2. PAGE HERO BANNER
+            2. PAGE HERO BANNER (DEDICATED TO 3D PRINTERS)
            ==================================================== */}
         <div className="relative rounded-3xl overflow-hidden bg-slate-950 text-white shadow-2xl border border-slate-800 p-8 sm:p-12 lg:p-14">
           <div
@@ -299,26 +286,28 @@ export const ProductsPage: React.FC = () => {
           <div className="relative z-10 max-w-3xl space-y-4">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-500/20 border border-red-400/30 text-red-400 text-xs font-mono font-bold uppercase tracking-wider">
               <Sparkles className="w-3.5 h-3.5 text-red-400" />
-              <span>AUTHORIZED BRAND PORTFOLIO</span>
+              <span>OFFICIAL MAKE3D HARDWARE SHOWROOM</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight">
-              Products Catalog by Brand
+              Industrial &amp; Desktop 3D Printers
             </h1>
 
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl font-normal">
-              Explore industrial 3D printing hardware, high-precision 3D scanners, and industry-leading CAD &amp; visualization suites organized by our authorized manufacturing and software partner brands.
+              India’s premier industrial additive manufacturing systems. Explore verified CoreXY and all-axis ball screw
+              industrial FDM printers (from 120 mm desktop prototypes to 1-meter monolithic workhorses), direct-casting DLP
+              resin printers, and 16K ultra-high resolution monochrome LCD systems.
             </p>
 
             <div className="pt-3 flex flex-wrap items-center gap-3">
               <button
-                onClick={() => openQuoteModal('Master Products Catalog Inquiry')}
+                onClick={() => openQuoteModal('3D Printers Catalog Inquiry')}
                 className="px-6 py-3 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl shadow-lg transition-colors cursor-pointer"
               >
-                Request Product Pricing
+                Request Machine Pricing
               </button>
               <button
-                onClick={() => openQuoteModal('Book a Machine Demonstration')}
+                onClick={() => openQuoteModal('Book a 3D Printer Demonstration')}
                 className="px-5 py-3 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl border border-white/20 transition-colors cursor-pointer"
               >
                 Book a Live Demo
@@ -328,13 +317,13 @@ export const ProductsPage: React.FC = () => {
         </div>
 
         {/* ====================================================
-            3. DEDICATED CATEGORY HUBS GRID
+            3. DEDICATED HARDWARE CATEGORY HUBS GRID
            ==================================================== */}
         <div className="space-y-4">
           <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div>
               <h2 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
-                Explore by Technology Division
+                Explore 3D Printers by Technology
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Navigate to dedicated category showrooms with detailed machine architectures and sample parts.
@@ -401,7 +390,7 @@ export const ProductsPage: React.FC = () => {
         </div>
 
         {/* ====================================================
-            4. SEARCH & BRAND FILTERING CONTROLS
+            4. SEARCH & SECTION FILTERING CONTROLS
            ==================================================== */}
         <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-5">
           {/* Top Bar: Search & Select Dropdowns */}
@@ -412,7 +401,7 @@ export const ProductsPage: React.FC = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search models, brands, or specs (e.g. SketchUp, Pratham, ARES, 16K)..."
+                placeholder="Search 3D printers (e.g. Pratham 3.0, GT MAX, 16K, Rapid, X 1000)..."
                 className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:outline-hidden"
               />
               <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
@@ -420,22 +409,20 @@ export const ProductsPage: React.FC = () => {
 
             {/* Filter Dropdowns and Sorting */}
             <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end text-xs">
-              {/* Brand Filter Dropdown */}
+              {/* Section Filter Dropdown */}
               <div className="flex items-center space-x-1.5">
-                <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                <span className="font-semibold text-slate-500">Brand:</span>
+                <Printer className="w-3.5 h-3.5 text-slate-400" />
+                <span className="font-semibold text-slate-500">Section:</span>
                 <select
-                  value={selectedBrand}
-                  onChange={(e) => setSelectedBrand(e.target.value)}
+                  value={selectedSection}
+                  onChange={(e) => setSelectedSection(e.target.value)}
                   className="px-3 py-2 border border-slate-300 rounded-lg outline-hidden bg-white font-medium text-slate-800 cursor-pointer"
                 >
-                  <option value="all">All Brands ({products.length})</option>
-                  <option value="trimble">Trimble (SketchUp) (4)</option>
-                  <option value="graebert">Graebert (ARES CAD) (7)</option>
-                  <option value="chaos">Chaos (V-Ray &amp; Enscape) (3)</option>
-                  <option value="make3d-pratham">Make3D Pratham (FDM) (8)</option>
-                  <option value="make3d-eka">Make3D EKA (Resin) (5)</option>
-                  <option value="scanners">3DeVOK &amp; SHINING 3D (3)</option>
+                  <option value="all">All 3D Printer Sections ({total3DPrintersCount} printers)</option>
+                  <option value="fdm">FDM 3D Printers (Pratham Series) (8)</option>
+                  <option value="dlp">DLP Resin 3D Printers (EKA Series) (3)</option>
+                  <option value="lcd">Industrial LCD 3D Printers (EKA 8K/16K) (2)</option>
+                  <option value="scanners">Precision 3D Scanners (3)</option>
                 </select>
               </div>
 
@@ -453,7 +440,7 @@ export const ProductsPage: React.FC = () => {
                 </select>
               </div>
 
-              {(selectedBrand !== 'all' || selectedTech !== 'all' || searchQuery) && (
+              {(selectedSection !== 'all' || searchQuery) && (
                 <button
                   onClick={resetFilters}
                   className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center space-x-1 cursor-pointer"
@@ -466,248 +453,165 @@ export const ProductsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Brand Quick-Filter Buttons */}
+          {/* Section Quick-Filter Buttons */}
           <div className="pt-3 border-t border-slate-100 space-y-2">
             <div className="flex items-center space-x-2 text-[11px] font-mono uppercase tracking-wider font-bold text-slate-400">
-              <Building2 className="w-3.5 h-3.5 text-slate-500" />
-              <span>Filter by Brand:</span>
+              <Printer className="w-3.5 h-3.5 text-slate-500" />
+              <span>Display by Section:</span>
             </div>
             <div className="flex items-center space-x-2 overflow-x-auto pb-1 text-xs">
               <button
-                onClick={() => setSelectedBrand('all')}
+                onClick={() => setSelectedSection('all')}
                 className={`px-3.5 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold cursor-pointer ${
-                  selectedBrand === 'all'
+                  selectedSection === 'all'
                     ? 'bg-slate-950 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
-                All Brands ({products.length})
+                All Sections ({hardwareProducts.length})
               </button>
               <button
-                onClick={() => setSelectedBrand('trimble')}
+                onClick={() => setSelectedSection('fdm')}
                 className={`px-3.5 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold cursor-pointer ${
-                  selectedBrand === 'trimble'
+                  selectedSection === 'fdm'
                     ? 'bg-red-600 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
-                Trimble SketchUp (4)
+                1. FDM 3D Printers — Pratham (8)
               </button>
               <button
-                onClick={() => setSelectedBrand('graebert')}
+                onClick={() => setSelectedSection('dlp')}
                 className={`px-3.5 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold cursor-pointer ${
-                  selectedBrand === 'graebert'
-                    ? 'bg-red-600 text-white shadow-xs'
+                  selectedSection === 'dlp'
+                    ? 'bg-indigo-600 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
-                Graebert ARES CAD (7)
+                2. DLP Resin Printers — EKA (3)
               </button>
               <button
-                onClick={() => setSelectedBrand('chaos')}
+                onClick={() => setSelectedSection('lcd')}
                 className={`px-3.5 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold cursor-pointer ${
-                  selectedBrand === 'chaos'
-                    ? 'bg-red-600 text-white shadow-xs'
+                  selectedSection === 'lcd'
+                    ? 'bg-purple-600 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
-                Chaos (3)
+                3. Industrial LCD Printers — 8K/16K (2)
               </button>
               <button
-                onClick={() => setSelectedBrand('make3d-pratham')}
+                onClick={() => setSelectedSection('scanners')}
                 className={`px-3.5 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold cursor-pointer ${
-                  selectedBrand === 'make3d-pratham'
-                    ? 'bg-red-600 text-white shadow-xs'
+                  selectedSection === 'scanners'
+                    ? 'bg-emerald-600 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
-                Make3D Pratham FDM (8)
-              </button>
-              <button
-                onClick={() => setSelectedBrand('make3d-eka')}
-                className={`px-3.5 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold cursor-pointer ${
-                  selectedBrand === 'make3d-eka'
-                    ? 'bg-red-600 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                Make3D EKA Resin (5)
-              </button>
-              <button
-                onClick={() => setSelectedBrand('scanners')}
-                className={`px-3.5 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold cursor-pointer ${
-                  selectedBrand === 'scanners'
-                    ? 'bg-red-600 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                3D Scanners (3)
+                4. 3D Scanners (3)
               </button>
             </div>
-          </div>
-
-          {/* Technology Quick-Filter Pills */}
-          <div className="pt-2 border-t border-slate-100 flex items-center space-x-2 overflow-x-auto pb-1 text-xs">
-            <span className="text-[11px] font-mono uppercase tracking-wider font-bold text-slate-400 shrink-0 flex items-center space-x-1">
-              <Tag className="w-3 h-3 text-slate-400" />
-              <span>Technology:</span>
-            </span>
-            <button
-              onClick={() => setSelectedTech('all')}
-              className={`px-3 py-1 rounded-md whitespace-nowrap transition-all text-xs font-medium cursor-pointer ${
-                selectedTech === 'all'
-                  ? 'bg-slate-800 text-white shadow-2xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              All Tech
-            </button>
-            <button
-              onClick={() => setSelectedTech('cad')}
-              className={`px-3 py-1 rounded-md whitespace-nowrap transition-all text-xs font-medium cursor-pointer ${
-                selectedTech === 'cad'
-                  ? 'bg-slate-800 text-white shadow-2xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              CAD &amp; Visualization
-            </button>
-            <button
-              onClick={() => setSelectedTech('fdm')}
-              className={`px-3 py-1 rounded-md whitespace-nowrap transition-all text-xs font-medium cursor-pointer ${
-                selectedTech === 'fdm'
-                  ? 'bg-slate-800 text-white shadow-2xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              FDM 3D Printers
-            </button>
-            <button
-              onClick={() => setSelectedTech('dlp')}
-              className={`px-3 py-1 rounded-md whitespace-nowrap transition-all text-xs font-medium cursor-pointer ${
-                selectedTech === 'dlp'
-                  ? 'bg-slate-800 text-white shadow-2xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              DLP &amp; LCD Resin Printers
-            </button>
-            <button
-              onClick={() => setSelectedTech('scanners')}
-              className={`px-3 py-1 rounded-md whitespace-nowrap transition-all text-xs font-medium cursor-pointer ${
-                selectedTech === 'scanners'
-                  ? 'bg-slate-800 text-white shadow-2xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              3D Scanners
-            </button>
           </div>
         </div>
 
         {/* Results Counter Bar */}
         <div className="flex items-center justify-between text-xs text-slate-500 px-1">
           <span>
-            Showing <strong className="text-slate-900 font-semibold">{totalVisibleProducts}</strong> verified engineering solutions across{' '}
-            <strong className="text-slate-900 font-semibold">{brandSections.length}</strong> brand division{brandSections.length === 1 ? '' : 's'}
+            Showing <strong className="text-slate-900 font-semibold">{totalVisibleProducts}</strong> hardware models across{' '}
+            <strong className="text-slate-900 font-semibold">{activeSections.length}</strong> technology section{activeSections.length === 1 ? '' : 's'}
           </span>
           <span className="hidden sm:inline">
-            Official Leniva CAD Solutions &amp; Authorized Partners Directory
+            Official Leniva CAD Solutions &amp; Make3D India Hardware Directory
           </span>
         </div>
 
         {/* ====================================================
-            5. PRODUCTS DISPLAYED BY BRANDS
+            5. 3D PRINTERS DISPLAYED SECTION-WISE
            ==================================================== */}
-        {brandSections.length > 0 && totalVisibleProducts > 0 ? (
-          <div className="space-y-14">
-            {brandSections.map((brand) => (
-              <section key={brand.id} className="space-y-6">
-                {/* Dedicated Brand Showcase Header Card */}
-                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5 relative overflow-hidden">
-                  <div
-                    className="absolute top-0 left-0 bottom-0 w-2"
-                    style={{
-                      backgroundColor:
-                        brand.id === 'trimble'
-                          ? '#ef4444'
-                          : brand.id === 'graebert'
-                          ? '#f59e0b'
-                          : brand.id === 'chaos'
-                          ? '#e11d48'
-                          : brand.id === 'make3d-pratham'
-                          ? '#0f172a'
-                          : brand.id === 'make3d-eka'
-                          ? '#4f46e5'
-                          : '#059669',
-                    }}
-                  />
+        {activeSections.length > 0 && totalVisibleProducts > 0 ? (
+          <div className="space-y-16">
+            {activeSections.map((section, sectionIndex) => {
+              const SectionIcon = section.icon
+              return (
+                <section key={section.id} id={section.id} className="space-y-6">
+                  {/* Dedicated Section Showcase Header Card */}
+                  <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5 relative overflow-hidden">
+                    {/* Color Accent Bar on the left */}
+                    <div
+                      className="absolute top-0 left-0 bottom-0 w-2.5"
+                      style={{ backgroundColor: section.accentColor }}
+                    />
 
-                  <div className="flex items-start sm:items-center space-x-4 pl-2">
-                    {/* Brand Logo or Icon */}
-                    {brand.logo ? (
-                      <div className="w-16 h-16 rounded-2xl bg-white p-2.5 border border-slate-200 shadow-2xs flex items-center justify-center shrink-0">
-                        <img
-                          src={brand.logo}
-                          alt={brand.name}
-                          className="max-h-full max-w-full object-contain"
-                          loading="lazy"
-                        />
+                    <div className="flex items-start sm:items-center space-x-4 pl-3">
+                      <div
+                        className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs"
+                        style={{
+                          backgroundColor:
+                            section.id === 'fdm'
+                              ? '#0f172a'
+                              : section.id === 'dlp'
+                              ? '#4f46e5'
+                              : section.id === 'lcd'
+                              ? '#7c3aed'
+                              : '#059669',
+                          color: '#ffffff',
+                        }}
+                      >
+                        <SectionIcon className="w-7 h-7" />
                       </div>
-                    ) : (
-                      <div className="w-16 h-16 rounded-2xl bg-slate-900 text-white border border-slate-800 flex items-center justify-center shrink-0 font-black text-sm tracking-wider">
-                        {brand.shortName.slice(0, 3).toUpperCase()}
-                      </div>
-                    )}
 
-                    <div className="space-y-1.5">
-                      <div className="flex flex-wrap items-center gap-2.5">
-                        <h2 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
-                          {brand.name}
-                        </h2>
-                        <span
-                          className={`px-3 py-0.5 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider border ${brand.badgeColor}`}
-                        >
-                          {brand.partnerBadge}
-                        </span>
+                      <div className="space-y-1.5">
+                        <div className="flex flex-wrap items-center gap-2.5">
+                          <span className="px-2.5 py-0.5 rounded-md text-[11px] font-black uppercase tracking-wider bg-slate-900 text-white">
+                            Section {sectionIndex + 1}
+                          </span>
+                          <h2 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
+                            {section.title}
+                          </h2>
+                          <span
+                            className={`px-3 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border ${section.badgeColor}`}
+                          >
+                            {section.techBadge}
+                          </span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-slate-600 font-normal max-w-3xl leading-relaxed">
+                          {section.description}
+                        </p>
                       </div>
-                      <p className="text-xs sm:text-sm text-slate-600 font-normal max-w-2xl leading-relaxed">
-                        {brand.description}
-                      </p>
+                    </div>
+
+                    {/* Section Action and Item Count Pill */}
+                    <div className="flex items-center gap-3 shrink-0 self-end md:self-center pl-3">
+                      <span className="px-3.5 py-1.5 bg-slate-100 text-slate-800 text-xs font-bold rounded-xl border border-slate-200/80">
+                        {section.products.length} {section.products.length === 1 ? 'Model' : 'Models'}
+                      </span>
+                      <Link
+                        to={section.categoryRoute}
+                        className="px-4 py-2 bg-slate-900 hover:bg-red-600 text-white text-xs font-bold rounded-xl transition-colors inline-flex items-center space-x-1.5 shadow-2xs"
+                      >
+                        <span>{section.categoryLabel}</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
                     </div>
                   </div>
 
-                  {/* Brand Action and Item Count Pill */}
-                  <div className="flex items-center gap-3 shrink-0 self-end md:self-center pl-2">
-                    <span className="px-3 py-1.5 bg-slate-100 text-slate-800 text-xs font-bold rounded-xl border border-slate-200/80">
-                      {brand.products.length} {brand.products.length === 1 ? 'Product' : 'Products'}
-                    </span>
-                    <Link
-                      to={brand.categoryRoute}
-                      className="px-4 py-2 bg-slate-900 hover:bg-red-600 text-white text-xs font-bold rounded-xl transition-colors inline-flex items-center space-x-1.5 shadow-2xs"
-                    >
-                      <span>{brand.categoryLabel}</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
+                  {/* Section Products Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {section.products.map((product) => (
+                      <ProductCard key={product.id} product={product} />
+                    ))}
                   </div>
-                </div>
-
-                {/* Brand Products Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {brand.products.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                  ))}
-                </div>
-              </section>
-            ))}
+                </section>
+              )
+            })}
           </div>
         ) : (
           <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 space-y-3 shadow-sm">
             <p className="text-base font-bold text-slate-800">
-              No products match your current search or brand filter criteria.
+              No 3D printers or hardware models match your current search or filter criteria.
             </p>
             <p className="text-xs text-slate-500">
-              Try searching for "SketchUp", "Commander", "Pratham", "EKA", "GT MAX", or "3DeVOK".
+              Try searching for "Pratham", "Desktop", "EKA", "GT MAX", "16K", or "Rapid".
             </p>
             <button
               onClick={resetFilters}
@@ -727,9 +631,9 @@ export const ProductsPage: React.FC = () => {
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-950">Official Authorized Partner</h4>
+              <h4 className="text-sm font-bold text-slate-950">Official Make3D India Warranty</h4>
               <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                Direct authorized licenses from Trimble, Graebert &amp; Chaos, plus full manufacturer warranty on Make3D printers and 3DeVOK scanners.
+                All Make3D printers and 3DeVOK scanners include complete manufacturer warranty and genuine spare parts.
               </p>
             </div>
           </div>
@@ -739,9 +643,9 @@ export const ProductsPage: React.FC = () => {
               <CheckCircle2 className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-950">Dedicated Engineering Support</h4>
+              <h4 className="text-sm font-bold text-slate-950">Dedicated Onsite Commissioning</h4>
               <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                Direct commissioning, calibration, and engineering team onboarding at your facility across India.
+                Direct installation, precision calibration, and engineering team onboarding at your facility across India.
               </p>
             </div>
           </div>
@@ -753,7 +657,7 @@ export const ProductsPage: React.FC = () => {
             <div>
               <h4 className="text-sm font-bold text-slate-950">Free Benchmark Sample Parts</h4>
               <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                Send your CAD files to evaluate tolerances, surface finish, and mechanical properties before purchasing.
+                Send your CAD files to evaluate dimensional tolerances, surface finish, and mechanical properties before purchasing.
               </p>
             </div>
           </div>

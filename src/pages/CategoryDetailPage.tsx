@@ -43,6 +43,35 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({ forcedSl
 
   // Check if CAD Software category
   const isCadSoftware = slug === 'cad-software' || category.slug === 'cad-software' || category.id === 'software'
+  const isFdm = slug === 'fdm-3d-printers' || category.slug === 'fdm-3d-printers'
+
+  // FDM sections
+  const fdmSections = [
+    {
+      title: 'Desktop & Education Prototyping',
+      badge: '120 – 250 mm Build Envelope',
+      description: 'Compact, reliable FDM systems engineered for educational STEM labs, design classrooms, and desktop engineering prototypes.',
+      products: categoryProducts.filter(p => ['pratham-mini', 'pratham-desktop'].includes(p.id)),
+    },
+    {
+      title: 'Industrial Production Workhorses',
+      badge: '300 – 600 mm Heavy Duty',
+      description: 'Rigid CoreXY systems with all-metal MS chassis, precision linear guides, and 300°C hotends for continuous manufacturing.',
+      products: categoryProducts.filter(p => ['pratham-3', 'pratham-5', 'pratham-6'].includes(p.id)),
+    },
+    {
+      title: 'High-Speed Rapid Manufacturing',
+      badge: 'Up to 500 mm/s High-Speed CoreXY',
+      description: 'High-speed CoreXY kinematics delivering up to 500 mm/s print speed for accelerated prototype turnaround.',
+      products: categoryProducts.filter(p => p.id === 'pratham-3-rapid'),
+    },
+    {
+      title: 'Jumbo 1-Meter Monolithic 3D Printers',
+      badge: '1000 mm All-Axis Industrial Ball Screw',
+      description: 'Massive monolithic additive manufacturing systems with all-axis industrial ball screws and up to 1 m³ build capacity.',
+      products: categoryProducts.filter(p => ['pratham-x-600', 'pratham-x'].includes(p.id)),
+    },
+  ]
 
   // Brand groupings in requested priority order: 1st Graebert, 2nd SketchUp, 3rd Chaos
   const graebertProducts = categoryProducts.filter(
@@ -277,8 +306,52 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({ forcedSl
                 )}
             </div>
           </div>
+        ) : isFdm ? (
+          /* ─── FDM 3D PRINTERS: DISPLAYED SECTION-WISE ─── */
+          <div className="space-y-12">
+            <div className="border-b border-slate-200 pb-3">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
+                Make3D Pratham Industrial FDM Lineup
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Organized section-wise from compact desktop educational prototypes to massive 1-meter monolithic workhorses
+              </p>
+            </div>
+
+            {fdmSections.map((sec, idx) => (
+              <div key={idx} className="space-y-5">
+                <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-slate-900 text-white">
+                        Series {idx + 1}
+                      </span>
+                      <h3 className="text-lg font-bold text-slate-950">
+                        {sec.title}
+                      </h3>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                        {sec.badge}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
+                      {sec.description}
+                    </p>
+                  </div>
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 text-slate-700 self-start sm:self-center shrink-0">
+                    {sec.products.length} {sec.products.length === 1 ? 'Model' : 'Models'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {sec.products.map(product => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
-          /* ─── STANDARD CATEGORIES (FDM, SCANNERS, ETC.) ─── */
+          /* ─── STANDARD CATEGORIES (SCANNERS, ETC.) ─── */
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <h2 className="text-xl font-bold text-slate-950">
