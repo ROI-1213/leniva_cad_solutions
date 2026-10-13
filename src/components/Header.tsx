@@ -665,7 +665,7 @@ export const Header: React.FC = () => {
                           <div className="min-w-0">
                             <div className="flex items-center space-x-2">
                               <span className="text-sm font-bold text-slate-900 group-hover:text-red-600 transition-colors">
-                                CAD &amp; 3D Design Software
+                                CAD Softwares
                               </span>
                               <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
                                 Authorized Partner

@@ -74,7 +74,7 @@ export const HomePage: React.FC = () => {
       id: 4,
       image: heroBanner4,
       alt: 'Professional CAD & 3D Design Software — ARES, SketchUp, Chaos — Leniva CAD Solutions',
-      title: 'CAD & 3D Design Software',
+      title: 'CAD Softwares',
       subtitle: 'Official Licenses for ARES CAD, Trimble SketchUp & Chaos Suites',
       tag: 'ARES • SketchUp • Chaos Suites',
       badge: 'Authorized Software Partner',
