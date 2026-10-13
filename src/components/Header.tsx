@@ -628,7 +628,7 @@ export const Header: React.FC = () => {
 
               {/* Shop Dropdown Menu */}
               {activeMegaMenu === 'shop' && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 w-80 animate-fade-in">
+                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 w-88 animate-fade-in">
                   <div className="bg-white rounded-2xl shadow-2xl border border-slate-200/90 p-3 space-y-2 overflow-hidden">
                     {/* Header */}
                     <div className="px-2 py-1 border-b border-slate-100 flex items-center justify-between">
@@ -645,7 +645,31 @@ export const Header: React.FC = () => {
                       </Link>
                     </div>
 
-                    {/* Section 1: 3D Printers & Scanners (Products) */}
+                    {/* Section 1: CAD & 3D Design Software */}
+                    <Link
+                      to="/shop?category=cad-software"
+                      onClick={() => setActiveMegaMenu(null)}
+                      className="flex items-start space-x-3 p-2.5 rounded-xl hover:bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all group"
+                    >
+                      <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 group-hover:bg-red-600 group-hover:text-white transition-colors">
+                        <Layers className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-1.5">
+                          <span className="text-xs font-bold text-slate-900 group-hover:text-red-600 transition-colors">
+                            CAD &amp; 3D Software
+                          </span>
+                          <span className="text-[9px] font-bold px-1.5 py-0.2 bg-red-100 text-red-700 rounded">
+                            Authorized
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
+                          ARES CAD, SketchUp, Chaos V-Ray &amp; Enscape
+                        </p>
+                      </div>
+                    </Link>
+
+                    {/* Section 2: 3D Printers & Scanners (Products) */}
                     <Link
                       to="/shop/products"
                       onClick={() => setActiveMegaMenu(null)}
@@ -657,19 +681,19 @@ export const Header: React.FC = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-1.5">
                           <span className="text-xs font-bold text-slate-900 group-hover:text-red-600 transition-colors">
-                            3D Printers & Scanners
+                            3D Printers &amp; Scanners
                           </span>
                           <span className="text-[9px] font-bold px-1.5 py-0.2 bg-slate-100 text-slate-700 rounded">
                             Products
                           </span>
                         </div>
                         <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
-                          FDM, DLP & LCD printers & 3D scanners
+                          FDM, DLP &amp; LCD printers &amp; 3D scanners
                         </p>
                       </div>
                     </Link>
 
-                    {/* Section 2: 3D Printer Filaments */}
+                    {/* Section 3: 3D Printer Filaments */}
                     <Link
                       to="/shop/filaments"
                       onClick={() => setActiveMegaMenu(null)}
@@ -688,13 +712,20 @@ export const Header: React.FC = () => {
                           </span>
                         </div>
                         <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
-                          PLA & PLA+ in 8 vibrant colours (1 KG / 1.75 mm)
+                          PLA &amp; PLA+ in 8 vibrant colours (1 KG / 1.75 mm)
                         </p>
                       </div>
                     </Link>
 
                     {/* Quick sub-links */}
                     <div className="pt-2 border-t border-slate-100 px-1 grid grid-cols-2 gap-1 text-[11px]">
+                      <Link
+                        to="/shop?category=cad-software"
+                        onClick={() => setActiveMegaMenu(null)}
+                        className="px-2 py-1 rounded-md text-slate-600 hover:text-red-600 hover:bg-slate-50 truncate font-medium"
+                      >
+                        • CAD Software (13)
+                      </Link>
                       <Link
                         to="/shop/fdm"
                         onClick={() => setActiveMegaMenu(null)}
@@ -708,13 +739,6 @@ export const Header: React.FC = () => {
                         className="px-2 py-1 rounded-md text-slate-600 hover:text-red-600 hover:bg-slate-50 truncate"
                       >
                         • 3D Scanners
-                      </Link>
-                      <Link
-                        to="/shop/dlp"
-                        onClick={() => setActiveMegaMenu(null)}
-                        className="px-2 py-1 rounded-md text-slate-600 hover:text-red-600 hover:bg-slate-50 truncate"
-                      >
-                        • DLP & LCD Printers
                       </Link>
                       <Link
                         to="/shop/filaments"
@@ -964,7 +988,7 @@ export const Header: React.FC = () => {
                   onClick={() => toggleMobileSection('shop')}
                   className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50"
                 >
-                  <span className="font-semibold">Shop (Products & Filaments)</span>
+                  <span className="font-semibold">Shop (Software, 3D Printers &amp; Filaments)</span>
                   <ChevronDown
                     className={`w-4 h-4 transition-transform ${
                       expandedMobileSection === 'shop' ? 'rotate-180 text-red-600' : ''
