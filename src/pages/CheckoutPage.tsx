@@ -4,7 +4,7 @@ import { CheckCircle2, ArrowLeft } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 
 export const CheckoutPage: React.FC = () => {
-  const { cartItems, cartTotal, clearCart } = useApp()
+  const { cartItems, clearCart } = useApp()
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [formData, setFormData] = useState({
     fullName: '',
@@ -18,9 +18,6 @@ export const CheckoutPage: React.FC = () => {
     pincode: '',
     paymentMethod: 'bank_transfer',
   })
-
-  const gst = Math.round(cartTotal * 0.18)
-  const total = cartTotal + gst
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -239,8 +236,8 @@ export const CheckoutPage: React.FC = () => {
                     <strong className="block text-slate-900 truncate max-w-[180px]">{item.name}</strong>
                     <span className="text-slate-400 text-[10px]">Qty: {item.quantity}</span>
                   </div>
-                  <span className="font-bold text-slate-900">
-                    ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                  <span className="font-semibold text-slate-500">
+                    Price on Request
                   </span>
                 </div>
               ))}
@@ -248,20 +245,20 @@ export const CheckoutPage: React.FC = () => {
 
             <div className="pt-3 border-t border-slate-100 text-xs space-y-2">
               <div className="flex justify-between text-slate-500">
-                <span>Subtotal:</span>
-                <span className="font-semibold text-slate-900">₹{cartTotal.toLocaleString('en-IN')}</span>
+                <span>Pricing:</span>
+                <span className="font-semibold text-slate-900">Official Proforma Quote</span>
               </div>
               <div className="flex justify-between text-slate-500">
-                <span>GST (18%):</span>
-                <span className="font-semibold text-slate-900">₹{gst.toLocaleString('en-IN')}</span>
+                <span>GST Invoicing:</span>
+                <span className="font-semibold text-slate-900">Included on Dispatch</span>
               </div>
               <div className="flex justify-between text-slate-500">
                 <span>Freight:</span>
                 <span className="font-bold text-emerald-600 uppercase text-[10px]">FREE PAN-INDIA</span>
               </div>
               <div className="pt-2 border-t border-slate-100 flex justify-between text-sm font-black text-slate-950">
-                <span>Final Payable:</span>
-                <span>₹{total.toLocaleString('en-IN')}</span>
+                <span>Terms:</span>
+                <span>Proforma Verification</span>
               </div>
             </div>
 

@@ -1,10 +1,10 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, Trash2, ArrowRight, ShoppingCart, Send } from 'lucide-react'
+import { Heart, Trash2, ArrowRight, Send } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 
 export const WishlistPage: React.FC = () => {
-  const { wishlistItems, toggleWishlist, addToCart, openQuoteModal } = useApp()
+  const { wishlistItems, toggleWishlist, openQuoteModal } = useApp()
 
   if (wishlistItems.length === 0) {
     return (
@@ -58,42 +58,22 @@ export const WishlistPage: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="p-4 space-y-2">
+                <div className="p-4 space-y-1">
                   <h3 className="text-sm font-bold text-slate-950 line-clamp-2">{item.name}</h3>
-                  {item.price && (
-                    <div className="text-sm font-black text-slate-900">
-                      ₹{item.price.toLocaleString('en-IN')}
-                    </div>
-                  )}
+                  <div className="text-xs font-semibold text-slate-500">
+                    Price on Request
+                  </div>
                 </div>
               </div>
 
               <div className="p-4 pt-0">
-                {item.isQuoteRequired ? (
-                  <button
-                    onClick={() => openQuoteModal(item.name)}
-                    className="w-full py-2 bg-slate-900 hover:bg-red-600 text-white text-xs font-bold rounded-lg transition-colors flex items-center justify-center space-x-1.5"
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                    <span>Request Quote</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() =>
-                      addToCart({
-                        shopItemId: item.id,
-                        name: item.name,
-                        price: item.price || 0,
-                        image: item.image,
-                        quantity: 1,
-                      })
-                    }
-                    className="w-full py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center justify-center space-x-1.5"
-                  >
-                    <ShoppingCart className="w-3.5 h-3.5" />
-                    <span>Move to Cart</span>
-                  </button>
-                )}
+                <button
+                  onClick={() => openQuoteModal(item.name)}
+                  className="w-full py-2 bg-slate-900 hover:bg-red-600 text-white text-xs font-bold rounded-lg transition-colors flex items-center justify-center space-x-1.5"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Request Quote</span>
+                </button>
               </div>
             </div>
           ))}

@@ -986,12 +986,12 @@ export const SketchUpProScanPage: React.FC = () => {
             </p>
 
             <div className="my-6 p-5 rounded-2xl bg-slate-800/80 border border-slate-700 space-y-2">
-              <div className="text-xs font-semibold text-slate-400">Commercial Pricing in India:</div>
+              <div className="text-xs font-semibold text-slate-400">Licensing & Commercial Subscription:</div>
               <div className="text-base font-bold text-white">
-                {proScanData.pricing.pricingIndia}
+                Official Commercial Partner Quotes Available
               </div>
               <div className="text-[11px] text-slate-400">
-                US List Reference: {proScanData.pricing.pricingUsd}
+                Annual named-user commercial license with Indian INR billing, GST invoicing &amp; local technical support.
               </div>
             </div>
 

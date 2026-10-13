@@ -687,8 +687,8 @@ export const sketchupProData = {
       category: 'platforms',
     },
     {
-      q: 'What are the official pricing options for SketchUp Pro?',
-      a: 'Trimble lists SketchUp Pro at $33.25 USD/user/month when billed annually ($399 USD per year), and $99.99 USD/user/month when billed monthly. Prices exclude applicable regional taxes/VAT. For commercial deployment, volume licenses, educational pricing, and invoicing in Indian Rupees (INR) with local technical support and GST compliance, Leniva CAD Solutions provides official quotes.',
+      q: 'How do I procure genuine SketchUp Pro commercial licensing in India?',
+      a: 'Leniva CAD Solutions provides official commercial quotes, volume licenses, and educational pricing for SketchUp Pro and SketchUp Studio in Indian Rupees (INR) with full GST tax compliance, licensing administration, and local technical onboarding support.',
       category: 'licensing',
     },
     {

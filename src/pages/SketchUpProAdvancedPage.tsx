@@ -24,10 +24,6 @@ import {
 } from 'lucide-react'
 import { sketchupProAdvancedData } from '../data/sketchupProAdvancedData'
 
-// ─── Utility ────────────────────────────────────────────────────────────────
-const fmtPrice = (n: number) =>
-  n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-
 // ─── Icon Map ────────────────────────────────────────────────────────────────
 const IconMap: Record<string, React.FC<{ className?: string }>> = {
   ArrowLeftRight,
@@ -57,7 +53,7 @@ const NAV_SECTIONS = [
   { id: 'compare',        label: 'Compare' },
   { id: 'industries',     label: 'Industries' },
   { id: 'system-req',     label: 'System Requirements' },
-  { id: 'pricing',        label: 'Pricing' },
+  { id: 'pricing',        label: 'Licensing' },
   { id: 'faq',            label: 'FAQ' },
 ]
 
@@ -66,7 +62,6 @@ export default function SketchUpProAdvancedPage() {
   const d = sketchupProAdvancedData
 
   const [activeSection, setActiveSection] = useState('overview')
-  const [billingCycle, setBillingCycle] = useState<'annual' | 'monthly'>('annual')
   const [activeFaqCategory, setActiveFaqCategory] = useState<string>('all')
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [compCategory, setCompCategory] = useState<string>('all')
@@ -93,9 +88,6 @@ export default function SketchUpProAdvancedPage() {
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
-
-  const currentPrice =
-    billingCycle === 'annual' ? d.hero.annualPricePerMonthUsd : d.hero.monthlyPriceUsd
 
   const faqCategories = [
     { id: 'all', label: 'All' },
@@ -689,32 +681,13 @@ export default function SketchUpProAdvancedPage() {
       <section id="pricing" className="py-20 bg-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <span className="text-xs font-bold tracking-widest text-[#003865] uppercase">Pricing</span>
+            <span className="text-xs font-bold tracking-widest text-[#003865] uppercase">Licensing &amp; Plans</span>
             <h2 className="mt-3 text-3xl lg:text-4xl font-bold text-slate-900">
-              Simple, transparent subscription pricing
+              Commercial Subscription
             </h2>
             <p className="mt-4 text-slate-600">
-              Annual billing saves you significantly versus month-to-month. Contact us for volume, academic, and government pricing.
+              Official Trimble subscription licensing for architecture, engineering, and construction teams. Contact us for commercial quotes, volume licenses, and academic pricing.
             </p>
-          </div>
-
-          {/* Billing toggle */}
-          <div className="flex justify-center mb-10">
-            <div className="inline-flex rounded-xl border border-slate-200 p-1 bg-slate-50">
-              {(['annual', 'monthly'] as const).map(cycle => (
-                <button
-                  key={cycle}
-                  onClick={() => setBillingCycle(cycle)}
-                  className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                    billingCycle === cycle
-                      ? 'bg-[#003865] text-white shadow'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {cycle === 'annual' ? 'Annual (Save more)' : 'Monthly'}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Price card */}
@@ -728,20 +701,9 @@ export default function SketchUpProAdvancedPage() {
                 </div>
                 <h3 className="text-2xl font-bold text-white">Pro Advanced Workflows</h3>
                 <p className="text-white/60 text-sm mt-1">Revit Importer + Scan Essentials included</p>
-                <div className="mt-6">
-                  <div className="flex items-end justify-center gap-1">
-                    <span className="text-white/60 text-lg">$</span>
-                    <span className="text-5xl font-bold text-white">{fmtPrice(currentPrice)}</span>
-                    <span className="text-white/60 text-sm mb-1">/user/mo</span>
-                  </div>
-                  {billingCycle === 'annual' && (
-                    <p className="text-cyan-300 text-sm mt-1">
-                      Billed annually · \${d.hero.annualBilledTotalUsd}/year
-                    </p>
-                  )}
-                  {billingCycle === 'monthly' && (
-                    <p className="text-white/50 text-xs mt-1">Billed monthly · no commitment</p>
-                  )}
+                <div className="mt-6 space-y-1">
+                  <div className="text-2xl font-bold text-white">Commercial Subscription</div>
+                  <p className="text-cyan-300 text-sm">Official Trimble Partner Pricing on Request</p>
                 </div>
               </div>
 
@@ -780,7 +742,7 @@ export default function SketchUpProAdvancedPage() {
                 </div>
 
                 <p className="text-xs text-slate-400 text-center pt-2">
-                  Prices shown in USD, excluding taxes. Indian pricing varies — contact us for INR pricing.
+                  Official commercial licensing in Indian Rupees (INR) with full GST invoicing and local technical support.
                 </p>
               </div>
             </div>

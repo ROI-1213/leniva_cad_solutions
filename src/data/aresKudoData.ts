@@ -719,8 +719,8 @@ export const aresKudoData = {
       },
       {
         feature: 'License Flexibility & TCO',
-        kudo: 'From €200/year (approx. ₹18,000/yr) with shared floating Flex Cloud options for teams.',
-        autocadLt: 'Strictly named-user subscriptions starting at ~₹45,000+ per user annually with no floating pool.',
+        kudo: 'Cost-effective annual subscriptions with shared floating Flex Cloud options for teams.',
+        autocadLt: 'Strictly named-user subscriptions with no floating pool.',
         advantage: 'kudo',
       },
     ],

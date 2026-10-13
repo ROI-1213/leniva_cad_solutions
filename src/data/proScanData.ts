@@ -687,7 +687,7 @@ export const proScanData: ProScanData = {
     description: 'Combines full SketchUp Pro modeling, LayOut 2D documentation, and Scan Essentials point-cloud reality capture tools in one unified Windows subscription.',
     platform: 'Windows OS Exclusive',
     billing: 'Billed annually per named user',
-    pricingUsd: '$41.58 USD / month per user (billed annually at $499 USD/yr, US list price excl. tax)',
+    pricingUsd: 'Official Commercial Quotes Available on Request',
     pricingIndia: 'Contact Leniva CAD Solutions for current official commercial quotes in INR with GST',
     features: [
       'Full SketchUp for Desktop 3D modeling environment (Windows)',

@@ -193,7 +193,7 @@ export const SearchModal: React.FC = () => {
                             <div className="text-sm font-semibold text-slate-900 group-hover:text-emerald-600 transition-colors">
                               {item.name}
                             </div>
-                            <div className="text-xs text-slate-500">{item.category === 'make3d-filaments' || item.categoryName?.toLowerCase().includes('filament') ? `Price on Request • ${item.categoryName}` : `₹${item.price.toLocaleString('en-IN')} • ${item.categoryName}`}</div>
+                            <div className="text-xs text-slate-500">Price on Request • {item.categoryName}</div>
                           </div>
                         </div>
                         <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">View in Shop</span>

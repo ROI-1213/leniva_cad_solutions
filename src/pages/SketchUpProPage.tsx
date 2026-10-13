@@ -35,7 +35,6 @@ export const SketchUpProPage: React.FC = () => {
   const [selectedWarehouseCategory, setSelectedWarehouseCategory] = useState<string>('All')
   const [extensionCategory, setExtensionCategory] = useState<string>('all')
   const [extensionSearch, setExtensionSearch] = useState<string>('')
-  const [billingCycle, setBillingCycle] = useState<'annual' | 'monthly'>('annual')
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0)
   const [faqCategory, setFaqCategory] = useState<string>('all')
   const [openSysReq, setOpenSysReq] = useState<'recommended' | 'minimum'>('recommended')
@@ -178,7 +177,7 @@ export const SketchUpProPage: React.FC = () => {
               { id: 'predesign', label: 'PreDesign & AI', ref: predesignRef },
               { id: 'workflow', label: 'Workflow', ref: workflowRef },
               { id: 'industries', label: 'Industries', ref: industriesRef },
-              { id: 'pricing', label: 'Pricing', ref: pricingRef },
+              { id: 'pricing', label: 'Plans & Licensing', ref: pricingRef },
               { id: 'comparison', label: 'Compare Plans', ref: comparisonRef },
               { id: 'techspecs', label: 'Tech Specs', ref: techSpecsRef },
               { id: 'faqs', label: 'FAQs', ref: faqsRef },
@@ -227,23 +226,22 @@ export const SketchUpProPage: React.FC = () => {
               {sketchupProData.hero.description}
             </p>
 
-            {/* Price Highlight Badge */}
+            {/* Commercial Licensing Badge */}
             <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                  Official Trimble Pricing Reference
+                  Official Trimble Commercial Licensing
                 </span>
-                <div className="flex items-baseline space-x-1.5 mt-0.5">
-                  <span className="text-2xl font-black text-slate-950">
-                    ${sketchupProData.hero.annualPriceUsd}
+                <div className="flex items-baseline space-x-2 mt-0.5">
+                  <span className="text-xl font-black text-slate-950">
+                    Authorized Trimble Partner
                   </span>
-                  <span className="text-xs text-slate-500 font-medium">USD / user / month</span>
-                  <span className="text-[11px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded font-semibold ml-2">
-                    Billed annually ($399/yr)
+                  <span className="text-[11px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded font-semibold">
+                    India / Commercial
                   </span>
                 </div>
-                <span className="text-[10px] text-slate-400 block mt-1">
-                  Excl. taxes. Authorized commercial billing in INR with GST invoice available.
+                <span className="text-[10px] text-slate-500 block mt-1">
+                  Official commercial licensing in INR with GST invoice and authorized technical support.
                 </span>
               </div>
             </div>
@@ -1073,37 +1071,11 @@ export const SketchUpProPage: React.FC = () => {
             Commercial Licensing
           </span>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
-            Transparent Subscription Pricing
+            Commercial Subscription Plans
           </h2>
           <p className="text-sm text-slate-600 leading-relaxed">
-            Official Trimble SketchUp Pro pricing for commercial users. Includes Desktop modeler, LayOut, Web, iPad, unlimited Trimble Connect cloud, and 3D Warehouse.
+            Official Trimble SketchUp Pro licensing for commercial users. Includes Desktop modeler, LayOut, Web, iPad, unlimited Trimble Connect cloud, and 3D Warehouse.
           </p>
-
-          {/* Billing Cycle Toggle */}
-          <div className="pt-2 flex justify-center">
-            <div className="inline-flex rounded-xl bg-white p-1 border border-slate-200 shadow-xs text-xs font-bold">
-              <button
-                onClick={() => setBillingCycle('annual')}
-                className={`px-4 py-2 rounded-lg transition-all cursor-pointer ${
-                  billingCycle === 'annual'
-                    ? 'bg-[#005F9E] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Annual Billing (Save 66%)
-              </button>
-              <button
-                onClick={() => setBillingCycle('monthly')}
-                className={`px-4 py-2 rounded-lg transition-all cursor-pointer ${
-                  billingCycle === 'monthly'
-                    ? 'bg-[#005F9E] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Monthly Billing
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Pricing Cards */}
@@ -1122,20 +1094,11 @@ export const SketchUpProPage: React.FC = () => {
                 </span>
               </div>
 
-              <div className="py-3 border-y border-slate-100">
-                <div className="flex items-baseline space-x-1.5">
-                  <span className="text-4xl font-black text-slate-950">
-                    {billingCycle === 'annual' ? `$${sketchupProData.hero.annualPriceUsd}` : `$${sketchupProData.hero.monthlyPriceUsd}`}
-                  </span>
-                  <span className="text-xs text-slate-500 font-medium">USD / user / month</span>
-                </div>
-                <span className="text-xs text-blue-700 font-bold block mt-1">
-                  {billingCycle === 'annual'
-                    ? `Billed annually at $${sketchupProData.hero.annualBilledTotalUsd} USD/year`
-                    : 'Billed monthly ($99.99/mo). Cancel anytime.'}
-                </span>
-                <span className="text-[10px] text-slate-400 block mt-1">
-                  Prices exclude applicable taxes/VAT. Indian INR invoices with GST available.
+              <div className="py-3 border-y border-slate-100 space-y-1">
+                <div className="text-2xl font-black text-slate-950">Commercial License</div>
+                <div className="text-xs text-blue-700 font-bold">Annual Named-User Subscription</div>
+                <span className="text-[10px] text-slate-400 block">
+                  Official commercial quotes in INR with GST compliance and authorized technical support.
                 </span>
               </div>
 
@@ -1168,13 +1131,7 @@ export const SketchUpProPage: React.FC = () => {
                 onClick={() => openQuoteModal('SketchUp Pro Commercial Annual Subscription')}
                 className="w-full py-3.5 rounded-xl bg-[#005F9E] hover:bg-[#004b7e] text-white font-black text-xs transition-colors cursor-pointer shadow-md"
               >
-                Subscribe to SketchUp Pro
-              </button>
-              <button
-                onClick={() => openQuoteModal('SketchUp Pro INR Invoicing / Quote Request')}
-                className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-colors cursor-pointer border border-slate-200"
-              >
-                Request Commercial Quote (India / INR)
+                Request Commercial Quote
               </button>
             </div>
           </div>
@@ -1192,11 +1149,11 @@ export const SketchUpProPage: React.FC = () => {
                 </span>
               </div>
 
-              <div className="py-3 border-y border-slate-800">
-                <span className="text-3xl font-black text-white">$749</span>
-                <span className="text-xs text-slate-400 font-medium ml-1.5">USD / user / year</span>
-                <span className="text-xs text-cyan-400 font-bold block mt-1">
-                  Billed annually. Complete AEC suite.
+              <div className="py-3 border-y border-slate-800 space-y-1">
+                <div className="text-2xl font-black text-white">Advanced AEC Suite</div>
+                <div className="text-xs text-cyan-400 font-bold">Comprehensive Annual Subscription</div>
+                <span className="text-[10px] text-slate-400 block">
+                  Complete BIM reality capture, Revit model conversion &amp; Chaos V-Ray photoreal rendering.
                 </span>
               </div>
 
@@ -1255,15 +1212,15 @@ export const SketchUpProPage: React.FC = () => {
                 <th className="p-4 sm:p-5 font-black text-sm">Features &amp; Platforms</th>
                 <th className="p-4 sm:p-5 font-bold text-slate-600 text-center w-1/5">
                   SketchUp Go
-                  <span className="block text-[10px] text-slate-400 font-normal">$119/yr</span>
+                  <span className="block text-[10px] text-slate-400 font-normal">Web &amp; iPad Edition</span>
                 </th>
                 <th className="p-4 sm:p-5 font-black text-[#005F9E] bg-blue-50/50 text-center w-1/4 border-x-2 border-[#005F9E]">
                   SketchUp Pro
-                  <span className="block text-[10px] text-blue-700 font-bold">$399/yr (Recommended)</span>
+                  <span className="block text-[10px] text-blue-700 font-bold">Recommended for Professionals</span>
                 </th>
                 <th className="p-4 sm:p-5 font-bold text-slate-800 text-center w-1/4">
                   SketchUp Studio
-                  <span className="block text-[10px] text-slate-400 font-normal">$749/yr</span>
+                  <span className="block text-[10px] text-slate-400 font-normal">Complete AEC &amp; BIM Suite</span>
                 </th>
               </tr>
             </thead>
