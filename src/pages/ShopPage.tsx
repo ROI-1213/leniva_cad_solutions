@@ -321,8 +321,8 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
         </nav>
 
         {/* Shop Hero Banner */}
-        <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/90 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-2">
+        <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/90 shadow-sm">
+          <div className="space-y-2 max-w-3xl">
             <span className="text-xs font-bold uppercase tracking-wider text-red-600 flex items-center space-x-1.5">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Official Software, Hardware & Consumables Catalog</span>
@@ -330,19 +330,9 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
             <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
               CAD Software, 3D Printers, 3D Scanners & Engineering Filaments
             </h1>
-            <p className="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
               Explore official Graebert ARES, Trimble SketchUp & Chaos software licenses, alongside industrial Make3D additive machines, 3DeVOK 3D scanners, and genuine 3D printing filaments with authorized technical support.
             </p>
-          </div>
-          <div className="flex items-center space-x-6 text-xs text-slate-500 border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6 shrink-0">
-            <div>
-              <strong className="block text-slate-900 font-bold text-sm">Authorized Official Partner</strong>
-              <span>Graebert • Trimble • Chaos • Make3D • 3DeVOK</span>
-            </div>
-            <div>
-              <strong className="block text-slate-900 font-bold text-sm">Dedicated Technical Service</strong>
-              <span>License deployment, onboarding & warranty</span>
-            </div>
           </div>
         </div>
 
