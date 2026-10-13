@@ -157,7 +157,7 @@ export const SearchModal: React.FC = () => {
                     {filteredServices.map(s => (
                       <div
                         key={s.id}
-                        onClick={() => handleSelect(`/services/${s.slug}`)}
+                        onClick={() => handleSelect('/services')}
                         className="flex items-center justify-between p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors group"
                       >
                         <div>

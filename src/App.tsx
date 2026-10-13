@@ -354,19 +354,7 @@ export default function App() {
 
             {/* 3. Services */}
             <Route path="/services" element={<ServicesPage />} />
-            <Route
-              path="/services/3d-printing"
-              element={<ServiceDetailPage forcedSlug="3d-printing" />}
-            />
-            <Route
-              path="/services/fdm-3d-printing"
-              element={<ServiceDetailPage forcedSlug="fdm-3d-printing" />}
-            />
-            <Route
-              path="/services/sla-3d-printing"
-              element={<ServiceDetailPage forcedSlug="sla-3d-printing" />}
-            />
-            <Route path="/services/:slug" element={<ServiceDetailPage />} />
+            <Route path="/services/*" element={<Navigate to="/services" replace />} />
 
             {/* 4. Shop */}
             <Route path="/shop" element={<ShopPage />} />
