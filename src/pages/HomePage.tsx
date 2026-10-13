@@ -320,13 +320,11 @@ export const HomePage: React.FC = () => {
                 <span>{slides[currentSlide].tag}</span>
               </div>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-950 tracking-tight leading-snug">
-                {slides[currentSlide].title}{' '}
-                <span className="text-slate-600 font-semibold">
-                  — {slides[currentSlide].subtitle}
-                </span>
+                Your Authorized Partner in{' '}
+                <span className="text-red-600">CAD & 3D Technology</span>
               </h1>
               <p className="text-sm sm:text-[15px] text-slate-600 font-normal leading-relaxed max-w-2xl">
-                Official Trimble & Chaos certified CAD and rendering software, industrial FDM, DLP & LCD 3D printing systems, and high-precision 3D scanners across India.
+                We are authorized dealers for leading CAD software, including ARES CAD, SketchUp, and Chaos, along with advanced 3D printing and 3D scanning solutions to meet your design and engineering needs.
               </p>
             </div>
 
@@ -419,7 +417,7 @@ export const HomePage: React.FC = () => {
                         <span className="text-xs font-mono font-bold text-slate-400">01</span>
                       </div>
                       <h3 className="text-sm font-bold text-slate-950 group-hover:text-red-600 transition-colors mt-3 leading-snug">Professional Technology</h3>
-                      <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mt-1.5 line-clamp-2">Industrial-grade FDM, DLP, LCD additive platforms and Trimble / Chaos software.</p>
+                      <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mt-1.5 line-clamp-2">Industrial-grade FDM, DLP, LCD additive platforms and ARES CAD, SketchUp &amp; Chaos software.</p>
                     </div>
                     <div>
                       <div className="w-6 h-0.5 bg-red-600 rounded-full mt-3.5 mb-2" />
@@ -497,7 +495,7 @@ export const HomePage: React.FC = () => {
                         <span className="text-xs font-mono font-bold text-slate-400">01</span>
                       </div>
                       <h3 className="text-sm font-bold text-slate-950 group-hover:text-red-600 transition-colors mt-3 leading-snug">Professional Technology</h3>
-                      <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mt-1.5 line-clamp-2">Industrial-grade FDM, DLP, LCD additive platforms and Trimble / Chaos software.</p>
+                      <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mt-1.5 line-clamp-2">Industrial-grade FDM, DLP, LCD additive platforms and ARES CAD, SketchUp &amp; Chaos software.</p>
                     </div>
                     <div>
                       <div className="w-6 h-0.5 bg-red-600 rounded-full mt-3.5 mb-2" />
