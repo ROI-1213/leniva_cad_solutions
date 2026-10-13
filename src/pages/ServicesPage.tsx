@@ -45,57 +45,6 @@ export const ServicesPage: React.FC = () => {
             <ServiceCard key={service.id} service={service} />
           ))}
         </div>
-
-        {/* Technical Workflow Overview */}
-        <div className="bg-slate-900 text-white rounded-3xl p-8 sm:p-12 border border-slate-800 space-y-8">
-          <div className="max-w-2xl">
-            <span className="text-xs font-bold uppercase tracking-wider text-red-400">Quality Assured</span>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mt-1">
-              Our 6-Step Engineering Workflow
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-2">
-              Every job processed at our facility undergoes rigorous Design for Additive Manufacturing (DfAM) evaluation and metrology verification.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-xs">
-            <div className="bg-slate-950/80 p-5 rounded-2xl border border-slate-800 space-y-2">
-              <span className="w-6 h-6 rounded-full bg-red-600 text-white font-bold flex items-center justify-center text-xs">1</span>
-              <h4 className="text-sm font-bold text-white">CAD File Review</h4>
-              <p className="text-slate-400">Geometry validation, wall thickness analysis, and tolerance feasibility audit.</p>
-            </div>
-
-            <div className="bg-slate-950/80 p-5 rounded-2xl border border-slate-800 space-y-2">
-              <span className="w-6 h-6 rounded-full bg-red-600 text-white font-bold flex items-center justify-center text-xs">2</span>
-              <h4 className="text-sm font-bold text-white">Process Selection</h4>
-              <p className="text-slate-400">Selecting optimal technology (FDM, SLA, DLP) and polymer grade for thermal/mechanical load.</p>
-            </div>
-
-            <div className="bg-slate-950/80 p-5 rounded-2xl border border-slate-800 space-y-2">
-              <span className="w-6 h-6 rounded-full bg-red-600 text-white font-bold flex items-center justify-center text-xs">3</span>
-              <h4 className="text-sm font-bold text-white">Precision Slicing</h4>
-              <p className="text-slate-400">Toolpath generation, support strategy, and orientation to minimize anisotropic stress.</p>
-            </div>
-
-            <div className="bg-slate-950/80 p-5 rounded-2xl border border-slate-800 space-y-2">
-              <span className="w-6 h-6 rounded-full bg-red-600 text-white font-bold flex items-center justify-center text-xs">4</span>
-              <h4 className="text-sm font-bold text-white">Industrial Manufacturing</h4>
-              <p className="text-slate-400">Continuous chamber temperature regulation and layer-by-layer optical monitoring.</p>
-            </div>
-
-            <div className="bg-slate-950/80 p-5 rounded-2xl border border-slate-800 space-y-2">
-              <span className="w-6 h-6 rounded-full bg-red-600 text-white font-bold flex items-center justify-center text-xs">5</span>
-              <h4 className="text-sm font-bold text-white">Post-Processing</h4>
-              <p className="text-slate-400">Solvent washing, UV curing, bead blasting, insert installation, and surface finishing.</p>
-            </div>
-
-            <div className="bg-slate-950/80 p-5 rounded-2xl border border-slate-800 space-y-2">
-              <span className="w-6 h-6 rounded-full bg-red-600 text-white font-bold flex items-center justify-center text-xs">6</span>
-              <h4 className="text-sm font-bold text-white">Inspection & Dispatch</h4>
-              <p className="text-slate-400">Calibrated dimensional verification against nominal 3D CAD data before expedited dispatch.</p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   )
