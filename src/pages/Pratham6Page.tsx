@@ -2260,7 +2260,7 @@ interface RelatedPrinter {
 const relatedPrinters: RelatedPrinter[] = [
   {
     name: 'Pratham Mini',
-    vol: '120 × 120 × 120 mm',
+    vol: '170 × 170 × 170 mm',
     tag: 'Classroom & Lab',
     link: '/products/pratham-mini',
     img: '/images/products/pratham-mini.png',

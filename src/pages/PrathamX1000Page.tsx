@@ -1793,7 +1793,7 @@ export const PrathamX1000Page: React.FC = () => {
           {[
             {
               name: 'Pratham Mini',
-              vol: '120 × 120 × 120 mm',
+              vol: '170 × 170 × 170 mm',
               tag: 'Compact Learning',
               link: '/products/pratham-mini',
               img: '/images/products/pratham-mini.png',

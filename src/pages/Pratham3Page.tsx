@@ -329,7 +329,7 @@ export const Pratham3Page: React.FC = () => {
   const prathamSeries = [
     {
       name: 'Pratham Mini',
-      vol: '120 × 120 × 120 mm',
+      vol: '170 × 170 × 170 mm',
       tag: 'Classroom & Lab',
       desc: 'Compact industrial 3D printer ideal for small prototypes, labs, and educational use.',
       link: '/products/pratham-mini',

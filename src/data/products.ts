@@ -18,7 +18,7 @@ export const products: Product[] = [
       '/images/products/pratham-mini.png',
     ],
     keySpecs: [
-      { label: 'Build Volume', value: '120 × 120 × 120 mm' },
+      { label: 'Build Volume', value: '170 × 170 × 170 mm' },
       { label: 'Layer Resolution', value: '0.1 – 0.3 mm' },
       { label: 'Nozzle Temp', value: 'Up to 260°C' },
       { label: 'Bed Temp', value: 'Up to 100°C' },
@@ -26,7 +26,7 @@ export const products: Product[] = [
     ],
     specifications: {
       'Print Technology': 'Fused Deposition Modeling (FDM / FFF)',
-      'Build Envelope': '120 × 120 × 120 mm',
+      'Build Envelope': '170 × 170 × 170 mm',
       'Extruder Type': 'Direct Drive Precision Extruder',
       'Nozzle Diameter': '0.4 mm (0.2 / 0.6 mm optional)',
       'Maximum Hotend Temperature': '260°C',

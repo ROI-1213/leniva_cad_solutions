@@ -93,7 +93,7 @@ export const Header: React.FC = () => {
       route: '/products/fdm-3d-printers',
       description: 'Industrial and desktop FDM systems with build volumes up to 1 meter.',
       products: [
-        { name: 'Pratham Mini', slug: 'pratham-mini', spec: '120 × 120 × 120 mm' },
+        { name: 'Pratham Mini', slug: 'pratham-mini', spec: '170 × 170 × 170 mm' },
         { name: 'Pratham Desktop', slug: 'pratham-desktop', spec: '200 × 200 × 250 mm' },
         { name: 'Pratham 3.0', slug: 'pratham-3', spec: '300 × 300 × 300 mm' },
         { name: 'Pratham 5.0', slug: 'pratham-5', spec: '500 × 500 × 500 mm' },

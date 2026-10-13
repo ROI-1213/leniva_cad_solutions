@@ -363,10 +363,10 @@ export const shopItems: ShopItem[] = [
     isQuoteBased: true,
     productSlug: 'pratham-mini',
     isContain: true,
-    shortDescription: 'Compact desktop FDM 3D printer (120 × 120 × 120 mm) engineered for learning labs, student research, and precision prototyping.',
+    shortDescription: 'Compact desktop FDM 3D printer (170 × 170 × 170 mm) engineered for learning labs, student research, and precision prototyping.',
     specifications: {
       'Print Speed': 'Up to 120 mm/s',
-      'Build Envelope': '120 × 120 × 120 mm',
+      'Build Envelope': '170 × 170 × 170 mm',
       'Extruder': 'Direct Drive Precision Extruder',
       'Nozzle Temp': 'Up to 260°C',
       'Bed Temp': 'Up to 100°C',

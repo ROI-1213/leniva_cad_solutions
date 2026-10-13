@@ -35,13 +35,13 @@ const PRINTER_SECTIONS: HardwareSectionConfig[] = [
   {
     id: 'fdm',
     title: 'FDM 3D Printers — Pratham Industrial Series',
-    subtitle: 'CoreXY & Industrial Ball Screw Systems (120 mm Desktop to 1-Meter Monolithic Giants)',
+    subtitle: 'CoreXY & Industrial Ball Screw Systems (170 mm Desktop to 1-Meter Monolithic Giants)',
     techBadge: 'COREXY & ALL-AXIS BALL SCREW',
     badgeColor: 'bg-slate-100 text-slate-900 border-slate-300',
     accentColor: '#0f172a',
     icon: Printer,
     description:
-      'Engineered in India for production-grade reliability: heavy-duty mild steel chassis, industrial linear guides, high-temp extruders (up to 300°C), and build envelopes scaling from space-saving 120 mm desktop prototypes to 1000 mm giant monolithic workhorses.',
+      'Engineered in India for production-grade reliability: heavy-duty mild steel chassis, industrial linear guides, high-temp extruders (up to 300°C), and build envelopes scaling from space-saving 170 mm desktop prototypes to 1000 mm giant monolithic workhorses.',
     categoryRoute: '/products/fdm-3d-printers',
     categoryLabel: 'Explore FDM Hub',
     matches: (p: Product) =>
@@ -126,7 +126,7 @@ export const ProductsPage: React.FC = () => {
       id: 'fdm',
       title: 'FDM 3D Printers',
       tag: 'PRATHAM SERIES',
-      description: 'Industrial CoreXY & heated-chamber FDM systems from 120 mm desktop to 1-meter monolithic giants.',
+      description: 'Industrial CoreXY & heated-chamber FDM systems from 170 mm desktop to 1-meter monolithic giants.',
       icon: Printer,
       route: '/products/fdm-3d-printers',
       badgeColor: 'bg-slate-100 text-slate-800 border-slate-200',
@@ -290,7 +290,7 @@ export const ProductsPage: React.FC = () => {
 
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl font-normal">
               India’s premier industrial additive manufacturing systems. Explore verified CoreXY and all-axis ball screw
-              industrial FDM printers (from 120 mm desktop prototypes to 1-meter monolithic workhorses), direct-casting DLP
+              industrial FDM printers (from 170 mm desktop prototypes to 1-meter monolithic workhorses), direct-casting DLP
               resin printers, and 16K ultra-high resolution monochrome LCD systems.
             </p>
 
