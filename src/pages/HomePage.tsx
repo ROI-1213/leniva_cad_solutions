@@ -22,13 +22,18 @@ import { ShowroomSolutionsSection } from '../components/ShowroomSolutionsSection
 import { SoftwareSuiteSection } from '../components/SoftwareSuiteSection'
 import { NewTo3DPrintingSection } from '../components/NewTo3DPrintingSection'
 
+import heroBanner1 from '../assets/hero/hero-banner-1.png'
+import heroBanner2 from '../assets/hero/hero-banner-2.png'
+import heroBanner3 from '../assets/hero/hero-banner-3.png'
+import heroBanner4 from '../assets/hero/hero-banner-4.png'
+
 export const HomePage: React.FC = () => {
   const { openQuoteModal } = useApp()
 
   const slides = [
     {
       id: 1,
-      image: '/hero-banner-1.png',
+      image: heroBanner1,
       alt: 'Next Generation 3D Printing Technology — Leniva CAD Solutions',
       title: 'Next Generation 3D Printing Technology',
       subtitle: 'Powering Creativity, Enabling Industry',
@@ -41,7 +46,7 @@ export const HomePage: React.FC = () => {
     },
     {
       id: 2,
-      image: '/hero-banner-2.png',
+      image: heroBanner2,
       alt: 'Industrial Grade Precision Performance Possibilities — Leniva CAD Solutions',
       title: 'Precision, Performance, Possibilities',
       subtitle: 'Large Ideas, Bigger Possibilities',
@@ -54,7 +59,7 @@ export const HomePage: React.FC = () => {
     },
     {
       id: 3,
-      image: '/hero-banner-3.png',
+      image: heroBanner3,
       alt: 'Professional 3D Printing Solutions — Pratham 3 Rapid — Leniva CAD Solutions',
       title: 'Professional 3D Printing Solutions',
       subtitle: 'High-Speed Precision Prototyping & Production',
@@ -67,7 +72,7 @@ export const HomePage: React.FC = () => {
     },
     {
       id: 4,
-      image: '/hero-banner-4.png',
+      image: heroBanner4,
       alt: 'Professional CAD & 3D Design Software — ARES, SketchUp, Chaos — Leniva CAD Solutions',
       title: 'CAD & 3D Design Software',
       subtitle: 'Official Licenses for ARES CAD, Trimble SketchUp & Chaos Suites',
@@ -121,7 +126,7 @@ export const HomePage: React.FC = () => {
                     }`}
                   >
                     <img
-                      src={`${slide.image}?v=hero_v5`}
+                      src={slide.image}
                       alt={slide.alt}
                       className="w-full h-full object-cover bg-white select-none"
                       loading="eager"
