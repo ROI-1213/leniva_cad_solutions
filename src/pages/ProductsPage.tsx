@@ -527,70 +527,36 @@ export const ProductsPage: React.FC = () => {
            ==================================================== */}
         {activeSections.length > 0 && totalVisibleProducts > 0 ? (
           <div className="space-y-16">
-            {activeSections.map((section, sectionIndex) => {
-              const SectionIcon = section.icon
-              return (
-                <section key={section.id} id={section.id} className="space-y-6">
-                  {/* Dedicated Section Showcase Header Card */}
-                  <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5 relative overflow-hidden">
-                    {/* Color Accent Bar on the left */}
-                    <div
-                      className="absolute top-0 left-0 bottom-0 w-2.5"
-                      style={{ backgroundColor: section.accentColor }}
-                    />
+            {activeSections.map((section, sectionIndex) => (
+              <section key={section.id} id={section.id} className="space-y-6">
+                {/* Dedicated Section Showcase Header Card */}
+                <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden">
+                  {/* Color Accent Bar on the left */}
+                  <div
+                    className="absolute top-0 left-0 bottom-0 w-2.5"
+                    style={{ backgroundColor: section.accentColor }}
+                  />
 
-                    <div className="flex items-start sm:items-center space-x-4 pl-3">
-                      <div
-                        className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs"
-                        style={{
-                          backgroundColor:
-                            section.id === 'fdm'
-                              ? '#0f172a'
-                              : section.id === 'dlp'
-                              ? '#4f46e5'
-                              : section.id === 'lcd'
-                              ? '#7c3aed'
-                              : '#059669',
-                          color: '#ffffff',
-                        }}
-                      >
-                        <SectionIcon className="w-7 h-7" />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <div className="flex flex-wrap items-center gap-2.5">
-                          <span className="px-2.5 py-0.5 rounded-md text-[11px] font-black uppercase tracking-wider bg-slate-900 text-white">
-                            Section {sectionIndex + 1}
-                          </span>
-                          <h2 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
-                            {section.title}
-                          </h2>
-                          <span
-                            className={`px-3 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border ${section.badgeColor}`}
-                          >
-                            {section.techBadge}
-                          </span>
-                        </div>
-                        <p className="text-xs sm:text-sm text-slate-600 font-normal max-w-3xl leading-relaxed">
-                          {section.description}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Section Action and Item Count Pill */}
-                    <div className="flex items-center gap-3 shrink-0 self-end md:self-center pl-3">
-                      <span className="px-3.5 py-1.5 bg-slate-100 text-slate-800 text-xs font-bold rounded-xl border border-slate-200/80">
-                        {section.products.length} {section.products.length === 1 ? 'Model' : 'Models'}
-                      </span>
-                      <Link
-                        to={section.categoryRoute}
-                        className="px-4 py-2 bg-slate-900 hover:bg-red-600 text-white text-xs font-bold rounded-xl transition-colors inline-flex items-center space-x-1.5 shadow-2xs"
-                      >
-                        <span>{section.categoryLabel}</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
-                    </div>
+                  <div className="flex items-center space-x-3 pl-3">
+                    <span className="px-2.5 py-1 rounded-md text-[11px] font-black uppercase tracking-wider bg-slate-900 text-white shrink-0">
+                      Section {sectionIndex + 1}
+                    </span>
+                    <h2 className="text-lg sm:text-xl md:text-2xl font-black text-slate-950 tracking-tight">
+                      {section.title}
+                    </h2>
                   </div>
+
+                  {/* Section Action Link */}
+                  <div className="flex items-center shrink-0 pl-3">
+                    <Link
+                      to={section.categoryRoute}
+                      className="px-4 py-2 bg-slate-900 hover:bg-red-600 text-white text-xs font-bold rounded-xl transition-colors inline-flex items-center space-x-1.5 shadow-2xs"
+                    >
+                      <span>{section.categoryLabel}</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
 
                   {/* Section Products Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -600,7 +566,7 @@ export const ProductsPage: React.FC = () => {
                   </div>
                 </section>
               )
-            })}
+            )}
           </div>
         ) : (
           <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 space-y-3 shadow-sm">
