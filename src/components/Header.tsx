@@ -586,7 +586,7 @@ export const Header: React.FC = () => {
 
                       {/* Mega Menu Footer Banner */}
                       <div className="mt-6 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                        <span>Need tailored machine specifications or CAD configuration advice?</span>
+                        <span>Need tailored machine specifications or 3D printing configuration advice?</span>
                         <button
                           onClick={() => {
                             setActiveMegaMenu(null)
