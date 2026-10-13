@@ -23,7 +23,7 @@ export const AboutPage: React.FC = () => {
               Engineering Technology for the Next Generation of Design
             </h1>
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-              Leniva CAD Solutions bridges the transition from traditional 2D drafting and prototyping to advanced 3D parametric engineering, optical metrology, and high-throughput additive manufacturing.
+              Leniva CAD Solutions bridges the transition from traditional 2D drafting and prototyping to advanced 3D parametric engineering, precision 3D scanning, and high-throughput additive manufacturing.
             </p>
 
             <div className="pt-2 flex items-center space-x-3">
@@ -51,7 +51,7 @@ export const AboutPage: React.FC = () => {
               Who We Are
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Headquartered in Bengaluru with support engineers operating across major Indian manufacturing corridors, Leniva CAD Solutions is an engineering technology provider. We specialize in official CAD and rendering software deployment, industrial 3D printing equipment, and high-precision 3D scanners & optical metrology.
+              Headquartered in Bengaluru with support engineers operating across major Indian manufacturing corridors, Leniva CAD Solutions is an engineering technology provider. We specialize in official CAD and rendering software deployment, industrial 3D printing equipment, and high-precision 3D scanners.
             </p>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
               Rather than merely acting as an equipment reseller, our core engineering team partners with automotive suppliers, aerospace contractors, architectural studios, and educational labs to solve practical production challenges through Design for Additive Manufacturing (DfAM) and reverse engineering.
@@ -69,11 +69,11 @@ export const AboutPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="aspect-square sm:aspect-[4/3] rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-md">
+          <div className="rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-md">
             <img
               src="/images/about/about-leniva-poster.jpg"
-              alt="Leniva CAD Solutions — Your Partner for Advanced 3D Solutions"
-              className="w-full h-full object-contain"
+              alt="Leniva CAD Solutions — Authorized Software Partners & 3D Hardware"
+              className="w-full h-auto object-contain"
             />
           </div>
         </div>

@@ -681,9 +681,6 @@ export const HomePage: React.FC = () => {
       <section className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-12">
         <div className="bg-slate-50/80 rounded-3xl p-8 sm:p-12 lg:p-14 border border-slate-200/80 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           <div className="lg:col-span-7 space-y-6">
-            <div className="text-xs font-bold uppercase tracking-wider text-red-600 font-mono">
-              — ABOUT US —
-            </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-tight">
               Your Partner for <br />
               <span className="text-red-600">Advanced 3D Solutions</span>
@@ -702,7 +699,7 @@ export const HomePage: React.FC = () => {
               </div>
               <div className="flex items-center space-x-2.5 sm:col-span-2">
                 <span className="w-2 h-2 bg-red-600 rounded-full shrink-0" />
-                <span>3. 3D Scanners (Professional Optical & Laser Scanning)</span>
+                <span>3. 3D Scanners (Professional & Reverse Engineering)</span>
               </div>
 
             </div>
@@ -723,11 +720,11 @@ export const HomePage: React.FC = () => {
           </div>
 
           <div className="lg:col-span-5 relative">
-            <div className="aspect-square rounded-2xl overflow-hidden shadow-xl border border-slate-200/90 bg-white group p-3">
+            <div className="rounded-2xl overflow-hidden shadow-xl border border-slate-200/90 bg-white group">
               <img
                 src="/images/about/about-leniva-poster.jpg"
-                alt="Leniva CAD Solutions — Your Partner for Advanced 3D Solutions"
-                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+                alt="Leniva CAD Solutions — Authorized Software Partners & 3D Hardware"
+                className="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-[1.02]"
               />
             </div>
           </div>

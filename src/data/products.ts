@@ -413,7 +413,7 @@ export const products: Product[] = [
     category: 'FDM 3D Printers',
     categorySlug: 'fdm-3d-printers',
     technology: 'FDM 3D Printer',
-    tagline: 'India's High-Speed Industrial FDM 3D Printer for Production Manufacturing',
+    tagline: "India's High-Speed Industrial FDM 3D Printer for Production Manufacturing",
     shortDescription: 'Pratham 3 Rapid is a high-speed industrial FDM 3D printer engineered for rapid manufacturing, precision parts, and large-scale production at speeds up to 500 mm/sec.',
     description: 'Pratham 3 Rapid is a next-generation, high-speed industrial FDM 3D printer engineered for professionals who demand accuracy, reliability and production efficiency. Designed and manufactured in India, it combines high-speed printing, a 30 mm³/s high-flow extrusion system and a robust mechanical architecture with THK linear motion guides for functional prototypes, end-use parts, batch production components and industrial tooling.',
     heroImage: '/images/products/pratham-3-rapid.png',
@@ -910,7 +910,7 @@ export const products: Product[] = [
     technology: 'Rendering Softwares',
     tagline: 'The Academy Award-Winning Photorealistic Rendering Engine',
     shortDescription: 'The industry-standard rendering engine delivering unmatched photorealism, physical lighting, and creative control for 3D artists and architects.',
-    description: 'Chaos V-Ray is the world's most complete 3D rendering software. Known for handling massive architectural models and complex scenes with billions of polygons, V-Ray provides physically based materials, global illumination, and GPU-accelerated rendering.',
+    description: "Chaos V-Ray is the world's most complete 3D rendering software. Known for handling massive architectural models and complex scenes with billions of polygons, V-Ray provides physically based materials, global illumination, and GPU-accelerated rendering.",
     heroImage: '/images/software/chaos-vray.jpg',
     images: ['/images/software/chaos-vray.jpg'],
     keySpecs: [
@@ -944,7 +944,7 @@ export const products: Product[] = [
     technology: 'Rendering Softwares',
     tagline: 'High-End Architectural & Interior Visualization Engine',
     shortDescription: 'Photorealistic CPU rendering engine renowned for natural lighting, effortless setup, and stunning architectural visualization.',
-    description: 'Chaos Corona delivers high-end photorealistic results with intuitive ease of use. Widely regarded as the visualization artist's favorite for interior architecture, it features LightMix for altering lights after rendering without re-calculating, realistic materials, and fast CPU rendering.',
+    description: "Chaos Corona delivers high-end photorealistic results with intuitive ease of use. Widely regarded as the visualization artist's favorite for interior architecture, it features LightMix for altering lights after rendering without re-calculating, realistic materials, and fast CPU rendering.",
     heroImage: '/images/software/chaos-corona.jpg',
     images: ['/images/software/chaos-corona.jpg'],
     keySpecs: [
@@ -1015,7 +1015,7 @@ export const products: Product[] = [
     technology: 'CAD Software',
     tagline: 'Professional Multi-Platform DWG CAD with Trinity Integration',
     shortDescription: 'Industrial-grade 2D & 3D CAD system featuring Trinity technology for synchronized desktop, cloud (Kudo), and mobile (Touch) workflows.',
-    description: 'ARES Commander is Graebert's flagship professional CAD software. Built on modern multi-core architecture, it brings lightning-fast 2D drawing generation, ACIS solid 3D modeling, BIM drawing extraction from Revit/IFC files, and seamless synchronization with cloud and mobile devices.',
+    description: "ARES Commander is Graebert's flagship professional CAD software. Built on modern multi-core architecture, it brings lightning-fast 2D drawing generation, ACIS solid 3D modeling, BIM drawing extraction from Revit/IFC files, and seamless synchronization with cloud and mobile devices.",
     heroImage: '/images/software/ares-commander.jpg',
     images: ['/images/software/ares-commander.jpg'],
     keySpecs: [
@@ -1052,7 +1052,7 @@ export const products: Product[] = [
     technology: 'CAD Software',
     tagline: 'The Most Advanced Online CAD Software for DWG Viewing & Editing',
     shortDescription: 'Full 2D CAD drafting, DWG editing, real-time collaboration, and batch automation directly in your web browser with zero local installation.',
-    description: 'ARES Kudo is Graebert's flagship cloud-based CAD solution engineered for architects, engineers, and design teams. Create, edit, annotate, and securely share full 2D DWG drawings directly in Google Chrome, Microsoft Edge, Mozilla Firefox, or Apple Safari without desktop software installation or hardware lock-in.',
+    description: "ARES Kudo is Graebert's flagship cloud-based CAD solution engineered for architects, engineers, and design teams. Create, edit, annotate, and securely share full 2D DWG drawings directly in Google Chrome, Microsoft Edge, Mozilla Firefox, or Apple Safari without desktop software installation or hardware lock-in.",
     heroImage: '/images/software/ares-kudo.jpg',
     images: ['/images/software/ares-kudo.jpg', '/images/software/ares-trinity.jpg'],
     keySpecs: [
@@ -1338,7 +1338,7 @@ export const products: Product[] = [
     categorySlug: 'cad-software',
     technology: 'CAD Software',
     tagline: 'The Complete Architectural & Visualization Powerhouse',
-    shortDescription: 'Trimble's ultimate software bundle including SketchUp Pro, V-Ray photorealistic rendering, Scan Essentials point cloud tools, and Revit importer.',
+    shortDescription: "Trimble's ultimate software bundle including SketchUp Pro, V-Ray photorealistic rendering, Scan Essentials point cloud tools, and Revit importer.",
     description: 'SketchUp Studio provides everything needed to create, analyze, and present exceptional architecture. From importing Revit models into SketchUp with a single click, to modeling over laser scans and creating photo-real marketing renderings in V-Ray, Studio empowers full-cycle architecture and engineering firms.',
     heroImage: '/images/software/sketchup-studio.jpg',
     images: ['/images/software/sketchup-studio.jpg'],
