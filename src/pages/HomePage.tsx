@@ -579,37 +579,6 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ====================================================
-          BOTTOM HIGH-IMPACT CTA STRIP
-         ==================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-8 py-10 sm:py-16">
-        <div className="bg-slate-950 text-white rounded-3xl p-8 sm:p-12 lg:p-16 border border-slate-800 text-center space-y-6 relative overflow-hidden shadow-2xl">
-          <div className="max-w-2xl mx-auto space-y-3 relative z-10">
-            <span className="text-xs font-bold uppercase tracking-wider text-red-400 font-mono">Collaborate with Leniva</span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
-              Ready to Accelerate Your Design & Manufacturing Workflow?
-            </h2>
-            <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto font-normal">
-              Consult with our application engineers for custom equipment configurations, CAD licensing, or rapid contract manufacturing quotes.
-            </p>
-          </div>
-
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-4 relative z-10">
-            <button
-              onClick={() => openQuoteModal('Bottom CTA - Start Project')}
-              className="px-8 py-4 bg-red-600 hover:bg-red-500 text-white text-sm font-bold rounded-xl shadow-lg shadow-red-600/30 hover:scale-[1.02] transition-all cursor-pointer"
-            >
-              Request a Project Quote
-            </button>
-            <Link
-              to="/contact"
-              className="px-8 py-4 bg-white hover:bg-slate-100 text-slate-950 text-sm font-bold rounded-xl transition-all shadow-sm"
-            >
-              Contact Our Engineers
-            </Link>
-          </div>
-        </div>
-      </section>
     </div>
   )
 }
