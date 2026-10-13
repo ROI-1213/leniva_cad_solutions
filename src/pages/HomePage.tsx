@@ -108,9 +108,9 @@ export const HomePage: React.FC = () => {
                     }`}
                   >
                     <img
-                      src={`${slide.image}?v=hero_v3`}
+                      src={`${slide.image}?v=hero_v4`}
                       alt={slide.alt}
-                      className="w-full h-full object-contain bg-white select-none"
+                      className="w-full h-full object-cover bg-white select-none"
                       loading="eager"
                       fetchPriority="high"
                       decoding="sync"
