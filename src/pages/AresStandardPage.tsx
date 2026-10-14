@@ -22,7 +22,6 @@ import {
   Monitor,
   KeyRound,
   FileEdit,
-  Info,
   Download,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -69,7 +68,6 @@ export const AresStandardPage: React.FC = () => {
         'platform',
         'licensing',
         'trial',
-        'developer',
         'trinity',
         'faqs',
       ]
@@ -294,7 +292,6 @@ export const AresStandardPage: React.FC = () => {
                 { id: 'platform', label: 'Platform & Specs' },
                 { id: 'licensing', label: 'Licensing' },
                 { id: 'trial', label: 'Free Trial' },
-                { id: 'developer', label: 'Developer APIs' },
                 { id: 'trinity', label: 'Trinity Context' },
                 { id: 'faqs', label: 'FAQs' },
               ].map((item) => (
@@ -957,41 +954,7 @@ export const AresStandardPage: React.FC = () => {
 
 
 
-      {/* 15. DEVELOPER CAPABILITIES */}
-      <section id="developer" className="py-20 bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mb-12">
-            <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">
-              APIs & Automation
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-              {data.developerApis.title}
-            </h2>
-            <p className="mt-3 text-slate-600 text-sm leading-relaxed">
-              {data.developerApis.description}
-            </p>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {data.developerApis.apis.map((api, idx) => (
-              <div key={idx} className="p-5 rounded-xl bg-slate-50 border border-slate-200">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-bold text-slate-900">{api.name}</h3>
-                  <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                    Included
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 leading-relaxed">{api.desc}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6 p-4 rounded-xl bg-blue-50/70 border border-blue-100 flex items-start space-x-3 text-xs text-blue-900">
-            <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-            <span>{data.developerApis.note}</span>
-          </div>
-        </div>
-      </section>
 
       {/* 16. TRINITY ECOSYSTEM CONTEXT */}
       <section id="trinity" className="py-20 bg-slate-50 border-b border-slate-200">

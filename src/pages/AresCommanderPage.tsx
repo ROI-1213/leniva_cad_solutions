@@ -62,7 +62,6 @@ export const AresCommanderPage: React.FC = () => {
   const productivityRef = useRef<HTMLDivElement>(null)
   const bimRef = useRef<HTMLDivElement>(null)
   const trinityRef = useRef<HTMLDivElement>(null)
-  const developerRef = useRef<HTMLDivElement>(null)
   const industriesRef = useRef<HTMLDivElement>(null)
   const comparisonRef = useRef<HTMLDivElement>(null)
   const specsRef = useRef<HTMLDivElement>(null)
@@ -103,7 +102,6 @@ export const AresCommanderPage: React.FC = () => {
         { id: 'productivity', ref: productivityRef },
         { id: 'bim-cad', ref: bimRef },
         { id: 'trinity', ref: trinityRef },
-        { id: 'developer', ref: developerRef },
         { id: 'industries', ref: industriesRef },
         { id: 'comparison', ref: comparisonRef },
         { id: 'specs', ref: specsRef },
@@ -232,7 +230,6 @@ export const AresCommanderPage: React.FC = () => {
               { id: 'productivity', label: 'Productivity', ref: productivityRef },
               { id: 'bim-cad', label: 'BIM-to-CAD', ref: bimRef },
               { id: 'trinity', label: 'Trinity Cloud', ref: trinityRef },
-              { id: 'developer', label: 'APIs', ref: developerRef },
               { id: 'industries', label: 'Industries', ref: industriesRef },
               { id: 'comparison', label: 'Comparison', ref: comparisonRef },
               { id: 'specs', label: 'Specs', ref: specsRef },
@@ -1010,81 +1007,7 @@ export const AresCommanderPage: React.FC = () => {
         </div>
       </section>
 
-      {/* ====================================================
-          18. DEVELOPER PLATFORM & CUSTOMIZATION
-         ==================================================== */}
-      <section ref={developerRef} className="py-20 bg-slate-900 text-white border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          <div className="max-w-3xl space-y-3">
-            <div className="text-xs font-mono uppercase tracking-widest text-blue-400 font-bold">
-              API & Automation Platform
-            </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
-              {data.developerPlatform.heading}
-            </h2>
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-              {data.developerPlatform.description}
-            </p>
-          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-6 space-y-4">
-              <span className="text-xs font-mono uppercase tracking-wider text-blue-400 font-bold block">
-                Supported Technologies:
-              </span>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                {data.developerPlatform.technologies.map((tech, idx) => (
-                  <div key={idx} className="p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 flex items-center gap-2">
-                    <Terminal className="w-4 h-4 text-blue-400 shrink-0" />
-                    <span className="font-mono">{tech}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="pt-2 space-y-2">
-                <span className="text-xs font-bold text-white uppercase tracking-wider block">
-                  Developer Advantages:
-                </span>
-                {data.developerPlatform.benefits.map((b, idx) => (
-                  <div key={idx} className="flex items-start gap-2 text-xs text-slate-300">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>{b}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="lg:col-span-6">
-              {/* Code Snippet Mockup */}
-              <div className="rounded-2xl border border-slate-700 bg-slate-950 p-5 font-mono text-xs text-slate-300 space-y-3 shadow-xl">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800 text-[11px] text-slate-500">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
-                    <span className="ml-2 text-slate-400 font-sans">ARES LISP & C++ Tx Automation</span>
-                  </div>
-                  <span>cross-platform</span>
-                </div>
-                <pre className="text-[11px] text-emerald-400 leading-relaxed overflow-x-auto">
-{`;; Sample ARES Commander Custom Command Automation
-(defun c:BatchExportSheets ( / curDoc layerName )
-  (setq curDoc (vla-get-ActiveDocument (vlax-get-acad-object)))
-  (princ "\\nExtracting BIM coordinates to DWG...")
-  (setvar "CMDECHO" 0)
-  (command "-LAYER" "M" "BIM_EXTRACTED_ELEMENTS" "C" "4" "" "")
-  (princ "\\n[ARES Commander]: Successfully executed cross-platform!")
-  (princ)
-)`}
-                </pre>
-                <div className="pt-2 border-t border-slate-800 text-[10px] text-slate-400 italic">
-                  {data.developerPlatform.note}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ====================================================
           19. SUPPORTED INDUSTRIES & USE CASES
