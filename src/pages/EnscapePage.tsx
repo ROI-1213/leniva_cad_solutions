@@ -1199,7 +1199,7 @@ export const EnscapePage: React.FC = () => {
                 </div>
 
                 <div className="p-3.5 rounded-xl bg-slate-100/10 border border-slate-700/50 space-y-1">
-                  <div className="text-[11px] font-bold">Contact Us for Current Pricing</div>
+                  <div className="text-[11px] font-bold">Contact Us for Current Quote</div>
                   <div className="text-[10px] text-slate-400">
                     Official INR commercial/educational quotes with GST compliance
                   </div>
@@ -1247,7 +1247,7 @@ export const EnscapePage: React.FC = () => {
         </div>
 
         <div className="mt-8 text-center text-xs text-slate-400 max-w-2xl mx-auto">
-          <em>Plan inclusions, pricing, and AI-credit allowances are subject to official Chaos licensing policies and may change without prior notice.</em>
+          <em>Plan inclusions, terms, and AI-credit allowances are subject to official Chaos licensing policies and may change without prior notice.</em>
         </div>
       </div>
 
@@ -1413,10 +1413,10 @@ export const EnscapePage: React.FC = () => {
               Official Licensing Enquiry
             </span>
             <h3 className="text-2xl font-black tracking-tight mt-1">
-              Request Chaos Enscape Pricing & Consultation
+              Request Chaos Enscape Consultation & Quote
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
-              Connect with Leniva CAD Solutions for commercial licensing, educational institutional pricing, volume discounts, and local technical onboarding in India.
+              Connect with Leniva CAD Solutions for commercial licensing, educational institutional terms, volume discounts, and local technical onboarding in India.
             </p>
           </div>
 
@@ -1428,7 +1428,7 @@ export const EnscapePage: React.FC = () => {
                 </div>
                 <h4 className="text-xl font-bold text-slate-900">Thank you for your enquiry.</h4>
                 <p className="text-sm text-slate-600 max-w-md mx-auto">
-                  Our team has received your request for <strong>{enquiryForm.interestedPlan}</strong>. An engineering consultant will contact you shortly with formal pricing and licensing details.
+                  Our team has received your request for <strong>{enquiryForm.interestedPlan}</strong>. An engineering consultant will contact you shortly with formal quotation and licensing details.
                 </p>
                 <button
                   type="button"

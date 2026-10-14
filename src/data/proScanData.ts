@@ -818,7 +818,7 @@ export const proScanData: ProScanData = {
     {
       category: 'licensing',
       q: 'How can I purchase SketchUp Pro Scan in India?',
-      a: 'You can contact Leniva CAD Solutions, an authorized Trimble CAD software partner in India, to receive official commercial pricing in INR, tax-compliant GST invoicing, and implementation guidance.',
+      a: 'You can contact Leniva CAD Solutions, an authorized Trimble CAD software partner in India, to receive official commercial quotations in INR, tax-compliant GST invoicing, and implementation guidance.'
     },
     {
       category: 'general',

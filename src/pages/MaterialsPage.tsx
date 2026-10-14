@@ -788,7 +788,7 @@ export const MaterialsPage: React.FC<MaterialsPageProps> = () => {
                       </div>
 
                       <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-700">Price on Request</span>
+                        <span className="text-xs font-bold text-slate-700">Quote on Request</span>
                         <button
                           onClick={() => openQuoteModal(`${product.productName} - ${product.colour}`)}
                           className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer"
@@ -1142,7 +1142,7 @@ export const MaterialsPage: React.FC<MaterialsPageProps> = () => {
                 {/* Pricing & Add to Cart */}
                 <div className="pt-4 mt-4 border-t border-slate-100 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-700">Price on Request</span>
+                    <span className="text-xs font-bold text-slate-700">Quote on Request</span>
                     <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold font-mono">
                       Volume Discount
                     </span>
@@ -1180,7 +1180,7 @@ export const MaterialsPage: React.FC<MaterialsPageProps> = () => {
               Bulk Production Procurement
             </span>
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-              Ordering More Than 10 Spools? Get Direct Tier Pricing.
+              Ordering More Than 10 Spools? Get Direct Wholesale Quotes.
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
               We supply educational universities, automotive prototyping labs, and manufacturing facilities across India with regular monthly recurring filament batch deliveries and custom polymer compound testing.

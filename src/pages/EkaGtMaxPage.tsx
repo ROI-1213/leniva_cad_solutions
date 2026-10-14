@@ -608,7 +608,7 @@ export const EkaGtMaxPage: React.FC = () => {
                     <h3 className="text-xl font-bold text-slate-950">Thank You!</h3>
                     <p className="text-xs sm:text-sm text-slate-600 max-w-sm mx-auto">
                       Your enquiry for <strong>EKA GT MAX</strong> has been received. Our application specialist
-                      will contact you within 2 business hours with pricing and technical details.
+                      will contact you within 2 business hours with formal quotation and technical details.
                     </p>
                     <button
                       onClick={() => {

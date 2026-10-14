@@ -299,7 +299,7 @@ export const ProductsPage: React.FC = () => {
                 onClick={() => openQuoteModal('3D Printers Catalog Inquiry')}
                 className="px-6 py-3 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl shadow-lg transition-colors cursor-pointer"
               >
-                Request Machine Pricing
+                Request Machine Quotation
               </button>
               <button
                 onClick={() => openQuoteModal('Book a 3D Printer Demonstration')}

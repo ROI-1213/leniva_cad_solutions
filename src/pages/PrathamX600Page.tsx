@@ -258,7 +258,7 @@ export const PrathamX600Page: React.FC = () => {
                 onClick={() => openQuoteModal('Pratham X (600) Jumbo 3D Printer')}
                 className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center space-x-2 cursor-pointer"
               >
-                <span>Request Price & Site Assessment</span>
+                <span>Request Quote & Site Assessment</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
@@ -796,7 +796,7 @@ export const PrathamX600Page: React.FC = () => {
               className="px-6 py-3.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-lg transition-all flex items-center justify-center space-x-2 cursor-pointer"
             >
               <PhoneCall className="w-4 h-4" />
-              <span>Request Price & Demo</span>
+              <span>Request Quote & Demo</span>
             </button>
             <a
               href="/brochures/pratham-x-600.pdf"

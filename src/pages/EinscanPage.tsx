@@ -77,7 +77,7 @@ export const EinscanPage: React.FC = () => {
                 EINSTAR 3D Scanner
               </h1>
               <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
-                EINSTAR handheld 3D scanner delivers high-quality 3D data with true color fidelity for 3D printing, reverse engineering, digital archiving, and education at an accessible price point.
+                EINSTAR handheld 3D scanner delivers high-quality 3D data with true color fidelity for 3D printing, reverse engineering, digital archiving, and education at an accessible investment.
               </p>
             </div>
 

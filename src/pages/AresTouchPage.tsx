@@ -34,7 +34,7 @@ const NAV_ITEMS = [
   { id: 'trinity', label: 'ARES Trinity' },
   { id: 'use-cases', label: 'Use Cases' },
   { id: 'developer', label: 'Developer' },
-  { id: 'pricing', label: 'Pricing' },
+  { id: 'licensing', label: 'Licensing' },
   { id: 'faq', label: 'FAQ' },
 ]
 
@@ -338,7 +338,7 @@ export const AresTouchPage: React.FC = () => {
                   onClick={() => openQuoteModal('ARES Touch Consultation Call')}
                   className="px-4 py-3.5 text-xs font-semibold text-slate-300 hover:text-white transition-colors"
                 >
-                  Request Indian INR Pricing →
+                  Request Indian INR Quote →
                 </button>
               </div>
 
@@ -1442,7 +1442,7 @@ export const AresTouchPage: React.FC = () => {
                 { id: 'features', label: 'Features' },
                 { id: 'cloud-offline', label: 'Cloud & Offline' },
                 { id: 'trinity-kudo', label: 'ARES Trinity & Kudo' },
-                { id: 'pricing-licensing', label: 'Pricing & Licensing' },
+                { id: 'pricing-licensing', label: 'Licensing Options' },
                 { id: 'developer-enterprise', label: 'Developer & Enterprise' },
               ].map(cat => (
                 <button

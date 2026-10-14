@@ -549,7 +549,7 @@ export const sketchupProAdvancedData = {
     },
     {
       q: 'How is the subscription priced?',
-      a: 'Pro Advanced Workflows is available as an annual subscription (billed annually) or a monthly subscription. Pricing may vary by region and is subject to change. Contact Leniva CAD Solutions for current India pricing, volume licensing, and academic or government discounts.',
+      a: 'Pro Advanced Workflows is available as an annual subscription (billed annually) or a monthly subscription. Contact Leniva CAD Solutions for current India quotations, volume licensing, and academic or government discounts.',
       category: 'licensing',
     },
     {
@@ -569,7 +569,7 @@ export const sketchupProAdvancedData = {
     },
     {
       q: 'Is there a volume or educational discount?',
-      a: 'Yes. Trimble and authorized partners offer volume discounts for teams and organizations. Educational and non-profit pricing is also available. Contact Leniva CAD Solutions for tailored pricing.',
+      a: 'Yes. Trimble and authorized partners offer volume discounts for teams and organizations. Educational and non-profit options are also available. Contact Leniva CAD Solutions for tailored quotes.',
       category: 'licensing',
     },
     {

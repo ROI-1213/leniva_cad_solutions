@@ -237,7 +237,7 @@ export const CheckoutPage: React.FC = () => {
                     <span className="text-slate-400 text-[10px]">Qty: {item.quantity}</span>
                   </div>
                   <span className="font-semibold text-slate-500">
-                    Price on Request
+                    Quote on Request
                   </span>
                 </div>
               ))}
@@ -245,7 +245,7 @@ export const CheckoutPage: React.FC = () => {
 
             <div className="pt-3 border-t border-slate-100 text-xs space-y-2">
               <div className="flex justify-between text-slate-500">
-                <span>Pricing:</span>
+                <span>Billing Model:</span>
                 <span className="font-semibold text-slate-900">Official Proforma Quote</span>
               </div>
               <div className="flex justify-between text-slate-500">

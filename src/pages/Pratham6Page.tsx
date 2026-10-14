@@ -1602,7 +1602,7 @@ export const Pratham6Page: React.FC = () => {
               </div>
               <h3 className="font-black text-lg text-emerald-950">Quote Request Submitted Successfully!</h3>
               <p className="text-xs text-emerald-800 max-w-md mx-auto leading-relaxed">
-                Thank you, {quoteForm.name}. Our technical sales engineer will reach out to you within 24 business hours with detailed pricing, brochure documentation, and configuration options.
+                Thank you, {quoteForm.name}. Our technical sales engineer will reach out to you within 24 business hours with detailed quotations, brochure documentation, and configuration options.
               </p>
               <button
                 onClick={() => {

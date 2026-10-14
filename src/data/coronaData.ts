@@ -653,7 +653,7 @@ export const coronaData = {
         'A complete photorealistic rendering plan for single workstations with access to 15,000+ assets, Veras AI, and cloud collaboration.',
       licenseType: 'Fixed Personal License (Single Machine)',
       billingTerm: 'Annual Subscription (Monthly options available)',
-      indicativePriceInr: 'Contact for Current Regional Pricing',
+      indicativePriceInr: 'Contact for Current Regional Quote',
       features: [
         'Corona photorealistic CPU rendering engine',
         'Plugins for Autodesk 3ds Max and Maxon Cinema 4D',
@@ -685,7 +685,7 @@ export const coronaData = {
       popular: true,
       licenseType: 'Floating Team License (Shareable Across Studio)',
       billingTerm: 'Annual Subscription',
-      indicativePriceInr: 'Contact for Current Regional Pricing',
+      indicativePriceInr: 'Contact for Current Regional Quote',
       features: [
         'Everything included in Corona Solo',
         'Floating team license availability (share license across your network)',
@@ -713,7 +713,7 @@ export const coronaData = {
       badge: 'Ultimate Visualization Suite',
       licenseType: 'Floating Enterprise & Studio License',
       billingTerm: 'Annual Subscription',
-      indicativePriceInr: 'Contact for Current Regional Pricing',
+      indicativePriceInr: 'Contact for Current Regional Quote',
       features: [
         'Everything in Corona Premium',
         'Corona photorealistic CPU rendering engine',
@@ -953,7 +953,7 @@ export const coronaData = {
     },
     {
       q: 'How much does Corona cost?',
-      a: 'Pricing depends on region, chosen plan (Solo, Premium, or Collection), and billing term. Leniva CAD Solutions provides authorized quotes and local INR billing for visualization studios and enterprises across India.',
+      a: 'Licensing terms depend on region, chosen plan (Solo, Premium, or Collection), and billing term. Leniva CAD Solutions provides authorized quotes and local INR billing for visualization studios and enterprises across India.',
       category: 'Licensing & Pricing',
     },
     {

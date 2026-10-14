@@ -205,7 +205,7 @@ export const AresStandardPage: React.FC = () => {
                   className="px-6 py-3.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-100 font-semibold text-sm border border-slate-700 transition-all flex items-center space-x-2"
                 >
                   <Send className="w-4 h-4 text-slate-400" />
-                  <span>Request Pricing</span>
+                  <span>Request Quote</span>
                 </button>
 
                 <a
@@ -893,7 +893,7 @@ export const AresStandardPage: React.FC = () => {
                     rel="noopener noreferrer"
                     className="block text-center text-[11px] text-blue-600 hover:text-blue-700 py-1"
                   >
-                    Compare Official Pricing Configurator →
+                    Graebert Licensing Configurator →
                   </a>
                 </div>
               </div>

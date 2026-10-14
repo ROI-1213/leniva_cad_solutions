@@ -85,10 +85,8 @@ export const AresKudoPage: React.FC = () => {
           operatingSystem: 'Web Browser (Chrome, Edge, Firefox, Safari)',
           applicationCategory: 'DesignApplication',
           offers: {
-            '@type': 'AggregateOffer',
-            priceCurrency: 'EUR',
-            lowPrice: '0',
-            highPrice: '300',
+            '@type': 'Offer',
+            price: 'Contact for Quote',
           },
           publisher: {
             '@type': 'Organization',
@@ -229,7 +227,7 @@ export const AresKudoPage: React.FC = () => {
               { id: 'trinity', label: 'ARES Trinity' },
               { id: 'autocad-comparison', label: 'AutoCAD LT Alt' },
               { id: 'comparison', label: 'Compare' },
-              { id: 'pricing', label: 'Pricing' },
+              { id: 'pricing', label: 'Licensing' },
               { id: 'developers', label: 'Developers' },
               { id: 'faqs', label: 'FAQs' },
             ].map(item => (
@@ -1524,7 +1522,7 @@ export const AresKudoPage: React.FC = () => {
 
                     <div className="py-2 border-y border-slate-100">
                       <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-bold text-blue-700">
-                        Price on Request
+                        Official Quotation
                       </span>
                       <span className="text-[10px] text-slate-400 block mt-1.5">Contact us for a personalised quote</span>
                     </div>
@@ -1659,7 +1657,7 @@ export const AresKudoPage: React.FC = () => {
                 { id: 'capabilities', label: 'CAD Capabilities' },
                 { id: 'cloud-security', label: 'Cloud & Security' },
                 { id: 'autocad-comparison', label: 'AutoCAD LT Comparison' },
-                { id: 'pricing-licensing', label: 'Pricing & Licensing' },
+                { id: 'pricing-licensing', label: 'Licensing & Options' },
               ].map(cat => (
                 <button
                   key={cat.id}
@@ -1741,7 +1739,7 @@ export const AresKudoPage: React.FC = () => {
                 </div>
                 <h3 className="text-xl font-bold text-slate-900">Thank You for Your Inquiry!</h3>
                 <p className="text-xs text-slate-600 max-w-md mx-auto">
-                  A Leniva CAD Solutions representative will contact you within 2 business hours with your official trial credentials and pricing proposal.
+                  A Leniva CAD Solutions representative will contact you within 2 business hours with your official trial credentials and quotation proposal.
                 </p>
                 <button
                   onClick={() => setFormSubmitted(false)}

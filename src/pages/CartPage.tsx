@@ -55,7 +55,7 @@ export const CartPage: React.FC = () => {
                       <span className="text-[11px] text-slate-500 block">Color: {item.selectedColor}</span>
                     )}
                     <span className="text-xs font-semibold text-slate-500 mt-1 block">
-                      Price on Request
+                      Quote on Request
                     </span>
                   </div>
                 </div>
@@ -79,7 +79,7 @@ export const CartPage: React.FC = () => {
                   </div>
 
                   <span className="text-xs font-semibold text-slate-600 w-28 text-right">
-                    Price on Request
+                    Quote on Request
                   </span>
 
                   <button
@@ -105,7 +105,7 @@ export const CartPage: React.FC = () => {
               </div>
 
               <div className="flex justify-between text-slate-600">
-                <span>Pricing Model:</span>
+                <span>Order Model:</span>
                 <span className="font-semibold text-slate-900">Custom Commercial Quote</span>
               </div>
 
@@ -115,7 +115,7 @@ export const CartPage: React.FC = () => {
               </div>
 
               <div className="pt-3 border-t border-slate-100 text-xs text-slate-500 leading-relaxed">
-                All pricing is provided via official proforma invoice with applicable GST and corporate volume discounts.
+                All orders are confirmed via official proforma invoice with applicable GST and corporate volume discounts.
               </div>
             </div>
 

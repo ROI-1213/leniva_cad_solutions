@@ -107,7 +107,7 @@ export const CoronaPage: React.FC = () => {
   }, [])
 
   // Filtered FAQs
-  const faqCategories = ['All', 'General', 'Compatibility', 'Rendering Engine', 'Licensing & Pricing', 'Workflows & AI']
+  const faqCategories = ['All', 'General', 'Compatibility', 'Rendering Engine', 'Licensing & Terms', 'Workflows & AI']
   const filteredFaqs = coronaData.faqs.filter(faq => {
     const matchesCategory = selectedFaqCategory === 'All' || faq.category === selectedFaqCategory
     const matchesSearch =
@@ -202,7 +202,7 @@ export const CoronaPage: React.FC = () => {
               { id: 'denoising', label: 'Denoising & Vantage', ref: denoisingRef },
               { id: 'materials', label: 'Materials & Assets', ref: materialsRef },
               { id: 'requirements', label: 'Specs', ref: requirementsRef },
-              { id: 'pricing', label: 'Plans & Pricing', ref: pricingRef },
+              { id: 'pricing', label: 'Plans & Licensing', ref: pricingRef },
               { id: 'gallery', label: 'Gallery', ref: galleryRef },
               { id: 'faqs', label: 'FAQs', ref: faqRef },
             ].map(item => (
@@ -301,7 +301,7 @@ export const CoronaPage: React.FC = () => {
                   onClick={() => scrollTo(pricingRef, 'pricing')}
                   className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-white hover:bg-slate-100 text-slate-900 border border-slate-300 font-bold text-sm rounded-xl transition-colors cursor-pointer"
                 >
-                  <span>Explore Plans & Pricing</span>
+                  <span>Explore Plans & Licensing</span>
                   <ArrowRight className="w-4 h-4 text-slate-500" />
                 </button>
                 <button
@@ -1169,7 +1169,7 @@ export const CoronaPage: React.FC = () => {
                         : 'bg-slate-900 hover:bg-slate-800 text-white'
                     }`}
                   >
-                    <span>Request Official Pricing</span>
+                    <span>Request Official Quote</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
 
@@ -1576,7 +1576,7 @@ export const CoronaPage: React.FC = () => {
               Bring Your Architectural Vision to Life
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 max-w-2xl mx-auto leading-relaxed">
-              Explore Chaos Corona for your visualization workflow. Contact Leniva CAD Solutions for authorized Indian pricing, floating team licenses, educational discounts, and pipeline assistance.
+              Explore Chaos Corona for your visualization workflow. Contact Leniva CAD Solutions for authorized Indian quotes, floating team licenses, educational discounts, and pipeline assistance.
             </p>
           </div>
 
@@ -1588,7 +1588,7 @@ export const CoronaPage: React.FC = () => {
                 </div>
                 <h3 className="text-xl font-bold text-white">Enquiry Received Successfully!</h3>
                 <p className="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
-                  Thank you for reaching out. Our Chaos visualization specialist will contact you with official pricing, licensing terms, and evaluation guidance.
+                  Thank you for reaching out. Our Chaos visualization specialist will contact you with official quotations, licensing terms, and evaluation guidance.
                 </p>
                 <button
                   onClick={() => setIsSubmitted(false)}
@@ -1774,7 +1774,7 @@ export const CoronaPage: React.FC = () => {
                     ) : (
                       <>
                         <Send className="w-3.5 h-3.5" />
-                        <span>Request Pricing & Quote</span>
+                        <span>Request Consultation & Quote</span>
                       </>
                     )}
                   </button>

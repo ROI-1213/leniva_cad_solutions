@@ -686,7 +686,7 @@ export default function SketchUpProAdvancedPage() {
               Commercial Subscription
             </h2>
             <p className="mt-4 text-slate-600">
-              Official Trimble subscription licensing for architecture, engineering, and construction teams. Contact us for commercial quotes, volume licenses, and academic pricing.
+              Official Trimble subscription licensing for architecture, engineering, and construction teams. Contact us for commercial quotes, volume licenses, and academic options.
             </p>
           </div>
 
@@ -703,7 +703,7 @@ export default function SketchUpProAdvancedPage() {
                 <p className="text-white/60 text-sm mt-1">Revit Importer + Scan Essentials included</p>
                 <div className="mt-6 space-y-1">
                   <div className="text-2xl font-bold text-white">Commercial Subscription</div>
-                  <p className="text-cyan-300 text-sm">Official Trimble Partner Pricing on Request</p>
+                  <p className="text-cyan-300 text-sm">Official Trimble Partner Quotation on Request</p>
                 </div>
               </div>
 
@@ -857,7 +857,7 @@ export default function SketchUpProAdvancedPage() {
             </Link>
           </div>
           <p className="text-white/40 text-xs mt-6">
-            Prices exclude tax. Available only in supported regions. Contact us for India pricing in INR.
+            Available in supported regions. Contact Leniva CAD Solutions for consultation and licensing.
           </p>
         </div>
       </section>

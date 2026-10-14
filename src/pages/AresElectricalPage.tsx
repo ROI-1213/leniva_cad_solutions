@@ -1684,7 +1684,7 @@ export const AresElectricalPage: React.FC = () => {
               Request ARES Electrical Quote & Consultation
             </h2>
             <p className="mt-3 text-slate-600 text-sm max-w-xl mx-auto">
-              Get official regional pricing in INR, license configuration advice, and schedule an electrical CAD demonstration for your team.
+              Get official regional quotes in INR, license configuration advice, and schedule an electrical CAD demonstration for your team.
             </p>
           </div>
 

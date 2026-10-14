@@ -172,7 +172,7 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({ forcedSl
                 onClick={() => openQuoteModal(`${category.title} Category Inquiry`)}
                 className="px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl shadow transition-colors"
               >
-                Request Category Pricing
+                Request Category Quotation
               </button>
               <button
                 onClick={() => openQuoteModal(`${category.title} Technical Consultation`)}
@@ -195,7 +195,7 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({ forcedSl
                   Available Softwares
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Official commercial licenses, education pricing, and Indian GST invoicing
+                  Official commercial licenses, education editions, and Indian GST invoicing
                 </p>
               </div>
 

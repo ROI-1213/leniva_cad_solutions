@@ -625,7 +625,7 @@ export const EkaF116kPage: React.FC = () => {
                     <h3 className="text-xl font-bold text-slate-950">Enquiry Received!</h3>
                     <p className="text-xs sm:text-sm text-slate-600 max-w-sm mx-auto">
                       Thank you for your interest in the <strong>EKA F1 16K</strong>. Our jewelry manufacturing
-                      consultant will reach out with pricing, sample availability, and casting specs.
+                      consultant will reach out with formal quotation, sample availability, and casting specs.
                     </p>
                     <button
                       onClick={() => {

@@ -736,7 +736,7 @@ export const aresMechanicalData: AresMechanicalData = {
         desc: 'Shared concurrent licensing for multi-user design teams and manufacturing corporations.',
       },
     ],
-    notice: 'Pricing and licensing models in India vary by company size, term length, and Trinity inclusion. Contact Leniva CAD Solutions for current official commercial quotes in INR with GST invoicing.',
+    notice: 'Licensing models in India vary by company size, term length, and Trinity inclusion. Contact Leniva CAD Solutions for current official commercial quotes in INR with GST invoicing.',
   },
 
   systemRequirements: [
@@ -846,7 +846,7 @@ export const aresMechanicalData: AresMechanicalData = {
     },
     {
       category: 'licensing',
-      q: 'How can I get ARES Mechanical pricing in India?',
+      q: 'How can I get an ARES Mechanical quote in India?',
       a: 'Leniva CAD Solutions is an authorized CAD/CAM software provider in India. Contact our team to receive competitive commercial quotes in INR with GST-compliant invoicing and technical onboarding.',
     },
     {

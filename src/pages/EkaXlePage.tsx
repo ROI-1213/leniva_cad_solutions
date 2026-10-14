@@ -360,7 +360,7 @@ export const EkaXlePage: React.FC = () => {
       </section>
 
       {/* ====================================================
-          7. BROAD RANGE OF RESIN MATERIALS (10 RESINS + BROCHURE PRICING)
+          7. BROAD RANGE OF RESIN MATERIALS (10 RESINS + BROCHURE SPECS)
          ==================================================== */}
       <section ref={resinsRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 scroll-mt-24">
         <div className="text-center max-w-3xl mx-auto space-y-2">

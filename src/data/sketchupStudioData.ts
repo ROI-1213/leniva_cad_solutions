@@ -936,12 +936,12 @@ export const sketchUpStudioData: SketchUpStudioData = {
     {
       category: 'licensing',
       q: 'How is SketchUp Studio licensed and billed?',
-      a: 'SketchUp Studio is offered as an annual named-user commercial subscription managed via the Trimble Account Management portal. Each license is assigned to an individual user’s Trimble ID (email address). Regional pricing varies by country and taxes; contact Leniva CAD Solutions for current official commercial quotes in India.',
+      a: 'SketchUp Studio is offered as an annual named-user commercial subscription managed via the Trimble Account Management portal. Each license is assigned to an individual user’s Trimble ID (email address). Regional licensing terms vary by country and taxes; contact Leniva CAD Solutions for current official commercial quotes in India.',
     },
     {
       category: 'licensing',
       q: 'Is SketchUp Studio suitable for students and universities?',
-      a: 'Yes. Trimble offers special higher-education student and institutional lab licensing for SketchUp Studio. Educational institutions and enrolled students can contact Leniva CAD Solutions to verify eligibility and educational pricing.',
+      a: 'Yes. Trimble offers special higher-education student and institutional lab licensing for SketchUp Studio. Educational institutions and enrolled students can contact Leniva CAD Solutions to verify eligibility and educational discounts.',
     },
     {
       category: 'technical',

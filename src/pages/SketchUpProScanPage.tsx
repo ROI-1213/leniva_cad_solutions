@@ -59,7 +59,7 @@ export const SketchUpProScanPage: React.FC = () => {
     { id: 'applications', label: 'Applications' },
     { id: 'included-tools', label: 'Included Tools' },
     { id: 'comparison', label: 'Pro vs Pro Scan' },
-    { id: 'pricing', label: 'Pricing' },
+    { id: 'pricing', label: 'Licensing' },
     { id: 'requirements', label: 'Requirements' },
     { id: 'faq', label: 'FAQs' },
   ]
@@ -962,7 +962,7 @@ export const SketchUpProScanPage: React.FC = () => {
               <span>EXPLORE SKETCHUP PRO SCAN</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
-              Subscription & Commercial Pricing
+              Subscription & Commercial Licensing
             </h2>
             <p className="text-slate-600 text-sm sm:text-base">
               A dedicated scan-to-3D subscription combining SketchUp Pro capabilities with point cloud import and modeling workflows on Windows.
@@ -1216,7 +1216,7 @@ export const SketchUpProScanPage: React.FC = () => {
                 From Reality to 3D. With Complete Accuracy.
               </h2>
               <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-                Connect point cloud data, professional 3D desktop modeling, and 2D documentation in LayOut with SketchUp Pro Scan. Talk to our technical specialists to review software compatibility and receive commercial pricing.
+                Connect point cloud data, professional 3D desktop modeling, and 2D documentation in LayOut with SketchUp Pro Scan. Talk to our technical specialists to review software compatibility and receive commercial quotations.
               </p>
 
               <div className="space-y-3 pt-2">
@@ -1250,7 +1250,7 @@ export const SketchUpProScanPage: React.FC = () => {
             <div className="lg:col-span-7">
               <div className="bg-white text-slate-900 p-8 sm:p-10 rounded-3xl shadow-2xl border border-slate-200">
                 <h3 className="text-2xl font-black text-slate-950 mb-2">
-                  Request Commercial Pricing & Demo
+                  Request Commercial Quote & Demo
                 </h3>
                 <p className="text-xs text-slate-600 mb-6">
                   Fill in your project details below to receive a personalized quote for SketchUp Pro Scan.

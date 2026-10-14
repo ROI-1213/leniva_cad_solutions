@@ -61,7 +61,7 @@ export const WishlistPage: React.FC = () => {
                 <div className="p-4 space-y-1">
                   <h3 className="text-sm font-bold text-slate-950 line-clamp-2">{item.name}</h3>
                   <div className="text-xs font-semibold text-slate-500">
-                    Price on Request
+                    Quote on Request
                   </div>
                 </div>
               </div>

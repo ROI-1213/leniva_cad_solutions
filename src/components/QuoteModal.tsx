@@ -89,7 +89,7 @@ export const QuoteModal: React.FC = () => {
             <p className="text-slate-600 max-w-md mx-auto text-sm leading-relaxed">
               Our technical engineering team has logged your quotation request for{' '}
               <span className="font-semibold text-slate-800">{formData.productOrService || 'our engineering solutions'}</span>.
-              A solution specialist will contact you shortly with formal pricing, technical datasheets, and delivery timelines.
+              A solution specialist will contact you shortly with formal quotations, technical datasheets, and delivery timelines.
             </p>
             <div className="pt-4">
               <button

@@ -496,14 +496,14 @@ export const GoldPlaPage: React.FC<GoldPageProps> = ({ customData }) => {
               <div className="space-y-1.5 bg-amber-50/40 p-4 rounded-2xl border border-amber-200/70">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-amber-900 font-mono">
-                    Pricing & Bulk Orders
+                    Official Quotation & Bulk Orders
                   </span>
                   <span className="px-2.5 py-0.5 bg-amber-600 text-white text-[11px] font-bold rounded-md shadow-2xs">
-                    Price on Request
+                    Quote on Request
                   </span>
                 </div>
                 <p className="text-sm font-bold text-slate-900">
-                  Request Official Quotation & Volume Discounts
+                  Request Official Quotation & Volume Orders
                 </p>
                 <p className="text-[11px] text-slate-600 leading-relaxed">
                   Institutional, educational, and commercial bulk spool rates available with GST invoice and dispatch across India.
@@ -1102,7 +1102,7 @@ export const GoldPlaPage: React.FC<GoldPageProps> = ({ customData }) => {
                       {rel.name}
                     </h4>
                     <div className="pt-0.5">
-                      <span className="text-sm font-bold text-amber-700">Price on Request</span>
+                      <span className="text-sm font-bold text-amber-700">Quote on Request</span>
                     </div>
                   </div>
 
@@ -1131,7 +1131,7 @@ export const GoldPlaPage: React.FC<GoldPageProps> = ({ customData }) => {
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 flex items-center justify-between shadow-2xl">
           <div>
             <span className="text-[10px] text-slate-400 uppercase font-bold block">Gold PLA+</span>
-            <span className="text-sm font-bold text-amber-700">Price on Request</span>
+            <span className="text-sm font-bold text-amber-700">Quote on Request</span>
           </div>
         <div className="flex items-center space-x-2">
           <button

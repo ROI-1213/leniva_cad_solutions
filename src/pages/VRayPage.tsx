@@ -1411,7 +1411,7 @@ export const VRayPage: React.FC = () => {
         <div className="text-center max-w-3xl mx-auto space-y-3 mb-12">
           <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-800 text-xs font-bold uppercase tracking-wider">
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Plans & Pricing</span>
+            <span>Plans & Licensing</span>
           </div>
           <h2 className="text-3xl font-black text-slate-950 tracking-tight">
             Find the Right V-Ray Plan for Your Workflow
@@ -1449,7 +1449,7 @@ export const VRayPage: React.FC = () => {
                 </div>
 
                 <div className="p-3.5 rounded-xl bg-slate-100/10 border border-slate-700/50 space-y-1">
-                  <div className="text-[11px] font-bold">Contact Us for Current Pricing</div>
+                  <div className="text-[11px] font-bold">Contact Us for Current Quote</div>
                   <div className="text-[10px] text-slate-400">
                     Commercial & educational quotes with GST compliance
                   </div>
@@ -1497,7 +1497,7 @@ export const VRayPage: React.FC = () => {
         </div>
 
         <div className="mt-8 text-center text-xs text-slate-400 max-w-2xl mx-auto">
-          <em>Plan inclusions, pricing, and AI-credit allowances are subject to official Chaos licensing policies and may change without prior notice.</em>
+          <em>Plan inclusions, terms, and AI-credit allowances are subject to official Chaos licensing policies and may change without prior notice.</em>
         </div>
       </div>
 
@@ -1852,10 +1852,10 @@ export const VRayPage: React.FC = () => {
               Official Licensing Enquiry
             </span>
             <h3 className="text-2xl font-black tracking-tight mt-1">
-              Request Chaos V-Ray Pricing & Consultation
+              Request Chaos V-Ray Consultation & Quote
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
-              Connect with Leniva CAD Solutions for commercial licensing, educational institutional pricing, floating network setups, and local technical onboarding across India.
+              Connect with Leniva CAD Solutions for commercial licensing, educational institutional quotes, floating network setups, and local technical onboarding across India.
             </p>
           </div>
 
@@ -1868,7 +1868,7 @@ export const VRayPage: React.FC = () => {
                 <h4 className="text-xl font-bold text-slate-900">Thank you for your enquiry.</h4>
                 <p className="text-sm text-slate-600 max-w-md mx-auto">
                   Our team has received your request for <strong>{enquiryForm.interestedPlan}</strong> for{' '}
-                  <strong>{enquiryForm.hostApplication}</strong>. An authorized solution consultant will contact you shortly with formal pricing and licensing details.
+                  <strong>{enquiryForm.hostApplication}</strong>. An authorized solution consultant will contact you shortly with formal quotation and licensing details.
                 </p>
                 <button
                   type="button"

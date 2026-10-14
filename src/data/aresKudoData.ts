@@ -118,7 +118,7 @@ export const aresKudoData = {
     ],
     primaryCta: 'Start Free Kudo Trial',
     secondaryCta: 'Explore 300+ CAD Tools',
-    tertiaryCta: 'Compare Plans & Pricing',
+    tertiaryCta: 'Compare Plans & Licensing',
   },
 
   introduction: {
@@ -917,7 +917,7 @@ export const aresKudoData = {
       targetUser: 'Designers & Engineers',
       priceEur: { annual: 200, monthly: 35 },
       priceInr: { annual: 18000, monthly: 3200 },
-      billingNote: 'Billed annually at €200/year (or €35/month)',
+      billingNote: 'Annual or monthly commercial subscription options',
       popular: true,
       badge: 'Most Popular',
       features: [
@@ -943,7 +943,7 @@ export const aresKudoData = {
       targetUser: 'Teams & Enterprises',
       priceEur: { annual: 300 },
       priceInr: { annual: 27000 },
-      billingNote: 'From €300/year/concurrent seat (min. 5 seats)',
+      billingNote: 'Concurrent multi-user floating license pool (min. 5 seats)',
       badge: 'Best Value for Teams',
       features: [
         'All ARES Kudo Professional features included',

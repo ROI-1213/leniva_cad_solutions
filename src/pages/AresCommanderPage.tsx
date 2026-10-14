@@ -178,7 +178,7 @@ export const AresCommanderPage: React.FC = () => {
     { id: 'dwg', label: 'Native DWG' },
     { id: 'capabilities', label: '2D & 3D Features' },
     { id: 'bim-trinity', label: 'BIM & Trinity' },
-    { id: 'licensing', label: 'Licensing & Pricing' },
+    { id: 'licensing', label: 'Licensing & Editions' },
     { id: 'technical', label: 'Technical & OS' },
   ]
 
@@ -336,7 +336,7 @@ export const AresCommanderPage: React.FC = () => {
                   className="px-6 py-3 rounded-xl bg-white border border-slate-300 hover:border-slate-400 text-slate-800 hover:bg-slate-50 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-2xs transition-all cursor-pointer"
                 >
                   <Send className="w-4 h-4 text-blue-600" />
-                  <span>Request Pricing</span>
+                  <span>Request Quote</span>
                 </button>
                 <button
                   onClick={() => scrollTo(draftingRef, '2d-drafting')}
@@ -1709,7 +1709,7 @@ export const AresCommanderPage: React.FC = () => {
               Find the Right ARES Commander License for Your Team
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl mx-auto">
-              Whether you are an individual CAD professional, design studio, or enterprise engineering organization, contact Leniva CAD Solutions for verified commercial pricing, multi-seat discounts, and licensing options.
+              Whether you are an individual CAD professional, design studio, or enterprise engineering organization, contact Leniva CAD Solutions for verified commercial quotations, multi-seat discounts, and licensing options.
             </p>
           </div>
 
@@ -1962,7 +1962,7 @@ export const AresCommanderPage: React.FC = () => {
 
                 <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="text-[11px] text-slate-400">
-                    By submitting, you agree to receive official product pricing from Leniva CAD Solutions.
+                    By submitting, you agree to receive official product quotations from Leniva CAD Solutions.
                   </div>
                   <button
                     type="submit"
@@ -2015,7 +2015,7 @@ export const AresCommanderPage: React.FC = () => {
               className="px-8 py-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-sm border border-slate-700 shadow-md transition-all cursor-pointer flex items-center gap-2"
             >
               <PhoneCall className="w-4 h-4 text-blue-400" />
-              <span>Request Pricing Quote</span>
+              <span>Request Formal Quote</span>
             </button>
           </div>
         </div>

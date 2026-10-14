@@ -688,7 +688,7 @@ export const sketchupProData = {
     },
     {
       q: 'How do I procure genuine SketchUp Pro commercial licensing in India?',
-      a: 'Leniva CAD Solutions provides official commercial quotes, volume licenses, and educational pricing for SketchUp Pro and SketchUp Studio in Indian Rupees (INR) with full GST tax compliance, licensing administration, and local technical onboarding support.',
+      a: 'Leniva CAD Solutions provides official commercial quotes, volume licenses, and educational options for SketchUp Pro and SketchUp Studio in Indian Rupees (INR) with full GST tax compliance, licensing administration, and local technical onboarding support.',
       category: 'licensing',
     },
     {

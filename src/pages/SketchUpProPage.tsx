@@ -1391,7 +1391,7 @@ export const SketchUpProPage: React.FC = () => {
               { id: 'general', label: 'General & Overview' },
               { id: 'desktop-layout', label: 'Desktop & LayOut' },
               { id: 'platforms', label: 'iPad & Cloud' },
-              { id: 'licensing', label: 'Licensing & Pricing' },
+              { id: 'licensing', label: 'Licensing & Editions' },
               { id: 'extensions', label: 'Extensions' },
             ].map(cat => (
               <button

@@ -268,7 +268,7 @@ export default function AdminPage() {
       heroImage: 'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=1600&q=85',
       secondaryImage: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
       trialCta: 'Get Free 30-Day Trial',
-      pricingCta: 'Enquire About Pricing',
+      pricingCta: 'Request a Quote',
       specStrip: [
         { label: 'Product', value: 'ARES Mechanical' },
         { label: 'Type', value: '2D Mechanical CAD' },
@@ -337,7 +337,7 @@ export default function AdminPage() {
       heroImage: 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=1600&q=85',
       secondaryImage: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
       trialCta: 'Get Free 30-Day Trial',
-      pricingCta: 'Enquire About Pricing',
+      pricingCta: 'Request a Quote',
       specStrip: [
         { label: 'Product', value: 'ARES Electrical' },
         { label: 'Type', value: 'Electrical CAD (ECAD)' },
@@ -404,7 +404,7 @@ export default function AdminPage() {
       heroImage: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=80',
       secondaryImage: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
       trialCta: 'Get Free 30-Day Trial',
-      pricingCta: 'Enquire About Pricing',
+      pricingCta: 'Request a Quote',
       specStrip: [
         { label: 'Product', value: 'ARES Standard' },
         { label: 'Platform', value: 'Windows 64-bit' },
@@ -539,7 +539,7 @@ export default function AdminPage() {
       heroImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=85',
       secondaryImage: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80',
       trialCta: 'Start Free Trial',
-      pricingCta: 'Enquire About Pricing',
+      pricingCta: 'Request a Quote',
       specStrip: [
         { label: 'CAD & BIM Platforms', value: '5+ Supported' },
         { label: 'Rendering Speed', value: 'Real-Time' },
@@ -605,7 +605,7 @@ export default function AdminPage() {
       heroImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=85',
       secondaryImage: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80',
       trialCta: 'Start Free Trial',
-      pricingCta: 'Enquire About Pricing',
+      pricingCta: 'Request a Quote',
       specStrip: [
         { label: 'Host Applications', value: '9+ Supported' },
         { label: 'Industry Awards', value: 'Academy Award' },
@@ -671,7 +671,7 @@ export default function AdminPage() {
       heroImage: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=1600&q=85',
       secondaryImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
       trialCta: 'Start Free Trial',
-      pricingCta: 'Enquire About Pricing',
+      pricingCta: 'Request a Quote',
       specStrip: [
         { label: 'Bundle', value: 'Studio Windows' },
         { label: 'Modeling', value: 'SketchUp Pro' },
@@ -728,7 +728,7 @@ export default function AdminPage() {
       downloadUrl: 'https://www.sketchup.com/try-sketchup',
       trialUrl: 'https://www.sketchup.com/try-sketchup',
       enquiryEmail: 'contact@lenivacadsolution.in',
-      licensingNote: 'Annual commercial subscription. Contact Leniva CAD Solutions for bundle pricing and scanner hardware pairing.',
+      licensingNote: 'Annual commercial subscription. Contact Leniva CAD Solutions for bundle quotes and scanner hardware pairing.',
       eyebrow: 'TRIMBLE | SCAN-TO-BIM',
       h1Highlight: 'Scan-to-Model Workflows',
       heroBadge: 'Scan-to-Model CAD',
@@ -737,7 +737,7 @@ export default function AdminPage() {
       heroImage: 'https://images.unsplash.com/photo-1619468129361-605ebea04b44?auto=format&fit=crop&w=1600&q=85',
       secondaryImage: 'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=800&q=80',
       trialCta: 'Start Free Trial',
-      pricingCta: 'Enquire About Pricing',
+      pricingCta: 'Request a Quote',
       specStrip: [
         { label: 'Bundle', value: 'SketchUp Pro + Scan' },
         { label: 'Point Cloud Formats', value: 'E57, RCP, LAS, LAZ' },
@@ -1246,7 +1246,7 @@ export default function AdminPage() {
             email: 'karthik@precisiondies.in',
             phone: '+91 94440 98765',
             subject: 'ARES Mechanical Multi-Seat License Quote',
-            message: 'Requesting volume pricing for 5 perpetual licenses of ARES Mechanical for our Coimbatore drafting cell.',
+            message: 'Requesting volume quotation for 5 perpetual licenses of ARES Mechanical for our Coimbatore drafting cell.',
             status: 'read',
             created_at: new Date(Date.now() - 3600000 * 28).toISOString(),
           },
@@ -2212,7 +2212,7 @@ export default function AdminPage() {
                       rows={3}
                       value={quoteNotesInput}
                       onChange={e => setQuoteNotesInput(e.target.value)}
-                      placeholder="e.g. Sent official pricing quote of â‚¹1,45,000 + GST on 28th Sep"
+                      placeholder="e.g. Sent official quote + GST on 28th Sep"
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -2470,7 +2470,7 @@ export default function AdminPage() {
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Price (â‚¹ INR, or 0 for Quote)</label>
+                      <label className="block font-bold text-slate-700 mb-1">Price / Status (INR, or 0 for Quote)</label>
                       <input
                         type="number"
                         value={newProd.price}
@@ -2582,7 +2582,7 @@ export default function AdminPage() {
                           />
                         </div>
                         <div>
-                          <label className="block font-bold text-slate-700 mb-1">Selling Price (â‚¹)</label>
+                          <label className="block font-bold text-slate-700 mb-1">Selling Price</label>
                           <input
                             type="number"
                             value={editingProduct.price ?? 0}
@@ -2591,7 +2591,7 @@ export default function AdminPage() {
                           />
                         </div>
                         <div>
-                          <label className="block font-bold text-slate-700 mb-1">Original / MRP Price (â‚¹)</label>
+                          <label className="block font-bold text-slate-700 mb-1">Original / MRP Price</label>
                           <input
                             type="number"
                             value={editingProduct.original_price ?? 0}
@@ -2699,7 +2699,7 @@ export default function AdminPage() {
                             onChange={e => setEditingProduct({ ...editingProduct, is_quote_based: e.target.checked })}
                             className="w-4 h-4 text-blue-600 rounded"
                           />
-                          <span className="font-bold text-slate-800">Quote Based (Contact for Price)</span>
+                          <span className="font-bold text-slate-800">Quote Based</span>
                         </label>
                       </div>
                     </div>
@@ -2746,7 +2746,7 @@ export default function AdminPage() {
                         <td className="py-3 px-3 text-slate-600">{p.category}</td>
                         <td className="py-3 px-3 text-slate-700">{p.brand}</td>
                         <td className="py-3 px-3 font-semibold text-slate-900">
-                          {p.price > 0 ? `â‚¹${p.price.toLocaleString()}` : 'Quote Based'}
+                          'Quote Based'
                         </td>
                         <td className="py-3 px-3">
                           <button
@@ -4789,7 +4789,7 @@ export default function AdminPage() {
                               value={cur.pricingCta || ''}
                               onChange={e => updateCadField('pricingCta', e.target.value)}
                               className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none"
-                              placeholder="e.g. Enquire About Pricing"
+                              placeholder="e.g. Request a Quote"
                             />
                           </div>
                         </div>
@@ -4882,7 +4882,7 @@ export default function AdminPage() {
                               {cur.trialCta || 'Get Free Trial'}
                             </div>
                             <div className="px-4 py-2 bg-slate-800 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold">
-                              {cur.pricingCta || 'Enquire About Pricing'}
+                              {cur.pricingCta || 'Request a Quote'}
                             </div>
                           </div>
                         </div>

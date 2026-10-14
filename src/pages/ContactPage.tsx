@@ -182,7 +182,7 @@ export const ContactPage: React.FC = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <h3 className="text-lg font-bold text-slate-950">Send an Official Enquiry</h3>
                 <p className="text-xs text-slate-500">
-                  Fill in your technical details below to request pricing, schedules, or technical datasheets.
+                  Fill in your technical details below to request quotations, schedules, or technical datasheets.
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">

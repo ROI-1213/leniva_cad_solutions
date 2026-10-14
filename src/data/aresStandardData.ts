@@ -593,14 +593,14 @@ export const aresStandardData: AresStandardData = {
     title: 'Flexible Licensing for Your CAD Needs',
     description: 'ARES Standard is positioned as a cost-effective 2D CAD product. The official comparison lists perpetual, annual and three-year licensing options, with certain Flex/network license distinctions between products.',
     officialBuyUrl: 'https://www.graebert.com/in/cad-software/buy/',
-    disclaimer: 'Notice: Specific licensing terms, annual subscription rates, perpetual options, and regional availability must be confirmed against Graebert’s current regional policies. Contact Leniva CAD Solutions for current pricing in India.',
+    disclaimer: 'Notice: Specific licensing terms, annual subscription rates, perpetual options, and regional availability must be confirmed against Graebert’s current regional policies. Contact Leniva CAD Solutions for official quotes in India.',
     tiers: [
       {
         id: 'annual-plan',
         name: 'Annual Subscription',
         term: '1-Year Term License',
         subtitle: 'Low Upfront Investment',
-        pricePlaceholder: 'Request Indian Pricing',
+        pricePlaceholder: 'Request Indian Quote',
         popular: true,
         badge: 'Popular',
         features: [
@@ -617,7 +617,7 @@ export const aresStandardData: AresStandardData = {
         name: '3-Year Subscription',
         term: '3-Year Term License',
         subtitle: 'Multi-Year Cost Predictability',
-        pricePlaceholder: 'Request Indian Pricing',
+        pricePlaceholder: 'Request Indian Quote',
         features: [
           'All capabilities included in the Annual Subscription',
           'Price locked for 36 consecutive months',
@@ -630,7 +630,7 @@ export const aresStandardData: AresStandardData = {
         name: 'Perpetual License',
         term: 'One-Time License Purchase',
         subtitle: 'Permanent Ownership Option',
-        pricePlaceholder: 'Request Indian Pricing',
+        pricePlaceholder: 'Request Indian Quote',
         features: [
           'Permanent ownership of ARES Standard desktop license',
           'No required monthly or recurring subscription renewal',
@@ -832,7 +832,7 @@ export const aresStandardData: AresStandardData = {
     {
       category: 'licensing',
       q: 'How much does ARES Standard cost in India?',
-      a: 'Pricing may vary by region and license type. Contact our sales team at Leniva CAD Solutions or consult the official pricing configurator for current India pricing.',
+      a: 'Licensing terms may vary by region and license type. Contact our sales team at Leniva CAD Solutions for official India quotations.',
     },
     {
       category: 'comparison',

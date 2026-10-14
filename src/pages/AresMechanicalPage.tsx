@@ -1001,7 +1001,7 @@ export const AresMechanicalPage: React.FC = () => {
                   onClick={() => openQuoteModal(`ARES Mechanical - ${opt.title}`)}
                   className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-all text-center"
                 >
-                  Request Pricing
+                  Request Quote
                 </button>
               </div>
             ))}
@@ -1188,7 +1188,7 @@ export const AresMechanicalPage: React.FC = () => {
             <div className="lg:col-span-7">
               <div className="bg-white text-slate-900 p-8 sm:p-10 rounded-3xl shadow-2xl border border-slate-200">
                 <h3 className="text-2xl font-black text-slate-950 mb-2">
-                  Request Commercial Pricing & Demo
+                  Request Commercial Quote & Demo
                 </h3>
                 <p className="text-xs text-slate-600 mb-6">
                   Complete the form below to receive official quotes and evaluation assistance for ARES Mechanical.

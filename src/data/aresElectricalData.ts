@@ -1209,7 +1209,7 @@ export const aresElectricalData: AresElectricalData = {
         name: 'Annual Subscription',
         subtitle: 'Optimal for Engineering Teams',
         term: '1-Year Term License',
-        pricePlaceholder: 'Request Indian Pricing',
+        pricePlaceholder: 'Request Indian Quote',
         popular: true,
         badge: 'Recommended',
         features: [
@@ -1228,10 +1228,10 @@ export const aresElectricalData: AresElectricalData = {
         name: '3-Year Subscription',
         subtitle: 'Long-Term Cost Predictability',
         term: '3-Year Term License',
-        pricePlaceholder: 'Request Indian Pricing',
+        pricePlaceholder: 'Request Indian Quote',
         features: [
           'All capabilities included in the Annual Subscription',
-          'Lock in subscription pricing across 36 months',
+          'Lock in subscription terms across 36 months',
           'Continuous access to latest releases and software improvements',
           'Option to bundle ARES Trinity collaboration and cloud storage',
           'Priority deployment guidance and team onboarding support',
@@ -1242,7 +1242,7 @@ export const aresElectricalData: AresElectricalData = {
         name: 'Perpetual License',
         subtitle: 'Permanent Software Ownership',
         term: 'One-Time License Purchase',
-        pricePlaceholder: 'Request Indian Pricing',
+        pricePlaceholder: 'Request Indian Quote',
         features: [
           'Own your ARES Electrical license permanently',
           'Complete DWG-native electrical drafting and automation toolset',
@@ -1253,7 +1253,7 @@ export const aresElectricalData: AresElectricalData = {
       },
     ],
     verifiedFacts: [
-      'Official pricing must be quoted in Indian Rupees (INR) reflecting current regional commercial terms and applicable GST.',
+      'Official quotations are provided in Indian Rupees (INR) reflecting current regional commercial terms and applicable GST.',
       'ARES Electrical can be licensed with or without Trinity cloud features depending on corporate security requirements.',
       'Network floating (flex) licenses may be available for multi-user design offices upon enquiry.',
       'Perpetual licenses grant non-expiring usage rights with optional annual maintenance.',
@@ -1409,8 +1409,8 @@ export const aresElectricalData: AresElectricalData = {
     },
     {
       category: 'licensing',
-      q: 'How can I get ARES Electrical pricing in India?',
-      a: 'Visitors can contact our sales team at Leniva CAD Solutions to confirm current Indian pricing, license options, GST tax details, and Trinity availability.',
+      q: 'How can I get an ARES Electrical quotation in India?',
+      a: 'Visitors can contact our sales team at Leniva CAD Solutions to confirm official quotations, license options, GST tax details, and Trinity availability.'
     },
     {
       category: 'general',

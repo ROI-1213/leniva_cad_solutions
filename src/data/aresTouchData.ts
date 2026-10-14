@@ -599,17 +599,17 @@ export const aresTouchData = {
         includedApps: ['ARES Touch (Android & iOS)'],
         priceEur: {
           monthly: 0,
-          display: 'Price on Request',
+          display: 'Quote on Request',
           subtext: 'per user (excl. tax)',
         },
         priceUsd: {
           monthly: 0,
-          display: 'Price on Request',
+          display: 'Quote on Request',
           subtext: 'per user (excl. tax)',
         },
         priceInr: {
           monthly: 0,
-          display: 'Price on Request',
+          display: 'Quote on Request',
           subtext: 'per user (excl. GST)',
         },
         features: [
@@ -636,17 +636,17 @@ export const aresTouchData = {
         includedApps: ['ARES Touch (Mobile)', 'ARES Kudo (Cloud Browser)'],
         priceEur: {
           annual: 0,
-          display: 'Price on Request',
+          display: 'Quote on Request',
           subtext: 'per user (excl. tax)',
         },
         priceUsd: {
           annual: 0,
-          display: 'Price on Request',
+          display: 'Quote on Request',
           subtext: 'per user (excl. tax)',
         },
         priceInr: {
           annual: 0,
-          display: 'Price on Request',
+          display: 'Quote on Request',
           subtext: 'per user (excl. GST)',
         },
         features: [
@@ -670,17 +670,17 @@ export const aresTouchData = {
         includedApps: ['ARES Commander (Desktop)', 'ARES Kudo (Cloud)', 'ARES Touch (Mobile)'],
         priceEur: {
           annual: 0,
-          display: 'Price on Request',
+          display: 'Quote on Request',
           subtext: 'per user (excl. tax)',
         },
         priceUsd: {
           annual: 0,
-          display: 'Price on Request',
+          display: 'Quote on Request',
           subtext: 'per user (excl. tax)',
         },
         priceInr: {
           annual: 0,
-          display: 'Price on Request',
+          display: 'Quote on Request',
           subtext: 'per user (excl. GST)',
         },
         features: [

@@ -958,7 +958,7 @@ export const aresCommanderData: AresCommanderData = {
   licensing: {
     heading: 'Licensing Options for Different Workflows',
     description: 'Graebert offers flexible licensing options for ARES Commander, including standalone and network licensing, with choices of perpetual ownership or subscription plans tailored to your studio or enterprise requirements.',
-    pricingAccuracyRules: 'Indicative pricing is subject to official Graebert quotations and applicable taxes. Contact Leniva CAD Solutions, authorized Graebert partner in India, for current INR commercial pricing, educational discounts, and volume quotes.',
+    pricingAccuracyRules: 'Licensing configurations are subject to official Graebert quotations and applicable taxes. Contact Leniva CAD Solutions, authorized Graebert partner in India, for commercial proposals, educational discounts, and volume quotes.',
     pricingConfiguratorUrl: 'https://www.graebert.com/in/cad-software/buy/configurator/',
     cards: [
       {
@@ -978,7 +978,7 @@ export const aresCommanderData: AresCommanderData = {
         ],
         collaborationEntitlements: 'Desktop CAD workstation with offline commenting and local file workflows.',
         supportTerms: 'Software updates and standard customer support included during active subscription or 12-month maintenance for perpetual.',
-        indicativePriceNote: 'Contact for verified INR pricing & perpetual quote',
+        indicativePriceNote: 'Contact for verified INR quotation & perpetual quote',
       },
       {
         id: 'trinity',
@@ -1252,7 +1252,7 @@ export const aresCommanderData: AresCommanderData = {
     },
     {
       q: 'How much does ARES Commander cost in India?',
-      a: 'Pricing depends on the license type (Standalone, Trinity, or Network), duration (Annual, 3-Year, or Perpetual), and seat volume. Submit an enquiry on this page or contact Leniva CAD Solutions for an official GST quotation with current commercial pricing.',
+      a: 'Commercial licensing terms depend on the license type (Standalone, Trinity, or Network), duration (Annual, 3-Year, or Perpetual), and seat volume. Submit an enquiry on this page or contact Leniva CAD Solutions for an official GST quotation.',
       category: 'licensing',
     },
   ],
