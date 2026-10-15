@@ -22,6 +22,7 @@ import {
 import { shopItems } from '../data/shop'
 import { useApp } from '../context/AppContext'
 import { ShopItem } from '../types'
+import { getStoredNavigationConfig, MasterNavigationConfig } from '../utils/navigationConfig'
 
 interface ShopPageProps {
   forcedCategory?: string
@@ -40,6 +41,13 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [inStockOnly, setInStockOnly] = useState(false)
   const [quickViewItem, setQuickViewItem] = useState<ShopItem | null>(null)
+  const [navConfig, setNavConfig] = useState<MasterNavigationConfig>(getStoredNavigationConfig)
+
+  useEffect(() => {
+    const handleUpdate = () => setNavConfig(getStoredNavigationConfig())
+    window.addEventListener('leniva_nav_config_updated', handleUpdate)
+    return () => window.removeEventListener('leniva_nav_config_updated', handleUpdate)
+  }, [])
 
   useEffect(() => {
     if (forcedCategory) {
@@ -325,13 +333,13 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
           <div className="space-y-2 max-w-3xl">
             <span className="text-xs font-bold uppercase tracking-wider text-red-600 flex items-center space-x-1.5">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Official Software, Hardware & Consumables Catalog</span>
+              <span>{navConfig.shopPage.announcementBadge}</span>
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-              CAD Software, 3D Printers, 3D Scanners & Engineering Filaments
+              {navConfig.shopPage.pageTitle}
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Explore official Graebert ARES, Trimble SketchUp & Chaos software licenses, alongside industrial Make3D additive machines, 3DeVOK 3D scanners, and genuine 3D printing filaments with authorized technical support.
+              {navConfig.shopPage.pageSubtitle}
             </p>
           </div>
         </div>

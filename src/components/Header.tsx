@@ -28,6 +28,7 @@ import {
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { siteConfig } from '../data/siteConfig'
+import { getStoredNavigationConfig, MasterNavigationConfig } from '../utils/navigationConfig'
 
 export const Header: React.FC = () => {
   const { wishlistCount, openQuoteModal, openSearchModal, liveSiteSettings } = useApp()
@@ -37,6 +38,38 @@ export const Header: React.FC = () => {
   const [activeMegaCategory, setActiveMegaCategory] = useState<'fdm' | 'dlp' | 'lcd' | 'scanners' | 'filaments'>('fdm')
   const [activeCADCategory, setActiveCADCategory] = useState<'ares' | 'sketchup' | 'chaos'>('ares')
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null)
+
+  const [navConfig, setNavConfig] = useState<MasterNavigationConfig>(getStoredNavigationConfig)
+
+  useEffect(() => {
+    const handleNavUpdate = () => {
+      setNavConfig(getStoredNavigationConfig())
+    }
+    window.addEventListener('leniva_nav_config_updated', handleNavUpdate)
+    window.addEventListener('storage', handleNavUpdate)
+    return () => {
+      window.removeEventListener('leniva_nav_config_updated', handleNavUpdate)
+      window.removeEventListener('storage', handleNavUpdate)
+    }
+  }, [])
+
+  const getHardwareCategoryIcon = (id: string) => {
+    switch (id) {
+      case 'fdm': return Printer
+      case 'dlp': return Layers
+      case 'lcd': return Box
+      case 'scanners': return Scan
+      case 'filaments': return CircleDot
+      default: return Box
+    }
+  }
+
+  const megaCategories = navConfig.hardwareMegaMenu.categories.map(cat => ({
+    ...cat,
+    icon: getHardwareCategoryIcon(cat.id),
+  }))
+
+  const cadSoftwareCategories = navConfig.cadMegaMenu.categories
 
   const location = useLocation()
   const headerRef = useRef<HTMLElement>(null)
@@ -69,153 +102,7 @@ export const Header: React.FC = () => {
     setActiveMegaMenu(null)
   }, [location])
 
-  interface MegaProduct {
-    name: string
-    slug: string
-    spec: string
-    badge?: string
-  }
-
-  interface MegaCategory {
-    id: 'fdm' | 'dlp' | 'lcd' | 'scanners' | 'filaments'
-    label: string
-    icon: any
-    route: string
-    description: string
-    products: MegaProduct[]
-  }
-
-  const megaCategories: MegaCategory[] = [
-    {
-      id: 'fdm' as const,
-      label: 'FDM 3D Printers',
-      icon: Printer,
-      route: '/products/fdm-3d-printers',
-      description: 'Industrial and desktop FDM systems with build volumes up to 1 meter.',
-      products: [
-        { name: 'Pratham Mini', slug: 'pratham-mini', spec: '170 × 170 × 170 mm' },
-        { name: 'Pratham Desktop', slug: 'pratham-desktop', spec: '200 × 200 × 250 mm' },
-        { name: 'Pratham 3.0', slug: 'pratham-3', spec: '300 × 300 × 300 mm' },
-        { name: 'Pratham 5.0', slug: 'pratham-5', spec: '500 × 500 × 500 mm' },
-        { name: 'Pratham 6.0', slug: 'pratham-6', spec: '600 × 600 × 600 mm' },
-        { name: 'Pratham X (600)', slug: 'pratham-x-600', spec: '1000 × 1000 × 600 mm' },
-        { name: 'Pratham X (1000)', slug: 'pratham-x', spec: '1000 × 1000 × 1000 mm (1 m³)' },
-        { name: 'Pratham 3 Rapid', slug: 'pratham-3-rapid', spec: '350 × 350 × 350 mm | 500 mm/s', badge: 'Featured' },
-      ],
-    },
-    {
-      id: 'dlp' as const,
-      label: 'DLP 3D Printers',
-      icon: Layers,
-      route: '/products/dlp-3d-printers',
-      description: 'High-precision resin systems for jewellery casting and ultra-fine precision.',
-      products: [
-        { name: 'EKA HT', slug: 'eka-ht', spec: 'Jewellery Direct Casting' },
-        { name: 'EKA XL', slug: 'eka-xl', spec: 'Large Format Jewellery' },
-        { name: 'EKA XLE', slug: 'eka-xle', spec: 'Engineering Precision' },
-      ],
-    },
-    {
-      id: 'lcd' as const,
-      label: 'Industrial LCD',
-      icon: Box,
-      route: '/products/industrial-lcd-3d-printers',
-      description: 'Ultra-high resolution 8K–16K monochrome masking arrays.',
-      products: [
-        { name: 'EKA GT MAX', slug: 'eka-gt-max', spec: 'Engineering LCD Production' },
-        { name: 'EKA F1 16K', slug: 'eka-f1-16k', spec: '16K Ultra-Fine Detailing', badge: '16K Micro' },
-      ],
-    },
-    {
-      id: 'scanners' as const,
-      label: '3D Scanners',
-      icon: Scan,
-      route: '/products/3d-scanners',
-      description: 'Professional optical and laser scanners for reverse engineering and inspection.',
-      products: [
-        { name: '3DeVOK MT', slug: '3devok-mt', spec: '0.04 mm • 34 Blue + 22 IR Lasers', badge: 'Flagship' },
-        { name: '3DeVOK MQ', slug: '3devok-mq', spec: '0.08 mm • 24-Bit Color • Wireless Ready', badge: 'Color 3D' },
-        { name: 'EINSTAR', slug: 'einscan', spec: 'Handheld Structured Light Scanner', badge: 'Portable' },
-      ],
-    },
-    {
-      id: 'filaments' as const,
-      label: '3D Printer Filaments',
-      icon: CircleDot,
-      route: '/products/filaments',
-      description: 'Make3D genuine 1.75 mm PLA and PLA+ filaments across 8 vivid colours.',
-      products: [
-        { name: 'PLA White (1 KG)', slug: 'filaments/pla-white-1kg-175mm', spec: '1.75 mm • Easy Print', badge: 'Popular' },
-        { name: 'PLA+ Grey / Silver', slug: 'filaments/plaplus-grey-silver-1kg-175mm', spec: '1.75 mm • High Toughness' },
-        { name: 'PLA+ Black', slug: 'filaments/plaplus-black-1kg-175mm', spec: '1.75 mm • Pro Matte', badge: 'Top Rated' },
-        { name: 'PLA+ Blue', slug: 'filaments/plaplus-blue-1kg-175mm', spec: '1.75 mm • Vibrant Finish' },
-        { name: 'PLA+ Gold', slug: 'filaments/plaplus-gold-1kg-175mm', spec: '1.75 mm • Metallic Finish' },
-        { name: 'PLA+ Red', slug: 'filaments/plaplus-red-1kg-175mm', spec: '1.75 mm • High Strength' },
-      ],
-    },
-  ]
-
-
-
-  interface CadSoftwareProduct {
-    name: string
-    slug: string
-    spec: string
-    image: string
-    badge?: string
-  }
-
-  interface CadSoftwareCategory {
-    id: 'ares' | 'sketchup' | 'chaos'
-    label: string
-    logo: string
-    secondaryLogo?: string
-    description?: string
-    products: CadSoftwareProduct[]
-  }
-
-  const cadSoftwareCategories: CadSoftwareCategory[] = [
-    {
-      id: 'ares',
-      label: 'ARES – Graebert',
-      logo: '/images/brands/ares-cad.png',
-      secondaryLogo: '/images/brands/grabert.png',
-      description: 'Professional DWG CAD, Trinity cloud/mobile collaboration & specialized engineering toolsets.',
-      products: [
-        { name: 'ARES Standard', slug: 'ares-standard', spec: 'Affordable 2D/3D CAD', image: '/images/software/ares-standard.jpg' },
-        { name: 'ARES Commander', slug: 'ares-commander', spec: 'Professional DWG-Native CAD', image: '/images/software/ares-commander.jpg' },
-        { name: 'ARES Kudo', slug: 'ares-kudo', spec: 'Online DWG CAD & Cloud', image: '/images/software/ares-kudo.jpg' },
-        { name: 'ARES Touch', slug: 'ares-touch', spec: 'Mobile DWG CAD & Field', image: '/images/software/ares-touch.jpg' },
-        { name: 'ARES Mechanical', slug: 'ares-mechanical', spec: 'Mechanical Design CAD', image: '/images/software/ares-mechanical.jpg' },
-        { name: 'ARES Electrical', slug: 'ares-electrical', spec: 'Electrical Schematics CAD', image: '/images/software/ares-electrical.jpg' },
-      ],
-    },
-    {
-      id: 'sketchup',
-      label: 'SketchUp – Trimble',
-      logo: '/images/brands/sketchup.png',
-      description: 'Industry-standard 3D modeling, reality capture point clouds, BIM integration & LayOut documentation.',
-      products: [
-        { name: 'SketchUp Pro', slug: 'sketchup', spec: 'Professional 3D Modeling', image: '/images/software/sketchup-pro.jpg' },
-        { name: 'SketchUp Pro Scan', slug: 'sketchup-scan', spec: 'Scan-to-BIM Workflows', image: '/images/software/sketchup-scan.jpg' },
-        { name: 'SketchUp Pro Advanced Workflows', slug: 'sketchup-advanced', spec: 'BIM & Advanced Integration', image: '/images/software/sketchup-advanced.jpg' },
-        { name: 'SketchUp Studio', slug: 'sketchup-studio', spec: 'Full Professional Suite', image: '/images/software/sketchup-studio.jpg' },
-      ],
-    },
-    {
-      id: 'chaos',
-      label: 'Chaos',
-      logo: '/images/brands/chaos.jpg',
-      description: 'World-leading real-time rendering, photorealistic ray tracing & architectural visualization engines.',
-      products: [
-        { name: 'Enscape', slug: 'enscape', spec: 'Real-Time Rendering & VR', image: '/images/software/enscape-3d.jpg' },
-        { name: 'V-Ray', slug: 'vray', spec: 'Photorealistic Rendering Engine', image: '/images/software/chaos-vray.jpg' },
-        { name: 'Corona', slug: 'corona', spec: 'ArchViz CPU Rendering', image: '/images/software/chaos-corona.jpg' },
-      ],
-    },
-  ]
-
-  const shopLinks = [
+    const shopLinks = [
     { name: 'All Store Catalog', route: '/shop' },
     { name: 'CAD Software Solutions', route: '/shop?category=cad-software' },
     { name: '3D Printers & Scanners (Products)', route: '/shop/products' },
@@ -458,7 +345,7 @@ export const Header: React.FC = () => {
 
                       {/* Mega Menu Footer Consultation Banner */}
                       <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                        <span>Need official licensing, network deployment or CAD trial advice?</span>
+                        <span>{navConfig.cadMegaMenu.consultationText}</span>
                         <button
                           onClick={() => {
                             setActiveMegaMenu(null)
@@ -466,7 +353,7 @@ export const Header: React.FC = () => {
                           }}
                           className="font-bold text-red-600 hover:text-red-800 cursor-pointer"
                         >
-                          Request Software Quote →
+                          {navConfig.cadMegaMenu.consultationBtnText}
                         </button>
                       </div>
                     </div>
@@ -586,7 +473,7 @@ export const Header: React.FC = () => {
 
                       {/* Mega Menu Footer Banner */}
                       <div className="mt-6 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                        <span>Need tailored machine specifications or 3D printing configuration advice?</span>
+                        <span>{navConfig.hardwareMegaMenu.consultationText}</span>
                         <button
                           onClick={() => {
                             setActiveMegaMenu(null)
@@ -594,7 +481,7 @@ export const Header: React.FC = () => {
                           }}
                           className="font-bold text-red-600 hover:text-red-800 cursor-pointer"
                         >
-                          Request a Quote →
+                          {navConfig.hardwareMegaMenu.consultationBtnText}
                         </button>
                       </div>
                     </div>
@@ -637,107 +524,55 @@ export const Header: React.FC = () => {
                           <ShoppingCart className="w-3.5 h-3.5" />
                         </div>
                         <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                          Leniva Online Store
+                          {navConfig.shopDropdown.bannerTitle}
                         </span>
                       </div>
                       <Link
-                        to="/shop"
+                        to={navConfig.shopDropdown.allStoreRoute}
                         onClick={() => setActiveMegaMenu(null)}
                         className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center space-x-1 group/link"
                       >
-                        <span>Explore All Store Products</span>
+                        <span>{navConfig.shopDropdown.allStoreLinkText}</span>
                         <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" />
                       </Link>
                     </div>
 
                     {/* Main Categories Section */}
                     <div className="p-4 space-y-2.5">
-                      {/* Section 1: CAD & 3D Design Software */}
-                      <Link
-                        to="/shop?category=cad-software"
-                        onClick={() => setActiveMegaMenu(null)}
-                        className="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 hover:border-red-200 hover:bg-red-50/30 transition-all duration-200 group"
-                      >
-                        <div className="flex items-center space-x-3.5 min-w-0">
-                          <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:bg-red-600 group-hover:text-white transition-colors duration-200 shadow-2xs">
-                            <Layers className="w-5 h-5" />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center space-x-2">
-                              <span className="text-sm font-bold text-slate-900 group-hover:text-red-600 transition-colors">
-                                CAD Softwares
-                              </span>
-                              <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
-                                Authorized Partner
-                              </span>
+                      {navConfig.shopDropdown.cards.map(card => {
+                        const Icon = card.iconType === 'cad' ? Layers : card.iconType === 'printer' ? Printer : CircleDot
+                        const iconBg = card.iconType === 'cad' ? 'bg-blue-50 text-blue-600' : card.iconType === 'printer' ? 'bg-slate-100 text-slate-700' : 'bg-red-100 text-red-600'
+                        return (
+                          <Link
+                            key={card.id}
+                            to={card.route}
+                            onClick={() => setActiveMegaMenu(null)}
+                            className="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 hover:border-red-200 hover:bg-red-50/30 transition-all duration-200 group"
+                          >
+                            <div className="flex items-center space-x-3.5 min-w-0">
+                              <div className={`w-11 h-11 rounded-xl ${iconBg} flex items-center justify-center shrink-0 group-hover:bg-red-600 group-hover:text-white transition-colors duration-200 shadow-2xs`}>
+                                <Icon className="w-5 h-5" />
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-sm font-bold text-slate-900 group-hover:text-red-600 transition-colors">
+                                    {card.title}
+                                  </span>
+                                  <span className={`text-[10px] font-bold px-2 py-0.5 ${card.badgeBg} ${card.badgeText} rounded-full`}>
+                                    {card.badge}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">
+                                  {card.description}
+                                </p>
+                              </div>
                             </div>
-                            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">
-                              Official perpetual &amp; subscription licenses for ARES CAD, Trimble SketchUp, Chaos V-Ray &amp; Enscape
-                            </p>
-                          </div>
-                        </div>
-                        <div className="w-7 h-7 rounded-lg bg-slate-50 group-hover:bg-red-100 flex items-center justify-center text-slate-400 group-hover:text-red-600 transition-colors shrink-0 ml-3">
-                          <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                        </div>
-                      </Link>
-
-                      {/* Section 2: 3D Printers & Scanners */}
-                      <Link
-                        to="/shop/products"
-                        onClick={() => setActiveMegaMenu(null)}
-                        className="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 hover:border-red-200 hover:bg-red-50/30 transition-all duration-200 group"
-                      >
-                        <div className="flex items-center space-x-3.5 min-w-0">
-                          <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 group-hover:bg-red-600 group-hover:text-white transition-colors duration-200 shadow-2xs">
-                            <Printer className="w-5 h-5" />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center space-x-2">
-                              <span className="text-sm font-bold text-slate-900 group-hover:text-red-600 transition-colors">
-                                3D Printers &amp; 3D Scanners
-                              </span>
-                              <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full">
-                                Hardware Systems
-                              </span>
+                            <div className="w-7 h-7 rounded-lg bg-slate-50 group-hover:bg-red-100 flex items-center justify-center text-slate-400 group-hover:text-red-600 transition-colors shrink-0 ml-3">
+                              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                             </div>
-                            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">
-                              Make3D Pratham FDM printers, EKA DLP/LCD resin systems &amp; precision digitizers
-                            </p>
-                          </div>
-                        </div>
-                        <div className="w-7 h-7 rounded-lg bg-slate-50 group-hover:bg-red-100 flex items-center justify-center text-slate-400 group-hover:text-red-600 transition-colors shrink-0 ml-3">
-                          <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                        </div>
-                      </Link>
-
-                      {/* Section 3: 3D Printer Filaments */}
-                      <Link
-                        to="/shop/filaments"
-                        onClick={() => setActiveMegaMenu(null)}
-                        className="flex items-center justify-between p-3.5 rounded-xl border border-red-100/80 hover:border-red-300 hover:bg-red-50/40 transition-all duration-200 group bg-red-50/10"
-                      >
-                        <div className="flex items-center space-x-3.5 min-w-0">
-                          <div className="w-11 h-11 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0 group-hover:bg-red-600 group-hover:text-white transition-colors duration-200 shadow-2xs">
-                            <CircleDot className="w-5 h-5" />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center space-x-2">
-                              <span className="text-sm font-bold text-slate-900 group-hover:text-red-600 transition-colors">
-                                3D Printer Filaments
-                              </span>
-                              <span className="text-[10px] font-bold px-2 py-0.5 bg-red-600 text-white rounded-full">
-                                8 Vibrant Colours
-                              </span>
-                            </div>
-                            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">
-                              Genuine Make3D PLA &amp; PLA+ spools (1 KG / 1.75 mm) in stock with quick dispatch
-                            </p>
-                          </div>
-                        </div>
-                        <div className="w-7 h-7 rounded-lg bg-slate-50 group-hover:bg-red-100 flex items-center justify-center text-slate-400 group-hover:text-red-600 transition-colors shrink-0 ml-3">
-                          <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                        </div>
-                      </Link>
+                          </Link>
+                        )
+                      })}
                     </div>
 
                     {/* Quick Category Shortcuts Strip */}
@@ -748,42 +583,22 @@ export const Header: React.FC = () => {
                         </span>
                       </div>
                       <div className="grid grid-cols-4 gap-2">
-                        <Link
-                          to="/shop?category=cad-software"
-                          onClick={() => setActiveMegaMenu(null)}
-                          className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200/80 hover:border-red-300 hover:text-red-600 text-slate-700 text-xs font-medium text-center transition-colors shadow-2xs"
-                        >
-                          CAD Software
-                        </Link>
-                        <Link
-                          to="/shop/fdm"
-                          onClick={() => setActiveMegaMenu(null)}
-                          className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200/80 hover:border-red-300 hover:text-red-600 text-slate-700 text-xs font-medium text-center transition-colors shadow-2xs"
-                        >
-                          FDM Printers
-                        </Link>
-                        <Link
-                          to="/shop/dlp"
-                          onClick={() => setActiveMegaMenu(null)}
-                          className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200/80 hover:border-red-300 hover:text-red-600 text-slate-700 text-xs font-medium text-center transition-colors shadow-2xs"
-                        >
-                          DLP / LCD
-                        </Link>
-                        <Link
-                          to="/shop/scanners"
-                          onClick={() => setActiveMegaMenu(null)}
-                          className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200/80 hover:border-red-300 hover:text-red-600 text-slate-700 text-xs font-medium text-center transition-colors shadow-2xs"
-                        >
-                          3D Scanners
-                        </Link>
+                        {navConfig.shopDropdown.shortcuts.map((sc, idx) => (
+                          <Link
+                            key={idx}
+                            to={sc.route}
+                            onClick={() => setActiveMegaMenu(null)}
+                            className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200/80 hover:border-red-300 hover:text-red-600 text-slate-700 text-xs font-medium text-center transition-colors shadow-2xs truncate"
+                          >
+                            {sc.label}
+                          </Link>
+                        ))}
                       </div>
                     </div>
                   </div>
                 </div>
               )}
             </div>
-
-
 
             {/* 6. Blogs */}
             <Link

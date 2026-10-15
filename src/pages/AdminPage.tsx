@@ -38,7 +38,9 @@ import {
   List,
   CheckCircle2,
   Award,
+  ShoppingCart,
 } from 'lucide-react'
+import { ShopAndNavigationEditor } from '../components/admin/ShopAndNavigationEditor'
 import {
   CadEnabledSections,
   DEFAULT_CAD_SECTIONS,
@@ -139,6 +141,7 @@ export default function AdminPage() {
     | 'blogs'
     | 'home_editor'
     | 'about_editor'
+    | 'shop_and_dropdown'
     | 'cad_software'
     | 'settings'
     | 'users'
@@ -2006,6 +2009,23 @@ export default function AdminPage() {
               </div>
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
                 activeTab === 'about_editor' ? 'bg-amber-800 text-amber-100' : 'bg-amber-50 text-amber-700 border border-amber-200'
+              }`}>
+                Live CMS
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('shop_and_dropdown')}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
+                activeTab === 'shop_and_dropdown' ? 'bg-violet-600 text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <ShoppingCart className="w-4 h-4" />
+                <span>Shop & Dropdowns Editor</span>
+              </div>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
+                activeTab === 'shop_and_dropdown' ? 'bg-violet-800 text-violet-100' : 'bg-violet-50 text-violet-700 border border-violet-200'
               }`}>
                 Live CMS
               </span>
@@ -6791,6 +6811,11 @@ export default function AdminPage() {
               </div>
             )
           })()}
+
+          {/* ====================================================
+              TAB: SHOP & DROPDOWN NAVIGATION CMS EDITOR
+             ==================================================== */}
+          {activeTab === 'shop_and_dropdown' && <ShopAndNavigationEditor />}
 
           {/* ====================================================
               TAB 8: SITE SETTINGS & CMS
