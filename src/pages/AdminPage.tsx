@@ -1835,7 +1835,7 @@ export default function AdminPage() {
   // AUTHENTICATED DASHBOARD (FULL CONTROL SUITE)
   // ----------------------------------------------------
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-inter">
+    <div className="min-h-screen bg-slate-100 flex flex-col font-inter overflow-x-hidden w-full">
       {/* Top Admin Navbar */}
       <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
@@ -1883,7 +1883,7 @@ export default function AdminPage() {
       </header>
 
       {/* Main Admin Content Container */}
-      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col md:flex-row gap-6">
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col md:flex-row gap-6 min-w-0">
         {/* Master Sidebar Navigation */}
         <aside className="w-full md:w-64 shrink-0 space-y-3">
           <nav className="bg-white rounded-2xl p-2 border border-slate-200 shadow-sm space-y-1">
@@ -2043,7 +2043,7 @@ export default function AdminPage() {
         </aside>
 
         {/* Master Content Area */}
-        <main className="flex-1 space-y-6">
+        <main className="flex-1 min-w-0 space-y-6">
           {/* ====================================================
               TAB 1: OVERVIEW & DASHBOARD
              ==================================================== */}
@@ -3899,15 +3899,15 @@ export default function AdminPage() {
             const activeSectionsCount = CAD_SECTION_METADATA.filter(m => curSections[m.key] !== false).length
 
             const sectionTabs: { key: CadSectionKey; label: string; badge?: string; badgeColor?: 'emerald' | 'rose' | 'amber' | 'indigo' }[] = [
-              { key: 'identity',     label: '1. Identity & SEO' },
-              { key: 'hero',         label: '2. Hero Banner', badge: curSections.hero !== false ? 'ON' : 'OFF', badgeColor: curSections.hero !== false ? 'emerald' : 'rose' },
-              { key: 'overview',     label: '3. Overview & Cards', badge: curSections.overview !== false ? 'ON' : 'OFF', badgeColor: curSections.overview !== false ? 'emerald' : 'rose' },
-              { key: 'features',     label: '4. Deep Features & Standards', badge: curSections.features !== false ? 'ON' : 'OFF', badgeColor: curSections.features !== false ? 'emerald' : 'rose' },
-              { key: 'requirements', label: '5. System Requirements', badge: curSections.requirements !== false ? 'ON' : 'OFF', badgeColor: curSections.requirements !== false ? 'emerald' : 'rose' },
-              { key: 'faqs',         label: '6. FAQs Manager', badge: curSections.faqs !== false ? 'ON' : 'OFF', badgeColor: curSections.faqs !== false ? 'emerald' : 'rose' },
-              { key: 'licensing',    label: '7. CTAs & Licensing', badge: curSections.licensing !== false ? 'ON' : 'OFF', badgeColor: curSections.licensing !== false ? 'emerald' : 'rose' },
-              { key: 'preview',      label: '8. Live Page Preview' },
-              { key: 'json',         label: '9. Full Page Raw JSON' },
+              { key: 'identity',     label: '1. Identity' },
+              { key: 'hero',         label: '2. Hero', badge: curSections.hero !== false ? 'ON' : 'OFF', badgeColor: curSections.hero !== false ? 'emerald' : 'rose' },
+              { key: 'overview',     label: '3. Overview', badge: curSections.overview !== false ? 'ON' : 'OFF', badgeColor: curSections.overview !== false ? 'emerald' : 'rose' },
+              { key: 'features',     label: '4. Features', badge: curSections.features !== false ? 'ON' : 'OFF', badgeColor: curSections.features !== false ? 'emerald' : 'rose' },
+              { key: 'requirements', label: '5. Requirements', badge: curSections.requirements !== false ? 'ON' : 'OFF', badgeColor: curSections.requirements !== false ? 'emerald' : 'rose' },
+              { key: 'faqs',         label: '6. FAQs', badge: curSections.faqs !== false ? 'ON' : 'OFF', badgeColor: curSections.faqs !== false ? 'emerald' : 'rose' },
+              { key: 'licensing',    label: '7. Licensing', badge: curSections.licensing !== false ? 'ON' : 'OFF', badgeColor: curSections.licensing !== false ? 'emerald' : 'rose' },
+              { key: 'preview',      label: '8. Preview' },
+              { key: 'json',         label: '9. JSON' },
             ]
 
             const renderSectionToggleBar = (
@@ -3988,7 +3988,7 @@ export default function AdminPage() {
             }
 
             return (
-              <div className="space-y-5">
+              <div className="space-y-5 min-w-0">
                 {/* Hardware vs CAD Software Guidance Banner */}
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
                   <div className="flex items-center space-x-3">
@@ -4083,7 +4083,7 @@ export default function AdminPage() {
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 min-w-0">
                     {cadProducts.map(p => {
                       const isActive = activeCadProduct === p.key
                       return (
@@ -4257,7 +4257,7 @@ export default function AdminPage() {
                 )}
 
                 {/* Main Product Editor Window */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden min-w-0">
                   {/* Active Product Title Bar */}
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-5 py-3.5 bg-gradient-to-r from-indigo-700 via-indigo-600 to-blue-600 text-white gap-3">
                     <div>
@@ -4304,37 +4304,39 @@ export default function AdminPage() {
                   </div>
 
                   {/* Full-Page Section Tabs with Visibility Badges */}
-                  <div className="flex overflow-x-auto border-b border-slate-200 bg-slate-50/80 scrollbar-thin scrollbar-thumb-slate-300">
-                    {sectionTabs.map(tab => (
-                      <button
-                        key={tab.key}
-                        onClick={() => { setCadEditSection(tab.key); setRawJsonError('') }}
-                        className={`px-3.5 py-3 text-xs font-bold whitespace-nowrap transition-colors cursor-pointer border-b-2 -mb-px flex items-center space-x-1.5 ${
-                          cadEditSection === tab.key
-                            ? 'border-indigo-600 text-indigo-700 bg-white shadow-xs'
-                            : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/60'
-                        }`}
-                      >
-                        {tab.key === 'json' && <Code className="w-3.5 h-3.5" />}
-                        {tab.key === 'preview' && <Eye className="w-3.5 h-3.5" />}
-                        {tab.key === 'faqs' && <HelpCircle className="w-3.5 h-3.5" />}
-                        {tab.key === 'requirements' && <Monitor className="w-3.5 h-3.5" />}
-                        <span>{tab.label}</span>
-                        {tab.badge && (
-                          <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold ml-1 ${
-                            tab.badgeColor === 'emerald'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : tab.badgeColor === 'rose'
-                              ? 'bg-rose-100 text-rose-800'
-                              : tab.badgeColor === 'amber'
-                              ? 'bg-amber-100 text-amber-900'
-                              : 'bg-indigo-100 text-indigo-800'
-                          }`}>
-                            {tab.badge}
-                          </span>
-                        )}
-                      </button>
-                    ))}
+                  <div className="w-full min-w-0 overflow-x-auto border-b border-slate-200 bg-slate-50/80 scrollbar-thin scrollbar-thumb-slate-300">
+                    <div className="flex min-w-max">
+                      {sectionTabs.map(tab => (
+                        <button
+                          key={tab.key}
+                          onClick={() => { setCadEditSection(tab.key); setRawJsonError('') }}
+                          className={`px-3 py-2.5 text-xs font-bold whitespace-nowrap transition-colors cursor-pointer border-b-2 -mb-px flex items-center space-x-1.5 shrink-0 ${
+                            cadEditSection === tab.key
+                              ? 'border-indigo-600 text-indigo-700 bg-white shadow-xs'
+                              : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/60'
+                          }`}
+                        >
+                          {tab.key === 'json' && <Code className="w-3.5 h-3.5" />}
+                          {tab.key === 'preview' && <Eye className="w-3.5 h-3.5" />}
+                          {tab.key === 'faqs' && <HelpCircle className="w-3.5 h-3.5" />}
+                          {tab.key === 'requirements' && <Monitor className="w-3.5 h-3.5" />}
+                          <span>{tab.label}</span>
+                          {tab.badge && (
+                            <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold ml-1 ${
+                              tab.badgeColor === 'emerald'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : tab.badgeColor === 'rose'
+                                ? 'bg-rose-100 text-rose-800'
+                                : tab.badgeColor === 'amber'
+                                ? 'bg-amber-100 text-amber-900'
+                                : 'bg-indigo-100 text-indigo-800'
+                            }`}>
+                              {tab.badge}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   <div className="p-6">
