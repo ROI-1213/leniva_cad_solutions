@@ -16,6 +16,141 @@ import heroBanner2 from '../assets/hero/hero-banner-2.png'
 import heroBanner3 from '../assets/hero/hero-banner-3.png'
 import heroBanner4 from '../assets/hero/hero-banner-4.png'
 
+interface ProductSlideItem {
+  src: string
+  name: string
+}
+
+const ProductCardImageSlideshow: React.FC<{
+  slides: ProductSlideItem[]
+  categoryTag?: string
+  intervalMs?: number
+  objectFit?: 'contain' | 'cover'
+  brandLogo?: string
+  brandPartnerText?: string
+}> = ({
+  slides,
+  categoryTag,
+  intervalMs = 2800,
+  objectFit = 'contain',
+  brandLogo,
+  brandPartnerText,
+}) => {
+  const [activeIdx, setActiveIdx] = useState(0)
+  const [isHovered, setIsHovered] = useState(false)
+
+  useEffect(() => {
+    if (isHovered || slides.length <= 1) return
+    const timer = setInterval(() => {
+      setActiveIdx(prev => (prev + 1) % slides.length)
+    }, intervalMs)
+    return () => clearInterval(timer)
+  }, [isHovered, slides.length, intervalMs])
+
+  const next = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setActiveIdx(prev => (prev + 1) % slides.length)
+  }
+
+  const prev = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setActiveIdx(prev => (prev - 1 + slides.length) % slides.length)
+  }
+
+  return (
+    <div
+      className="relative h-56 bg-slate-50/90 p-4 flex items-center justify-center overflow-hidden group/slider select-none"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Category Tag (Top Left) */}
+      {categoryTag && (
+        <span className="absolute top-3 left-3 z-10 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-white/95 border border-slate-200 text-slate-700 shadow-2xs backdrop-blur-xs">
+          {categoryTag}
+        </span>
+      )}
+
+      {/* Brand Partner Badge (for CAD Software) */}
+      {brandLogo && (
+        <div className="absolute top-3 left-3 z-10 flex items-center space-x-2 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-md border border-slate-200 shadow-2xs">
+          <img src={brandLogo} alt="Brand" className="h-3.5 object-contain" />
+          {brandPartnerText && (
+            <span className="text-[10px] font-bold text-slate-800">{brandPartnerText}</span>
+          )}
+        </div>
+      )}
+
+      {/* Current Model Badge (Top Right) */}
+      <span className="absolute top-3 right-3 z-10 text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-900/85 text-white shadow-2xs backdrop-blur-xs transition-all duration-300">
+        {slides[activeIdx].name}
+      </span>
+
+      {/* Crossfading Product Images */}
+      <div className="relative w-full h-full flex items-center justify-center">
+        {slides.map((slide, idx) => (
+          <div
+            key={slide.src}
+            className={`absolute inset-0 flex items-center justify-center p-3 transition-opacity duration-700 ease-in-out ${
+              idx === activeIdx ? 'opacity-100 z-5' : 'opacity-0 z-0 pointer-events-none'
+            }`}
+          >
+            <img
+              src={slide.src}
+              alt={slide.name}
+              className={`max-h-full max-w-full ${
+                objectFit === 'cover' ? 'w-full h-full object-cover rounded-lg' : 'object-contain'
+              } drop-shadow-sm transition-transform duration-500 group-hover/slider:scale-105`}
+              loading="lazy"
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Navigation Arrows on Hover */}
+      {slides.length > 1 && (
+        <>
+          <button
+            onClick={prev}
+            aria-label="Previous product image"
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-white/90 hover:bg-red-600 text-slate-700 hover:text-white border border-slate-200 flex items-center justify-center shadow-sm opacity-0 group-hover/slider:opacity-100 transition-all cursor-pointer"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            onClick={next}
+            aria-label="Next product image"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-white/90 hover:bg-red-600 text-slate-700 hover:text-white border border-slate-200 flex items-center justify-center shadow-sm opacity-0 group-hover/slider:opacity-100 transition-all cursor-pointer"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </>
+      )}
+
+      {/* Progress Dots at Bottom */}
+      {slides.length > 1 && (
+        <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-10 flex items-center space-x-1.5 bg-white/85 backdrop-blur-xs px-2 py-0.5 rounded-full border border-slate-200/80 shadow-2xs">
+          {slides.map((slide, idx) => (
+            <button
+              key={slide.src}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setActiveIdx(idx)
+              }}
+              aria-label={`Switch to ${slide.name}`}
+              className={`transition-all rounded-full cursor-pointer ${
+                idx === activeIdx ? 'w-4 h-1.5 bg-red-600' : 'w-1.5 h-1.5 bg-slate-300 hover:bg-slate-400'
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export const HomePage: React.FC = () => {
   const { openQuoteModal } = useApp()
 
@@ -72,6 +207,47 @@ export const HomePage: React.FC = () => {
       secondaryBtnText: 'Request Quote',
       quoteSubject: 'CAD Software Official Licensing Consultation',
     },
+  ]
+
+  const fdmSlides: ProductSlideItem[] = [
+    { src: '/images/products/pratham-3-0.png', name: 'Pratham 3.0' },
+    { src: '/images/products/pratham-mini-transparent.png', name: 'Pratham Mini' },
+    { src: '/images/products/pratham-desktop.png', name: 'Pratham Desktop' },
+    { src: '/images/products/pratham-5-0.png', name: 'Pratham 5.0' },
+    { src: '/images/products/pratham-6-0.png', name: 'Pratham 6.0' },
+    { src: '/images/products/pratham-x-transparent.png', name: 'Pratham X' },
+    { src: '/images/products/pratham-3-rapid-transparent.png', name: 'Pratham 3 Rapid' },
+  ]
+
+  const dlpSlides: ProductSlideItem[] = [
+    { src: '/images/products/eka-xl.png', name: 'EKA XL' },
+    { src: '/images/products/eka-ht.png', name: 'EKA HT' },
+    { src: '/images/products/eka-xle.png', name: 'EKA XLE' },
+  ]
+
+  const lcdSlides: ProductSlideItem[] = [
+    { src: '/images/products/eka-gt-max.png', name: 'EKA GT MAX' },
+    { src: '/images/products/eka-f1-16k.png', name: 'EKA F1 16K' },
+  ]
+
+  const aresSlides: ProductSlideItem[] = [
+    { src: '/images/software/ares-commander.jpg', name: 'ARES Commander' },
+    { src: '/images/software/ares-mechanical.jpg', name: 'ARES Mechanical' },
+    { src: '/images/software/ares-electrical.jpg', name: 'ARES Electrical' },
+    { src: '/images/software/ares-standard.jpg', name: 'ARES Standard' },
+  ]
+
+  const sketchupSlides: ProductSlideItem[] = [
+    { src: '/images/software/sketchup-pro.jpg', name: 'SketchUp Pro' },
+    { src: '/images/software/sketchup-studio.jpg', name: 'SketchUp Studio' },
+    { src: '/images/software/sketchup-scan.jpg', name: 'SketchUp Scan' },
+    { src: '/images/software/sketchup-advanced.jpg', name: 'Advanced Workflows' },
+  ]
+
+  const chaosSlides: ProductSlideItem[] = [
+    { src: '/images/software/enscape-3d.jpg', name: 'Enscape 3D' },
+    { src: '/images/software/chaos-vray.jpg', name: 'Chaos V-Ray' },
+    { src: '/images/software/chaos-corona.jpg', name: 'Chaos Corona' },
   ]
 
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -294,16 +470,11 @@ export const HomePage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
           {/* Card 1: FDM 3D Printers */}
           <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden">
-            <div className="h-52 bg-slate-50 p-6 flex items-center justify-center relative overflow-hidden">
-              <span className="absolute top-4 left-4 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-700 shadow-2xs">
-                Industrial &amp; Desktop
-              </span>
-              <img
-                src="/images/products/pratham-3-rapid.png"
-                alt="FDM 3D Printers — Pratham Series"
-                className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
+            <ProductCardImageSlideshow
+              slides={fdmSlides}
+              categoryTag="Industrial &amp; Desktop"
+              intervalMs={2800}
+            />
             <div className="p-6 flex flex-col flex-1 justify-between space-y-5">
               <div className="space-y-3">
                 <div>
@@ -340,16 +511,11 @@ export const HomePage: React.FC = () => {
 
           {/* Card 2: DLP 3D Printers */}
           <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden">
-            <div className="h-52 bg-slate-50 p-6 flex items-center justify-center relative overflow-hidden">
-              <span className="absolute top-4 left-4 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-700 shadow-2xs">
-                High-Precision Resin
-              </span>
-              <img
-                src="/images/products/eka-xl.png"
-                alt="DLP 3D Printers — EKA Series"
-                className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
+            <ProductCardImageSlideshow
+              slides={dlpSlides}
+              categoryTag="High-Precision Resin"
+              intervalMs={3200}
+            />
             <div className="p-6 flex flex-col flex-1 justify-between space-y-5">
               <div className="space-y-3">
                 <div>
@@ -386,16 +552,11 @@ export const HomePage: React.FC = () => {
 
           {/* Card 3: Industrial LCD 3D Printers */}
           <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden">
-            <div className="h-52 bg-slate-50 p-6 flex items-center justify-center relative overflow-hidden">
-              <span className="absolute top-4 left-4 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-700 shadow-2xs">
-                8K &amp; 16K MSLA
-              </span>
-              <img
-                src="/images/products/eka-gt-max.png"
-                alt="Industrial LCD 3D Printers — EKA GT MAX & F1 16K"
-                className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
+            <ProductCardImageSlideshow
+              slides={lcdSlides}
+              categoryTag="8K &amp; 16K MSLA"
+              intervalMs={3000}
+            />
             <div className="p-6 flex flex-col flex-1 justify-between space-y-5">
               <div className="space-y-3">
                 <div>
@@ -476,23 +637,13 @@ export const HomePage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
             {/* Card 1: ARES CAD by Graebert */}
             <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden">
-              <div className="h-52 bg-slate-100 relative overflow-hidden">
-                <img
-                  src="/images/software/ares-commander.jpg"
-                  alt="ARES CAD Software by Graebert"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-4">
-                  <div className="flex items-center space-x-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/50">
-                    <img
-                      src="/images/brands/ares-cad.png"
-                      alt="ARES Logo"
-                      className="h-4 object-contain"
-                    />
-                    <span className="text-[11px] font-bold text-slate-900">Official Graebert Partner</span>
-                  </div>
-                </div>
-              </div>
+              <ProductCardImageSlideshow
+                slides={aresSlides}
+                brandLogo="/images/brands/ares-cad.png"
+                brandPartnerText="Official Graebert Partner"
+                intervalMs={3500}
+                objectFit="cover"
+              />
               <div className="p-6 flex flex-col flex-1 justify-between space-y-5">
                 <div className="space-y-3">
                   <div>
@@ -529,23 +680,13 @@ export const HomePage: React.FC = () => {
 
             {/* Card 2: Trimble SketchUp */}
             <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden">
-              <div className="h-52 bg-slate-100 relative overflow-hidden">
-                <img
-                  src="/images/software/sketchup-pro.jpg"
-                  alt="Trimble SketchUp Pro & Studio"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-4">
-                  <div className="flex items-center space-x-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/50">
-                    <img
-                      src="/images/brands/sketchup.png"
-                      alt="SketchUp Logo"
-                      className="h-4 object-contain"
-                    />
-                    <span className="text-[11px] font-bold text-slate-900">Authorized Trimble Partner</span>
-                  </div>
-                </div>
-              </div>
+              <ProductCardImageSlideshow
+                slides={sketchupSlides}
+                brandLogo="/images/brands/sketchup.png"
+                brandPartnerText="Authorized Trimble Partner"
+                intervalMs={3800}
+                objectFit="cover"
+              />
               <div className="p-6 flex flex-col flex-1 justify-between space-y-5">
                 <div className="space-y-3">
                   <div>
@@ -582,23 +723,13 @@ export const HomePage: React.FC = () => {
 
             {/* Card 3: Chaos Rendering Suites */}
             <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden">
-              <div className="h-52 bg-slate-100 relative overflow-hidden">
-                <img
-                  src="/images/software/enscape-3d.jpg"
-                  alt="Chaos Visualization Suites — Enscape & V-Ray"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-4">
-                  <div className="flex items-center space-x-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/50">
-                    <img
-                      src="/images/brands/chaos.jpg"
-                      alt="Chaos Logo"
-                      className="h-4 object-contain rounded-xs"
-                    />
-                    <span className="text-[11px] font-bold text-slate-900">Authorized Chaos Partner</span>
-                  </div>
-                </div>
-              </div>
+              <ProductCardImageSlideshow
+                slides={chaosSlides}
+                brandLogo="/images/brands/chaos.jpg"
+                brandPartnerText="Authorized Chaos Partner"
+                intervalMs={3600}
+                objectFit="cover"
+              />
               <div className="p-6 flex flex-col flex-1 justify-between space-y-5">
                 <div className="space-y-3">
                   <div>
