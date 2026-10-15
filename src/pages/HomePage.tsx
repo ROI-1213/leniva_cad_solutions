@@ -211,7 +211,62 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* ====================================================
-          SECTION 2: 3D PRINTER CATEGORIES (CORE BUSINESS INTRO)
+          SECTION 2: COMPANY INTRODUCTION
+         ==================================================== */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-8 py-4 sm:py-8">
+        <div className="bg-slate-50/80 rounded-3xl p-8 sm:p-12 lg:p-14 border border-slate-200/80 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+          <div className="lg:col-span-7 space-y-6">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-tight">
+              Your Partner for <br />
+              <span className="text-red-600">Advanced 3D Solutions</span>
+            </h2>
+            <p className="text-slate-600 text-base sm:text-lg leading-relaxed font-normal">
+              Leniva CAD Solutions is a trusted supplier and solutions provider of CAD software, 3D printers, 3D scanners and related accessories. We bring proven engineering technologies to help industries, businesses and educational institutions adopt advanced 3D solutions for design, prototyping and production.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-sm font-semibold text-slate-800 pt-1">
+              <div className="flex items-center space-x-2.5">
+                <span className="w-2 h-2 bg-red-600 rounded-full shrink-0" />
+                <span>1. Licensed CAD & Rendering Software</span>
+              </div>
+              <div className="flex items-center space-x-2.5">
+                <span className="w-2 h-2 bg-red-600 rounded-full shrink-0" />
+                <span>2. Industrial & Desktop 3D Printers</span>
+              </div>
+              <div className="flex items-center space-x-2.5 sm:col-span-2">
+                <span className="w-2 h-2 bg-red-600 rounded-full shrink-0" />
+                <span>3. 3D Scanners (Professional & Reverse Engineering)</span>
+              </div>
+            </div>
+            <div className="pt-4 flex flex-wrap items-center gap-4">
+              <Link
+                to="/services"
+                className="px-7 py-3.5 bg-slate-950 hover:bg-red-600 text-white text-sm font-bold rounded-xl transition-all shadow-sm"
+              >
+                Explore Solutions
+              </Link>
+              <Link
+                to="/contact"
+                className="px-7 py-3.5 border border-slate-300 hover:border-slate-800 text-slate-900 text-sm font-bold rounded-xl transition-all bg-white shadow-2xs"
+              >
+                Contact Us
+              </Link>
+            </div>
+          </div>
+
+          <div className="lg:col-span-5 relative">
+            <div className="rounded-2xl overflow-hidden shadow-xl border border-slate-200/90 bg-white group">
+              <img
+                src="/images/about/about-leniva-poster.jpg"
+                alt="Leniva CAD Solutions — Authorized Software Partners & 3D Hardware"
+                className="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ====================================================
+          SECTION 3: 3D PRINTER CATEGORIES (CORE BUSINESS INTRO)
          ==================================================== */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-10 gap-4">
@@ -591,62 +646,6 @@ export const HomePage: React.FC = () => {
             >
               Request Software Quote
             </button>
-          </div>
-        </div>
-      </section>
-
-      {/* ====================================================
-          SECTION 4: COMPANY INTRODUCTION
-         ==================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-12">
-        <div className="bg-slate-50/80 rounded-3xl p-8 sm:p-12 lg:p-14 border border-slate-200/80 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          <div className="lg:col-span-7 space-y-6">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-tight">
-              Your Partner for <br />
-              <span className="text-red-600">Advanced 3D Solutions</span>
-            </h2>
-            <p className="text-slate-600 text-base sm:text-lg leading-relaxed font-normal">
-              Leniva CAD Solutions is a trusted supplier and solutions provider of CAD software, 3D printers, 3D scanners and related accessories. We bring proven engineering technologies to help industries, businesses and educational institutions adopt advanced 3D solutions for design, prototyping and production.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-sm font-semibold text-slate-800 pt-1">
-              <div className="flex items-center space-x-2.5">
-                <span className="w-2 h-2 bg-red-600 rounded-full shrink-0" />
-                <span>1. Licensed CAD & Rendering Software</span>
-              </div>
-              <div className="flex items-center space-x-2.5">
-                <span className="w-2 h-2 bg-red-600 rounded-full shrink-0" />
-                <span>2. Industrial & Desktop 3D Printers</span>
-              </div>
-              <div className="flex items-center space-x-2.5 sm:col-span-2">
-                <span className="w-2 h-2 bg-red-600 rounded-full shrink-0" />
-                <span>3. 3D Scanners (Professional & Reverse Engineering)</span>
-              </div>
-
-            </div>
-            <div className="pt-4 flex flex-wrap items-center gap-4">
-              <Link
-                to="/services"
-                className="px-7 py-3.5 bg-slate-950 hover:bg-red-600 text-white text-sm font-bold rounded-xl transition-all shadow-sm"
-              >
-                Explore Solutions
-              </Link>
-              <Link
-                to="/contact"
-                className="px-7 py-3.5 border border-slate-300 hover:border-slate-800 text-slate-900 text-sm font-bold rounded-xl transition-all bg-white shadow-2xs"
-              >
-                Contact Us
-              </Link>
-            </div>
-          </div>
-
-          <div className="lg:col-span-5 relative">
-            <div className="rounded-2xl overflow-hidden shadow-xl border border-slate-200/90 bg-white group">
-              <img
-                src="/images/about/about-leniva-poster.jpg"
-                alt="Leniva CAD Solutions — Authorized Software Partners & 3D Hardware"
-                className="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-[1.02]"
-              />
-            </div>
           </div>
         </div>
       </section>
