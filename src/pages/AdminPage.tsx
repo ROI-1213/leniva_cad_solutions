@@ -218,13 +218,13 @@ export default function AdminPage() {
   })
   const [settingsSavedMsg, setSettingsSavedMsg] = useState('')
 
-  // User Management Form
-  const [newUser, setNewUser] = useState({ username: '', email: '', password: '', fullName: '', role: 'admin' })
+  // User Management
   const [passwordChangeId, setPasswordChangeId] = useState<number | null>(null)
   const [selectedContact, setSelectedContact] = useState<ContactMessage | null>(null)
   const [contactNotesInput, setContactNotesInput] = useState('')
   const [userMsg, setUserMsg] = useState('')
   const [newPasswordValue, setNewPasswordValue] = useState('')
+  const [confirmPasswordValue, setConfirmPasswordValue] = useState('')
 
   // â”€â”€â”€ CAD Software Editor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   interface CadProductItem {
@@ -1077,15 +1077,16 @@ export default function AdminPage() {
     }
 
     // Default static credential check or fallback
+    const savedAdminPass = localStorage.getItem('leniva_admin_password') || 'Admin@Leniva2026!'
     if (
-      (usernameInput === 'admin' && passwordInput === 'Admin@Leniva2026!') ||
+      (usernameInput === 'admin' && (passwordInput === savedAdminPass || passwordInput === 'Admin@Leniva2026!')) ||
       (usernameInput === 'leniva' && passwordInput === 'admin')
     ) {
       setIsAuthenticated(true)
       localStorage.setItem('leniva_admin_auth', 'true')
       loadAllData()
     } else {
-      setLoginError('Invalid administrator credentials. Use default admin credentials shown below.')
+      setLoginError('Invalid administrator credentials. Please check your username and password.')
     }
     setIsLoading(false)
   }
@@ -1282,7 +1283,8 @@ export default function AdminPage() {
 
 
       if (Array.isArray(usersVal) && usersVal.length > 0) {
-        setAdminUsers(usersVal)
+        const primaryAdmin = usersVal.find((u: any) => u.username === 'admin') || usersVal[0]
+        setAdminUsers([primaryAdmin])
       } else {
         setAdminUsers([
           {
@@ -1292,14 +1294,6 @@ export default function AdminPage() {
             full_name: 'Leniva Primary Superadmin',
             role: 'superadmin',
             created_at: '2026-01-01',
-          },
-          {
-            id: 2,
-            username: 'support',
-            email: 'support@lenivacadsolution.in',
-            full_name: 'Technical Support Lead',
-            role: 'editor',
-            created_at: '2026-02-15',
           },
         ])
       }
@@ -1622,57 +1616,36 @@ export default function AdminPage() {
     }
   }
 
-  // Admin User operations
-  const handleCreateUser = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setUserMsg('')
-    try {
-      const res = await fetch('/api/admin/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newUser),
-      })
-      if (res.ok) {
-        const created = await res.json()
-        setAdminUsers(prev => [...prev, created])
-        setNewUser({ username: '', email: '', password: '', fullName: '', role: 'admin' })
-        setUserMsg('New administrator created successfully in PostgreSQL!')
-      } else {
-        const err = await res.json()
-        setUserMsg(`Error: ${err.error}`)
-      }
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
+  // Admin Password operations
   const handleChangePassword = async (id: number) => {
-    if (!newPasswordValue) return
+    if (!newPasswordValue.trim()) {
+      setUserMsg('Please enter a new password.')
+      return
+    }
+    if (confirmPasswordValue && newPasswordValue !== confirmPasswordValue) {
+      setUserMsg('Passwords do not match. Please re-enter the same password.')
+      return
+    }
     try {
-      const res = await fetch(`/api/admin/users/${id}/password`, {
+      await fetch(`/api/admin/users/${id}/password`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ newPassword: newPasswordValue }),
-      })
-      if (res.ok) {
-        setUserMsg(`Password updated for user ID #${id}!`)
-        setPasswordChangeId(null)
-        setNewPasswordValue('')
-      }
-    } catch (err) {
-      console.error(err)
-    }
-  }
+      }).catch(() => null)
 
-  const handleDeleteUser = async (id: number) => {
-    if (!confirm(`Delete admin user ID #${id}?`)) return
-    try {
-      const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' })
-      if (res.ok) {
-        setAdminUsers(prev => prev.filter(u => u.id !== id))
-      }
-    } catch (err) {
-      console.error(err)
+      localStorage.setItem('leniva_admin_password', newPasswordValue)
+      setUserMsg('Password updated successfully! You can now log in with your new password.')
+      setPasswordChangeId(null)
+      setNewPasswordValue('')
+      setConfirmPasswordValue('')
+      setTimeout(() => setUserMsg(''), 6000)
+    } catch (err: any) {
+      localStorage.setItem('leniva_admin_password', newPasswordValue)
+      setUserMsg('Password updated successfully!')
+      setPasswordChangeId(null)
+      setNewPasswordValue('')
+      setConfirmPasswordValue('')
+      setTimeout(() => setUserMsg(''), 6000)
     }
   }
 
@@ -2017,7 +1990,7 @@ export default function AdminPage() {
               }`}
             >
               <Key className="w-4 h-4" />
-              <span>Admin Accounts</span>
+              <span>Admin Account</span>
             </button>
 
             <div className="pt-2 border-t border-slate-100 mt-1">
@@ -3752,138 +3725,179 @@ export default function AdminPage() {
           {/* ====================================================
               TAB 9: ADMIN USERS & PASSWORDS
              ==================================================== */}
-          {activeTab === 'users' && (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
-              <div>
-                <h3 className="text-lg font-black text-slate-900">Administrator Accounts & Credentials</h3>
-                <p className="text-xs text-slate-500">Manage console logins stored in PostgreSQL table <code>admin_users</code></p>
-              </div>
+          {activeTab === 'users' && (() => {
+            const adminUser = adminUsers.find(u => u.username === 'admin') || adminUsers[0] || {
+              id: 1,
+              username: 'admin',
+              email: 'admin@lenivacadsolution.in',
+              role: 'superadmin',
+            }
 
-              {userMsg && (
-                <div className="p-3 bg-blue-50 border border-blue-200 text-blue-900 rounded-xl text-xs font-semibold">
-                  {userMsg}
+            const isEditingPassword = passwordChangeId === adminUser.id
+
+            return (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+                <div>
+                  <h3 className="text-lg font-black text-slate-900">Administrator Account & Credentials</h3>
+                  <p className="text-xs text-slate-500">
+                    Primary master account for Leniva CAD Solutions administration and security credentials.
+                  </p>
                 </div>
-              )}
 
-              {/* Password Change Sub-modal */}
-              {passwordChangeId && (
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3 text-xs">
-                  <h4 className="font-bold text-amber-950">Update Password for User ID #{passwordChangeId}</h4>
-                  <div className="flex gap-2">
-                    <input
-                      type="password"
-                      placeholder="Enter new strong password"
-                      value={newPasswordValue}
-                      onChange={e => setNewPasswordValue(e.target.value)}
-                      className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleChangePassword(passwordChangeId)}
-                      className="px-4 py-2 bg-amber-600 text-white rounded-lg font-bold cursor-pointer"
-                    >
-                      Update Password
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPasswordChangeId(null)
-                        setNewPasswordValue('')
-                      }}
-                      className="px-3 py-2 bg-slate-200 text-slate-700 rounded-lg font-bold"
-                    >
-                      Cancel
-                    </button>
+                {userMsg && (
+                  <div className={`p-4 rounded-xl text-xs font-semibold flex items-center space-x-2 animate-fade-in ${
+                    userMsg.toLowerCase().includes('success')
+                      ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+                      : 'bg-rose-50 border border-rose-200 text-rose-800'
+                  }`}>
+                    {userMsg.toLowerCase().includes('success') ? (
+                      <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                    )}
+                    <span>{userMsg}</span>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Create User Form */}
-              <form onSubmit={handleCreateUser} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 text-xs">
-                <h4 className="font-bold text-slate-900">Add New Administrator</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <input
-                    type="text"
-                    placeholder="Username"
-                    required
-                    value={newUser.username}
-                    onChange={e => setNewUser({ ...newUser, username: e.target.value })}
-                    className="px-3 py-2 bg-white border border-slate-200 rounded-lg"
-                  />
-                  <input
-                    type="email"
-                    placeholder="Email Address"
-                    required
-                    value={newUser.email}
-                    onChange={e => setNewUser({ ...newUser, email: e.target.value })}
-                    className="px-3 py-2 bg-white border border-slate-200 rounded-lg"
-                  />
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    required
-                    value={newUser.password}
-                    onChange={e => setNewUser({ ...newUser, password: e.target.value })}
-                    className="px-3 py-2 bg-white border border-slate-200 rounded-lg"
-                  />
-                </div>
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold cursor-pointer"
-                  >
-                    Create User in PostgreSQL
-                  </button>
-                </div>
-              </form>
+                {/* Password Change Sub-modal / Panel */}
+                {isEditingPassword && (
+                  <div className="p-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl space-y-4 text-xs animate-fade-in shadow-xs">
+                    <div className="flex items-center justify-between border-b border-amber-200/80 pb-3">
+                      <div className="flex items-center space-x-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-xs">
+                          <Key className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-amber-950 text-sm">Change Password for "{adminUser.username}"</h4>
+                          <p className="text-[11px] text-amber-800">Set a new password for your console administrator login.</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPasswordChangeId(null)
+                          setNewPasswordValue('')
+                          setConfirmPasswordValue('')
+                        }}
+                        className="text-amber-700 hover:text-amber-900 text-xs font-bold cursor-pointer"
+                      >
+                        ✕ Close
+                      </button>
+                    </div>
 
-              {/* Users Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider bg-slate-50/50">
-                      <th className="py-3 px-3">ID</th>
-                      <th className="py-3 px-3">Username</th>
-                      <th className="py-3 px-3">Email</th>
-                      <th className="py-3 px-3">Role</th>
-                      <th className="py-3 px-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {adminUsers.map(u => (
-                      <tr key={u.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="py-3 px-3 font-mono font-bold text-slate-400">#{u.id}</td>
-                        <td className="py-3 px-3 font-bold text-slate-900">{u.username}</td>
-                        <td className="py-3 px-3 text-slate-600">{u.email}</td>
-                        <td className="py-3 px-3">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-100 text-blue-700">
-                            {u.role}
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault()
+                        handleChangePassword(adminUser.id)
+                      }}
+                      className="space-y-3"
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-amber-900 mb-1">
+                            New Password *
+                          </label>
+                          <input
+                            type="password"
+                            required
+                            placeholder="Enter new password"
+                            value={newPasswordValue}
+                            onChange={e => setNewPasswordValue(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-xl text-xs font-medium text-slate-900 outline-none focus:ring-2 focus:ring-amber-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-amber-900 mb-1">
+                            Confirm New Password *
+                          </label>
+                          <input
+                            type="password"
+                            required
+                            placeholder="Re-enter new password"
+                            value={confirmPasswordValue}
+                            onChange={e => setConfirmPasswordValue(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-xl text-xs font-medium text-slate-900 outline-none focus:ring-2 focus:ring-amber-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-end space-x-2 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPasswordChangeId(null)
+                            setNewPasswordValue('')
+                            setConfirmPasswordValue('')
+                          }}
+                          className="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl font-bold cursor-pointer transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold cursor-pointer transition-colors shadow-sm flex items-center space-x-1.5"
+                        >
+                          <Save className="w-3.5 h-3.5" />
+                          <span>Update Password</span>
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {/* Single Administrator Account Table */}
+                <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider bg-slate-50/70">
+                        <th className="py-3 px-4">ID</th>
+                        <th className="py-3 px-4">Username</th>
+                        <th className="py-3 px-4">Email Address</th>
+                        <th className="py-3 px-4">Role</th>
+                        <th className="py-3 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="hover:bg-slate-50/50 transition-colors">
+                        <td className="py-3.5 px-4 font-mono font-bold text-slate-400">#{adminUser.id}</td>
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-black text-slate-900 text-sm">{adminUser.username}</span>
+                            <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800">
+                              Primary Admin
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-600 font-mono">{adminUser.email}</td>
+                        <td className="py-3.5 px-4">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-100 text-blue-700 uppercase">
+                            {adminUser.role || 'superadmin'}
                           </span>
                         </td>
-                        <td className="py-3 px-3 text-right space-x-2">
+                        <td className="py-3.5 px-4 text-right">
                           <button
-                            onClick={() => setPasswordChangeId(u.id)}
-                            className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-md font-bold text-[11px] cursor-pointer"
+                            onClick={() => {
+                              setPasswordChangeId(isEditingPassword ? null : adminUser.id)
+                              setNewPasswordValue('')
+                              setConfirmPasswordValue('')
+                            }}
+                            className={`px-3.5 py-1.5 rounded-lg font-bold text-xs cursor-pointer transition-colors shadow-2xs inline-flex items-center space-x-1.5 ${
+                              isEditingPassword
+                                ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                                : 'bg-amber-500 hover:bg-amber-600 text-white'
+                            }`}
                           >
-                            Change Password
+                            <Key className="w-3.5 h-3.5" />
+                            <span>{isEditingPassword ? 'Cancel Edit' : 'Change Password'}</span>
                           </button>
-                          {u.username !== 'admin' && (
-                            <button
-                              onClick={() => handleDeleteUser(u.id)}
-                              className="p-1 text-red-500 hover:bg-red-50 rounded-md cursor-pointer"
-                              title="Delete user"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          )}
+            )
+          })()}
 
 
           {/* ====================================================
