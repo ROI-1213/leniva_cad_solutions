@@ -22,12 +22,10 @@ import {
   Check,
   Search,
   Home,
-  Code,
   HelpCircle,
   Monitor,
   ExternalLink,
   X,
-  Copy,
   Power,
   Printer,
   Scan,
@@ -250,13 +248,11 @@ export default function AdminPage() {
 
   // ─── Home Page CMS & Visual Editor ─────────────────────────────
   const [homeContentData, setHomeContentData] = useState<HomeContentConfig>(getStoredHomeContent)
-  const [homeActiveTab, setHomeActiveTab] = useState<'hero' | 'about' | 'printers' | 'cad' | 'raw_json'>('hero')
+  const [homeActiveTab, setHomeActiveTab] = useState<'hero' | 'about' | 'printers' | 'cad'>('hero')
   const [homeSavedMsg, setHomeSavedMsg] = useState('')
   const [activeHeroSlideIdx, setActiveHeroSlideIdx] = useState(0)
   const [activePrinterCardKey, setActivePrinterCardKey] = useState<'fdm' | 'dlp' | 'lcd'>('fdm')
   const [activeCadCardKey, setActiveCadCardKey] = useState<'ares' | 'sketchup' | 'chaos'>('ares')
-  const [homeRawJsonInput, setHomeRawJsonInput] = useState('')
-  const [homeRawJsonError, setHomeRawJsonError] = useState('')
 
   // Temporary inputs for draft additions in Home Editor
   const [newPillarDraft, setNewPillarDraft] = useState('')
@@ -283,25 +279,10 @@ export default function AdminPage() {
     }
   }
 
-  const handleApplyHomeRawJson = () => {
-    try {
-      const parsed = JSON.parse(homeRawJsonInput)
-      setHomeContentData(parsed)
-      saveStoredHomeContent(parsed)
-      setHomeSavedMsg('✓ Raw JSON parsed and applied successfully!')
-      setHomeRawJsonError('')
-      setTimeout(() => setHomeSavedMsg(''), 4000)
-    } catch (err: any) {
-      setHomeRawJsonError(err.message || 'Invalid JSON format')
-    }
-  }
-
   // ─── About Us Page CMS & Visual Editor ─────────────────────────
   const [aboutContentData, setAboutContentData] = useState<AboutContentConfig>(getStoredAboutContent)
-  const [aboutActiveTab, setAboutActiveTab] = useState<'hero' | 'heritage' | 'portfolio' | 'how_we_work' | 'raw_json'>('hero')
+  const [aboutActiveTab, setAboutActiveTab] = useState<'hero' | 'heritage' | 'portfolio' | 'how_we_work'>('hero')
   const [aboutSavedMsg, setAboutSavedMsg] = useState('')
-  const [aboutRawJsonInput, setAboutRawJsonInput] = useState('')
-  const [aboutRawJsonError, setAboutRawJsonError] = useState('')
   const [newHowStepTitle, setNewHowStepTitle] = useState('')
   const [newHowStepDesc, setNewHowStepDesc] = useState('')
 
@@ -318,19 +299,6 @@ export default function AdminPage() {
       setAboutContentData(def)
       setAboutSavedMsg('✓ About Us page content reset to defaults.')
       setTimeout(() => setAboutSavedMsg(''), 4000)
-    }
-  }
-
-  const handleApplyAboutRawJson = () => {
-    try {
-      const parsed = JSON.parse(aboutRawJsonInput)
-      setAboutContentData(parsed)
-      saveStoredAboutContent(parsed)
-      setAboutSavedMsg('✓ Raw JSON parsed and applied successfully!')
-      setAboutRawJsonError('')
-      setTimeout(() => setAboutSavedMsg(''), 4000)
-    } catch (err: any) {
-      setAboutRawJsonError(err.message || 'Invalid JSON format')
     }
   }
 
@@ -921,7 +889,7 @@ export default function AdminPage() {
     return { ...CAD_DEFAULTS }
   }
 
-  type CadSectionKey = 'identity' | 'hero' | 'overview' | 'features' | 'requirements' | 'faqs' | 'licensing' | 'preview' | 'json'
+  type CadSectionKey = 'identity' | 'hero' | 'overview' | 'features' | 'requirements' | 'faqs' | 'licensing' | 'preview'
 
   const [customCadProducts, setCustomCadProducts] = useState<CadProductItem[]>(loadCustomCadProducts)
   const cadProducts = [...DEFAULT_CAD_PRODUCTS, ...customCadProducts]
@@ -930,10 +898,6 @@ export default function AdminPage() {
   const [activeCadProduct, setActiveCadProduct] = useState<string>('ares_mechanical')
   const [cadSaveMsg, setCadSaveMsg] = useState('')
   const [cadEditSection, setCadEditSection] = useState<CadSectionKey>('identity')
-
-  // Raw JSON state
-  const [rawJsonInput, setRawJsonInput] = useState('')
-  const [rawJsonError, setRawJsonError] = useState('')
 
   // New CAD Product Modal state
   const [isNewCadProductOpen, setIsNewCadProductOpen] = useState(false)
@@ -944,14 +908,6 @@ export default function AdminPage() {
     route: '/products/',
     template: 'ares_mechanical',
   })
-
-  // Sync raw JSON when active product or section changes
-  useEffect(() => {
-    if (cadEdits[activeCadProduct]) {
-      setRawJsonInput(JSON.stringify(cadEdits[activeCadProduct], null, 2))
-      setRawJsonError('')
-    }
-  }, [activeCadProduct, cadEditSection])
 
   const saveCadEdits = (updatedEdits: Record<string, any>) => {
     localStorage.setItem('leniva_cad_software_edits', JSON.stringify(updatedEdits))
@@ -1058,18 +1014,6 @@ export default function AdminPage() {
     updateCadField('specStrip', curStrip)
   }
 
-  // Raw JSON apply
-  const handleApplyRawJson = () => {
-    try {
-      const parsed = JSON.parse(rawJsonInput)
-      const updated = { ...cadEdits, [activeCadProduct]: parsed }
-      saveCadEdits(updated)
-      setRawJsonError('')
-      setCadSaveMsg('âœ“ Full page JSON applied successfully!')
-    } catch (err: any) {
-      setRawJsonError(err.message || 'Invalid JSON syntax. Please check brackets and quotes.')
-    }
-  }
 
   // Create New CAD Product handler
   const handleCreateCadProduct = (e: React.FormEvent) => {
@@ -1129,15 +1073,6 @@ export default function AdminPage() {
     setCadSaveMsg('Product deleted successfully.')
   }
 
-  const exportCadJson = () => {
-    const blob = new Blob([JSON.stringify(cadEdits, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'leniva-cad-software-content.json'
-    a.click()
-    URL.revokeObjectURL(url)
-  }
 
   const resetCadProduct = () => {
     const label = cadProducts.find(p => p.key === activeCadProduct)?.label || activeCadProduct
@@ -2043,10 +1978,7 @@ export default function AdminPage() {
             </button>
 
             <button
-              onClick={() => {
-                setActiveTab('home_editor')
-                setHomeRawJsonInput(JSON.stringify(homeContentData, null, 2))
-              }}
+              onClick={() => setActiveTab('home_editor')}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
                 activeTab === 'home_editor' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100'
               }`}
@@ -2063,10 +1995,7 @@ export default function AdminPage() {
             </button>
 
             <button
-              onClick={() => {
-                setActiveTab('about_editor')
-                setAboutRawJsonInput(JSON.stringify(aboutContentData, null, 2))
-              }}
+              onClick={() => setActiveTab('about_editor')}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
                 activeTab === 'about_editor' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100'
               }`}
@@ -4482,17 +4411,6 @@ export default function AdminPage() {
                   >
                     4. CAD Software Showcase
                   </button>
-                  <button
-                    onClick={() => {
-                      setHomeActiveTab('raw_json')
-                      setHomeRawJsonInput(JSON.stringify(homeContentData, null, 2))
-                    }}
-                    className={`flex-1 min-w-[140px] py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-center cursor-pointer ${
-                      homeActiveTab === 'raw_json' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    5. Full Raw JSON
-                  </button>
                 </div>
 
                 {/* ─────────────────────────────────────────────────────────────
@@ -5950,57 +5868,6 @@ export default function AdminPage() {
                     </div>
                   </div>
                 )}
-
-                {/* ─────────────────────────────────────────────────────────────
-                    SUB-TAB 5: FULL RAW JSON
-                   ───────────────────────────────────────────────────────────── */}
-                {homeActiveTab === 'raw_json' && (
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div>
-                        <h4 className="text-base font-bold text-slate-900">Direct Home Page JSON Tree</h4>
-                        <p className="text-xs text-slate-500">Edit, backup, or paste a complete JSON configuration.</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(homeRawJsonInput)
-                            setHomeSavedMsg('✓ Home page JSON copied to clipboard!')
-                            setTimeout(() => setHomeSavedMsg(''), 3000)
-                          }}
-                          className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center space-x-1 cursor-pointer"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                          <span>Copy JSON</span>
-                        </button>
-                        <button
-                          onClick={handleApplyHomeRawJson}
-                          className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1 shadow-sm cursor-pointer"
-                        >
-                          <Check className="w-3.5 h-3.5" />
-                          <span>Apply &amp; Save JSON</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {homeRawJsonError && (
-                      <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl text-xs font-mono">
-                        <strong>JSON Error:</strong> {homeRawJsonError}
-                      </div>
-                    )}
-
-                    <textarea
-                      value={homeRawJsonInput}
-                      onChange={(e) => {
-                        setHomeRawJsonInput(e.target.value)
-                        setHomeRawJsonError('')
-                      }}
-                      rows={24}
-                      className="w-full p-4 font-mono text-xs bg-slate-900 text-emerald-400 rounded-2xl border border-slate-800 focus:ring-2 focus:ring-red-500 outline-none leading-relaxed"
-                      spellCheck={false}
-                    />
-                  </div>
-                )}
               </div>
             )
           })()}
@@ -6090,17 +5957,6 @@ export default function AdminPage() {
                     }`}
                   >
                     4. "How We Work" Lifecycle
-                  </button>
-                  <button
-                    onClick={() => {
-                      setAboutActiveTab('raw_json')
-                      setAboutRawJsonInput(JSON.stringify(aboutContentData, null, 2))
-                    }}
-                    className={`flex-1 min-w-[140px] py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-center cursor-pointer ${
-                      aboutActiveTab === 'raw_json' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    5. Full Raw JSON
                   </button>
                 </div>
 
@@ -6932,55 +6788,6 @@ export default function AdminPage() {
                     </div>
                   </div>
                 )}
-
-                {/* Sub-tab 5: Full Raw JSON */}
-                {aboutActiveTab === 'raw_json' && (
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div>
-                        <h4 className="text-base font-bold text-slate-900">Direct About Us Page JSON Tree</h4>
-                        <p className="text-xs text-slate-500">Edit, backup, or paste a complete JSON configuration.</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(aboutRawJsonInput)
-                            setAboutSavedMsg('✓ About Us page JSON copied to clipboard!')
-                            setTimeout(() => setAboutSavedMsg(''), 3000)
-                          }}
-                          className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center space-x-1 cursor-pointer"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                          <span>Copy JSON</span>
-                        </button>
-                        <button
-                          onClick={handleApplyAboutRawJson}
-                          className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1 shadow-sm cursor-pointer"
-                        >
-                          <Check className="w-3.5 h-3.5" />
-                          <span>Apply &amp; Save JSON</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {aboutRawJsonError && (
-                      <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl text-xs font-mono">
-                        <strong>JSON Error:</strong> {aboutRawJsonError}
-                      </div>
-                    )}
-
-                    <textarea
-                      value={aboutRawJsonInput}
-                      onChange={(e) => {
-                        setAboutRawJsonInput(e.target.value)
-                        setAboutRawJsonError('')
-                      }}
-                      rows={24}
-                      className="w-full p-4 font-mono text-xs bg-slate-900 text-amber-300 rounded-2xl border border-slate-800 focus:ring-2 focus:ring-amber-500 outline-none leading-relaxed"
-                      spellCheck={false}
-                    />
-                  </div>
-                )}
               </div>
             )
           })()}
@@ -7311,7 +7118,6 @@ export default function AdminPage() {
               { key: 'faqs',         label: '6. FAQs', badge: curSections.faqs !== false ? 'ON' : 'OFF', badgeColor: curSections.faqs !== false ? 'emerald' : 'rose' },
               { key: 'licensing',    label: '7. Licensing', badge: curSections.licensing !== false ? 'ON' : 'OFF', badgeColor: curSections.licensing !== false ? 'emerald' : 'rose' },
               { key: 'preview',      label: '8. Preview' },
-              { key: 'json',         label: '9. JSON' },
             ]
 
             const renderSectionToggleBar = (
@@ -7446,14 +7252,6 @@ export default function AdminPage() {
                       <span>Add Product</span>
                     </button>
                     <button
-                      onClick={exportCadJson}
-                      className="inline-flex items-center space-x-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
-                      title="Export complete JSON configuration"
-                    >
-                      <Save className="w-3.5 h-3.5" />
-                      <span>Export JSON</span>
-                    </button>
-                    <button
                       onClick={resetCadProduct}
                       className="inline-flex items-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                       title="Reset this product to factory defaults"
@@ -7493,7 +7291,7 @@ export default function AdminPage() {
                       return (
                         <div
                           key={p.key}
-                          onClick={() => { setActiveCadProduct(p.key); setRawJsonError('') }}
+                          onClick={() => setActiveCadProduct(p.key)}
                           className={`relative text-left p-3 rounded-xl border transition-all cursor-pointer min-w-0 ${
                             isActive
                               ? 'bg-indigo-600 text-white border-indigo-600 shadow-md ring-2 ring-indigo-400/40'
@@ -7713,14 +7511,13 @@ export default function AdminPage() {
                       {sectionTabs.map(tab => (
                         <button
                           key={tab.key}
-                          onClick={() => { setCadEditSection(tab.key); setRawJsonError('') }}
+                          onClick={() => setCadEditSection(tab.key)}
                           className={`px-3 py-2.5 text-xs font-bold whitespace-nowrap transition-colors cursor-pointer border-b-2 -mb-px flex items-center space-x-1.5 shrink-0 ${
                             cadEditSection === tab.key
                               ? 'border-indigo-600 text-indigo-700 bg-white shadow-xs'
                               : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/60'
                           }`}
                         >
-                          {tab.key === 'json' && <Code className="w-3.5 h-3.5" />}
                           {tab.key === 'preview' && <Eye className="w-3.5 h-3.5" />}
                           {tab.key === 'faqs' && <HelpCircle className="w-3.5 h-3.5" />}
                           {tab.key === 'requirements' && <Monitor className="w-3.5 h-3.5" />}
@@ -8669,55 +8466,6 @@ export default function AdminPage() {
                       </div>
                     )}
 
-                    {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-                        SECTION 9: FULL PAGE RAW JSON CODE EDITOR
-                       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
-                    {cadEditSection === 'json' && (
-                      <div className="space-y-4">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                          <div>
-                            <p className="text-xs font-black text-slate-900">Direct Full-Page JSON Code Editor</p>
-                            <p className="text-[11px] text-slate-500">Edit every single property and nested object directly with zero limitations.</p>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={() => {
-                                navigator.clipboard.writeText(rawJsonInput)
-                                setCadSaveMsg('âœ“ JSON copied to clipboard!')
-                                setTimeout(() => setCadSaveMsg(''), 3000)
-                              }}
-                              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center space-x-1 cursor-pointer"
-                            >
-                              <Copy className="w-3.5 h-3.5" />
-                              <span>Copy JSON</span>
-                            </button>
-                            <button
-                              onClick={handleApplyRawJson}
-                              className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold flex items-center space-x-1.5 shadow-md cursor-pointer"
-                            >
-                              <Check className="w-3.5 h-3.5" />
-                              <span>Apply & Save Raw JSON</span>
-                            </button>
-                          </div>
-                        </div>
-
-                        {rawJsonError && (
-                          <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl text-xs font-mono">
-                            <strong>Syntax Error:</strong> {rawJsonError}
-                          </div>
-                        )}
-
-                        <div className="relative">
-                          <textarea
-                            value={rawJsonInput}
-                            onChange={e => { setRawJsonInput(e.target.value); setRawJsonError('') }}
-                            rows={20}
-                            className="w-full p-4 font-mono text-xs bg-slate-900 text-emerald-400 rounded-2xl border border-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none leading-relaxed"
-                            spellCheck={false}
-                          />
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -8799,7 +8547,7 @@ export default function AdminPage() {
                       <p className="text-sm font-bold text-amber-900">How Full-Page Edits & New Products Work</p>
                       <p className="text-xs text-amber-700 mt-1 leading-relaxed">
                         â€¢ <strong>Immediate Storage:</strong> Every edit you make is automatically saved in your browser storage and persists across sessions.<br />
-                        â€¢ <strong>Full-Page Control:</strong> Use the 9 tabs above to edit hero banners, feature cards, system requirements, and FAQs, or switch to <strong>"9. Full Page Raw JSON"</strong> for direct unrestricted code-level editing.<br />
+                        â€¢ <strong>Full-Page Control:</strong> Use the 8 tabs above to edit identity details, hero banners, feature cards, system requirements, FAQs, and live preview.<br />
                         â€¢ <strong>Adding Products:</strong> Click <strong>"+ Add New CAD Product"</strong> to add any software product. To add hardware machines (3D printers / scanners), click <strong>"Add 3D Printer / Scanner"</strong> in the top banner to use the equipment catalog.
                       </p>
                     </div>
