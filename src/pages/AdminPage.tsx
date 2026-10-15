@@ -29,7 +29,13 @@ import {
   ExternalLink,
   X,
   Copy,
+  Power,
 } from 'lucide-react'
+import {
+  CadEnabledSections,
+  DEFAULT_CAD_SECTIONS,
+  CAD_SECTION_METADATA,
+} from '../utils/cadSoftwareConfig'
 import { products as fallbackProducts } from '../data/products'
 import { services as fallbackServices } from '../data/services'
 import { blogPosts as fallbackBlogs } from '../data/blogs'
@@ -807,7 +813,7 @@ export default function AdminPage() {
     return { ...CAD_DEFAULTS }
   }
 
-  type CadSectionKey = 'identity' | 'hero' | 'overview' | 'features' | 'requirements' | 'faqs' | 'licensing' | 'preview' | 'json'
+  type CadSectionKey = 'identity' | 'sections' | 'hero' | 'overview' | 'features' | 'requirements' | 'faqs' | 'licensing' | 'preview' | 'json'
 
   const [customCadProducts, setCustomCadProducts] = useState<CadProductItem[]>(loadCustomCadProducts)
   const cadProducts = [...DEFAULT_CAD_PRODUCTS, ...customCadProducts]
@@ -842,13 +848,48 @@ export default function AdminPage() {
   const saveCadEdits = (updatedEdits: Record<string, any>) => {
     localStorage.setItem('leniva_cad_software_edits', JSON.stringify(updatedEdits))
     setCadEdits(updatedEdits)
-    setCadSaveMsg('âœ“ Changes saved to browser storage.')
+    try {
+      window.dispatchEvent(new Event('leniva_cad_edits_updated'))
+    } catch {
+      // ignore
+    }
+    setCadSaveMsg('✓ Changes saved to browser storage.')
     setTimeout(() => setCadSaveMsg(''), 4000)
   }
 
   const updateCadField = (field: string, value: any) => {
     const updated = { ...cadEdits, [activeCadProduct]: { ...cadEdits[activeCadProduct], [field]: value } }
     saveCadEdits(updated)
+  }
+
+  const toggleCadSection = (secKey: keyof CadEnabledSections) => {
+    const curProduct = cadEdits[activeCadProduct] || {}
+    const curSections: CadEnabledSections = {
+      ...DEFAULT_CAD_SECTIONS,
+      ...(curProduct.enabledSections || {}),
+    }
+    const currentVal = curSections[secKey] !== false
+    const updatedSections: CadEnabledSections = {
+      ...curSections,
+      [secKey]: !currentVal,
+    }
+    updateCadField('enabledSections', updatedSections)
+    const label = CAD_SECTION_METADATA.find(m => m.key === secKey)?.shortLabel || secKey
+    setCadSaveMsg(`✓ ${label} section ${!currentVal ? 'ENABLED (Visible)' : 'DISABLED (Hidden)'}.`)
+  }
+
+  const setAllCadSections = (enable: boolean) => {
+    const updatedSections: CadEnabledSections = {
+      hero: enable,
+      specStrip: enable,
+      overview: enable,
+      features: enable,
+      requirements: enable,
+      faqs: enable,
+      licensing: enable,
+    }
+    updateCadField('enabledSections', updatedSections)
+    setCadSaveMsg(`✓ All product sections ${enable ? 'ENABLED (Visible)' : 'DISABLED (Hidden)'}.`)
   }
 
   const updateCadHighlight = (index: number, value: string) => {
@@ -3865,17 +3906,82 @@ export default function AdminPage() {
           {activeTab === 'cad_software' && (() => {
             const cur = cadEdits[activeCadProduct] || {}
             const activeMeta = cadProducts.find(p => p.key === activeCadProduct) || cadProducts[0]
-            const sectionTabs: { key: CadSectionKey; label: string }[] = [
+            const curSections: CadEnabledSections = {
+              ...DEFAULT_CAD_SECTIONS,
+              ...(cur.enabledSections || {}),
+            }
+            const activeSectionsCount = CAD_SECTION_METADATA.filter(m => curSections[m.key] !== false).length
+
+            const sectionTabs: { key: CadSectionKey; label: string; badge?: string; badgeColor?: 'emerald' | 'rose' | 'amber' | 'indigo' }[] = [
               { key: 'identity',     label: '1. Identity & SEO' },
-              { key: 'hero',         label: '2. Hero Banner & Header' },
-              { key: 'overview',     label: '3. Overview & Cards' },
-              { key: 'features',     label: '4. Deep Features & Standards' },
-              { key: 'requirements', label: '5. System Requirements' },
-              { key: 'faqs',         label: '6. FAQs Manager' },
-              { key: 'licensing',    label: '7. CTAs & Licensing' },
+              { key: 'sections',     label: '⚡ Section Visibility', badge: `${activeSectionsCount}/7 Active`, badgeColor: activeSectionsCount === 7 ? 'emerald' : activeSectionsCount === 0 ? 'rose' : 'amber' },
+              { key: 'hero',         label: '2. Hero Banner', badge: curSections.hero !== false ? 'ON' : 'OFF', badgeColor: curSections.hero !== false ? 'emerald' : 'rose' },
+              { key: 'overview',     label: '3. Overview & Cards', badge: curSections.overview !== false ? 'ON' : 'OFF', badgeColor: curSections.overview !== false ? 'emerald' : 'rose' },
+              { key: 'features',     label: '4. Deep Features & Standards', badge: curSections.features !== false ? 'ON' : 'OFF', badgeColor: curSections.features !== false ? 'emerald' : 'rose' },
+              { key: 'requirements', label: '5. System Requirements', badge: curSections.requirements !== false ? 'ON' : 'OFF', badgeColor: curSections.requirements !== false ? 'emerald' : 'rose' },
+              { key: 'faqs',         label: '6. FAQs Manager', badge: curSections.faqs !== false ? 'ON' : 'OFF', badgeColor: curSections.faqs !== false ? 'emerald' : 'rose' },
+              { key: 'licensing',    label: '7. CTAs & Licensing', badge: curSections.licensing !== false ? 'ON' : 'OFF', badgeColor: curSections.licensing !== false ? 'emerald' : 'rose' },
               { key: 'preview',      label: '8. Live Page Preview' },
               { key: 'json',         label: '9. Full Page Raw JSON' },
             ]
+
+            const renderSectionVisibilityBanner = (
+              secKey: keyof CadEnabledSections,
+              title: string,
+              desc: string
+            ) => {
+              const isEnabled = curSections[secKey] !== false
+              return (
+                <div className={`p-4 rounded-2xl border transition-all mb-5 ${
+                  isEnabled
+                    ? 'bg-gradient-to-r from-emerald-50/80 via-emerald-50/40 to-teal-50/30 border-emerald-200'
+                    : 'bg-gradient-to-r from-rose-50/90 via-rose-50/50 to-orange-50/30 border-rose-200'
+                }`}>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-start sm:items-center space-x-3">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${
+                        isEnabled ? 'bg-emerald-600 text-white' : 'bg-rose-500 text-white'
+                      }`}>
+                        <Power className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs font-black text-slate-900">{title}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                            isEnabled ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                          }`}>
+                            {isEnabled ? '● Visible / Enabled' : '○ Hidden / Disabled'}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-600 mt-0.5">
+                          {desc}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => toggleCadSection(secKey)}
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-1.5 shadow-xs ${
+                          isEnabled
+                            ? 'bg-white hover:bg-rose-50 text-rose-700 border border-rose-300'
+                            : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                        }`}
+                      >
+                        <Power className="w-3.5 h-3.5" />
+                        <span>{isEnabled ? 'Disable This Section' : 'Enable This Section'}</span>
+                      </button>
+                    </div>
+                  </div>
+                  {!isEnabled && (
+                    <div className="mt-3 p-2.5 bg-rose-100/70 border border-rose-200 rounded-lg text-rose-800 text-[11px] font-semibold flex items-center space-x-2">
+                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                      <span>This section is currently <strong>DISABLED</strong>. Visitors to the live website will not see this section on the product page.</span>
+                    </div>
+                  )}
+                </div>
+              )
+            }
 
             return (
               <div className="space-y-5">
@@ -4155,8 +4261,18 @@ export default function AdminPage() {
                         <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-200">
                           {activeMeta.brand}
                         </span>
-                        <span className="text-[10px] text-indigo-300">â€¢</span>
+                        <span className="text-[10px] text-indigo-300">•</span>
                         <span className="text-[10px] text-indigo-200">{activeMeta.category}</span>
+                        <span className="text-[10px] text-indigo-300">•</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          activeSectionsCount === 7
+                            ? 'bg-emerald-500/30 text-emerald-200 border border-emerald-400/40'
+                            : activeSectionsCount === 0
+                            ? 'bg-rose-500/30 text-rose-200 border border-rose-400/40'
+                            : 'bg-amber-500/30 text-amber-200 border border-amber-400/40'
+                        }`}>
+                          {activeSectionsCount} / 7 Sections Live
+                        </span>
                       </div>
                       <div className="text-base font-black">{cur.productName || activeMeta.label}</div>
                     </div>
@@ -4183,13 +4299,13 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  {/* 9 Full-Page Section Tabs */}
+                  {/* 10 Full-Page Section Tabs with Visibility Badges */}
                   <div className="flex overflow-x-auto border-b border-slate-200 bg-slate-50/80 scrollbar-none">
                     {sectionTabs.map(tab => (
                       <button
                         key={tab.key}
                         onClick={() => { setCadEditSection(tab.key); setRawJsonError('') }}
-                        className={`px-4 py-3 text-xs font-bold whitespace-nowrap transition-colors cursor-pointer border-b-2 -mb-px flex items-center space-x-1.5 ${
+                        className={`px-3.5 py-3 text-xs font-bold whitespace-nowrap transition-colors cursor-pointer border-b-2 -mb-px flex items-center space-x-1.5 ${
                           cadEditSection === tab.key
                             ? 'border-indigo-600 text-indigo-700 bg-white shadow-xs'
                             : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/60'
@@ -4197,9 +4313,23 @@ export default function AdminPage() {
                       >
                         {tab.key === 'json' && <Code className="w-3.5 h-3.5" />}
                         {tab.key === 'preview' && <Eye className="w-3.5 h-3.5" />}
+                        {tab.key === 'sections' && <Sliders className="w-3.5 h-3.5 text-indigo-600" />}
                         {tab.key === 'faqs' && <HelpCircle className="w-3.5 h-3.5" />}
                         {tab.key === 'requirements' && <Monitor className="w-3.5 h-3.5" />}
                         <span>{tab.label}</span>
+                        {tab.badge && (
+                          <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold ml-1 ${
+                            tab.badgeColor === 'emerald'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : tab.badgeColor === 'rose'
+                              ? 'bg-rose-100 text-rose-800'
+                              : tab.badgeColor === 'amber'
+                              ? 'bg-amber-100 text-amber-900'
+                              : 'bg-indigo-100 text-indigo-800'
+                          }`}>
+                            {tab.badge}
+                          </span>
+                        )}
                       </button>
                     ))}
                   </div>
@@ -4347,11 +4477,127 @@ export default function AdminPage() {
                       </div>
                     )}
 
+                    {/* ====================================================
+                        SECTION: SECTION VISIBILITY CONTROL CENTER
+                       ==================================================== */}
+                    {cadEditSection === 'sections' && (
+                      <div className="space-y-6">
+                        {/* Control Center Summary Banner */}
+                        <div className="p-5 bg-gradient-to-r from-indigo-50 via-blue-50 to-slate-50 rounded-2xl border border-indigo-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <h4 className="text-sm font-black text-slate-900">Product Page Sections Architecture</h4>
+                              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-600 text-white">
+                                {activeSectionsCount} / 7 Sections Live
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-600 mt-1 max-w-2xl">
+                              Enable or disable any section of <strong>{cur.productName || activeMeta.label}</strong> below. Disabled sections are completely removed from the live website and public customer views.
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => setAllCadSections(true)}
+                              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center space-x-1.5"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Enable All (7)</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setAllCadSections(false)}
+                              className="px-3.5 py-2 bg-white hover:bg-rose-50 hover:text-rose-700 text-slate-700 border border-slate-200 hover:border-rose-300 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-1.5"
+                            >
+                              <Power className="w-3.5 h-3.5" />
+                              <span>Disable All</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* 7 Section Cards Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {CAD_SECTION_METADATA.map((meta, idx) => {
+                            const isEnabled = curSections[meta.key] !== false
+                            const targetTab: CadSectionKey =
+                              meta.key === 'hero' || meta.key === 'specStrip' ? 'hero' :
+                              meta.key === 'overview' ? 'overview' :
+                              meta.key === 'features' ? 'features' :
+                              meta.key === 'requirements' ? 'requirements' :
+                              meta.key === 'faqs' ? 'faqs' : 'licensing'
+
+                            return (
+                              <div
+                                key={meta.key}
+                                className={`p-4 rounded-2xl border transition-all relative ${
+                                  isEnabled
+                                    ? 'bg-white border-slate-200 hover:border-emerald-300 hover:shadow-xs'
+                                    : 'bg-rose-50/30 border-rose-200 hover:border-rose-300'
+                                }`}
+                              >
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex items-start space-x-3">
+                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs ${
+                                      isEnabled ? 'bg-indigo-100 text-indigo-700' : 'bg-rose-100 text-rose-700'
+                                    }`}>
+                                      #{idx + 1}
+                                    </div>
+                                    <div>
+                                      <div className="flex items-center space-x-2">
+                                        <h5 className="text-xs font-black text-slate-900">{meta.label}</h5>
+                                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                                          isEnabled ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                                        }`}>
+                                          {isEnabled ? '● Visible' : '○ Hidden'}
+                                        </span>
+                                      </div>
+                                      <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                                        {meta.description}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                                  <button
+                                    type="button"
+                                    onClick={() => setCadEditSection(targetTab)}
+                                    className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center space-x-1 cursor-pointer"
+                                  >
+                                    <span>Edit Section Content →</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleCadSection(meta.key)}
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-1.5 shadow-xs ${
+                                      isEnabled
+                                        ? 'bg-white hover:bg-rose-50 text-rose-700 border border-rose-300'
+                                        : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                    }`}
+                                  >
+                                    <Power className="w-3.5 h-3.5" />
+                                    <span>{isEnabled ? 'Disable Section' : 'Enable Section'}</span>
+                                  </button>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+
                     {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                         SECTION 2: HERO BANNER & HEADER
                        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
                     {cadEditSection === 'hero' && (
                       <div className="space-y-4">
+                        {renderSectionVisibilityBanner(
+                          'hero',
+                          'Hero Banner & Header Section',
+                          'Toggle whether the hero headline, badge, main product image, and primary callout buttons appear on the page.'
+                        )}
+
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
                             <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Hero Eyebrow Text</label>
@@ -4448,13 +4694,27 @@ export default function AdminPage() {
                               <p className="text-xs font-black text-slate-800">Hero Quick Spec Strip</p>
                               <p className="text-[11px] text-slate-500">Horizontal counters displayed directly below the hero CTA buttons.</p>
                             </div>
-                            <button
-                              onClick={addCadSpecStrip}
-                              className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center space-x-1"
-                            >
-                              <Plus className="w-3 h-3" />
-                              <span>Add Spec</span>
-                            </button>
+                            <div className="flex items-center space-x-2">
+                              <button
+                                type="button"
+                                onClick={() => toggleCadSection('specStrip')}
+                                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center space-x-1 ${
+                                  curSections.specStrip !== false
+                                    ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800'
+                                    : 'bg-rose-100 hover:bg-rose-200 text-rose-800'
+                                }`}
+                              >
+                                <Power className="w-3 h-3" />
+                                <span>Strip: {curSections.specStrip !== false ? 'Enabled' : 'Disabled'}</span>
+                              </button>
+                              <button
+                                onClick={addCadSpecStrip}
+                                className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center space-x-1"
+                              >
+                                <Plus className="w-3 h-3" />
+                                <span>Add Spec</span>
+                              </button>
+                            </div>
                           </div>
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
@@ -4493,6 +4753,12 @@ export default function AdminPage() {
                        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
                     {cadEditSection === 'overview' && (
                       <div className="space-y-4">
+                        {renderSectionVisibilityBanner(
+                          'overview',
+                          'Overview & Feature Cards Section',
+                          'Toggle whether the product narrative paragraph, subtitle, and multi-column capability cards appear.'
+                        )}
+
                         <div>
                           <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Overview Section Heading</label>
                           <input
@@ -4600,6 +4866,12 @@ export default function AdminPage() {
                        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
                     {cadEditSection === 'features' && (
                       <div className="space-y-4">
+                        {renderSectionVisibilityBanner(
+                          'features',
+                          'Deep Features & Standards Section',
+                          'Toggle whether engineering highlights, capability bullet points, and drafting standards appear.'
+                        )}
+
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-xs font-black text-slate-900">Key Feature Bullets</p>
@@ -4644,6 +4916,12 @@ export default function AdminPage() {
                        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
                     {cadEditSection === 'requirements' && (
                       <div className="space-y-4">
+                        {renderSectionVisibilityBanner(
+                          'requirements',
+                          'System Requirements Section',
+                          'Toggle whether the operating system, processor, memory, GPU, disk space, and display resolution specifications appear.'
+                        )}
+
                         <div>
                           <p className="text-xs font-black text-slate-900">System Hardware & OS Requirements</p>
                           <p className="text-[11px] text-slate-500">Communicates exact deployment specs to IT and CAD evaluators.</p>
@@ -4719,6 +4997,12 @@ export default function AdminPage() {
                        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
                     {cadEditSection === 'faqs' && (
                       <div className="space-y-4">
+                        {renderSectionVisibilityBanner(
+                          'faqs',
+                          'Frequently Asked Questions (FAQs) Section',
+                          'Toggle whether the interactive FAQ accordion answering customer licensing, file compatibility, and technical questions appears.'
+                        )}
+
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-xs font-black text-slate-900">Frequently Asked Questions ({cur.faqs?.length || 0})</p>
@@ -4771,6 +5055,12 @@ export default function AdminPage() {
                        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
                     {cadEditSection === 'licensing' && (
                       <div className="space-y-4">
+                        {renderSectionVisibilityBanner(
+                          'licensing',
+                          'CTAs & Licensing Section',
+                          'Toggle whether primary/secondary CTA buttons, licensing terms, and lead enquiry routing appear on the page.'
+                        )}
+
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
                             <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Primary CTA Button Text</label>
@@ -4859,58 +5149,209 @@ export default function AdminPage() {
                     {cadEditSection === 'preview' && (
                       <div className="space-y-6 bg-slate-950 text-white rounded-2xl p-6 border border-slate-800">
                         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                          <span className="text-xs font-bold text-slate-400">Live Product Page Layout Preview</span>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs font-bold text-slate-300">Live Product Page Layout Preview</span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-indigo-500/20 text-indigo-300 font-bold">
+                              {activeSectionsCount} / 7 Sections Displayed
+                            </span>
+                          </div>
                           <span className="text-[10px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 font-mono">Desktop View</span>
                         </div>
 
                         {/* Hero Preview */}
-                        <div className="space-y-4 max-w-3xl">
-                          <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                            {cur.heroBadge || 'Product Badge'}
-                          </div>
-                          <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight">
-                            {cur.heroHeading || cur.headline}{' '}
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
-                              {cur.h1Highlight}
-                            </span>
-                          </h1>
-                          <p className="text-sm text-slate-300 leading-relaxed">
-                            {cur.heroSupportingText || cur.shortDescription}
-                          </p>
-                          <div className="flex flex-wrap gap-3 pt-2">
-                            <div className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-lg">
-                              {cur.trialCta || 'Get Free Trial'}
+                        {curSections.hero !== false ? (
+                          <div className="space-y-4 max-w-3xl">
+                            <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                              {cur.heroBadge || 'Product Badge'}
                             </div>
-                            <div className="px-4 py-2 bg-slate-800 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold">
-                              {cur.pricingCta || 'Request a Quote'}
+                            <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight">
+                              {cur.heroHeading || cur.headline}{' '}
+                              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
+                                {cur.h1Highlight}
+                              </span>
+                            </h1>
+                            <p className="text-sm text-slate-300 leading-relaxed">
+                              {cur.heroSupportingText || cur.shortDescription}
+                            </p>
+                            <div className="flex flex-wrap gap-3 pt-2">
+                              <div className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-lg">
+                                {cur.trialCta || 'Get Free Trial'}
+                              </div>
+                              <div className="px-4 py-2 bg-slate-800 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold">
+                                {cur.pricingCta || 'Request a Quote'}
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        ) : (
+                          <div className="p-4 rounded-xl border border-dashed border-rose-500/40 bg-rose-950/20 text-rose-300 flex items-center justify-between">
+                            <div className="flex items-center space-x-2 text-xs">
+                              <span className="w-2 h-2 rounded-full bg-rose-500" />
+                              <span><strong>Hero Banner Section</strong> is currently disabled and hidden from live visitors.</span>
+                            </div>
+                            <button
+                              onClick={() => toggleCadSection('hero')}
+                              className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-[11px] font-bold cursor-pointer transition-colors"
+                            >
+                              Enable Section
+                            </button>
+                          </div>
+                        )}
 
                         {/* Spec Strip Preview */}
-                        {cur.specStrip && cur.specStrip.length > 0 && (
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-slate-800 pt-4">
-                            {cur.specStrip.map((s: any, idx: number) => (
-                              <div key={idx} className="bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
-                                <div className="text-[10px] text-slate-400">{s.label}</div>
-                                <div className="text-xs font-bold text-slate-200 truncate">{s.value}</div>
-                              </div>
-                            ))}
+                        {curSections.specStrip !== false ? (
+                          cur.specStrip && cur.specStrip.length > 0 && (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-slate-800 pt-4">
+                              {cur.specStrip.map((s: any, idx: number) => (
+                                <div key={idx} className="bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
+                                  <div className="text-[10px] text-slate-400">{s.label}</div>
+                                  <div className="text-xs font-bold text-slate-200 truncate">{s.value}</div>
+                                </div>
+                              ))}
+                            </div>
+                          )
+                        ) : (
+                          <div className="p-3 rounded-lg border border-dashed border-rose-500/30 bg-rose-950/15 text-rose-300 text-xs flex items-center justify-between">
+                            <span><strong>Quick Spec Strip</strong> is disabled and hidden.</span>
+                            <button
+                              onClick={() => toggleCadSection('specStrip')}
+                              className="text-[11px] font-bold text-rose-400 hover:text-white underline cursor-pointer"
+                            >
+                              Enable Spec Strip
+                            </button>
                           </div>
                         )}
 
                         {/* Overview Cards Preview */}
-                        {cur.overview?.cards && cur.overview.cards.length > 0 && (
-                          <div className="space-y-3 border-t border-slate-800 pt-4">
-                            <h3 className="text-sm font-bold text-slate-200">{cur.overview.heading || 'Key Capabilities'}</h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              {cur.overview.cards.map((c: any, idx: number) => (
-                                <div key={idx} className="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
-                                  <div className="text-xs font-bold text-blue-400">{c.title}</div>
-                                  <div className="text-[11px] text-slate-400 line-clamp-2">{c.desc}</div>
-                                </div>
-                              ))}
+                        {curSections.overview !== false ? (
+                          cur.overview?.cards && cur.overview.cards.length > 0 && (
+                            <div className="space-y-3 border-t border-slate-800 pt-4">
+                              <h3 className="text-sm font-bold text-slate-200">{cur.overview.heading || 'Key Capabilities'}</h3>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {cur.overview.cards.map((c: any, idx: number) => (
+                                  <div key={idx} className="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+                                    <div className="text-xs font-bold text-blue-400">{c.title}</div>
+                                    <div className="text-[11px] text-slate-400 line-clamp-2">{c.desc}</div>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
+                          )
+                        ) : (
+                          <div className="p-4 rounded-xl border border-dashed border-rose-500/40 bg-rose-950/20 text-rose-300 flex items-center justify-between">
+                            <div className="flex items-center space-x-2 text-xs">
+                              <span className="w-2 h-2 rounded-full bg-rose-500" />
+                              <span><strong>Overview & Feature Cards</strong> section is disabled and hidden.</span>
+                            </div>
+                            <button
+                              onClick={() => toggleCadSection('overview')}
+                              className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-[11px] font-bold cursor-pointer transition-colors"
+                            >
+                              Enable Section
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Deep Features Preview */}
+                        {curSections.features !== false ? (
+                          cur.highlights && cur.highlights.length > 0 && (
+                            <div className="space-y-2 border-t border-slate-800 pt-4">
+                              <h3 className="text-sm font-bold text-slate-200">Deep Features & Engineering Standards ({cur.highlights.length})</h3>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {cur.highlights.slice(0, 4).map((h: string, idx: number) => (
+                                  <div key={idx} className="text-xs text-slate-300 flex items-center space-x-2">
+                                    <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                    <span className="truncate">{h}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )
+                        ) : (
+                          <div className="p-4 rounded-xl border border-dashed border-rose-500/40 bg-rose-950/20 text-rose-300 flex items-center justify-between">
+                            <div className="flex items-center space-x-2 text-xs">
+                              <span className="w-2 h-2 rounded-full bg-rose-500" />
+                              <span><strong>Deep Features & Standards</strong> section is disabled and hidden.</span>
+                            </div>
+                            <button
+                              onClick={() => toggleCadSection('features')}
+                              className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-[11px] font-bold cursor-pointer transition-colors"
+                            >
+                              Enable Section
+                            </button>
+                          </div>
+                        )}
+
+                        {/* System Requirements Preview */}
+                        {curSections.requirements !== false ? (
+                          cur.requirements && (
+                            <div className="space-y-2 border-t border-slate-800 pt-4">
+                              <h3 className="text-sm font-bold text-slate-200">System Requirements Table</h3>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-slate-400">
+                                <div><span className="text-slate-500">OS:</span> {cur.requirements.os}</div>
+                                <div><span className="text-slate-500">RAM:</span> {cur.requirements.ram}</div>
+                                <div><span className="text-slate-500">CPU:</span> {cur.requirements.cpu}</div>
+                              </div>
+                            </div>
+                          )
+                        ) : (
+                          <div className="p-4 rounded-xl border border-dashed border-rose-500/40 bg-rose-950/20 text-rose-300 flex items-center justify-between">
+                            <div className="flex items-center space-x-2 text-xs">
+                              <span className="w-2 h-2 rounded-full bg-rose-500" />
+                              <span><strong>System Requirements</strong> section is disabled and hidden.</span>
+                            </div>
+                            <button
+                              onClick={() => toggleCadSection('requirements')}
+                              className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-[11px] font-bold cursor-pointer transition-colors"
+                            >
+                              Enable Section
+                            </button>
+                          </div>
+                        )}
+
+                        {/* FAQs Preview */}
+                        {curSections.faqs !== false ? (
+                          cur.faqs && cur.faqs.length > 0 && (
+                            <div className="space-y-2 border-t border-slate-800 pt-4">
+                              <h3 className="text-sm font-bold text-slate-200">Frequently Asked Questions ({cur.faqs.length} FAQs)</h3>
+                              <p className="text-xs text-slate-400">Interactive FAQ accordion displayed on page.</p>
+                            </div>
+                          )
+                        ) : (
+                          <div className="p-4 rounded-xl border border-dashed border-rose-500/40 bg-rose-950/20 text-rose-300 flex items-center justify-between">
+                            <div className="flex items-center space-x-2 text-xs">
+                              <span className="w-2 h-2 rounded-full bg-rose-500" />
+                              <span><strong>FAQs Section</strong> is disabled and hidden.</span>
+                            </div>
+                            <button
+                              onClick={() => toggleCadSection('faqs')}
+                              className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-[11px] font-bold cursor-pointer transition-colors"
+                            >
+                              Enable Section
+                            </button>
+                          </div>
+                        )}
+
+                        {/* CTAs & Licensing Preview */}
+                        {curSections.licensing !== false ? (
+                          <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+                            <div>
+                              <p className="text-xs font-bold text-slate-200">Licensing & Lead Routing Active</p>
+                              <p className="text-[11px] text-slate-400">{cur.trialCta || 'Trial'} &amp; {cur.pricingCta || 'Quote'} enabled.</p>
+                            </div>
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">Enabled</span>
+                          </div>
+                        ) : (
+                          <div className="p-4 rounded-xl border border-dashed border-rose-500/40 bg-rose-950/20 text-rose-300 flex items-center justify-between">
+                            <div className="flex items-center space-x-2 text-xs">
+                              <span className="w-2 h-2 rounded-full bg-rose-500" />
+                              <span><strong>CTAs & Licensing Section</strong> is disabled and hidden.</span>
+                            </div>
+                            <button
+                              onClick={() => toggleCadSection('licensing')}
+                              className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-[11px] font-bold cursor-pointer transition-colors"
+                            >
+                              Enable Section
+                            </button>
                           </div>
                         )}
                       </div>
