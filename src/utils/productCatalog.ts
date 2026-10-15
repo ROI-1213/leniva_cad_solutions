@@ -112,11 +112,11 @@ export const buildDefaultProductCatalog = (): ProductItem[] => {
       description: p.description || '',
       hero_image: p.heroImage || imagesList[0] || '/images/products/pratham-mini.png',
       images: imagesList,
-      price: (p as any).price || 95000,
-      original_price: (p as any).originalPrice,
+      price: 0,
+      original_price: 0,
       in_stock: p.inStock ?? true,
       is_featured: p.isFeatured ?? true,
-      is_quote_based: (p as any).isQuoteBased ?? true,
+      is_quote_based: true,
       is_new: p.isNew ?? false,
       brochure_url: p.brochureUrl || '',
       key_specs: p.keySpecs ? [...p.keySpecs] : [],
@@ -148,11 +148,11 @@ export const buildDefaultProductCatalog = (): ProductItem[] => {
     description: f.description,
     hero_image: f.image,
     images: [f.image],
-    price: f.price,
-    original_price: f.originalPrice,
+    price: 0,
+    original_price: 0,
     in_stock: f.inStock,
     is_featured: false,
-    is_quote_based: false,
+    is_quote_based: true,
     badge: f.badge,
     rating: f.rating,
     reviews_count: f.reviewsCount,
@@ -186,6 +186,11 @@ export const getStoredProductsCatalog = (): ProductItem[] => {
     if (saved) {
       const parsed = JSON.parse(saved)
       if (Array.isArray(parsed) && parsed.length > 0) {
+        parsed.forEach((item: ProductItem) => {
+          item.price = 0
+          item.original_price = 0
+          item.is_quote_based = true
+        })
         return parsed
       }
     }

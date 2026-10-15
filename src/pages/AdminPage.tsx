@@ -30,7 +30,6 @@ import {
   Printer,
   Scan,
   Box,
-  Tag,
   Palette,
   Sparkles,
   SlidersHorizontal,
@@ -199,8 +198,8 @@ export default function AdminPage() {
     tagline: 'High Speed Precision System',
     description: '',
     short_description: '',
-    price: 95000,
-    original_price: 110000,
+    price: 0,
+    original_price: 0,
     heroImage: '/images/products/pratham-mini.png',
   })
 
@@ -1394,11 +1393,11 @@ export default function AdminPage() {
       description: newProd.description,
       hero_image: newProd.heroImage || '/images/products/pratham-mini.png',
       images: [newProd.heroImage || '/images/products/pratham-mini.png'],
-      price: newProd.price,
-      original_price: newProd.original_price,
+      price: 0,
+      original_price: 0,
       in_stock: true,
       is_featured: true,
-      is_quote_based: false,
+      is_quote_based: true,
       key_specs: [],
       specifications: {},
       features: [],
@@ -1431,8 +1430,8 @@ export default function AdminPage() {
       tagline: 'High Speed Precision System',
       description: '',
       short_description: '',
-      price: 95000,
-      original_price: 110000,
+      price: 0,
+      original_price: 0,
       heroImage: '/images/products/pratham-mini.png',
     })
     setProductSaveSuccessMsg(`Product "${createdItem.name}" created and added to live catalog!`)
@@ -2638,7 +2637,7 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block font-bold text-slate-700 mb-1">Technology Badge</label>
                       <input
@@ -2649,22 +2648,11 @@ export default function AdminPage() {
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Selling Price (INR ₹, 0 for Quote)</label>
-                      <input
-                        type="number"
-                        value={newProd.price}
-                        onChange={e => setNewProd({ ...newProd, price: Number(e.target.value) })}
-                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">MRP / Original Price (INR ₹)</label>
-                      <input
-                        type="number"
-                        value={newProd.original_price}
-                        onChange={e => setNewProd({ ...newProd, original_price: Number(e.target.value) })}
-                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono"
-                      />
+                      <label className="block font-bold text-slate-700 mb-1">Commercial Mode</label>
+                      <div className="px-3 py-2 bg-purple-50/80 border border-purple-200 rounded-lg text-purple-900 font-bold flex items-center justify-between">
+                        <span>Quote / Inquiry Based</span>
+                        <span className="text-[10px] bg-purple-200 text-purple-800 px-2 py-0.5 rounded-full font-mono">No Prices Shown</span>
+                      </div>
                     </div>
                   </div>
 
@@ -2761,7 +2749,7 @@ export default function AdminPage() {
                       {[
                         { id: 'overview', label: '1. Overview & Info', icon: Info },
                         { id: 'media', label: `2. Gallery (${editingProduct.images?.length || 1})`, icon: Eye },
-                        { id: 'pricing', label: '3. Pricing & Stock', icon: Tag },
+                        { id: 'pricing', label: '3. Inventory & Flags', icon: CheckCircle2 },
                         { id: 'specs', label: `4. Key Specs (${editingProduct.key_specs?.length || 0})`, icon: Sparkles },
                         { id: 'tech_specs', label: `5. Tech Specs (${Object.keys(editingProduct.specifications || {}).length})`, icon: SlidersHorizontal },
                         { id: 'features', label: `6. Features (${editingProduct.features?.length || 0})`, icon: List },
@@ -3074,35 +3062,12 @@ export default function AdminPage() {
                         </div>
                       )}
 
-                      {/* TAB 3: PRICING & STOCK */}
+                      {/* TAB 3: INVENTORY & FLAGS (NO PRICING) */}
                       {activeEditTab === 'pricing' && (
                         <div className="space-y-4 animate-in fade-in">
                           <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 flex items-center justify-between">
-                            <div className="font-bold text-blue-950">Section 3: Commercial Pricing, Inventory & Flags</div>
-                            <span className="text-[11px] text-blue-700">Set direct retail price or quote-based inquiry mode</span>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                              <label className="block font-bold text-slate-700">Selling Price (INR ₹)</label>
-                              <input
-                                type="number"
-                                value={editingProduct.price ?? 0}
-                                onChange={e => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
-                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono text-base font-bold text-slate-900"
-                              />
-                              <p className="text-[11px] text-slate-500">Enter 0 if the product pricing is strictly based on custom inquiry.</p>
-                            </div>
-                            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                              <label className="block font-bold text-slate-700">MRP / Original Price (INR ₹)</label>
-                              <input
-                                type="number"
-                                value={editingProduct.original_price ?? 0}
-                                onChange={e => setEditingProduct({ ...editingProduct, original_price: Number(e.target.value) })}
-                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono text-base font-bold text-slate-900"
-                              />
-                              <p className="text-[11px] text-slate-500">Used to show slashed discount MRP pricing (e.g. ₹1,20,000).</p>
-                            </div>
+                            <div className="font-bold text-blue-950">Section 3: Inventory, Availability & Commercial Flags</div>
+                            <span className="text-[11px] text-blue-700">100% Quote-Based Inquiries across all products & filaments</span>
                           </div>
 
                           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
@@ -3919,7 +3884,7 @@ export default function AdminPage() {
                     <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider bg-slate-50/70 text-[10px]">
                       <th className="py-3 px-4">Product & Visual</th>
                       <th className="py-3 px-3">Category & Tech</th>
-                      <th className="py-3 px-3">Price / Model</th>
+                      <th className="py-3 px-3">Commercial Mode</th>
                       <th className="py-3 px-3">Sections Configured</th>
                       <th className="py-3 px-3">Stock Status</th>
                       <th className="py-3 px-4 text-right">Actions</th>
@@ -3961,22 +3926,9 @@ export default function AdminPage() {
                         </td>
 
                         <td className="py-3 px-3">
-                          {p.is_quote_based || p.price === 0 ? (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700">
-                              Quote Based
-                            </span>
-                          ) : (
-                            <div>
-                              <div className="font-black text-slate-900 text-sm font-mono">
-                                ₹{p.price?.toLocaleString('en-IN')}
-                              </div>
-                              {p.original_price && p.original_price > p.price && (
-                                <div className="text-[10px] text-slate-400 line-through font-mono">
-                                  ₹{p.original_price?.toLocaleString('en-IN')}
-                                </div>
-                              )}
-                            </div>
-                          )}
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                            Quote Required
+                          </span>
                         </td>
 
                         <td className="py-3 px-3">
