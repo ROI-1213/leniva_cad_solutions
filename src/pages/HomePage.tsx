@@ -591,20 +591,6 @@ export const HomePage: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Quick Consultation Callout for 3D Printers */}
-        <div className="mt-8 p-5 sm:p-6 rounded-2xl bg-slate-900 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <p className="font-bold text-sm sm:text-base text-white">Need help choosing the right 3D printer for your workflow?</p>
-            <p className="text-xs sm:text-sm text-slate-300 font-normal">Our team helps you assess build volume, material compatibility, and production speed requirements.</p>
-          </div>
-          <button
-            onClick={() => openQuoteModal('3D Printer Technology Recommendation')}
-            className="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white text-xs sm:text-sm font-bold rounded-xl transition-all shrink-0 cursor-pointer shadow-sm"
-          >
-            Request Recommendation
-          </button>
-        </div>
       </section>
 
       {/* ====================================================
@@ -763,20 +749,6 @@ export const HomePage: React.FC = () => {
                 </Link>
               </div>
             </div>
-          </div>
-
-          {/* Quick Consultation Callout for CAD Software */}
-          <div className="mt-8 p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <p className="font-bold text-sm sm:text-base text-slate-900">Looking for commercial, team, or educational CAD licenses?</p>
-              <p className="text-xs sm:text-sm text-slate-600 font-normal">We provide official licenses, flexible multi-seat volume options, and certified onboarding support.</p>
-            </div>
-            <button
-              onClick={() => openQuoteModal('CAD Software Licensing Inquiry')}
-              className="px-5 py-2.5 bg-slate-950 hover:bg-red-600 text-white text-xs sm:text-sm font-bold rounded-xl transition-all shrink-0 cursor-pointer shadow-sm"
-            >
-              Request Software Quote
-            </button>
           </div>
         </div>
       </section>
