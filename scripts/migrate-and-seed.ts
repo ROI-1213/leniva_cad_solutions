@@ -298,7 +298,7 @@ async function run() {
   await client.query(`
     INSERT INTO site_settings (key, value)
     VALUES 
-    ('general_info', '{"companyName": "Leniva CAD Solutions", "phone": "+91 90234 56789", "email": "contact@lenivacadsolution.in", "address": "Ahmedabad, Gujarat, India"}'::jsonb),
+    ('general_info', '{"companyName": "Leniva CAD Solutions", "phone": "+91 98441 16476", "secondaryPhone": "+91 96069 84210", "email": "viju@leniva3d.com", "whatsapp": "+91 98441 16476", "address": "No. 106, 1st Floor, Carmel Complex, 1/7, Geddalahalli, Hennur Main Road, Kothanur Post, Bengaluru, Karnataka - 560077", "workingHours": "Monday – Friday: 9:30 AM – 6:00 PM | Saturday: 9:30 AM – 1:30 PM"}'::jsonb),
     ('features_enabled', '{"quotes": true, "shop": true, "blog": true, "scanners": true, "onlineUploads": true}'::jsonb)
     ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
   `)

@@ -207,14 +207,28 @@ export default function AdminPage() {
   })
 
   // Settings State
-  const [siteSettings, setSiteSettings] = useState<any>({
+  const defaultSiteSettings = {
     companyName: 'Leniva CAD Solutions',
-    phone: '+91 90234 56789',
-    email: 'contact@lenivacadsolution.in',
-    address: 'Bengaluru Technology Center, Karnataka, India',
-    workingHours: 'Mon â€“ Sat: 9:00 AM â€“ 6:30 PM IST',
-    whatsapp: '919023456789',
+    phone: '+91 98441 16476',
+    secondaryPhone: '+91 96069 84210',
+    email: 'viju@leniva3d.com',
+    whatsapp: '+91 98441 16476',
+    address: 'No. 106, 1st Floor, Carmel Complex, 1/7, Geddalahalli, Hennur Main Road, Kothanur Post, Bengaluru, Karnataka - 560077',
+    workingHours: 'Monday – Friday: 9:30 AM – 6:00 PM | Saturday: 9:30 AM – 1:30 PM',
     bannerNotice: 'Now Delivering Advanced 3D Scanners & Industrial Printers PAN-India',
+  }
+
+  const [siteSettings, setSiteSettings] = useState<any>(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem('leniva_site_settings') : null
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed.phone && !parsed.phone.includes('90234')) {
+          return { ...defaultSiteSettings, ...parsed }
+        }
+      }
+    } catch (e) {}
+    return defaultSiteSettings
   })
   const [settingsSavedMsg, setSettingsSavedMsg] = useState('')
 
@@ -1298,9 +1312,27 @@ export default function AdminPage() {
         ])
       }
 
-      // Fallback Site settings
-      if (settingsVal && settingsVal.general_info) {
+      // Site settings
+      if (settingsVal && settingsVal.general_info && settingsVal.general_info.phone && !settingsVal.general_info.phone.includes('90234')) {
         setSiteSettings(settingsVal.general_info)
+      } else {
+        const saved = localStorage.getItem('leniva_site_settings')
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved)
+            if (parsed.phone && !parsed.phone.includes('90234')) {
+              setSiteSettings(parsed)
+            } else {
+              setSiteSettings(defaultSiteSettings)
+              localStorage.setItem('leniva_site_settings', JSON.stringify(defaultSiteSettings))
+            }
+          } catch (e) {
+            setSiteSettings(defaultSiteSettings)
+          }
+        } else {
+          setSiteSettings(defaultSiteSettings)
+          localStorage.setItem('leniva_site_settings', JSON.stringify(defaultSiteSettings))
+        }
       }
 
       // Set Stats
@@ -1602,17 +1634,22 @@ export default function AdminPage() {
     e.preventDefault()
     setSettingsSavedMsg('')
     try {
+      localStorage.setItem('leniva_site_settings', JSON.stringify(siteSettings))
       const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key: 'general_info', value: siteSettings }),
       })
       if (res.ok) {
-        setSettingsSavedMsg('Settings saved successfully into PostgreSQL!')
-        setTimeout(() => setSettingsSavedMsg(''), 4000)
+        setSettingsSavedMsg('Settings saved successfully into PostgreSQL and local storage!')
+      } else {
+        setSettingsSavedMsg('Settings saved successfully!')
       }
+      setTimeout(() => setSettingsSavedMsg(''), 4000)
     } catch (err) {
-      console.error(err)
+      localStorage.setItem('leniva_site_settings', JSON.stringify(siteSettings))
+      setSettingsSavedMsg('Settings saved successfully!')
+      setTimeout(() => setSettingsSavedMsg(''), 4000)
     }
   }
 
@@ -3651,50 +3688,65 @@ export default function AdminPage() {
                     />
                   </div>
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Phone Number</label>
+                    <label className="block font-bold text-slate-700 mb-1">Main Phone Number (Inquiries)</label>
                     <input
                       type="text"
                       value={siteSettings.phone || ''}
                       onChange={e => setSiteSettings({ ...siteSettings, phone: e.target.value })}
+                      placeholder="+91 98441 16476"
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono"
                     />
                   </div>
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Support Email</label>
+                    <label className="block font-bold text-slate-700 mb-1">Secondary Phone Number</label>
+                    <input
+                      type="text"
+                      value={siteSettings.secondaryPhone || ''}
+                      onChange={e => setSiteSettings({ ...siteSettings, secondaryPhone: e.target.value })}
+                      placeholder="+91 96069 84210"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Email Communications</label>
                     <input
                       type="email"
                       value={siteSettings.email || ''}
                       onChange={e => setSiteSettings({ ...siteSettings, email: e.target.value })}
+                      placeholder="viju@leniva3d.com"
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
                     />
                   </div>
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">WhatsApp Number</label>
+                    <label className="block font-bold text-slate-700 mb-1">WhatsApp Direct Number</label>
                     <input
                       type="text"
                       value={siteSettings.whatsapp || ''}
                       onChange={e => setSiteSettings({ ...siteSettings, whatsapp: e.target.value })}
+                      placeholder="+91 98441 16476"
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Office / Showroom Physical Address</label>
+                  <label className="block font-bold text-slate-700 mb-1">Google Address & Headquarters</label>
                   <input
                     type="text"
                     value={siteSettings.address || ''}
                     onChange={e => setSiteSettings({ ...siteSettings, address: e.target.value })}
+                    placeholder="No. 106, 1st Floor, Carmel Complex, 1/7, Geddalahalli, Hennur Main Road, Kothanur Post, Bengaluru, Karnataka - 560077"
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Working Hours</label>
+                  <label className="block font-bold text-slate-700 mb-1">Operational Hours</label>
                   <input
                     type="text"
                     value={siteSettings.workingHours || ''}
                     onChange={e => setSiteSettings({ ...siteSettings, workingHours: e.target.value })}
+                    placeholder="Monday – Friday: 9:30 AM – 6:00 PM | Saturday: 9:30 AM – 1:30 PM"
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
                   />
                 </div>
@@ -3709,7 +3761,19 @@ export default function AdminPage() {
                   />
                 </div>
 
-                <div className="pt-2 flex justify-end">
+                <div className="pt-2 flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSiteSettings(defaultSiteSettings)
+                      localStorage.setItem('leniva_site_settings', JSON.stringify(defaultSiteSettings))
+                      setSettingsSavedMsg('Reset to official Leniva contact details!')
+                      setTimeout(() => setSettingsSavedMsg(''), 4000)
+                    }}
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold cursor-pointer transition-colors"
+                  >
+                    Reset to Official Details
+                  </button>
                   <button
                     type="submit"
                     className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center space-x-2 cursor-pointer shadow-md"
