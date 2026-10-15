@@ -39,6 +39,7 @@ import {
   Info,
   List,
   CheckCircle2,
+  Award,
 } from 'lucide-react'
 import {
   CadEnabledSections,
@@ -58,6 +59,12 @@ import {
   saveStoredHomeContent,
   resetStoredHomeContent,
 } from '../utils/homeContentConfig'
+import {
+  AboutContentConfig,
+  getStoredAboutContent,
+  saveStoredAboutContent,
+  resetStoredAboutContent,
+} from '../utils/aboutContentConfig'
 import { blogPosts as fallbackBlogs } from '../data/blogs'
 
 interface Stats {
@@ -133,6 +140,7 @@ export default function AdminPage() {
     | 'products'
     | 'blogs'
     | 'home_editor'
+    | 'about_editor'
     | 'cad_software'
     | 'settings'
     | 'users'
@@ -285,6 +293,44 @@ export default function AdminPage() {
       setTimeout(() => setHomeSavedMsg(''), 4000)
     } catch (err: any) {
       setHomeRawJsonError(err.message || 'Invalid JSON format')
+    }
+  }
+
+  // ─── About Us Page CMS & Visual Editor ─────────────────────────
+  const [aboutContentData, setAboutContentData] = useState<AboutContentConfig>(getStoredAboutContent)
+  const [aboutActiveTab, setAboutActiveTab] = useState<'hero' | 'heritage' | 'portfolio' | 'how_we_work' | 'raw_json'>('hero')
+  const [aboutSavedMsg, setAboutSavedMsg] = useState('')
+  const [aboutRawJsonInput, setAboutRawJsonInput] = useState('')
+  const [aboutRawJsonError, setAboutRawJsonError] = useState('')
+  const [newHowStepTitle, setNewHowStepTitle] = useState('')
+  const [newHowStepDesc, setNewHowStepDesc] = useState('')
+
+  const handleSaveAboutContent = (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    saveStoredAboutContent(aboutContentData)
+    setAboutSavedMsg('✓ About Us page content saved successfully! Live page updated.')
+    setTimeout(() => setAboutSavedMsg(''), 4000)
+  }
+
+  const handleResetAboutContent = () => {
+    if (window.confirm('Reset About Us page content back to default factory content?')) {
+      const def = resetStoredAboutContent()
+      setAboutContentData(def)
+      setAboutSavedMsg('✓ About Us page content reset to defaults.')
+      setTimeout(() => setAboutSavedMsg(''), 4000)
+    }
+  }
+
+  const handleApplyAboutRawJson = () => {
+    try {
+      const parsed = JSON.parse(aboutRawJsonInput)
+      setAboutContentData(parsed)
+      saveStoredAboutContent(parsed)
+      setAboutSavedMsg('✓ Raw JSON parsed and applied successfully!')
+      setAboutRawJsonError('')
+      setTimeout(() => setAboutSavedMsg(''), 4000)
+    } catch (err: any) {
+      setAboutRawJsonError(err.message || 'Invalid JSON format')
     }
   }
 
@@ -2011,6 +2057,26 @@ export default function AdminPage() {
               </div>
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
                 activeTab === 'home_editor' ? 'bg-red-800 text-red-100' : 'bg-red-50 text-red-700 border border-red-200'
+              }`}>
+                Live CMS
+              </span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('about_editor')
+                setAboutRawJsonInput(JSON.stringify(aboutContentData, null, 2))
+              }}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
+                activeTab === 'about_editor' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <Award className="w-4 h-4" />
+                <span>About Us Editor</span>
+              </div>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
+                activeTab === 'about_editor' ? 'bg-amber-800 text-amber-100' : 'bg-amber-50 text-amber-700 border border-amber-200'
               }`}>
                 Live CMS
               </span>
@@ -5931,6 +5997,986 @@ export default function AdminPage() {
                       }}
                       rows={24}
                       className="w-full p-4 font-mono text-xs bg-slate-900 text-emerald-400 rounded-2xl border border-slate-800 focus:ring-2 focus:ring-red-500 outline-none leading-relaxed"
+                      spellCheck={false}
+                    />
+                  </div>
+                )}
+              </div>
+            )
+          })()}
+
+          {/* ====================================================
+              TAB: ABOUT US PAGE CMS & VISUAL EDITOR
+             ==================================================== */}
+          {activeTab === 'about_editor' && (() => {
+            return (
+              <div className="space-y-6">
+                {/* Top Banner / Actions Bar */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <div className="inline-flex items-center space-x-2 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold uppercase tracking-wider mb-1">
+                      <Award className="w-3 h-3 text-amber-600" />
+                      <span>Live Website CMS</span>
+                    </div>
+                    <h3 className="text-xl font-black text-slate-900 tracking-tight">About Us Page Editor</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Configure Hero mission statement, company heritage, technology portfolio cards, and the 4-stage client engagement lifecycle.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                    <a
+                      href="/about"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>View Live About Page</span>
+                    </a>
+                    <button
+                      onClick={handleResetAboutContent}
+                      className="px-3.5 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Reset Defaults</span>
+                    </button>
+                    <button
+                      onClick={() => handleSaveAboutContent()}
+                      className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-md shadow-amber-600/20 transition-all cursor-pointer"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Save All Changes</span>
+                    </button>
+                  </div>
+                </div>
+
+                {aboutSavedMsg && (
+                  <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-bold flex items-center space-x-2 animate-in fade-in duration-200">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>{aboutSavedMsg}</span>
+                  </div>
+                )}
+
+                {/* Sub-tabs Bar */}
+                <div className="bg-slate-100/90 p-1.5 rounded-2xl flex flex-wrap gap-1 border border-slate-200/80">
+                  <button
+                    onClick={() => setAboutActiveTab('hero')}
+                    className={`flex-1 min-w-[140px] py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-center cursor-pointer ${
+                      aboutActiveTab === 'hero' ? 'bg-white text-amber-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    1. Hero Header &amp; Mission
+                  </button>
+                  <button
+                    onClick={() => setAboutActiveTab('heritage')}
+                    className={`flex-1 min-w-[140px] py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-center cursor-pointer ${
+                      aboutActiveTab === 'heritage' ? 'bg-white text-amber-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    2. Heritage &amp; Overview
+                  </button>
+                  <button
+                    onClick={() => setAboutActiveTab('portfolio')}
+                    className={`flex-1 min-w-[140px] py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-center cursor-pointer ${
+                      aboutActiveTab === 'portfolio' ? 'bg-white text-amber-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    3. Technology Portfolio Cards
+                  </button>
+                  <button
+                    onClick={() => setAboutActiveTab('how_we_work')}
+                    className={`flex-1 min-w-[140px] py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-center cursor-pointer ${
+                      aboutActiveTab === 'how_we_work' ? 'bg-white text-amber-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    4. "How We Work" Lifecycle
+                  </button>
+                  <button
+                    onClick={() => {
+                      setAboutActiveTab('raw_json')
+                      setAboutRawJsonInput(JSON.stringify(aboutContentData, null, 2))
+                    }}
+                    className={`flex-1 min-w-[140px] py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-center cursor-pointer ${
+                      aboutActiveTab === 'raw_json' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    5. Full Raw JSON
+                  </button>
+                </div>
+
+                {/* Sub-tab 1: Hero Header & Mission */}
+                {aboutActiveTab === 'hero' && (
+                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+                    <div>
+                      <h4 className="text-base font-bold text-slate-900">Hero Section &amp; Mission Statement</h4>
+                      <p className="text-xs text-slate-500">The primary dark hero header card displayed at the top of the About page.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Badge Tag</label>
+                        <input
+                          type="text"
+                          value={aboutContentData.hero.badge}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              hero: { ...aboutContentData.hero, badge: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Hero Title</label>
+                        <input
+                          type="text"
+                          value={aboutContentData.hero.title}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              hero: { ...aboutContentData.hero, title: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="block font-bold text-slate-700 mb-1">Hero Description Paragraph</label>
+                        <textarea
+                          rows={3}
+                          value={aboutContentData.hero.description}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              hero: { ...aboutContentData.hero, description: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl leading-relaxed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Motto Tag Prefix</label>
+                        <input
+                          type="text"
+                          value={aboutContentData.hero.mottoPrefix}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              hero: { ...aboutContentData.hero, mottoPrefix: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Motto Tag Highlight (Red Text)</label>
+                        <input
+                          type="text"
+                          value={aboutContentData.hero.mottoHighlight}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              hero: { ...aboutContentData.hero, mottoHighlight: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Primary Button Label</label>
+                        <input
+                          type="text"
+                          value={aboutContentData.hero.primaryBtnText}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              hero: { ...aboutContentData.hero, primaryBtnText: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Consultation Quote Subject</label>
+                        <input
+                          type="text"
+                          value={aboutContentData.hero.quoteSubject}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              hero: { ...aboutContentData.hero, quoteSubject: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Secondary Button Label</label>
+                        <input
+                          type="text"
+                          value={aboutContentData.hero.secondaryBtnText}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              hero: { ...aboutContentData.hero, secondaryBtnText: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Secondary Button Target Link</label>
+                        <input
+                          type="text"
+                          value={aboutContentData.hero.secondaryBtnLink}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              hero: { ...aboutContentData.hero, secondaryBtnLink: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Sub-tab 2: Heritage & Overview */}
+                {aboutActiveTab === 'heritage' && (
+                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+                    <div>
+                      <h4 className="text-base font-bold text-slate-900">Heritage &amp; Company Overview</h4>
+                      <p className="text-xs text-slate-500">The 3-decade story, mission paragraphs, poster visual, and fast stats.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Section Tag (Small Red Header)</label>
+                        <input
+                          type="text"
+                          value={aboutContentData.heritage.tag}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              heritage: { ...aboutContentData.heritage, tag: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Overview Heading</label>
+                        <input
+                          type="text"
+                          value={aboutContentData.heritage.title}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              heritage: { ...aboutContentData.heritage, title: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="block font-bold text-slate-700 mb-1">Paragraph 1 (Establishment &amp; Background)</label>
+                        <textarea
+                          rows={3}
+                          value={aboutContentData.heritage.paragraph1}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              heritage: { ...aboutContentData.heritage, paragraph1: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl leading-relaxed"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="block font-bold text-slate-700 mb-1">Portfolio Callout Banner Highlight</label>
+                        <input
+                          type="text"
+                          value={aboutContentData.heritage.calloutText}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              heritage: { ...aboutContentData.heritage, calloutText: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="block font-bold text-slate-700 mb-1">Paragraph 2 (Consultative Customer-First Focus)</label>
+                        <textarea
+                          rows={3}
+                          value={aboutContentData.heritage.paragraph2}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              heritage: { ...aboutContentData.heritage, paragraph2: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl leading-relaxed"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="block font-bold text-slate-700 mb-1">Paragraph 3 (Long-Term Industry Commitment)</label>
+                        <textarea
+                          rows={3}
+                          value={aboutContentData.heritage.paragraph3}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              heritage: { ...aboutContentData.heritage, paragraph3: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl leading-relaxed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Poster Image URL / File Path</label>
+                        <input
+                          type="text"
+                          value={aboutContentData.heritage.posterImage}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              heritage: { ...aboutContentData.heritage, posterImage: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Poster Image Alt Text</label>
+                        <input
+                          type="text"
+                          value={aboutContentData.heritage.posterAlt}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              heritage: { ...aboutContentData.heritage, posterAlt: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Quick Stat 1 Title</label>
+                        <input
+                          type="text"
+                          value={aboutContentData.heritage.stat1Title}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              heritage: { ...aboutContentData.heritage, stat1Title: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Quick Stat 1 Subtitle</label>
+                        <input
+                          type="text"
+                          value={aboutContentData.heritage.stat1Subtitle}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              heritage: { ...aboutContentData.heritage, stat1Subtitle: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Quick Stat 2 Title</label>
+                        <input
+                          type="text"
+                          value={aboutContentData.heritage.stat2Title}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              heritage: { ...aboutContentData.heritage, stat2Title: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Quick Stat 2 Subtitle</label>
+                        <input
+                          type="text"
+                          value={aboutContentData.heritage.stat2Subtitle}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              heritage: { ...aboutContentData.heritage, stat2Subtitle: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Sub-tab 3: Technology Portfolio Cards */}
+                {aboutActiveTab === 'portfolio' && (
+                  <div className="space-y-6">
+                    {/* Header Controls */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                      <div>
+                        <h4 className="text-base font-bold text-slate-900">Technology Portfolio Header</h4>
+                        <p className="text-xs text-slate-500">The section intro for the 3 core technology pillars.</p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                        <div>
+                          <label className="block font-bold text-slate-700 mb-1">Section Tag</label>
+                          <input
+                            type="text"
+                            value={aboutContentData.portfolio.tag}
+                            onChange={(e) =>
+                              setAboutContentData({
+                                ...aboutContentData,
+                                portfolio: { ...aboutContentData.portfolio, tag: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                          />
+                        </div>
+                        <div>
+                          <label className="block font-bold text-slate-700 mb-1">Section Title</label>
+                          <input
+                            type="text"
+                            value={aboutContentData.portfolio.title}
+                            onChange={(e) =>
+                              setAboutContentData({
+                                ...aboutContentData,
+                                portfolio: { ...aboutContentData.portfolio, title: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className="block font-bold text-slate-700 mb-1">Section Subtitle / Description</label>
+                          <input
+                            type="text"
+                            value={aboutContentData.portfolio.subtitle}
+                            onChange={(e) =>
+                              setAboutContentData({
+                                ...aboutContentData,
+                                portfolio: { ...aboutContentData.portfolio, subtitle: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 3 Portfolio Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {/* Card 1: CAD Software */}
+                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4 text-xs flex flex-col justify-between">
+                        <div className="space-y-3">
+                          <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-md bg-red-50 text-red-700 font-bold uppercase tracking-wider text-[10px]">
+                            <span>1. CAD Software Card</span>
+                          </div>
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1">Category Tag</label>
+                            <input
+                              type="text"
+                              value={aboutContentData.portfolio.cadCard.category}
+                              onChange={(e) =>
+                                setAboutContentData({
+                                  ...aboutContentData,
+                                  portfolio: {
+                                    ...aboutContentData.portfolio,
+                                    cadCard: { ...aboutContentData.portfolio.cadCard, category: e.target.value },
+                                  },
+                                })
+                              }
+                              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg"
+                            />
+                          </div>
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1">Title</label>
+                            <input
+                              type="text"
+                              value={aboutContentData.portfolio.cadCard.title}
+                              onChange={(e) =>
+                                setAboutContentData({
+                                  ...aboutContentData,
+                                  portfolio: {
+                                    ...aboutContentData.portfolio,
+                                    cadCard: { ...aboutContentData.portfolio.cadCard, title: e.target.value },
+                                  },
+                                })
+                              }
+                              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg"
+                            />
+                          </div>
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1">Description</label>
+                            <textarea
+                              rows={3}
+                              value={aboutContentData.portfolio.cadCard.description}
+                              onChange={(e) =>
+                                setAboutContentData({
+                                  ...aboutContentData,
+                                  portfolio: {
+                                    ...aboutContentData.portfolio,
+                                    cadCard: { ...aboutContentData.portfolio.cadCard, description: e.target.value },
+                                  },
+                                })
+                              }
+                              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg leading-relaxed"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2 pt-2 border-t border-slate-100">
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-0.5">Link Text</label>
+                            <input
+                              type="text"
+                              value={aboutContentData.portfolio.cadCard.linkText}
+                              onChange={(e) =>
+                                setAboutContentData({
+                                  ...aboutContentData,
+                                  portfolio: {
+                                    ...aboutContentData.portfolio,
+                                    cadCard: { ...aboutContentData.portfolio.cadCard, linkText: e.target.value },
+                                  },
+                                })
+                              }
+                              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg"
+                            />
+                          </div>
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-0.5">Link Target URL</label>
+                            <input
+                              type="text"
+                              value={aboutContentData.portfolio.cadCard.linkUrl}
+                              onChange={(e) =>
+                                setAboutContentData({
+                                  ...aboutContentData,
+                                  portfolio: {
+                                    ...aboutContentData.portfolio,
+                                    cadCard: { ...aboutContentData.portfolio.cadCard, linkUrl: e.target.value },
+                                  },
+                                })
+                              }
+                              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Card 2: 3D Printers */}
+                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4 text-xs flex flex-col justify-between">
+                        <div className="space-y-3">
+                          <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-800 font-bold uppercase tracking-wider text-[10px]">
+                            <span>2. 3D Printers Card</span>
+                          </div>
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1">Category Tag</label>
+                            <input
+                              type="text"
+                              value={aboutContentData.portfolio.printerCard.category}
+                              onChange={(e) =>
+                                setAboutContentData({
+                                  ...aboutContentData,
+                                  portfolio: {
+                                    ...aboutContentData.portfolio,
+                                    printerCard: { ...aboutContentData.portfolio.printerCard, category: e.target.value },
+                                  },
+                                })
+                              }
+                              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg"
+                            />
+                          </div>
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1">Title</label>
+                            <input
+                              type="text"
+                              value={aboutContentData.portfolio.printerCard.title}
+                              onChange={(e) =>
+                                setAboutContentData({
+                                  ...aboutContentData,
+                                  portfolio: {
+                                    ...aboutContentData.portfolio,
+                                    printerCard: { ...aboutContentData.portfolio.printerCard, title: e.target.value },
+                                  },
+                                })
+                              }
+                              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg"
+                            />
+                          </div>
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1">Description</label>
+                            <textarea
+                              rows={3}
+                              value={aboutContentData.portfolio.printerCard.description}
+                              onChange={(e) =>
+                                setAboutContentData({
+                                  ...aboutContentData,
+                                  portfolio: {
+                                    ...aboutContentData.portfolio,
+                                    printerCard: { ...aboutContentData.portfolio.printerCard, description: e.target.value },
+                                  },
+                                })
+                              }
+                              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg leading-relaxed"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2 pt-2 border-t border-slate-100">
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-0.5">Link Text</label>
+                            <input
+                              type="text"
+                              value={aboutContentData.portfolio.printerCard.linkText}
+                              onChange={(e) =>
+                                setAboutContentData({
+                                  ...aboutContentData,
+                                  portfolio: {
+                                    ...aboutContentData.portfolio,
+                                    printerCard: { ...aboutContentData.portfolio.printerCard, linkText: e.target.value },
+                                  },
+                                })
+                              }
+                              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg"
+                            />
+                          </div>
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-0.5">Link Target URL</label>
+                            <input
+                              type="text"
+                              value={aboutContentData.portfolio.printerCard.linkUrl}
+                              onChange={(e) =>
+                                setAboutContentData({
+                                  ...aboutContentData,
+                                  portfolio: {
+                                    ...aboutContentData.portfolio,
+                                    printerCard: { ...aboutContentData.portfolio.printerCard, linkUrl: e.target.value },
+                                  },
+                                })
+                              }
+                              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Card 3: 3D Scanners */}
+                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4 text-xs flex flex-col justify-between">
+                        <div className="space-y-3">
+                          <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-800 font-bold uppercase tracking-wider text-[10px]">
+                            <span>3. 3D Scanners Card</span>
+                          </div>
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1">Category Tag</label>
+                            <input
+                              type="text"
+                              value={aboutContentData.portfolio.scannerCard.category}
+                              onChange={(e) =>
+                                setAboutContentData({
+                                  ...aboutContentData,
+                                  portfolio: {
+                                    ...aboutContentData.portfolio,
+                                    scannerCard: { ...aboutContentData.portfolio.scannerCard, category: e.target.value },
+                                  },
+                                })
+                              }
+                              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg"
+                            />
+                          </div>
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1">Title</label>
+                            <input
+                              type="text"
+                              value={aboutContentData.portfolio.scannerCard.title}
+                              onChange={(e) =>
+                                setAboutContentData({
+                                  ...aboutContentData,
+                                  portfolio: {
+                                    ...aboutContentData.portfolio,
+                                    scannerCard: { ...aboutContentData.portfolio.scannerCard, title: e.target.value },
+                                  },
+                                })
+                              }
+                              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg"
+                            />
+                          </div>
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1">Description</label>
+                            <textarea
+                              rows={3}
+                              value={aboutContentData.portfolio.scannerCard.description}
+                              onChange={(e) =>
+                                setAboutContentData({
+                                  ...aboutContentData,
+                                  portfolio: {
+                                    ...aboutContentData.portfolio,
+                                    scannerCard: { ...aboutContentData.portfolio.scannerCard, description: e.target.value },
+                                  },
+                                })
+                              }
+                              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg leading-relaxed"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2 pt-2 border-t border-slate-100">
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-0.5">Link Text</label>
+                            <input
+                              type="text"
+                              value={aboutContentData.portfolio.scannerCard.linkText}
+                              onChange={(e) =>
+                                setAboutContentData({
+                                  ...aboutContentData,
+                                  portfolio: {
+                                    ...aboutContentData.portfolio,
+                                    scannerCard: { ...aboutContentData.portfolio.scannerCard, linkText: e.target.value },
+                                  },
+                                })
+                              }
+                              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg"
+                            />
+                          </div>
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-0.5">Link Target URL</label>
+                            <input
+                              type="text"
+                              value={aboutContentData.portfolio.scannerCard.linkUrl}
+                              onChange={(e) =>
+                                setAboutContentData({
+                                  ...aboutContentData,
+                                  portfolio: {
+                                    ...aboutContentData.portfolio,
+                                    scannerCard: { ...aboutContentData.portfolio.scannerCard, linkUrl: e.target.value },
+                                  },
+                                })
+                              }
+                              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Sub-tab 4: "How We Work" Lifecycle */}
+                {aboutActiveTab === 'how_we_work' && (
+                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+                    <div>
+                      <h4 className="text-base font-bold text-slate-900">"How We Work" Engagement Lifecycle</h4>
+                      <p className="text-xs text-slate-500">The 4-stage client workflow showing consultation, selection, deployment, and technical support.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Section Tag</label>
+                        <input
+                          type="text"
+                          value={aboutContentData.howWeWork.tag}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              howWeWork: { ...aboutContentData.howWeWork, tag: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Section Heading</label>
+                        <input
+                          type="text"
+                          value={aboutContentData.howWeWork.title}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              howWeWork: { ...aboutContentData.howWeWork, title: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="block font-bold text-slate-700 mb-1">Section Description</label>
+                        <textarea
+                          rows={3}
+                          value={aboutContentData.howWeWork.description}
+                          onChange={(e) =>
+                            setAboutContentData({
+                              ...aboutContentData,
+                              howWeWork: { ...aboutContentData.howWeWork, description: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl leading-relaxed"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Steps List */}
+                    <div className="space-y-3 pt-4 border-t border-slate-100">
+                      <label className="block font-bold text-slate-800 text-xs">
+                        Lifecycle Steps ({aboutContentData.howWeWork.steps.length})
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {aboutContentData.howWeWork.steps.map((step, idx) => (
+                          <div key={idx} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs relative group">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-amber-700 uppercase tracking-wider text-[10px]">
+                                Step {idx + 1}
+                              </span>
+                              {aboutContentData.howWeWork.steps.length > 1 && (
+                                <button
+                                  onClick={() => {
+                                    const updated = aboutContentData.howWeWork.steps.filter((_, i) => i !== idx)
+                                    setAboutContentData({
+                                      ...aboutContentData,
+                                      howWeWork: { ...aboutContentData.howWeWork, steps: updated },
+                                    })
+                                  }}
+                                  className="text-slate-400 hover:text-red-600 transition-colors cursor-pointer"
+                                  title="Delete step"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                            <div>
+                              <input
+                                type="text"
+                                value={step.title}
+                                onChange={(e) => {
+                                  const updated = [...aboutContentData.howWeWork.steps]
+                                  updated[idx] = { ...step, title: e.target.value }
+                                  setAboutContentData({
+                                    ...aboutContentData,
+                                    howWeWork: { ...aboutContentData.howWeWork, steps: updated },
+                                  })
+                                }}
+                                className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-bold"
+                              />
+                            </div>
+                            <div>
+                              <textarea
+                                rows={2}
+                                value={step.description}
+                                onChange={(e) => {
+                                  const updated = [...aboutContentData.howWeWork.steps]
+                                  updated[idx] = { ...step, description: e.target.value }
+                                  setAboutContentData({
+                                    ...aboutContentData,
+                                    howWeWork: { ...aboutContentData.howWeWork, steps: updated },
+                                  })
+                                }}
+                                className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-600 leading-relaxed"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Add Step */}
+                      <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
+                        <p className="font-bold text-slate-700 text-[11px]">Add New Lifecycle Step</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <input
+                            type="text"
+                            placeholder="Step Title (e.g. Workflow Optimization)"
+                            value={newHowStepTitle}
+                            onChange={(e) => setNewHowStepTitle(e.target.value)}
+                            className="px-3 py-1.5 bg-white border border-slate-200 rounded-xl"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Step Description..."
+                            value={newHowStepDesc}
+                            onChange={(e) => setNewHowStepDesc(e.target.value)}
+                            className="px-3 py-1.5 bg-white border border-slate-200 rounded-xl"
+                          />
+                        </div>
+                        <button
+                          onClick={() => {
+                            if (!newHowStepTitle.trim() || !newHowStepDesc.trim()) return
+                            setAboutContentData({
+                              ...aboutContentData,
+                              howWeWork: {
+                                ...aboutContentData.howWeWork,
+                                steps: [
+                                  ...aboutContentData.howWeWork.steps,
+                                  { title: newHowStepTitle.trim(), description: newHowStepDesc.trim() },
+                                ],
+                              },
+                            })
+                            setNewHowStepTitle('')
+                            setNewHowStepDesc('')
+                          }}
+                          className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold flex items-center space-x-1 cursor-pointer"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add Step</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Sub-tab 5: Full Raw JSON */}
+                {aboutActiveTab === 'raw_json' && (
+                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <h4 className="text-base font-bold text-slate-900">Direct About Us Page JSON Tree</h4>
+                        <p className="text-xs text-slate-500">Edit, backup, or paste a complete JSON configuration.</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(aboutRawJsonInput)
+                            setAboutSavedMsg('✓ About Us page JSON copied to clipboard!')
+                            setTimeout(() => setAboutSavedMsg(''), 3000)
+                          }}
+                          className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center space-x-1 cursor-pointer"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Copy JSON</span>
+                        </button>
+                        <button
+                          onClick={handleApplyAboutRawJson}
+                          className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1 shadow-sm cursor-pointer"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Apply &amp; Save JSON</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {aboutRawJsonError && (
+                      <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl text-xs font-mono">
+                        <strong>JSON Error:</strong> {aboutRawJsonError}
+                      </div>
+                    )}
+
+                    <textarea
+                      value={aboutRawJsonInput}
+                      onChange={(e) => {
+                        setAboutRawJsonInput(e.target.value)
+                        setAboutRawJsonError('')
+                      }}
+                      rows={24}
+                      className="w-full p-4 font-mono text-xs bg-slate-900 text-amber-300 rounded-2xl border border-slate-800 focus:ring-2 focus:ring-amber-500 outline-none leading-relaxed"
                       spellCheck={false}
                     />
                   </div>
