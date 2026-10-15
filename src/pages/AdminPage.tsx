@@ -38,6 +38,7 @@ import {
   SlidersHorizontal,
   Info,
   List,
+  CheckCircle2,
 } from 'lucide-react'
 import {
   CadEnabledSections,
@@ -51,6 +52,12 @@ import {
   saveStoredProductsCatalog,
   resetStoredProductsCatalog,
 } from '../utils/productCatalog'
+import {
+  HomeContentConfig,
+  getStoredHomeContent,
+  saveStoredHomeContent,
+  resetStoredHomeContent,
+} from '../utils/homeContentConfig'
 import { blogPosts as fallbackBlogs } from '../data/blogs'
 
 interface Stats {
@@ -125,6 +132,7 @@ export default function AdminPage() {
     | 'contacts'
     | 'products'
     | 'blogs'
+    | 'home_editor'
     | 'cad_software'
     | 'settings'
     | 'users'
@@ -231,6 +239,54 @@ export default function AdminPage() {
   const [userMsg, setUserMsg] = useState('')
   const [newPasswordValue, setNewPasswordValue] = useState('')
   const [confirmPasswordValue, setConfirmPasswordValue] = useState('')
+
+  // ─── Home Page CMS & Visual Editor ─────────────────────────────
+  const [homeContentData, setHomeContentData] = useState<HomeContentConfig>(getStoredHomeContent)
+  const [homeActiveTab, setHomeActiveTab] = useState<'hero' | 'about' | 'printers' | 'cad' | 'raw_json'>('hero')
+  const [homeSavedMsg, setHomeSavedMsg] = useState('')
+  const [activeHeroSlideIdx, setActiveHeroSlideIdx] = useState(0)
+  const [activePrinterCardKey, setActivePrinterCardKey] = useState<'fdm' | 'dlp' | 'lcd'>('fdm')
+  const [activeCadCardKey, setActiveCadCardKey] = useState<'ares' | 'sketchup' | 'chaos'>('ares')
+  const [homeRawJsonInput, setHomeRawJsonInput] = useState('')
+  const [homeRawJsonError, setHomeRawJsonError] = useState('')
+
+  // Temporary inputs for draft additions in Home Editor
+  const [newPillarDraft, setNewPillarDraft] = useState('')
+  const [newPrinterBulletDraft, setNewPrinterBulletDraft] = useState('')
+  const [newPrinterSlideName, setNewPrinterSlideName] = useState('')
+  const [newPrinterSlideSrc, setNewPrinterSlideSrc] = useState('')
+  const [newCadBulletDraft, setNewCadBulletDraft] = useState('')
+  const [newCadSlideName, setNewCadSlideName] = useState('')
+  const [newCadSlideSrc, setNewCadSlideSrc] = useState('')
+
+  const handleSaveHomeContent = (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    saveStoredHomeContent(homeContentData)
+    setHomeSavedMsg('✓ Home page content saved successfully! Live home page updated.')
+    setTimeout(() => setHomeSavedMsg(''), 4000)
+  }
+
+  const handleResetHomeContent = () => {
+    if (window.confirm('Reset all Home page content back to default factory content? This will restore original hero banners, 3D printers, and CAD software showcase.')) {
+      const def = resetStoredHomeContent()
+      setHomeContentData(def)
+      setHomeSavedMsg('✓ Home page content reset to defaults.')
+      setTimeout(() => setHomeSavedMsg(''), 4000)
+    }
+  }
+
+  const handleApplyHomeRawJson = () => {
+    try {
+      const parsed = JSON.parse(homeRawJsonInput)
+      setHomeContentData(parsed)
+      saveStoredHomeContent(parsed)
+      setHomeSavedMsg('✓ Raw JSON parsed and applied successfully!')
+      setHomeRawJsonError('')
+      setTimeout(() => setHomeSavedMsg(''), 4000)
+    } catch (err: any) {
+      setHomeRawJsonError(err.message || 'Invalid JSON format')
+    }
+  }
 
   // â”€â”€â”€ CAD Software Editor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   interface CadProductItem {
@@ -1937,6 +1993,26 @@ export default function AdminPage() {
                 activeTab === 'blogs' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'
               }`}>
                 {blogsList.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('home_editor')
+                setHomeRawJsonInput(JSON.stringify(homeContentData, null, 2))
+              }}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
+                activeTab === 'home_editor' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <Home className="w-4 h-4" />
+                <span>Home Page Editor</span>
+              </div>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
+                activeTab === 'home_editor' ? 'bg-red-800 text-red-100' : 'bg-red-50 text-red-700 border border-red-200'
+              }`}>
+                Live CMS
               </span>
             </button>
 
@@ -4250,6 +4326,1618 @@ export default function AdminPage() {
             </div>
           )}
 
+          {/* ====================================================
+              TAB: HOME PAGE CMS & VISUAL EDITOR
+             ==================================================== */}
+          {activeTab === 'home_editor' && (() => {
+            const currentHeroSlide = homeContentData.hero.slides[activeHeroSlideIdx] || homeContentData.hero.slides[0]
+            const curPrinterCard = homeContentData.printers[activePrinterCardKey]
+            const curCadCard = homeContentData.cadSoftware[activeCadCardKey]
+
+            return (
+              <div className="space-y-6">
+                {/* Top Banner / Actions Bar */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <div className="inline-flex items-center space-x-2 px-2.5 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 text-[10px] font-bold uppercase tracking-wider mb-1">
+                      <Home className="w-3 h-3" />
+                      <span>Live Website CMS</span>
+                    </div>
+                    <h3 className="text-xl font-black text-slate-900 tracking-tight">Home Page Editor</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Configure Hero carousel slides, dynamic headline, company intro, 3D printer showcases, and CAD software suites in real-time.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                    <a
+                      href="/"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>View Live Home</span>
+                    </a>
+                    <button
+                      onClick={handleResetHomeContent}
+                      className="px-3.5 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Reset Defaults</span>
+                    </button>
+                    <button
+                      onClick={() => handleSaveHomeContent()}
+                      className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-md shadow-red-600/20 transition-all cursor-pointer"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Save All Changes</span>
+                    </button>
+                  </div>
+                </div>
+
+                {homeSavedMsg && (
+                  <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-bold flex items-center space-x-2 animate-in fade-in duration-200">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>{homeSavedMsg}</span>
+                  </div>
+                )}
+
+                {/* Sub-tabs Bar */}
+                <div className="bg-slate-100/90 p-1.5 rounded-2xl flex flex-wrap gap-1 border border-slate-200/80">
+                  <button
+                    onClick={() => setHomeActiveTab('hero')}
+                    className={`flex-1 min-w-[140px] py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-center cursor-pointer ${
+                      homeActiveTab === 'hero' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    1. Hero Slides ({homeContentData.hero.slides.length})
+                  </button>
+                  <button
+                    onClick={() => setHomeActiveTab('about')}
+                    className={`flex-1 min-w-[140px] py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-center cursor-pointer ${
+                      homeActiveTab === 'about' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    2. Company Introduction
+                  </button>
+                  <button
+                    onClick={() => setHomeActiveTab('printers')}
+                    className={`flex-1 min-w-[140px] py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-center cursor-pointer ${
+                      homeActiveTab === 'printers' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    3. 3D Printers Showcase
+                  </button>
+                  <button
+                    onClick={() => setHomeActiveTab('cad')}
+                    className={`flex-1 min-w-[140px] py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-center cursor-pointer ${
+                      homeActiveTab === 'cad' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    4. CAD Software Showcase
+                  </button>
+                  <button
+                    onClick={() => {
+                      setHomeActiveTab('raw_json')
+                      setHomeRawJsonInput(JSON.stringify(homeContentData, null, 2))
+                    }}
+                    className={`flex-1 min-w-[140px] py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-center cursor-pointer ${
+                      homeActiveTab === 'raw_json' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    5. Full Raw JSON
+                  </button>
+                </div>
+
+                {/* ─────────────────────────────────────────────────────────────
+                    SUB-TAB 1: HERO SLIDES & HEADLINE
+                   ───────────────────────────────────────────────────────────── */}
+                {homeActiveTab === 'hero' && (
+                  <div className="space-y-6">
+                    {/* Slides Selector & Controls */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                        <div>
+                          <h4 className="text-base font-bold text-slate-900">Hero Carousel Banners</h4>
+                          <p className="text-xs text-slate-500">Each banner is displayed at 1024:341 aspect ratio with auto-advancing rotation.</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            const newId = Date.now()
+                            const newSlide = {
+                              id: newId,
+                              image: '/images/hero/hero-banner-1.png',
+                              alt: 'New Hero Banner',
+                              title: 'New Additive Manufacturing Solution',
+                              subtitle: 'Empowering Next Generation Production',
+                              tag: 'Advanced Engineering',
+                              badge: 'New Technology',
+                              primaryBtnText: 'Explore Solutions',
+                              primaryBtnLink: '/products',
+                              secondaryBtnText: 'Request Quote',
+                              quoteSubject: 'Hero Banner Consultation',
+                            }
+                            setHomeContentData({
+                              ...homeContentData,
+                              hero: {
+                                ...homeContentData.hero,
+                                slides: [...homeContentData.hero.slides, newSlide],
+                              },
+                            })
+                            setActiveHeroSlideIdx(homeContentData.hero.slides.length)
+                          }}
+                          className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 self-start cursor-pointer"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add New Slide</span>
+                        </button>
+                      </div>
+
+                      {/* Slide Pills */}
+                      <div className="flex flex-wrap gap-2">
+                        {homeContentData.hero.slides.map((s, idx) => (
+                          <button
+                            key={s.id || idx}
+                            onClick={() => setActiveHeroSlideIdx(idx)}
+                            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center space-x-2 transition-all cursor-pointer ${
+                              activeHeroSlideIdx === idx
+                                ? 'bg-red-600 text-white shadow-sm'
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                            }`}
+                          >
+                            <span>Slide {idx + 1}: {s.title.substring(0, 20)}...</span>
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Selected Slide Edit Form */}
+                      {currentHeroSlide && (
+                        <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/90 space-y-5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold uppercase tracking-wider text-red-600">
+                              Editing Slide #{activeHeroSlideIdx + 1}
+                            </span>
+                            {homeContentData.hero.slides.length > 1 && (
+                              <button
+                                onClick={() => {
+                                  if (window.confirm('Delete this hero slide?')) {
+                                    const updated = homeContentData.hero.slides.filter((_, i) => i !== activeHeroSlideIdx)
+                                    setHomeContentData({
+                                      ...homeContentData,
+                                      hero: { ...homeContentData.hero, slides: updated },
+                                    })
+                                    setActiveHeroSlideIdx(Math.max(0, activeHeroSlideIdx - 1))
+                                  }
+                                }}
+                                className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center space-x-1 cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span>Delete Slide</span>
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Image Preview & URL */}
+                          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+                            <div className="md:col-span-5 bg-white p-2 rounded-xl border border-slate-200 shadow-2xs">
+                              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 px-1">Banner Image Preview</p>
+                              <div className="aspect-[1024/341] rounded-lg overflow-hidden bg-slate-100 flex items-center justify-center border border-slate-100">
+                                <img
+                                  src={currentHeroSlide.image}
+                                  alt={currentHeroSlide.alt}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src = 'https://placehold.co/1024x341?text=Preview+Image'
+                                  }}
+                                />
+                              </div>
+                            </div>
+
+                            <div className="md:col-span-7 space-y-3 text-xs">
+                              <div>
+                                <label className="block font-bold text-slate-700 mb-1">Banner Image URL / File Path</label>
+                                <input
+                                  type="text"
+                                  value={currentHeroSlide.image}
+                                  onChange={(e) => {
+                                    const updated = [...homeContentData.hero.slides]
+                                    updated[activeHeroSlideIdx] = { ...currentHeroSlide, image: e.target.value }
+                                    setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
+                                  }}
+                                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl"
+                                />
+                              </div>
+                              <div>
+                                <label className="block font-bold text-slate-700 mb-1">Image Alt Text (SEO)</label>
+                                <input
+                                  type="text"
+                                  value={currentHeroSlide.alt}
+                                  onChange={(e) => {
+                                    const updated = [...homeContentData.hero.slides]
+                                    updated[activeHeroSlideIdx] = { ...currentHeroSlide, alt: e.target.value }
+                                    setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
+                                  }}
+                                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Text Fields */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Slide Title</label>
+                              <input
+                                type="text"
+                                value={currentHeroSlide.title}
+                                onChange={(e) => {
+                                  const updated = [...homeContentData.hero.slides]
+                                  updated[activeHeroSlideIdx] = { ...currentHeroSlide, title: e.target.value }
+                                  setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
+                                }}
+                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Subtitle / Tagline</label>
+                              <input
+                                type="text"
+                                value={currentHeroSlide.subtitle}
+                                onChange={(e) => {
+                                  const updated = [...homeContentData.hero.slides]
+                                  updated[activeHeroSlideIdx] = { ...currentHeroSlide, subtitle: e.target.value }
+                                  setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
+                                }}
+                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Pill Tag (Top Pill)</label>
+                              <input
+                                type="text"
+                                value={currentHeroSlide.tag}
+                                onChange={(e) => {
+                                  const updated = [...homeContentData.hero.slides]
+                                  updated[activeHeroSlideIdx] = { ...currentHeroSlide, tag: e.target.value }
+                                  setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
+                                }}
+                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Badge Description</label>
+                              <input
+                                type="text"
+                                value={currentHeroSlide.badge}
+                                onChange={(e) => {
+                                  const updated = [...homeContentData.hero.slides]
+                                  updated[activeHeroSlideIdx] = { ...currentHeroSlide, badge: e.target.value }
+                                  setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
+                                }}
+                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Primary Button Text</label>
+                              <input
+                                type="text"
+                                value={currentHeroSlide.primaryBtnText}
+                                onChange={(e) => {
+                                  const updated = [...homeContentData.hero.slides]
+                                  updated[activeHeroSlideIdx] = { ...currentHeroSlide, primaryBtnText: e.target.value }
+                                  setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
+                                }}
+                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Primary Button Link URL</label>
+                              <input
+                                type="text"
+                                value={currentHeroSlide.primaryBtnLink}
+                                onChange={(e) => {
+                                  const updated = [...homeContentData.hero.slides]
+                                  updated[activeHeroSlideIdx] = { ...currentHeroSlide, primaryBtnLink: e.target.value }
+                                  setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
+                                }}
+                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Secondary Button Text</label>
+                              <input
+                                type="text"
+                                value={currentHeroSlide.secondaryBtnText}
+                                onChange={(e) => {
+                                  const updated = [...homeContentData.hero.slides]
+                                  updated[activeHeroSlideIdx] = { ...currentHeroSlide, secondaryBtnText: e.target.value }
+                                  setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
+                                }}
+                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Quote Inquiry Pre-filled Subject</label>
+                              <input
+                                type="text"
+                                value={currentHeroSlide.quoteSubject}
+                                onChange={(e) => {
+                                  const updated = [...homeContentData.hero.slides]
+                                  updated[activeHeroSlideIdx] = { ...currentHeroSlide, quoteSubject: e.target.value }
+                                  setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
+                                }}
+                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Bottom Dynamic Headline & Description */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                      <div>
+                        <h4 className="text-base font-bold text-slate-900">Hero Section Bottom Headline &amp; Quick CTAs</h4>
+                        <p className="text-xs text-slate-500">The primary heading and description displayed directly underneath the banner.</p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                        <div>
+                          <label className="block font-bold text-slate-700 mb-1">Headline Prefix</label>
+                          <input
+                            type="text"
+                            value={homeContentData.hero.headlinePrefix}
+                            onChange={(e) =>
+                              setHomeContentData({
+                                ...homeContentData,
+                                hero: { ...homeContentData.hero, headlinePrefix: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                          />
+                        </div>
+                        <div>
+                          <label className="block font-bold text-slate-700 mb-1">Headline Highlight (Red Text)</label>
+                          <input
+                            type="text"
+                            value={homeContentData.hero.headlineHighlight}
+                            onChange={(e) =>
+                              setHomeContentData({
+                                ...homeContentData,
+                                hero: { ...homeContentData.hero, headlineHighlight: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className="block font-bold text-slate-700 mb-1">Summary Description Paragraph</label>
+                          <textarea
+                            rows={3}
+                            value={homeContentData.hero.description}
+                            onChange={(e) =>
+                              setHomeContentData({
+                                ...homeContentData,
+                                hero: { ...homeContentData.hero, description: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl leading-relaxed"
+                          />
+                        </div>
+                        <div>
+                          <label className="block font-bold text-slate-700 mb-1">Phone Consultation Button Label</label>
+                          <input
+                            type="text"
+                            value={homeContentData.hero.talkToExpertText}
+                            onChange={(e) =>
+                              setHomeContentData({
+                                ...homeContentData,
+                                hero: { ...homeContentData.hero, talkToExpertText: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ─────────────────────────────────────────────────────────────
+                    SUB-TAB 2: COMPANY INTRODUCTION ("ABOUT LENIVA")
+                   ───────────────────────────────────────────────────────────── */}
+                {homeActiveTab === 'about' && (
+                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+                    <div>
+                      <h4 className="text-base font-bold text-slate-900">Company Introduction Section</h4>
+                      <p className="text-xs text-slate-500">The "Your Partner for Advanced 3D Solutions" 2-column introduction area.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Heading Prefix</label>
+                        <input
+                          type="text"
+                          value={homeContentData.companyIntro.heading}
+                          onChange={(e) =>
+                            setHomeContentData({
+                              ...homeContentData,
+                              companyIntro: { ...homeContentData.companyIntro, heading: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Heading Highlight (Red Text)</label>
+                        <input
+                          type="text"
+                          value={homeContentData.companyIntro.headingHighlight}
+                          onChange={(e) =>
+                            setHomeContentData({
+                              ...homeContentData,
+                              companyIntro: { ...homeContentData.companyIntro, headingHighlight: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="block font-bold text-slate-700 mb-1">Introduction Narrative Description</label>
+                        <textarea
+                          rows={4}
+                          value={homeContentData.companyIntro.description}
+                          onChange={(e) =>
+                            setHomeContentData({
+                              ...homeContentData,
+                              companyIntro: { ...homeContentData.companyIntro, description: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl leading-relaxed"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Core Business Pillars */}
+                    <div className="space-y-3 pt-4 border-t border-slate-100">
+                      <label className="block font-bold text-slate-800 text-xs">
+                        Core Business Pillars (Bullet Points)
+                      </label>
+                      <div className="space-y-2">
+                        {homeContentData.companyIntro.pillars.map((pillar, idx) => (
+                          <div key={idx} className="flex items-center space-x-2">
+                            <span className="w-5 text-center text-xs font-bold text-slate-400">{idx + 1}.</span>
+                            <input
+                              type="text"
+                              value={pillar}
+                              onChange={(e) => {
+                                const updated = [...homeContentData.companyIntro.pillars]
+                                updated[idx] = e.target.value
+                                setHomeContentData({
+                                  ...homeContentData,
+                                  companyIntro: { ...homeContentData.companyIntro, pillars: updated },
+                                })
+                              }}
+                              className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs"
+                            />
+                            {homeContentData.companyIntro.pillars.length > 1 && (
+                              <button
+                                onClick={() => {
+                                  const updated = homeContentData.companyIntro.pillars.filter((_, i) => i !== idx)
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    companyIntro: { ...homeContentData.companyIntro, pillars: updated },
+                                  })
+                                }}
+                                className="p-2 text-slate-400 hover:text-red-600 transition-colors cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Add Pillar */}
+                      <div className="flex items-center space-x-2 pt-2">
+                        <input
+                          type="text"
+                          placeholder="Add new pillar item..."
+                          value={newPillarDraft}
+                          onChange={(e) => setNewPillarDraft(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && newPillarDraft.trim()) {
+                              e.preventDefault()
+                              setHomeContentData({
+                                ...homeContentData,
+                                companyIntro: {
+                                  ...homeContentData.companyIntro,
+                                  pillars: [...homeContentData.companyIntro.pillars, newPillarDraft.trim()],
+                                },
+                              })
+                              setNewPillarDraft('')
+                            }
+                          }}
+                          className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs"
+                        />
+                        <button
+                          onClick={() => {
+                            if (!newPillarDraft.trim()) return
+                            setHomeContentData({
+                              ...homeContentData,
+                              companyIntro: {
+                                ...homeContentData.companyIntro,
+                                pillars: [...homeContentData.companyIntro.pillars, newPillarDraft.trim()],
+                              },
+                            })
+                            setNewPillarDraft('')
+                          }}
+                          className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center space-x-1 cursor-pointer"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* CTAs and Poster Image */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-4 border-t border-slate-100">
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Primary Button Text</label>
+                        <input
+                          type="text"
+                          value={homeContentData.companyIntro.btnExploreText}
+                          onChange={(e) =>
+                            setHomeContentData({
+                              ...homeContentData,
+                              companyIntro: { ...homeContentData.companyIntro, btnExploreText: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Primary Button Target Link</label>
+                        <input
+                          type="text"
+                          value={homeContentData.companyIntro.btnExploreLink}
+                          onChange={(e) =>
+                            setHomeContentData({
+                              ...homeContentData,
+                              companyIntro: { ...homeContentData.companyIntro, btnExploreLink: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Secondary Button Text</label>
+                        <input
+                          type="text"
+                          value={homeContentData.companyIntro.btnContactText}
+                          onChange={(e) =>
+                            setHomeContentData({
+                              ...homeContentData,
+                              companyIntro: { ...homeContentData.companyIntro, btnContactText: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Secondary Button Target Link</label>
+                        <input
+                          type="text"
+                          value={homeContentData.companyIntro.btnContactLink}
+                          onChange={(e) =>
+                            setHomeContentData({
+                              ...homeContentData,
+                              companyIntro: { ...homeContentData.companyIntro, btnContactLink: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Poster Image URL / Path</label>
+                        <input
+                          type="text"
+                          value={homeContentData.companyIntro.posterImage}
+                          onChange={(e) =>
+                            setHomeContentData({
+                              ...homeContentData,
+                              companyIntro: { ...homeContentData.companyIntro, posterImage: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Poster Alt Text</label>
+                        <input
+                          type="text"
+                          value={homeContentData.companyIntro.posterAlt}
+                          onChange={(e) =>
+                            setHomeContentData({
+                              ...homeContentData,
+                              companyIntro: { ...homeContentData.companyIntro, posterAlt: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ─────────────────────────────────────────────────────────────
+                    SUB-TAB 3: 3D PRINTERS SHOWCASE
+                   ───────────────────────────────────────────────────────────── */}
+                {homeActiveTab === 'printers' && (
+                  <div className="space-y-6">
+                    {/* Section Header Controls */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                      <div>
+                        <h4 className="text-base font-bold text-slate-900">3D Printers Section Header</h4>
+                        <p className="text-xs text-slate-500">The overall heading, badge, and description for the 3D Printer showcase.</p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                        <div>
+                          <label className="block font-bold text-slate-700 mb-1">Section Badge Pill</label>
+                          <input
+                            type="text"
+                            value={homeContentData.printers.sectionBadge}
+                            onChange={(e) =>
+                              setHomeContentData({
+                                ...homeContentData,
+                                printers: { ...homeContentData.printers, sectionBadge: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                          />
+                        </div>
+                        <div>
+                          <label className="block font-bold text-slate-700 mb-1">Section Title</label>
+                          <input
+                            type="text"
+                            value={homeContentData.printers.title}
+                            onChange={(e) =>
+                              setHomeContentData({
+                                ...homeContentData,
+                                printers: { ...homeContentData.printers, title: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className="block font-bold text-slate-700 mb-1">Section Description</label>
+                          <textarea
+                            rows={2}
+                            value={homeContentData.printers.description}
+                            onChange={(e) =>
+                              setHomeContentData({
+                                ...homeContentData,
+                                printers: { ...homeContentData.printers, description: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl leading-relaxed"
+                          />
+                        </div>
+                        <div>
+                          <label className="block font-bold text-slate-700 mb-1">View All Button Text</label>
+                          <input
+                            type="text"
+                            value={homeContentData.printers.viewAllText}
+                            onChange={(e) =>
+                              setHomeContentData({
+                                ...homeContentData,
+                                printers: { ...homeContentData.printers, viewAllText: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                          />
+                        </div>
+                        <div>
+                          <label className="block font-bold text-slate-700 mb-1">View All Button Link</label>
+                          <input
+                            type="text"
+                            value={homeContentData.printers.viewAllLink}
+                            onChange={(e) =>
+                              setHomeContentData({
+                                ...homeContentData,
+                                printers: { ...homeContentData.printers, viewAllLink: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Technology Cards Sub-Selector */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                        <div>
+                          <h4 className="text-base font-bold text-slate-900">3D Printer Technology Cards</h4>
+                          <p className="text-xs text-slate-500">Edit individual cards, specifications, rotating models, and CTA links.</p>
+                        </div>
+                        <div className="flex bg-slate-100 p-1 rounded-xl">
+                          <button
+                            onClick={() => setActivePrinterCardKey('fdm')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                              activePrinterCardKey === 'fdm' ? 'bg-white text-red-600 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                          >
+                            FDM Printers
+                          </button>
+                          <button
+                            onClick={() => setActivePrinterCardKey('dlp')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                              activePrinterCardKey === 'dlp' ? 'bg-white text-red-600 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                          >
+                            DLP Printers
+                          </button>
+                          <button
+                            onClick={() => setActivePrinterCardKey('lcd')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                              activePrinterCardKey === 'lcd' ? 'bg-white text-red-600 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                          >
+                            Industrial LCD
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Card Form */}
+                      {curPrinterCard && (
+                        <div className="space-y-5 text-xs">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Card Title</label>
+                              <input
+                                type="text"
+                                value={curPrinterCard.title}
+                                onChange={(e) => {
+                                  const updated = { ...curPrinterCard, title: e.target.value }
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    printers: { ...homeContentData.printers, [activePrinterCardKey]: updated },
+                                  })
+                                }}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Technology Tag (Small Red Header)</label>
+                              <input
+                                type="text"
+                                value={curPrinterCard.technologyTag}
+                                onChange={(e) => {
+                                  const updated = { ...curPrinterCard, technologyTag: e.target.value }
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    printers: { ...homeContentData.printers, [activePrinterCardKey]: updated },
+                                  })
+                                }}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Category Tag (Top Left Badge)</label>
+                              <input
+                                type="text"
+                                value={curPrinterCard.categoryTag}
+                                onChange={(e) => {
+                                  const updated = { ...curPrinterCard, categoryTag: e.target.value }
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    printers: { ...homeContentData.printers, [activePrinterCardKey]: updated },
+                                  })
+                                }}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Slideshow Rotation Speed (ms)</label>
+                              <input
+                                type="number"
+                                step={100}
+                                value={curPrinterCard.intervalMs}
+                                onChange={(e) => {
+                                  const updated = { ...curPrinterCard, intervalMs: Number(e.target.value) || 3000 }
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    printers: { ...homeContentData.printers, [activePrinterCardKey]: updated },
+                                  })
+                                }}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono"
+                              />
+                            </div>
+                            <div className="sm:col-span-2">
+                              <label className="block font-bold text-slate-700 mb-1">Card Summary Description</label>
+                              <textarea
+                                rows={2}
+                                value={curPrinterCard.description}
+                                onChange={(e) => {
+                                  const updated = { ...curPrinterCard, description: e.target.value }
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    printers: { ...homeContentData.printers, [activePrinterCardKey]: updated },
+                                  })
+                                }}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl leading-relaxed"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Button Label</label>
+                              <input
+                                type="text"
+                                value={curPrinterCard.btnText}
+                                onChange={(e) => {
+                                  const updated = { ...curPrinterCard, btnText: e.target.value }
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    printers: { ...homeContentData.printers, [activePrinterCardKey]: updated },
+                                  })
+                                }}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Button Target Link URL</label>
+                              <input
+                                type="text"
+                                value={curPrinterCard.btnLink}
+                                onChange={(e) => {
+                                  const updated = { ...curPrinterCard, btnLink: e.target.value }
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    printers: { ...homeContentData.printers, [activePrinterCardKey]: updated },
+                                  })
+                                }}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Feature Bullet Points */}
+                          <div className="pt-4 border-t border-slate-100 space-y-3">
+                            <label className="block font-bold text-slate-800">
+                              Feature Bullet Points ({curPrinterCard.bulletPoints.length})
+                            </label>
+                            <div className="space-y-2">
+                              {curPrinterCard.bulletPoints.map((bullet, idx) => (
+                                <div key={idx} className="flex items-center space-x-2">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                                  <input
+                                    type="text"
+                                    value={bullet}
+                                    onChange={(e) => {
+                                      const updatedBullets = [...curPrinterCard.bulletPoints]
+                                      updatedBullets[idx] = e.target.value
+                                      setHomeContentData({
+                                        ...homeContentData,
+                                        printers: {
+                                          ...homeContentData.printers,
+                                          [activePrinterCardKey]: { ...curPrinterCard, bulletPoints: updatedBullets },
+                                        },
+                                      })
+                                    }}
+                                    className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl"
+                                  />
+                                  <button
+                                    onClick={() => {
+                                      const updatedBullets = curPrinterCard.bulletPoints.filter((_, i) => i !== idx)
+                                      setHomeContentData({
+                                        ...homeContentData,
+                                        printers: {
+                                          ...homeContentData.printers,
+                                          [activePrinterCardKey]: { ...curPrinterCard, bulletPoints: updatedBullets },
+                                        },
+                                      })
+                                    }}
+                                    className="p-1.5 text-slate-400 hover:text-red-600 cursor-pointer"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Add Bullet */}
+                            <div className="flex items-center space-x-2 pt-1">
+                              <input
+                                type="text"
+                                placeholder="Add new bullet point..."
+                                value={newPrinterBulletDraft}
+                                onChange={(e) => setNewPrinterBulletDraft(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && newPrinterBulletDraft.trim()) {
+                                    e.preventDefault()
+                                    setHomeContentData({
+                                      ...homeContentData,
+                                      printers: {
+                                        ...homeContentData.printers,
+                                        [activePrinterCardKey]: {
+                                          ...curPrinterCard,
+                                          bulletPoints: [...curPrinterCard.bulletPoints, newPrinterBulletDraft.trim()],
+                                        },
+                                      },
+                                    })
+                                    setNewPrinterBulletDraft('')
+                                  }
+                                }}
+                                className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl"
+                              />
+                              <button
+                                onClick={() => {
+                                  if (!newPrinterBulletDraft.trim()) return
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    printers: {
+                                      ...homeContentData.printers,
+                                      [activePrinterCardKey]: {
+                                        ...curPrinterCard,
+                                        bulletPoints: [...curPrinterCard.bulletPoints, newPrinterBulletDraft.trim()],
+                                      },
+                                    },
+                                  })
+                                  setNewPrinterBulletDraft('')
+                                }}
+                                className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold flex items-center space-x-1 cursor-pointer"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>Add</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Rotating Model Images */}
+                          <div className="pt-4 border-t border-slate-100 space-y-3">
+                            <label className="block font-bold text-slate-800">
+                              Rotating Model Slides ({curPrinterCard.slides.length})
+                            </label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                              {curPrinterCard.slides.map((slide, idx) => (
+                                <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 relative group">
+                                  <div className="h-24 bg-white rounded-lg flex items-center justify-center p-2 border border-slate-100">
+                                    <img
+                                      src={slide.src}
+                                      alt={slide.name}
+                                      className="max-h-full max-w-full object-contain"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=Model'
+                                      }}
+                                    />
+                                  </div>
+                                  <div>
+                                    <input
+                                      type="text"
+                                      value={slide.name}
+                                      onChange={(e) => {
+                                        const updatedSlides = [...curPrinterCard.slides]
+                                        updatedSlides[idx] = { ...slide, name: e.target.value }
+                                        setHomeContentData({
+                                          ...homeContentData,
+                                          printers: {
+                                            ...homeContentData.printers,
+                                            [activePrinterCardKey]: { ...curPrinterCard, slides: updatedSlides },
+                                          },
+                                        })
+                                      }}
+                                      className="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg text-[11px] font-bold"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={slide.src}
+                                      onChange={(e) => {
+                                        const updatedSlides = [...curPrinterCard.slides]
+                                        updatedSlides[idx] = { ...slide, src: e.target.value }
+                                        setHomeContentData({
+                                          ...homeContentData,
+                                          printers: {
+                                            ...homeContentData.printers,
+                                            [activePrinterCardKey]: { ...curPrinterCard, slides: updatedSlides },
+                                          },
+                                        })
+                                      }}
+                                      className="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-mono mt-1 text-slate-500"
+                                    />
+                                  </div>
+                                  {curPrinterCard.slides.length > 1 && (
+                                    <button
+                                      onClick={() => {
+                                        const updatedSlides = curPrinterCard.slides.filter((_, i) => i !== idx)
+                                        setHomeContentData({
+                                          ...homeContentData,
+                                          printers: {
+                                            ...homeContentData.printers,
+                                            [activePrinterCardKey]: { ...curPrinterCard, slides: updatedSlides },
+                                          },
+                                        })
+                                      }}
+                                      className="absolute top-2 right-2 p-1 bg-white hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-md border border-slate-200 shadow-2xs transition-colors cursor-pointer"
+                                      title="Delete model slide"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Add New Model Slide */}
+                            <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200 space-y-2">
+                              <p className="font-bold text-slate-700 text-[11px]">Add New Model to Carousel</p>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Model Name (e.g. Pratham Plus)"
+                                  value={newPrinterSlideName}
+                                  onChange={(e) => setNewPrinterSlideName(e.target.value)}
+                                  className="px-3 py-1.5 bg-white border border-slate-200 rounded-xl"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="Image Path (e.g. /images/products/pratham-plus.png)"
+                                  value={newPrinterSlideSrc}
+                                  onChange={(e) => setNewPrinterSlideSrc(e.target.value)}
+                                  className="px-3 py-1.5 bg-white border border-slate-200 rounded-xl"
+                                />
+                              </div>
+                              <button
+                                onClick={() => {
+                                  if (!newPrinterSlideName.trim() || !newPrinterSlideSrc.trim()) return
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    printers: {
+                                      ...homeContentData.printers,
+                                      [activePrinterCardKey]: {
+                                        ...curPrinterCard,
+                                        slides: [
+                                          ...curPrinterCard.slides,
+                                          { name: newPrinterSlideName.trim(), src: newPrinterSlideSrc.trim() },
+                                        ],
+                                      },
+                                    },
+                                  })
+                                  setNewPrinterSlideName('')
+                                  setNewPrinterSlideSrc('')
+                                }}
+                                className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold flex items-center space-x-1 cursor-pointer"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>Add Model to Carousel</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* ─────────────────────────────────────────────────────────────
+                    SUB-TAB 4: CAD & 3D SOFTWARE SHOWCASE
+                   ───────────────────────────────────────────────────────────── */}
+                {homeActiveTab === 'cad' && (
+                  <div className="space-y-6">
+                    {/* Section Header Controls */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                      <div>
+                        <h4 className="text-base font-bold text-slate-900">CAD &amp; 3D Design Software Section Header</h4>
+                        <p className="text-xs text-slate-500">The overall heading, partner badge, and description for the CAD software suites.</p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                        <div>
+                          <label className="block font-bold text-slate-700 mb-1">Section Badge Pill</label>
+                          <input
+                            type="text"
+                            value={homeContentData.cadSoftware.sectionBadge}
+                            onChange={(e) =>
+                              setHomeContentData({
+                                ...homeContentData,
+                                cadSoftware: { ...homeContentData.cadSoftware, sectionBadge: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                          />
+                        </div>
+                        <div>
+                          <label className="block font-bold text-slate-700 mb-1">Section Title</label>
+                          <input
+                            type="text"
+                            value={homeContentData.cadSoftware.title}
+                            onChange={(e) =>
+                              setHomeContentData({
+                                ...homeContentData,
+                                cadSoftware: { ...homeContentData.cadSoftware, title: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className="block font-bold text-slate-700 mb-1">Section Description</label>
+                          <textarea
+                            rows={2}
+                            value={homeContentData.cadSoftware.description}
+                            onChange={(e) =>
+                              setHomeContentData({
+                                ...homeContentData,
+                                cadSoftware: { ...homeContentData.cadSoftware, description: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl leading-relaxed"
+                          />
+                        </div>
+                        <div>
+                          <label className="block font-bold text-slate-700 mb-1">View All Button Text</label>
+                          <input
+                            type="text"
+                            value={homeContentData.cadSoftware.viewAllText}
+                            onChange={(e) =>
+                              setHomeContentData({
+                                ...homeContentData,
+                                cadSoftware: { ...homeContentData.cadSoftware, viewAllText: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                          />
+                        </div>
+                        <div>
+                          <label className="block font-bold text-slate-700 mb-1">View All Button Link</label>
+                          <input
+                            type="text"
+                            value={homeContentData.cadSoftware.viewAllLink}
+                            onChange={(e) =>
+                              setHomeContentData({
+                                ...homeContentData,
+                                cadSoftware: { ...homeContentData.cadSoftware, viewAllLink: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* CAD Software Cards Sub-Selector */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                        <div>
+                          <h4 className="text-base font-bold text-slate-900">CAD Software Suite Cards</h4>
+                          <p className="text-xs text-slate-500">Edit individual software partner cards, bullet points, and edition slideshows.</p>
+                        </div>
+                        <div className="flex bg-slate-100 p-1 rounded-xl">
+                          <button
+                            onClick={() => setActiveCadCardKey('ares')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                              activeCadCardKey === 'ares' ? 'bg-white text-red-600 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                          >
+                            ARES CAD
+                          </button>
+                          <button
+                            onClick={() => setActiveCadCardKey('sketchup')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                              activeCadCardKey === 'sketchup' ? 'bg-white text-red-600 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                          >
+                            Trimble SketchUp
+                          </button>
+                          <button
+                            onClick={() => setActiveCadCardKey('chaos')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                              activeCadCardKey === 'chaos' ? 'bg-white text-red-600 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                          >
+                            Chaos Suites
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Card Form */}
+                      {curCadCard && (
+                        <div className="space-y-5 text-xs">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Card Title</label>
+                              <input
+                                type="text"
+                                value={curCadCard.title}
+                                onChange={(e) => {
+                                  const updated = { ...curCadCard, title: e.target.value }
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    cadSoftware: { ...homeContentData.cadSoftware, [activeCadCardKey]: updated },
+                                  })
+                                }}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Category Tag (Small Red Header)</label>
+                              <input
+                                type="text"
+                                value={curCadCard.categoryTag}
+                                onChange={(e) => {
+                                  const updated = { ...curCadCard, categoryTag: e.target.value }
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    cadSoftware: { ...homeContentData.cadSoftware, [activeCadCardKey]: updated },
+                                  })
+                                }}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Brand Partner Text (Top Left Tag)</label>
+                              <input
+                                type="text"
+                                value={curCadCard.brandPartnerText}
+                                onChange={(e) => {
+                                  const updated = { ...curCadCard, brandPartnerText: e.target.value }
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    cadSoftware: { ...homeContentData.cadSoftware, [activeCadCardKey]: updated },
+                                  })
+                                }}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Brand Logo Image URL</label>
+                              <input
+                                type="text"
+                                value={curCadCard.brandLogo}
+                                onChange={(e) => {
+                                  const updated = { ...curCadCard, brandLogo: e.target.value }
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    cadSoftware: { ...homeContentData.cadSoftware, [activeCadCardKey]: updated },
+                                  })
+                                }}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Slideshow Rotation Speed (ms)</label>
+                              <input
+                                type="number"
+                                step={100}
+                                value={curCadCard.intervalMs}
+                                onChange={(e) => {
+                                  const updated = { ...curCadCard, intervalMs: Number(e.target.value) || 3500 }
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    cadSoftware: { ...homeContentData.cadSoftware, [activeCadCardKey]: updated },
+                                  })
+                                }}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Button Label</label>
+                              <input
+                                type="text"
+                                value={curCadCard.btnText}
+                                onChange={(e) => {
+                                  const updated = { ...curCadCard, btnText: e.target.value }
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    cadSoftware: { ...homeContentData.cadSoftware, [activeCadCardKey]: updated },
+                                  })
+                                }}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                              />
+                            </div>
+                            <div className="sm:col-span-2">
+                              <label className="block font-bold text-slate-700 mb-1">Button Target Link URL</label>
+                              <input
+                                type="text"
+                                value={curCadCard.btnLink}
+                                onChange={(e) => {
+                                  const updated = { ...curCadCard, btnLink: e.target.value }
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    cadSoftware: { ...homeContentData.cadSoftware, [activeCadCardKey]: updated },
+                                  })
+                                }}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                              />
+                            </div>
+                            <div className="sm:col-span-2">
+                              <label className="block font-bold text-slate-700 mb-1">Card Summary Description</label>
+                              <textarea
+                                rows={2}
+                                value={curCadCard.description}
+                                onChange={(e) => {
+                                  const updated = { ...curCadCard, description: e.target.value }
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    cadSoftware: { ...homeContentData.cadSoftware, [activeCadCardKey]: updated },
+                                  })
+                                }}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl leading-relaxed"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Feature Bullet Points */}
+                          <div className="pt-4 border-t border-slate-100 space-y-3">
+                            <label className="block font-bold text-slate-800">
+                              Feature Bullet Points ({curCadCard.bulletPoints.length})
+                            </label>
+                            <div className="space-y-2">
+                              {curCadCard.bulletPoints.map((bullet, idx) => (
+                                <div key={idx} className="flex items-center space-x-2">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                                  <input
+                                    type="text"
+                                    value={bullet}
+                                    onChange={(e) => {
+                                      const updatedBullets = [...curCadCard.bulletPoints]
+                                      updatedBullets[idx] = e.target.value
+                                      setHomeContentData({
+                                        ...homeContentData,
+                                        cadSoftware: {
+                                          ...homeContentData.cadSoftware,
+                                          [activeCadCardKey]: { ...curCadCard, bulletPoints: updatedBullets },
+                                        },
+                                      })
+                                    }}
+                                    className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl"
+                                  />
+                                  <button
+                                    onClick={() => {
+                                      const updatedBullets = curCadCard.bulletPoints.filter((_, i) => i !== idx)
+                                      setHomeContentData({
+                                        ...homeContentData,
+                                        cadSoftware: {
+                                          ...homeContentData.cadSoftware,
+                                          [activeCadCardKey]: { ...curCadCard, bulletPoints: updatedBullets },
+                                        },
+                                      })
+                                    }}
+                                    className="p-1.5 text-slate-400 hover:text-red-600 cursor-pointer"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Add Bullet */}
+                            <div className="flex items-center space-x-2 pt-1">
+                              <input
+                                type="text"
+                                placeholder="Add new bullet point..."
+                                value={newCadBulletDraft}
+                                onChange={(e) => setNewCadBulletDraft(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && newCadBulletDraft.trim()) {
+                                    e.preventDefault()
+                                    setHomeContentData({
+                                      ...homeContentData,
+                                      cadSoftware: {
+                                        ...homeContentData.cadSoftware,
+                                        [activeCadCardKey]: {
+                                          ...curCadCard,
+                                          bulletPoints: [...curCadCard.bulletPoints, newCadBulletDraft.trim()],
+                                        },
+                                      },
+                                    })
+                                    setNewCadBulletDraft('')
+                                  }
+                                }}
+                                className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl"
+                              />
+                              <button
+                                onClick={() => {
+                                  if (!newCadBulletDraft.trim()) return
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    cadSoftware: {
+                                      ...homeContentData.cadSoftware,
+                                      [activeCadCardKey]: {
+                                        ...curCadCard,
+                                        bulletPoints: [...curCadCard.bulletPoints, newCadBulletDraft.trim()],
+                                      },
+                                    },
+                                  })
+                                  setNewCadBulletDraft('')
+                                }}
+                                className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold flex items-center space-x-1 cursor-pointer"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>Add</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Rotating Software Edition Images */}
+                          <div className="pt-4 border-t border-slate-100 space-y-3">
+                            <label className="block font-bold text-slate-800">
+                              Rotating Software Edition Slides ({curCadCard.slides.length})
+                            </label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                              {curCadCard.slides.map((slide, idx) => (
+                                <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 relative group">
+                                  <div className="h-24 bg-white rounded-lg flex items-center justify-center p-2 border border-slate-100">
+                                    <img
+                                      src={slide.src}
+                                      alt={slide.name}
+                                      className="max-h-full max-w-full object-contain"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=Software'
+                                      }}
+                                    />
+                                  </div>
+                                  <div>
+                                    <input
+                                      type="text"
+                                      value={slide.name}
+                                      onChange={(e) => {
+                                        const updatedSlides = [...curCadCard.slides]
+                                        updatedSlides[idx] = { ...slide, name: e.target.value }
+                                        setHomeContentData({
+                                          ...homeContentData,
+                                          cadSoftware: {
+                                            ...homeContentData.cadSoftware,
+                                            [activeCadCardKey]: { ...curCadCard, slides: updatedSlides },
+                                          },
+                                        })
+                                      }}
+                                      className="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg text-[11px] font-bold"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={slide.src}
+                                      onChange={(e) => {
+                                        const updatedSlides = [...curCadCard.slides]
+                                        updatedSlides[idx] = { ...slide, src: e.target.value }
+                                        setHomeContentData({
+                                          ...homeContentData,
+                                          cadSoftware: {
+                                            ...homeContentData.cadSoftware,
+                                            [activeCadCardKey]: { ...curCadCard, slides: updatedSlides },
+                                          },
+                                        })
+                                      }}
+                                      className="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-mono mt-1 text-slate-500"
+                                    />
+                                  </div>
+                                  {curCadCard.slides.length > 1 && (
+                                    <button
+                                      onClick={() => {
+                                        const updatedSlides = curCadCard.slides.filter((_, i) => i !== idx)
+                                        setHomeContentData({
+                                          ...homeContentData,
+                                          cadSoftware: {
+                                            ...homeContentData.cadSoftware,
+                                            [activeCadCardKey]: { ...curCadCard, slides: updatedSlides },
+                                          },
+                                        })
+                                      }}
+                                      className="absolute top-2 right-2 p-1 bg-white hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-md border border-slate-200 shadow-2xs transition-colors cursor-pointer"
+                                      title="Delete edition slide"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Add New Edition Slide */}
+                            <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200 space-y-2">
+                              <p className="font-bold text-slate-700 text-[11px]">Add New Edition to Carousel</p>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Edition Name (e.g. ARES Touch)"
+                                  value={newCadSlideName}
+                                  onChange={(e) => setNewCadSlideName(e.target.value)}
+                                  className="px-3 py-1.5 bg-white border border-slate-200 rounded-xl"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="Image Path (e.g. /images/software/ares-touch.jpg)"
+                                  value={newCadSlideSrc}
+                                  onChange={(e) => setNewCadSlideSrc(e.target.value)}
+                                  className="px-3 py-1.5 bg-white border border-slate-200 rounded-xl"
+                                />
+                              </div>
+                              <button
+                                onClick={() => {
+                                  if (!newCadSlideName.trim() || !newCadSlideSrc.trim()) return
+                                  setHomeContentData({
+                                    ...homeContentData,
+                                    cadSoftware: {
+                                      ...homeContentData.cadSoftware,
+                                      [activeCadCardKey]: {
+                                        ...curCadCard,
+                                        slides: [
+                                          ...curCadCard.slides,
+                                          { name: newCadSlideName.trim(), src: newCadSlideSrc.trim() },
+                                        ],
+                                      },
+                                    },
+                                  })
+                                  setNewCadSlideName('')
+                                  setNewCadSlideSrc('')
+                                }}
+                                className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold flex items-center space-x-1 cursor-pointer"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>Add Edition to Carousel</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* ─────────────────────────────────────────────────────────────
+                    SUB-TAB 5: FULL RAW JSON
+                   ───────────────────────────────────────────────────────────── */}
+                {homeActiveTab === 'raw_json' && (
+                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <h4 className="text-base font-bold text-slate-900">Direct Home Page JSON Tree</h4>
+                        <p className="text-xs text-slate-500">Edit, backup, or paste a complete JSON configuration.</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(homeRawJsonInput)
+                            setHomeSavedMsg('✓ Home page JSON copied to clipboard!')
+                            setTimeout(() => setHomeSavedMsg(''), 3000)
+                          }}
+                          className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center space-x-1 cursor-pointer"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Copy JSON</span>
+                        </button>
+                        <button
+                          onClick={handleApplyHomeRawJson}
+                          className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1 shadow-sm cursor-pointer"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Apply &amp; Save JSON</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {homeRawJsonError && (
+                      <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl text-xs font-mono">
+                        <strong>JSON Error:</strong> {homeRawJsonError}
+                      </div>
+                    )}
+
+                    <textarea
+                      value={homeRawJsonInput}
+                      onChange={(e) => {
+                        setHomeRawJsonInput(e.target.value)
+                        setHomeRawJsonError('')
+                      }}
+                      rows={24}
+                      className="w-full p-4 font-mono text-xs bg-slate-900 text-emerald-400 rounded-2xl border border-slate-800 focus:ring-2 focus:ring-red-500 outline-none leading-relaxed"
+                      spellCheck={false}
+                    />
+                  </div>
+                )}
+              </div>
+            )
+          })()}
 
           {/* ====================================================
               TAB 8: SITE SETTINGS & CMS

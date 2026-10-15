@@ -10,11 +10,7 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
-
-import heroBanner1 from '../assets/hero/hero-banner-1.png'
-import heroBanner2 from '../assets/hero/hero-banner-2.png'
-import heroBanner3 from '../assets/hero/hero-banner-3.png'
-import heroBanner4 from '../assets/hero/hero-banner-4.png'
+import { getStoredHomeContent, HomeContentConfig } from '../utils/homeContentConfig'
 
 interface ProductSlideItem {
   src: string
@@ -152,120 +148,44 @@ const ProductCardImageSlideshow: React.FC<{
 
 export const HomePage: React.FC = () => {
   const { openQuoteModal } = useApp()
+  const [homeContent, setHomeContent] = useState<HomeContentConfig>(getStoredHomeContent)
 
-  const slides = [
-    {
-      id: 1,
-      image: heroBanner1,
-      alt: 'Next Generation 3D Printing Technology — Leniva CAD Solutions',
-      title: 'Next Generation 3D Printing Technology',
-      subtitle: 'Powering Creativity, Enabling Industry',
-      tag: 'Design • Prototype • Manufacture',
-      badge: 'Full Additive Ecosystem',
-      primaryBtnText: 'Explore 3D Printers',
-      primaryBtnLink: '/products',
-      secondaryBtnText: 'Request Quote',
-      quoteSubject: 'Next Generation 3D Printing Technology Consultation',
-    },
-    {
-      id: 2,
-      image: heroBanner2,
-      alt: 'Industrial Grade Precision Performance Possibilities — Leniva CAD Solutions',
-      title: 'Precision, Performance, Possibilities',
-      subtitle: 'Large Ideas, Bigger Possibilities',
-      tag: 'Industrial Grade 3D Technologies',
-      badge: 'Full Additive Ecosystem',
-      primaryBtnText: 'Explore Our Range',
-      primaryBtnLink: '/products',
-      secondaryBtnText: 'Request a Demo',
-      quoteSubject: 'Industrial Grade 3D Solutions Consultation',
-    },
-    {
-      id: 3,
-      image: heroBanner3,
-      alt: 'Professional 3D Printing Solutions — Pratham 3 Rapid — Leniva CAD Solutions',
-      title: 'Professional 3D Printing Solutions',
-      subtitle: 'High-Speed Precision Prototyping & Production',
-      tag: 'Pratham 3 Rapid • High-Speed FDM',
-      badge: 'Advanced Additive Manufacturing',
-      primaryBtnText: 'Explore Pratham 3 Rapid',
-      primaryBtnLink: '/products/pratham-3-rapid',
-      secondaryBtnText: 'Request Quote',
-      quoteSubject: 'Pratham 3 Rapid Professional 3D Printing Solutions Inquiry',
-    },
-    {
-      id: 4,
-      image: heroBanner4,
-      alt: 'Professional CAD & 3D Design Software — ARES, SketchUp, Chaos — Leniva CAD Solutions',
-      title: 'CAD Softwares',
-      subtitle: 'Official Licenses for ARES CAD, Trimble SketchUp & Chaos Suites',
-      tag: 'ARES • SketchUp • Chaos Suites',
-      badge: 'Authorized Software Partner',
-      primaryBtnText: 'Explore CAD Software',
-      primaryBtnLink: '/products/cad-software',
-      secondaryBtnText: 'Request Quote',
-      quoteSubject: 'CAD Software Official Licensing Consultation',
-    },
-  ]
+  useEffect(() => {
+    const handler = () => {
+      setHomeContent(getStoredHomeContent())
+    }
+    window.addEventListener('storage', handler)
+    window.addEventListener('leniva_home_content_updated', handler)
+    return () => {
+      window.removeEventListener('storage', handler)
+      window.removeEventListener('leniva_home_content_updated', handler)
+    }
+  }, [])
 
-  const fdmSlides: ProductSlideItem[] = [
-    { src: '/images/products/pratham-3-0.png', name: 'Pratham 3.0' },
-    { src: '/images/products/pratham-mini-transparent.png', name: 'Pratham Mini' },
-    { src: '/images/products/pratham-desktop.png', name: 'Pratham Desktop' },
-    { src: '/images/products/pratham-5-0.png', name: 'Pratham 5.0' },
-    { src: '/images/products/pratham-6-0.png', name: 'Pratham 6.0' },
-    { src: '/images/products/pratham-x-transparent.png', name: 'Pratham X' },
-    { src: '/images/products/pratham-3-rapid-transparent.png', name: 'Pratham 3 Rapid' },
-  ]
-
-  const dlpSlides: ProductSlideItem[] = [
-    { src: '/images/products/eka-xl.png', name: 'EKA XL' },
-    { src: '/images/products/eka-ht.png', name: 'EKA HT' },
-    { src: '/images/products/eka-xle.png', name: 'EKA XLE' },
-  ]
-
-  const lcdSlides: ProductSlideItem[] = [
-    { src: '/images/products/eka-gt-max.png', name: 'EKA GT MAX' },
-    { src: '/images/products/eka-f1-16k.png', name: 'EKA F1 16K' },
-  ]
-
-  const aresSlides: ProductSlideItem[] = [
-    { src: '/images/software/ares-commander.jpg', name: 'ARES Commander' },
-    { src: '/images/software/ares-mechanical.jpg', name: 'ARES Mechanical' },
-    { src: '/images/software/ares-electrical.jpg', name: 'ARES Electrical' },
-    { src: '/images/software/ares-standard.jpg', name: 'ARES Standard' },
-  ]
-
-  const sketchupSlides: ProductSlideItem[] = [
-    { src: '/images/software/sketchup-pro.jpg', name: 'SketchUp Pro' },
-    { src: '/images/software/sketchup-studio.jpg', name: 'SketchUp Studio' },
-    { src: '/images/software/sketchup-scan.jpg', name: 'SketchUp Scan' },
-    { src: '/images/software/sketchup-advanced.jpg', name: 'Advanced Workflows' },
-  ]
-
-  const chaosSlides: ProductSlideItem[] = [
-    { src: '/images/software/enscape-3d.jpg', name: 'Enscape 3D' },
-    { src: '/images/software/chaos-vray.jpg', name: 'Chaos V-Ray' },
-    { src: '/images/software/chaos-corona.jpg', name: 'Chaos Corona' },
-  ]
+  const slides = homeContent.hero.slides
 
   const [currentSlide, setCurrentSlide] = useState(0)
 
+  // Safe active slide index if slides count changes dynamically
+  const activeSlideIndex = currentSlide >= slides.length ? 0 : currentSlide
+  const activeSlide = slides[activeSlideIndex] || slides[0]
+
   const nextSlide = useCallback(() => {
-    setCurrentSlide(prev => (prev + 1) % slides.length)
+    setCurrentSlide(prev => (prev + 1) % (slides.length || 1))
   }, [slides.length])
 
   const prevSlide = useCallback(() => {
-    setCurrentSlide(prev => (prev - 1 + slides.length) % slides.length)
+    setCurrentSlide(prev => (prev - 1 + (slides.length || 1)) % (slides.length || 1))
   }, [slides.length])
 
   // Continuous auto-scrolling every 4 seconds
   useEffect(() => {
+    if (slides.length <= 1) return
     const timer = setInterval(() => {
       nextSlide()
     }, 4000)
     return () => clearInterval(timer)
-  }, [nextSlide])
+  }, [nextSlide, slides.length])
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-8 sm:pb-10">
@@ -346,38 +266,38 @@ export const HomePage: React.FC = () => {
             <div className="lg:col-span-8 space-y-3">
               <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-red-50 border border-red-200/80 text-red-600 text-xs font-bold uppercase tracking-wider">
                 <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-                <span>{slides[currentSlide].tag}</span>
+                <span>{activeSlide?.tag}</span>
               </div>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-950 tracking-tight leading-snug">
-                Your Authorized Partner in{' '}
-                <span className="text-red-600">CAD & 3D Technology</span>
+                {homeContent.hero.headlinePrefix}
+                <span className="text-red-600">{homeContent.hero.headlineHighlight}</span>
               </h1>
               <p className="text-sm sm:text-[15px] text-slate-600 font-normal leading-relaxed max-w-2xl">
-                We are authorized dealers for leading CAD software, including ARES CAD, SketchUp, and Chaos, along with advanced 3D printing and 3D scanning solutions to meet your design and engineering needs.
+                {homeContent.hero.description}
               </p>
             </div>
 
             <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3 justify-end">
               <Link
-                to={slides[currentSlide].primaryBtnLink}
+                to={activeSlide?.primaryBtnLink || '/products'}
                 className="w-full px-7 py-4 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl shadow-md shadow-red-600/20 transition-all flex items-center justify-center space-x-2 group"
               >
-                <span>{slides[currentSlide].primaryBtnText}</span>
+                <span>{activeSlide?.primaryBtnText || 'Explore'}</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
               <div className="flex gap-2.5">
                 <button
-                  onClick={() => openQuoteModal(slides[currentSlide].quoteSubject)}
+                  onClick={() => openQuoteModal(activeSlide?.quoteSubject || 'Consultation Inquiry')}
                   className="flex-1 px-4 py-3 bg-slate-950 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm transition-all text-center cursor-pointer"
                 >
-                  {slides[currentSlide].secondaryBtnText}
+                  {activeSlide?.secondaryBtnText || 'Request Quote'}
                 </button>
                 <button
                   onClick={() => openQuoteModal('Talk to an Expert')}
                   className="flex-1 px-4 py-3 border border-slate-200 hover:border-slate-300 text-slate-800 hover:text-slate-950 bg-white text-xs sm:text-sm font-bold rounded-xl shadow-2xs transition-all flex items-center justify-center space-x-1.5 cursor-pointer"
                 >
                   <Phone className="w-3.5 h-3.5 text-red-600" />
-                  <span>Talk to Expert</span>
+                  <span>{homeContent.hero.talkToExpertText || 'Talk to Expert'}</span>
                 </button>
               </div>
             </div>
@@ -392,38 +312,32 @@ export const HomePage: React.FC = () => {
         <div className="bg-slate-50/80 rounded-3xl p-8 sm:p-12 lg:p-14 border border-slate-200/80 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           <div className="lg:col-span-7 space-y-6">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-tight">
-              Your Partner for <br />
-              <span className="text-red-600">Advanced 3D Solutions</span>
+              {homeContent.companyIntro.heading} <br />
+              <span className="text-red-600">{homeContent.companyIntro.headingHighlight}</span>
             </h2>
             <p className="text-slate-600 text-base sm:text-lg leading-relaxed font-normal">
-              Leniva CAD Solutions is a trusted supplier and solutions provider of CAD software, 3D printers, 3D scanners and related accessories. We bring proven engineering technologies to help industries, businesses and educational institutions adopt advanced 3D solutions for design, prototyping and production.
+              {homeContent.companyIntro.description}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-sm font-semibold text-slate-800 pt-1">
-              <div className="flex items-center space-x-2.5">
-                <span className="w-2 h-2 bg-red-600 rounded-full shrink-0" />
-                <span>1. Licensed CAD & Rendering Software</span>
-              </div>
-              <div className="flex items-center space-x-2.5">
-                <span className="w-2 h-2 bg-red-600 rounded-full shrink-0" />
-                <span>2. Industrial & Desktop 3D Printers</span>
-              </div>
-              <div className="flex items-center space-x-2.5 sm:col-span-2">
-                <span className="w-2 h-2 bg-red-600 rounded-full shrink-0" />
-                <span>3. 3D Scanners (Professional & Reverse Engineering)</span>
-              </div>
+              {homeContent.companyIntro.pillars.map((pillar, idx) => (
+                <div key={idx} className={`flex items-center space-x-2.5 ${idx === 2 ? 'sm:col-span-2' : ''}`}>
+                  <span className="w-2 h-2 bg-red-600 rounded-full shrink-0" />
+                  <span>{pillar}</span>
+                </div>
+              ))}
             </div>
             <div className="pt-4 flex flex-wrap items-center gap-4">
               <Link
-                to="/services"
+                to={homeContent.companyIntro.btnExploreLink}
                 className="px-7 py-3.5 bg-slate-950 hover:bg-red-600 text-white text-sm font-bold rounded-xl transition-all shadow-sm"
               >
-                Explore Solutions
+                {homeContent.companyIntro.btnExploreText}
               </Link>
               <Link
-                to="/contact"
+                to={homeContent.companyIntro.btnContactLink}
                 className="px-7 py-3.5 border border-slate-300 hover:border-slate-800 text-slate-900 text-sm font-bold rounded-xl transition-all bg-white shadow-2xs"
               >
-                Contact Us
+                {homeContent.companyIntro.btnContactText}
               </Link>
             </div>
           </div>
@@ -431,8 +345,8 @@ export const HomePage: React.FC = () => {
           <div className="lg:col-span-5 relative">
             <div className="rounded-2xl overflow-hidden shadow-xl border border-slate-200/90 bg-white group">
               <img
-                src="/images/about/about-leniva-poster.jpg"
-                alt="Leniva CAD Solutions — Authorized Software Partners & 3D Hardware"
+                src={homeContent.companyIntro.posterImage}
+                alt={homeContent.companyIntro.posterAlt}
                 className="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-[1.02]"
               />
             </div>
@@ -448,20 +362,20 @@ export const HomePage: React.FC = () => {
           <div className="space-y-2 max-w-2xl">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-red-600 text-xs font-bold uppercase tracking-wider">
               <Printer className="w-3.5 h-3.5" />
-              <span>Core Business • 3D Printing Systems</span>
+              <span>{homeContent.printers.sectionBadge}</span>
             </div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
-              3D Printer Technologies
+              {homeContent.printers.title}
             </h2>
             <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
-              We provide proven additive manufacturing systems tailored for functional engineering prototypes, fine jewellery casting, dental models, and industrial production.
+              {homeContent.printers.description}
             </p>
           </div>
           <Link
-            to="/products"
+            to={homeContent.printers.viewAllLink}
             className="inline-flex items-center space-x-1.5 text-sm font-bold text-red-600 hover:text-red-700 transition-colors shrink-0 group"
           >
-            <span>View All 3D Printers</span>
+            <span>{homeContent.printers.viewAllText}</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
@@ -470,39 +384,33 @@ export const HomePage: React.FC = () => {
           {/* Card 1: FDM 3D Printers */}
           <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden min-w-0">
             <ProductCardImageSlideshow
-              slides={fdmSlides}
-              categoryTag="Industrial &amp; Desktop"
-              intervalMs={2800}
+              slides={homeContent.printers.fdm.slides}
+              categoryTag={homeContent.printers.fdm.categoryTag}
+              intervalMs={homeContent.printers.fdm.intervalMs || 2800}
             />
             <div className="p-6 flex flex-col flex-1 justify-between space-y-5">
               <div className="space-y-3">
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-red-600">Fused Deposition Modeling</span>
-                  <h3 className="text-xl font-bold text-slate-950 mt-0.5">FDM 3D Printers</h3>
+                  <span className="text-xs font-bold uppercase tracking-wider text-red-600">{homeContent.printers.fdm.technologyTag}</span>
+                  <h3 className="text-xl font-bold text-slate-950 mt-0.5">{homeContent.printers.fdm.title}</h3>
                 </div>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  Robust extrusion systems built for functional prototypes, jigs, tooling, and durable engineering parts with build envelopes up to 1 meter³.
+                  {homeContent.printers.fdm.description}
                 </p>
                 <div className="space-y-2 pt-1 border-t border-slate-100 text-xs text-slate-700">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                    <span>Build volumes from 170 mm to 1000 mm³</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                    <span>PLA, ABS, PETG, TPU, Nylon &amp; Carbon-Fiber</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                    <span>Pratham Mini, Desktop, 3.0, 5.0, 6.0 &amp; X Series</span>
-                  </div>
+                  {homeContent.printers.fdm.bulletPoints.map((bullet, idx) => (
+                    <div key={idx} className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                      <span>{bullet}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
               <Link
-                to="/products/fdm-3d-printers"
+                to={homeContent.printers.fdm.btnLink}
                 className="w-full py-2.5 px-4 rounded-xl bg-slate-950 hover:bg-red-600 text-white text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 transition-colors cursor-pointer"
               >
-                <span>Explore FDM Printers</span>
+                <span>{homeContent.printers.fdm.btnText}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -511,39 +419,33 @@ export const HomePage: React.FC = () => {
           {/* Card 2: DLP 3D Printers */}
           <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden min-w-0">
             <ProductCardImageSlideshow
-              slides={dlpSlides}
-              categoryTag="High-Precision Resin"
-              intervalMs={3200}
+              slides={homeContent.printers.dlp.slides}
+              categoryTag={homeContent.printers.dlp.categoryTag}
+              intervalMs={homeContent.printers.dlp.intervalMs || 3200}
             />
             <div className="p-5 sm:p-6 flex flex-col flex-1 justify-between space-y-4 sm:space-y-5">
               <div className="space-y-3">
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-red-600">Digital Light Processing</span>
-                  <h3 className="text-xl font-bold text-slate-950 mt-0.5">DLP 3D Printers</h3>
+                  <span className="text-xs font-bold uppercase tracking-wider text-red-600">{homeContent.printers.dlp.technologyTag}</span>
+                  <h3 className="text-xl font-bold text-slate-950 mt-0.5">{homeContent.printers.dlp.title}</h3>
                 </div>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  High-precision photopolymer resin systems engineered for direct jewellery casting patterns, dental models, and intricate micro-components.
+                  {homeContent.printers.dlp.description}
                 </p>
                 <div className="space-y-2 pt-1 border-t border-slate-100 text-xs text-slate-700">
-                  <div className="flex items-start space-x-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
-                    <span className="leading-snug">Direct castable resin with 100% clean burnout</span>
-                  </div>
-                  <div className="flex items-start space-x-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
-                    <span className="leading-snug">Razor-sharp filigree and ultra-smooth surface finish</span>
-                  </div>
-                  <div className="flex items-start space-x-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
-                    <span className="leading-snug">EKA HT, EKA XL, and EKA XLE series</span>
-                  </div>
+                  {homeContent.printers.dlp.bulletPoints.map((bullet, idx) => (
+                    <div key={idx} className="flex items-start space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
+                      <span className="leading-snug">{bullet}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
               <Link
-                to="/products/dlp-3d-printers"
+                to={homeContent.printers.dlp.btnLink}
                 className="w-full py-2.5 px-4 rounded-xl bg-slate-950 hover:bg-red-600 text-white text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 transition-colors cursor-pointer"
               >
-                <span>Explore DLP Printers</span>
+                <span>{homeContent.printers.dlp.btnText}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -552,39 +454,33 @@ export const HomePage: React.FC = () => {
           {/* Card 3: Industrial LCD 3D Printers */}
           <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden min-w-0 md:col-span-2 lg:col-span-1">
             <ProductCardImageSlideshow
-              slides={lcdSlides}
-              categoryTag="8K &amp; 16K MSLA"
-              intervalMs={3000}
+              slides={homeContent.printers.lcd.slides}
+              categoryTag={homeContent.printers.lcd.categoryTag}
+              intervalMs={homeContent.printers.lcd.intervalMs || 3000}
             />
             <div className="p-6 flex flex-col flex-1 justify-between space-y-5">
               <div className="space-y-3">
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-red-600">Masked Stereolithography</span>
-                  <h3 className="text-xl font-bold text-slate-950 mt-0.5">Industrial LCD Printers</h3>
+                  <span className="text-xs font-bold uppercase tracking-wider text-red-600">{homeContent.printers.lcd.technologyTag}</span>
+                  <h3 className="text-xl font-bold text-slate-950 mt-0.5">{homeContent.printers.lcd.title}</h3>
                 </div>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  High-speed monochrome LCD masking systems for rapid batch throughput, micro-fine detailing, and productive engineering resin manufacturing.
+                  {homeContent.printers.lcd.description}
                 </p>
                 <div className="space-y-2 pt-1 border-t border-slate-100 text-xs text-slate-700">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                    <span>Up to 16K ultra-high resolution monochrome panels</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                    <span>High cure speed for rapid batch output</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                    <span>EKA GT MAX &amp; EKA F1 16K micro-detailing</span>
-                  </div>
+                  {homeContent.printers.lcd.bulletPoints.map((bullet, idx) => (
+                    <div key={idx} className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                      <span>{bullet}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
               <Link
-                to="/products/industrial-lcd-3d-printers"
+                to={homeContent.printers.lcd.btnLink}
                 className="w-full py-2.5 px-4 rounded-xl bg-slate-950 hover:bg-red-600 text-white text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 transition-colors cursor-pointer"
               >
-                <span>Explore LCD Printers</span>
+                <span>{homeContent.printers.lcd.btnText}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -601,20 +497,20 @@ export const HomePage: React.FC = () => {
             <div className="space-y-2 max-w-2xl">
               <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-red-600 text-xs font-bold uppercase tracking-wider">
                 <Laptop className="w-3.5 h-3.5" />
-                <span>Core Business • Authorized Software Partner</span>
+                <span>{homeContent.cadSoftware.sectionBadge}</span>
               </div>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
-                CAD &amp; 3D Design Software
+                {homeContent.cadSoftware.title}
               </h2>
               <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
-                Authorized reseller and technical partner for leading 2D/3D CAD, BIM, and photorealistic rendering suites with authentic licensing, deployment, and ongoing support.
+                {homeContent.cadSoftware.description}
               </p>
             </div>
             <Link
-              to="/products/cad-software"
+              to={homeContent.cadSoftware.viewAllLink}
               className="inline-flex items-center space-x-1.5 text-sm font-bold text-red-600 hover:text-red-700 transition-colors shrink-0 group"
             >
-              <span>View All CAD Software</span>
+              <span>{homeContent.cadSoftware.viewAllText}</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -623,41 +519,35 @@ export const HomePage: React.FC = () => {
             {/* Card 1: ARES CAD by Graebert */}
             <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden min-w-0">
               <ProductCardImageSlideshow
-                slides={aresSlides}
-                brandLogo="/images/brands/ares-cad.png"
-                brandPartnerText="Official Graebert Partner"
-                intervalMs={3500}
+                slides={homeContent.cadSoftware.ares.slides}
+                brandLogo={homeContent.cadSoftware.ares.brandLogo}
+                brandPartnerText={homeContent.cadSoftware.ares.brandPartnerText}
+                intervalMs={homeContent.cadSoftware.ares.intervalMs || 3500}
                 objectFit="contain"
               />
               <div className="p-5 sm:p-6 flex flex-col flex-1 justify-between space-y-4 sm:space-y-5">
                 <div className="space-y-3">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-red-600">DWG 2D &amp; 3D CAD</span>
-                    <h3 className="text-xl font-bold text-slate-950 mt-0.5">ARES CAD Systems</h3>
+                    <span className="text-xs font-bold uppercase tracking-wider text-red-600">{homeContent.cadSoftware.ares.categoryTag}</span>
+                    <h3 className="text-xl font-bold text-slate-950 mt-0.5">{homeContent.cadSoftware.ares.title}</h3>
                   </div>
                   <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                    Cost-effective, modern DWG-native CAD software featuring Trinity technology across Desktop, Cloud, and Mobile with dedicated Mechanical and Electrical suites.
+                    {homeContent.cadSoftware.ares.description}
                   </p>
                   <div className="space-y-2 pt-1 border-t border-slate-100 text-xs text-slate-700">
-                    <div className="flex items-start space-x-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
-                      <span className="leading-snug">Perpetual and flexible annual licensing</span>
-                    </div>
-                    <div className="flex items-start space-x-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
-                      <span className="leading-snug">Trinity ecosystem: Desktop, Cloud (Kudo), Mobile (Touch)</span>
-                    </div>
-                    <div className="flex items-start space-x-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
-                      <span className="leading-snug">ARES Commander, Standard, Mechanical &amp; Electrical</span>
-                    </div>
+                    {homeContent.cadSoftware.ares.bulletPoints.map((bullet, idx) => (
+                      <div key={idx} className="flex items-start space-x-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
+                        <span className="leading-snug">{bullet}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
                 <Link
-                  to="/products/cad-software"
+                  to={homeContent.cadSoftware.ares.btnLink}
                   className="w-full py-2.5 px-4 rounded-xl bg-slate-950 hover:bg-red-600 text-white text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 transition-colors cursor-pointer"
                 >
-                  <span>Explore ARES CAD</span>
+                  <span>{homeContent.cadSoftware.ares.btnText}</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -666,41 +556,35 @@ export const HomePage: React.FC = () => {
             {/* Card 2: Trimble SketchUp */}
             <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden min-w-0">
               <ProductCardImageSlideshow
-                slides={sketchupSlides}
-                brandLogo="/images/brands/sketchup.png"
-                brandPartnerText="Authorized Trimble Partner"
-                intervalMs={3800}
+                slides={homeContent.cadSoftware.sketchup.slides}
+                brandLogo={homeContent.cadSoftware.sketchup.brandLogo}
+                brandPartnerText={homeContent.cadSoftware.sketchup.brandPartnerText}
+                intervalMs={homeContent.cadSoftware.sketchup.intervalMs || 3800}
                 objectFit="contain"
               />
               <div className="p-5 sm:p-6 flex flex-col flex-1 justify-between space-y-4 sm:space-y-5">
                 <div className="space-y-3">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-red-600">3D Modeling &amp; BIM</span>
-                    <h3 className="text-xl font-bold text-slate-950 mt-0.5">Trimble SketchUp</h3>
+                    <span className="text-xs font-bold uppercase tracking-wider text-red-600">{homeContent.cadSoftware.sketchup.categoryTag}</span>
+                    <h3 className="text-xl font-bold text-slate-950 mt-0.5">{homeContent.cadSoftware.sketchup.title}</h3>
                   </div>
                   <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                    The world's most intuitive 3D modeling platform for architects, interior designers, and construction professionals, featuring LayOut documentation and Scan-to-BIM.
+                    {homeContent.cadSoftware.sketchup.description}
                   </p>
                   <div className="space-y-2 pt-1 border-t border-slate-100 text-xs text-slate-700">
-                    <div className="flex items-start space-x-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
-                      <span className="leading-snug">Fast, intuitive conceptual design &amp; 3D modeling</span>
-                    </div>
-                    <div className="flex items-start space-x-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
-                      <span className="leading-snug">2D LayOut construction sets &amp; Scan-to-BIM integration</span>
-                    </div>
-                    <div className="flex items-start space-x-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
-                      <span className="leading-snug">SketchUp Pro, SketchUp Studio, and Scan workflows</span>
-                    </div>
+                    {homeContent.cadSoftware.sketchup.bulletPoints.map((bullet, idx) => (
+                      <div key={idx} className="flex items-start space-x-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
+                        <span className="leading-snug">{bullet}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
                 <Link
-                  to="/products/sketchup"
+                  to={homeContent.cadSoftware.sketchup.btnLink}
                   className="w-full py-2.5 px-4 rounded-xl bg-slate-950 hover:bg-red-600 text-white text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 transition-colors cursor-pointer"
                 >
-                  <span>Explore SketchUp</span>
+                  <span>{homeContent.cadSoftware.sketchup.btnText}</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -709,41 +593,35 @@ export const HomePage: React.FC = () => {
             {/* Card 3: Chaos Rendering Suites */}
             <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden min-w-0 md:col-span-2 lg:col-span-1">
               <ProductCardImageSlideshow
-                slides={chaosSlides}
-                brandLogo="/images/brands/chaos.jpg"
-                brandPartnerText="Authorized Chaos Partner"
-                intervalMs={3600}
+                slides={homeContent.cadSoftware.chaos.slides}
+                brandLogo={homeContent.cadSoftware.chaos.brandLogo}
+                brandPartnerText={homeContent.cadSoftware.chaos.brandPartnerText}
+                intervalMs={homeContent.cadSoftware.chaos.intervalMs || 3600}
                 objectFit="contain"
               />
               <div className="p-5 sm:p-6 flex flex-col flex-1 justify-between space-y-4 sm:space-y-5">
                 <div className="space-y-3">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-red-600">Visualization &amp; Rendering</span>
-                    <h3 className="text-xl font-bold text-slate-950 mt-0.5">Chaos Rendering</h3>
+                    <span className="text-xs font-bold uppercase tracking-wider text-red-600">{homeContent.cadSoftware.chaos.categoryTag}</span>
+                    <h3 className="text-xl font-bold text-slate-950 mt-0.5">{homeContent.cadSoftware.chaos.title}</h3>
                   </div>
                   <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                    Industry-leading photorealistic ray tracing, real-time visualization, and VR walkthrough engines trusted by architectural visualizers and design studios worldwide.
+                    {homeContent.cadSoftware.chaos.description}
                   </p>
                   <div className="space-y-2 pt-1 border-t border-slate-100 text-xs text-slate-700">
-                    <div className="flex items-start space-x-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
-                      <span className="leading-snug">Real-time rendering &amp; VR walkthroughs (Enscape)</span>
-                    </div>
-                    <div className="flex items-start space-x-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
-                      <span className="leading-snug">Photorealistic ray-tracing fidelity (V-Ray &amp; Corona)</span>
-                    </div>
-                    <div className="flex items-start space-x-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
-                      <span className="leading-snug">Enscape, Chaos V-Ray, and Chaos Corona</span>
-                    </div>
+                    {homeContent.cadSoftware.chaos.bulletPoints.map((bullet, idx) => (
+                      <div key={idx} className="flex items-start space-x-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
+                        <span className="leading-snug">{bullet}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
                 <Link
-                  to="/products/enscape"
+                  to={homeContent.cadSoftware.chaos.btnLink}
                   className="w-full py-2.5 px-4 rounded-xl bg-slate-950 hover:bg-red-600 text-white text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 transition-colors cursor-pointer"
                 >
-                  <span>Explore Chaos Suites</span>
+                  <span>{homeContent.cadSoftware.chaos.btnText}</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
