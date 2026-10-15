@@ -40,6 +40,7 @@ import {
   ShoppingCart,
 } from 'lucide-react'
 import { ShopAndNavigationEditor } from '../components/admin/ShopAndNavigationEditor'
+import { getProductTemplate, ProductTemplateType } from '../utils/productTemplates'
 import {
   CadEnabledSections,
   DEFAULT_CAD_SECTIONS,
@@ -173,7 +174,6 @@ export default function AdminPage() {
   // Modals / Forms
   const [selectedQuote, setSelectedQuote] = useState<QuoteRequest | null>(null)
   const [quoteNotesInput, setQuoteNotesInput] = useState('')
-  const [isNewProductOpen, setIsNewProductOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null)
   const [activeEditTab, setActiveEditTab] = useState<'overview' | 'media' | 'pricing' | 'specs' | 'tech_specs' | 'features' | 'applications' | 'materials' | 'specialized'>('overview')
   const [editingBlog, setEditingBlog] = useState<BlogPostItem | null>(null)
@@ -188,20 +188,6 @@ export default function AdminPage() {
   const [newMatInput, setNewMatInput] = useState('')
   const [newGalleryImgInput, setNewGalleryImgInput] = useState('')
   const [productSaveSuccessMsg, setProductSaveSuccessMsg] = useState('')
-
-  const [newProd, setNewProd] = useState({
-    name: '',
-    brand: 'Make3D',
-    category: 'FDM 3D Printers',
-    categorySlug: 'fdm-3d-printers',
-    technology: 'Industrial FDM',
-    tagline: 'High Speed Precision System',
-    description: '',
-    short_description: '',
-    price: 0,
-    original_price: 0,
-    heroImage: '/images/products/pratham-mini.png',
-  })
 
   // Blog Form
   const [isNewBlogOpen, setIsNewBlogOpen] = useState(false)
@@ -1377,77 +1363,46 @@ export default function AdminPage() {
   }
 
   // Product operations
-  const handleCreateProduct = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const newId = newProd.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') || `prod-${Date.now()}`
-    const createdItem: ProductItem = {
-      id: newId,
-      slug: newId,
-      name: newProd.name,
-      brand: newProd.brand || 'Make3D',
-      category: newProd.category,
-      category_slug: newProd.categorySlug,
-      technology: newProd.technology,
-      tagline: newProd.tagline,
-      short_description: newProd.short_description,
-      description: newProd.description,
-      hero_image: newProd.heroImage || '/images/products/pratham-mini.png',
-      images: [newProd.heroImage || '/images/products/pratham-mini.png'],
-      price: 0,
-      original_price: 0,
-      in_stock: true,
-      is_featured: true,
-      is_quote_based: true,
-      key_specs: [],
-      specifications: {},
-      features: [],
-      applications: [],
-      materials: [],
-      who_is_it_for: [],
-    }
+  const handleStartCreateNewProduct = (type: ProductTemplateType = 'fdm') => {
+    const draft = getProductTemplate(type)
+    draft.name = ''
+    setEditingProduct(draft)
+    setActiveEditTab('overview')
+  }
 
-    const updated = [createdItem, ...productsList]
-    setProductsList(updated)
-    saveStoredProductsCatalog(updated)
-
-    try {
-      await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(createdItem),
-      })
-    } catch (err) {
-      console.warn('API sync skipped, saved to local catalog', err)
-    }
-
-    setIsNewProductOpen(false)
-    setNewProd({
-      name: '',
-      brand: 'Make3D',
-      category: 'FDM 3D Printers',
-      categorySlug: 'fdm-3d-printers',
-      technology: 'Industrial FDM',
-      tagline: 'High Speed Precision System',
-      description: '',
-      short_description: '',
-      price: 0,
-      original_price: 0,
-      heroImage: '/images/products/pratham-mini.png',
+  const handleApplyTemplate = (type: ProductTemplateType) => {
+    if (!editingProduct) return
+    const currentName = editingProduct.name
+    const template = getProductTemplate(type, currentName || undefined)
+    setEditingProduct({
+      ...template,
+      id: editingProduct.id,
+      name: currentName,
+      slug: currentName ? currentName.toLowerCase().replace(/[^a-z0-9]+/g, '-') : template.slug,
     })
-    setProductSaveSuccessMsg(`Product "${createdItem.name}" created and added to live catalog!`)
-    setTimeout(() => setProductSaveSuccessMsg(''), 4000)
   }
 
   const handleSaveEditProduct = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingProduct) return
-    const updatedList = productsList.map(p => p.id === editingProduct.id ? editingProduct : p)
+
+    if (!editingProduct.name.trim()) {
+      alert('Please enter a product title before saving.')
+      return
+    }
+
+    const existingIdx = productsList.findIndex(p => p.id === editingProduct.id)
+    const isNew = existingIdx < 0
+    const updatedList = isNew
+      ? [editingProduct, ...productsList]
+      : productsList.map(p => p.id === editingProduct.id ? editingProduct : p)
+
     setProductsList(updatedList)
     saveStoredProductsCatalog(updatedList)
 
     try {
       await fetch(`/api/products/${editingProduct.id}`, {
-        method: 'PUT',
+        method: isNew ? 'POST' : 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editingProduct),
       })
@@ -1455,7 +1410,11 @@ export default function AdminPage() {
       console.warn('API sync skipped, saved to local catalog', err)
     }
 
-    setProductSaveSuccessMsg(`Saved all full sections for "${editingProduct.name}"!`)
+    setProductSaveSuccessMsg(
+      isNew
+        ? `Product "${editingProduct.name}" successfully created with all full sections and added to live catalog!`
+        : `Saved all full sections for "${editingProduct.name}"!`
+    )
     setEditingProduct(null)
     setTimeout(() => setProductSaveSuccessMsg(''), 4000)
   }
@@ -2490,7 +2449,7 @@ export default function AdminPage() {
                     <span>Reset Defaults</span>
                   </button>
                   <button
-                    onClick={() => setIsNewProductOpen(true)}
+                    onClick={() => handleStartCreateNewProduct('fdm')}
                     className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-colors"
                   >
                     <Plus className="w-4 h-4" />
@@ -2578,122 +2537,7 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Add New Product Form */}
-              {isNewProductOpen && (
-                <form onSubmit={handleCreateProduct} className="p-6 bg-blue-50/70 border border-blue-200 rounded-2xl space-y-4 text-xs animate-in fade-in">
-                  <div className="flex items-center justify-between border-b border-blue-200/70 pb-3">
-                    <div>
-                      <h4 className="text-sm font-black text-blue-950">Add New Product to Catalog</h4>
-                      <p className="text-[11px] text-blue-700">Once created, you can edit all full sections (specs, features, gallery, materials) in the complete editor.</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsNewProductOpen(false)}
-                      className="text-slate-400 hover:text-slate-600 font-bold"
-                    >
-                      Cancel
-                    </button>
-                  </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Product Title</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Pratham Ultra Pro Max"
-                        value={newProd.name}
-                        onChange={e => setNewProd({ ...newProd, name: e.target.value })}
-                        required
-                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Category</label>
-                      <select
-                        value={newProd.categorySlug}
-                        onChange={e => setNewProd({
-                          ...newProd,
-                          categorySlug: e.target.value,
-                          category: e.target.options[e.target.selectedIndex].text,
-                        })}
-                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-medium"
-                      >
-                        <option value="fdm-3d-printers">FDM 3D Printers</option>
-                        <option value="dlp-3d-printers">DLP 3D Printers</option>
-                        <option value="industrial-lcd-3d-printers">Industrial LCD 3D Printers</option>
-                        <option value="3d-scanners">3D Scanners</option>
-                        <option value="filaments">Filaments & Consumables</option>
-                        <option value="cad-software">CAD Software</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Brand</label>
-                      <input
-                        type="text"
-                        value={newProd.brand}
-                        onChange={e => setNewProd({ ...newProd, brand: e.target.value })}
-                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Technology Badge</label>
-                      <input
-                        type="text"
-                        value={newProd.technology}
-                        onChange={e => setNewProd({ ...newProd, technology: e.target.value })}
-                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Commercial Mode</label>
-                      <div className="px-3 py-2 bg-purple-50/80 border border-purple-200 rounded-lg text-purple-900 font-bold flex items-center justify-between">
-                        <span>Quote / Inquiry Based</span>
-                        <span className="text-[10px] bg-purple-200 text-purple-800 px-2 py-0.5 rounded-full font-mono">No Prices Shown</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Tagline</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Industrial Monolithic 3D Printer for Functional Tooling"
-                      value={newProd.tagline}
-                      onChange={e => setNewProd({ ...newProd, tagline: e.target.value })}
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Hero Image URL</label>
-                    <input
-                      type="text"
-                      value={newProd.heroImage}
-                      onChange={e => setNewProd({ ...newProd, heroImage: e.target.value })}
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono text-[11px]"
-                    />
-                  </div>
-
-                  <div className="flex justify-end space-x-2 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsNewProductOpen(false)}
-                      className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-xs font-bold cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-md cursor-pointer"
-                    >
-                      Create & Open in Full Editor
-                    </button>
-                  </div>
-                </form>
-              )}
 
               {/* ====================================================
                   COMPLETE FULL SECTIONS PRODUCT EDIT MODAL
@@ -2713,10 +2557,17 @@ export default function AdminPage() {
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center space-x-2">
-                            <h4 className="text-base font-black text-white truncate">{editingProduct.name}</h4>
+                            <h4 className="text-base font-black text-white truncate">
+                              {editingProduct.name || 'Create New Product — Full Specifications'}
+                            </h4>
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-600/30 text-blue-300 border border-blue-500/40">
                               {editingProduct.category}
                             </span>
+                            {!productsList.some(p => p.id === editingProduct.id) && (
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                New Product Draft
+                              </span>
+                            )}
                           </div>
                           <div className="text-[11px] font-mono text-slate-400 truncate">
                             slug: /products/{editingProduct.slug} • Brand: {editingProduct.brand} • Tech: {editingProduct.technology}
@@ -2788,8 +2639,37 @@ export default function AdminPage() {
                       {/* TAB 1: OVERVIEW & GENERAL */}
                       {activeEditTab === 'overview' && (
                         <div className="space-y-4 animate-in fade-in">
+                          {/* Specification & Category Templates Switcher */}
+                          <div className="p-4 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-2xl border border-blue-200 shadow-2xs space-y-2.5">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                              <div className="flex items-center space-x-2">
+                                <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
+                                <span className="font-black text-blue-950 text-xs">Load Specification &amp; Category Template</span>
+                              </div>
+                              <span className="text-[11px] text-blue-700">Auto-populates full key specs, tech specs table, features &amp; materials</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2 pt-0.5">
+                              {[
+                                { type: 'fdm', label: '🖨️ FDM 3D Printer' },
+                                { type: 'dlp', label: '🧪 DLP / LCD Resin' },
+                                { type: 'scanner', label: '📷 3D Scanner' },
+                                { type: 'filament', label: '🧵 Filament & Material' },
+                                { type: 'cad', label: '💻 CAD Software' },
+                              ].map(t => (
+                                <button
+                                  key={t.type}
+                                  type="button"
+                                  onClick={() => handleApplyTemplate(t.type as any)}
+                                  className="px-3 py-1.5 bg-white hover:bg-blue-600 hover:text-white border border-blue-200 hover:border-blue-600 rounded-xl text-xs font-bold text-slate-700 transition-all cursor-pointer shadow-2xs"
+                                >
+                                  {t.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
                           <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 flex items-center justify-between">
-                            <div className="font-bold text-blue-950">Section 1: General Information & Page Branding</div>
+                            <div className="font-bold text-blue-950">Section 1: General Information &amp; Page Branding</div>
                             <span className="text-[11px] text-blue-700">Controls hero typography, URL routing, and metadata</span>
                           </div>
 
@@ -3868,7 +3748,11 @@ export default function AdminPage() {
                             className="inline-flex items-center space-x-1.5 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-colors"
                           >
                             <Save className="w-4 h-4" />
-                            <span>Save Changes to PostgreSQL & Local</span>
+                            <span>
+                              {productsList.some(p => p.id === editingProduct.id)
+                                ? 'Save Changes to Catalog'
+                                : 'Create & Add to Live Catalog'}
+                            </span>
                           </button>
                         </div>
                       </div>
@@ -7191,7 +7075,7 @@ export default function AdminPage() {
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <button
-                      onClick={() => { setActiveTab('products'); setIsNewProductOpen(true) }}
+                      onClick={() => { setActiveTab('products'); handleStartCreateNewProduct('fdm') }}
                       className="px-3 py-1.5 bg-white hover:bg-slate-50 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center space-x-1"
                     >
                       <Package className="w-3.5 h-3.5" />
