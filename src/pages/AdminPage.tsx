@@ -21,7 +21,6 @@ import {
   Save,
   Check,
   Search,
-  Briefcase,
   Home,
   Code,
   HelpCircle,
@@ -37,9 +36,7 @@ import {
   CAD_SECTION_METADATA,
 } from '../utils/cadSoftwareConfig'
 import { products as fallbackProducts } from '../data/products'
-import { services as fallbackServices } from '../data/services'
 import { blogPosts as fallbackBlogs } from '../data/blogs'
-import { productCategories as fallbackCategories } from '../data/categories'
 
 interface Stats {
   totalProducts: number
@@ -129,9 +126,7 @@ export default function AdminPage() {
     | 'quotes'
     | 'contacts'
     | 'products'
-    | 'services'
     | 'blogs'
-    | 'categories'
     | 'cad_software'
     | 'settings'
     | 'users'
@@ -145,8 +140,16 @@ export default function AdminPage() {
   const [contacts, setContacts] = useState<ContactMessage[]>([])
   const [productsList, setProductsList] = useState<ProductItem[]>([])
   const [blogsList, setBlogsList] = useState<BlogPostItem[]>([])
-  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([])
-  const [categoriesList, setCategoriesList] = useState<any[]>([])
+  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([
+    {
+      id: 1,
+      username: 'admin',
+      email: 'admin@lenivacadsolution.in',
+      full_name: 'Leniva Primary Superadmin',
+      role: 'superadmin',
+      created_at: '2026-01-01',
+    },
+  ])
 
   // Search & Filter
   const [productSearch, setProductSearch] = useState('')
@@ -158,18 +161,6 @@ export default function AdminPage() {
   const [isNewProductOpen, setIsNewProductOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<any>(null)
   const [editingBlog, setEditingBlog] = useState<BlogPostItem | null>(null)
-  const [editingCategory, setEditingCategory] = useState<any>(null)
-  const [servicesList, setServicesList] = useState<any[]>([])
-  const [editingService, setEditingService] = useState<any>(null)
-  const [isNewServiceOpen, setIsNewServiceOpen] = useState(false)
-  const [newService, setNewService] = useState({
-    title: '',
-    slug: '',
-    badge: 'Industrial Grade',
-    short_description: '',
-    description: '',
-    image: '/images/services/scanning.jpg',
-  })
   const [uploadingField, setUploadingField] = useState<string | null>(null)
 
   const [newProd, setNewProd] = useState({
@@ -195,15 +186,6 @@ export default function AdminPage() {
     excerpt: '',
     content: '',
     image: '/images/showcase/pratham-showcase.png',
-  })
-
-  // Category Form
-  const [isNewCategoryOpen, setIsNewCategoryOpen] = useState(false)
-  const [newCategory, setNewCategory] = useState({
-    title: '',
-    slug: '',
-    description: '',
-    image: '',
   })
 
   // Settings State
@@ -1127,9 +1109,7 @@ export default function AdminPage() {
         prodsRes,
         blogsRes,
         usersRes,
-        catsRes,
         settingsRes,
-        servicesRes,
       ] = await Promise.allSettled([
         safeFetchJson('/api/stats'),
         safeFetchJson('/api/quotes'),
@@ -1137,9 +1117,7 @@ export default function AdminPage() {
         safeFetchJson('/api/products'),
         safeFetchJson('/api/blogs'),
         safeFetchJson('/api/admin/users'),
-        safeFetchJson('/api/categories'),
         safeFetchJson('/api/settings'),
-        safeFetchJson('/api/services'),
       ])
 
       const statsVal = statsRes.status === 'fulfilled' ? statsRes.value : null
@@ -1148,9 +1126,7 @@ export default function AdminPage() {
       const prodsVal = prodsRes.status === 'fulfilled' ? prodsRes.value : null
       const blogsVal = blogsRes.status === 'fulfilled' ? blogsRes.value : null
       const usersVal = usersRes.status === 'fulfilled' ? usersRes.value : null
-      const catsVal = catsRes.status === 'fulfilled' ? catsRes.value : null
       const settingsVal = settingsRes.status === 'fulfilled' ? settingsRes.value : null
-      const servicesVal = servicesRes.status === 'fulfilled' ? servicesRes.value : null
 
       // Fallback products if API not connected
       if (Array.isArray(prodsVal) && prodsVal.length > 0) {
@@ -1175,22 +1151,6 @@ export default function AdminPage() {
         setProductsList(mappedProducts)
       }
 
-      // Fallback services
-      if (Array.isArray(servicesVal) && servicesVal.length > 0) {
-        setServicesList(servicesVal)
-      } else {
-        const mappedServices = fallbackServices.map(s => ({
-          id: s.id,
-          title: s.title,
-          slug: s.slug,
-          badge: s.badge || 'Engineering Service',
-          short_description: s.shortDescription || '',
-          description: s.description || '',
-          image: s.image || '/images/services/scanning.jpg',
-        }))
-        setServicesList(mappedServices)
-      }
-
       // Fallback blogs
       if (Array.isArray(blogsVal) && blogsVal.length > 0) {
         setBlogsList(blogsVal)
@@ -1208,13 +1168,6 @@ export default function AdminPage() {
           published: true,
         }))
         setBlogsList(mappedBlogs)
-      }
-
-      // Fallback categories
-      if (Array.isArray(catsVal) && catsVal.length > 0) {
-        setCategoriesList(catsVal)
-      } else {
-        setCategoriesList(fallbackCategories)
       }
 
       // Fallback Quotes
@@ -1526,84 +1479,6 @@ export default function AdminPage() {
     }
   }
 
-  // Category Edit Operation
-  const handleSaveEditCategory = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!editingCategory) return
-    try {
-      const res = await fetch(`/api/categories/${editingCategory.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingCategory),
-      })
-      if (res.ok) {
-        const updated = await res.json()
-        setCategoriesList(prev => prev.map(c => c.id === updated.id ? updated : c))
-        setEditingCategory(null)
-      }
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
-  // Service Operations
-  const handleCreateService = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      const res = await fetch('/api/services', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newService),
-      })
-      if (res.ok) {
-        const created = await res.json()
-        setServicesList(prev => [...prev, created])
-        setIsNewServiceOpen(false)
-        setNewService({
-          title: '',
-          slug: '',
-          badge: 'Industrial Grade',
-          short_description: '',
-          description: '',
-          image: '/images/services/scanning.jpg',
-        })
-      }
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
-  const handleSaveEditService = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!editingService) return
-    try {
-      const res = await fetch(`/api/services/${editingService.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingService),
-      })
-      if (res.ok) {
-        const updated = await res.json()
-        setServicesList(prev => prev.map(s => s.id === updated.id ? updated : s))
-        setEditingService(null)
-      }
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
-  const handleDeleteService = async (id: string) => {
-    if (!confirm(`Delete engineering service ${id} from PostgreSQL?`)) return
-    try {
-      const res = await fetch(`/api/services/${id}`, { method: 'DELETE' })
-      if (res.ok) {
-        setServicesList(prev => prev.filter(s => s.id !== id))
-      }
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
   // Direct image upload helper for all edit modals
   const handleDirectImageUpload = async (file: File, callback: (url: string) => void) => {
     try {
@@ -1712,18 +1587,6 @@ export default function AdminPage() {
       if (res.ok) {
         setContacts(prev => prev.filter(c => c.id !== id))
         if (selectedContact?.id === id) setSelectedContact(null)
-      }
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
-  const handleDeleteCategory = async (id: number) => {
-    if (!confirm('Delete this category from PostgreSQL? Products using it will still exist.')) return
-    try {
-      const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' })
-      if (res.ok) {
-        setCategoriesList(prev => prev.filter(c => c.id !== id))
       }
     } catch (err) {
       console.error(err)
@@ -1959,24 +1822,6 @@ export default function AdminPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('services')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
-                activeTab === 'services' ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <Briefcase className="w-4 h-4" />
-                <span>Services</span>
-              </div>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
-                activeTab === 'services' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'
-              }`}>
-                {servicesList.length}
-              </span>
-            </button>
-
-
-            <button
               onClick={() => setActiveTab('blogs')}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
                 activeTab === 'blogs' ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-slate-100'
@@ -1990,23 +1835,6 @@ export default function AdminPage() {
                 activeTab === 'blogs' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'
               }`}>
                 {blogsList.length}
-              </span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('categories')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
-                activeTab === 'categories' ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <Package className="w-4 h-4" />
-                <span>Categories</span>
-              </div>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
-                activeTab === 'categories' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'
-              }`}>
-                {categoriesList.length}
               </span>
             </button>
 
@@ -2084,12 +1912,12 @@ export default function AdminPage() {
 
                 <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
                   <div>
-                    <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Services</div>
-                    <div className="text-2xl font-black text-slate-900 mt-1">{servicesList.length}</div>
-                    <div className="text-[10px] text-purple-600 font-semibold mt-1">3D Solutions & Services</div>
+                    <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">CAD Software</div>
+                    <div className="text-2xl font-black text-slate-900 mt-1">{cadProducts.length}</div>
+                    <div className="text-[10px] text-purple-600 font-semibold mt-1">Live Software CMS</div>
                   </div>
                   <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-                    <Briefcase className="w-5 h-5" />
+                    <Shield className="w-5 h-5" />
                   </div>
                 </div>
 
@@ -2820,297 +2648,7 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* ====================================================
-              TAB: ENGINEERING SERVICES (FULL CRUD & FULL EDIT)
-             ==================================================== */}
-          {activeTab === 'services' && (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-lg font-black text-slate-900">Engineering & 3D Printing Services</h3>
-                  <p className="text-xs text-slate-500">Manage industrial manufacturing and scanning services in PostgreSQL</p>
-                </div>
-                <button
-                  onClick={() => setIsNewServiceOpen(true)}
-                  className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add New Service</span>
-                </button>
-              </div>
 
-              {/* Add New Service Form */}
-              {isNewServiceOpen && (
-                <form onSubmit={handleCreateService} className="p-5 bg-blue-50/50 border border-blue-200 rounded-2xl space-y-4 text-xs">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-black text-blue-950">Add Engineering Service</h4>
-                    <button
-                      type="button"
-                      onClick={() => setIsNewServiceOpen(false)}
-                      className="text-slate-400 hover:text-slate-600 font-bold"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Service Title</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. 3D Scanning & Inspection"
-                        value={newService.title}
-                        onChange={e => setNewService({ ...newService, title: e.target.value })}
-                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Slug</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. 3d-scanning-inspection"
-                        value={newService.slug}
-                        onChange={e => setNewService({ ...newService, slug: e.target.value })}
-                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono text-[11px]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Badge</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Industrial Precision"
-                        value={newService.badge}
-                        onChange={e => setNewService({ ...newService, badge: e.target.value })}
-                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Short Description</label>
-                    <textarea
-                      rows={2}
-                      value={newService.short_description}
-                      onChange={e => setNewService({ ...newService, short_description: e.target.value })}
-                      placeholder="Brief overview displayed on cards..."
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Detailed Description</label>
-                    <textarea
-                      rows={3}
-                      value={newService.description}
-                      onChange={e => setNewService({ ...newService, description: e.target.value })}
-                      placeholder="Comprehensive technical details..."
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg"
-                    />
-                  </div>
-
-                  <div className="flex justify-end space-x-2 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsNewServiceOpen(false)}
-                      className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg font-bold"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold"
-                    >
-                      Save Service to PostgreSQL
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {/* Edit Service Modal */}
-              {editingService && (
-                <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-                  <form onSubmit={handleSaveEditService} className="bg-white rounded-3xl max-w-2xl w-full p-6 space-y-4 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto text-xs">
-                    <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                      <div>
-                        <h4 className="text-base font-black text-slate-900">
-                          Edit Service: {editingService.title}
-                        </h4>
-                        <div className="text-[11px] font-mono text-slate-400">ID: {editingService.id}</div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setEditingService(null)}
-                        className="text-slate-400 hover:text-slate-700 font-bold text-lg cursor-pointer"
-                      >
-                        âœ•
-                      </button>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div className="sm:col-span-2">
-                          <label className="block font-bold text-slate-700 mb-1">Service Title</label>
-                          <input
-                            type="text"
-                            required
-                            value={editingService.title}
-                            onChange={e => setEditingService({ ...editingService, title: e.target.value })}
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
-                          />
-                        </div>
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">Badge</label>
-                          <input
-                            type="text"
-                            value={editingService.badge || ''}
-                            onChange={e => setEditingService({ ...editingService, badge: e.target.value })}
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block font-bold text-slate-700 mb-1">Slug (URL)</label>
-                        <input
-                          type="text"
-                          value={editingService.slug || ''}
-                          onChange={e => setEditingService({ ...editingService, slug: e.target.value })}
-                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-[11px]"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block font-bold text-slate-700 mb-1">Service Image (PostgreSQL Storage or URL)</label>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={editingService.image || ''}
-                            onChange={e => setEditingService({ ...editingService, image: e.target.value })}
-                            className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-[11px]"
-                          />
-                          <label className="inline-flex items-center space-x-1.5 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg cursor-pointer transition-colors shrink-0">
-                            <Upload className="w-3.5 h-3.5" />
-                            <span className="text-[11px] font-bold">
-                              {uploadingField ? 'Uploading...' : 'Upload Image'}
-                            </span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={e => {
-                                const file = e.target.files?.[0]
-                                if (file) {
-                                  handleDirectImageUpload(file, url => {
-                                    setEditingService((prev: any) => ({ ...prev, image: url }))
-                                  })
-                                }
-                              }}
-                            />
-                          </label>
-                        </div>
-                        {editingService.image && (
-                          <div className="mt-2 flex items-center space-x-3 p-2 bg-slate-50 rounded-xl border border-slate-200 w-fit">
-                            <img
-                              src={editingService.image}
-                              alt="Service preview"
-                              className="w-12 h-12 object-cover bg-white rounded-lg border border-slate-200"
-                              onError={e => { (e.target as HTMLElement).style.display = 'none' }}
-                            />
-                            <span className="text-[11px] text-slate-500 font-mono truncate max-w-xs">{editingService.image}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block font-bold text-slate-700 mb-1">Short Description</label>
-                        <textarea
-                          rows={2}
-                          value={editingService.short_description || ''}
-                          onChange={e => setEditingService({ ...editingService, short_description: e.target.value })}
-                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block font-bold text-slate-700 mb-1">Full Detailed Description</label>
-                        <textarea
-                          rows={4}
-                          value={editingService.description || ''}
-                          onChange={e => setEditingService({ ...editingService, description: e.target.value })}
-                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="pt-3 border-t border-slate-200 flex justify-end space-x-2">
-                      <button
-                        type="button"
-                        onClick={() => setEditingService(null)}
-                        className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-bold cursor-pointer"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md cursor-pointer"
-                      >
-                        Save Service to PostgreSQL
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              )}
-
-              {/* Services List Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider bg-slate-50/50">
-                      <th className="py-3 px-3">Service</th>
-                      <th className="py-3 px-3">Badge</th>
-                      <th className="py-3 px-3">Description</th>
-                      <th className="py-3 px-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {servicesList.map(s => (
-                      <tr key={s.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="py-3 px-3">
-                          <div className="font-bold text-slate-900">{s.title}</div>
-                          <div className="text-[11px] text-slate-400 font-mono">/services#{s.slug}</div>
-                        </td>
-                        <td className="py-3 px-3">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">
-                            {s.badge || 'Industrial'}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 text-slate-600 max-w-sm">
-                          <p className="line-clamp-2">{s.short_description || s.description}</p>
-                        </td>
-                        <td className="py-3 px-3 text-right space-x-1.5">
-                          <button
-                            onClick={() => setEditingService(s)}
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
-                            title="Edit service details"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteService(s.id)}
-                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
-                            title="Delete service"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
 
 
 
@@ -3410,254 +2948,6 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* ====================================================
-              TAB 7: CATEGORIES (FULL CONTROL)
-             ==================================================== */}
-          {activeTab === 'categories' && (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-black text-slate-900">Equipment Categories</h3>
-                  <p className="text-xs text-slate-500">Manage catalog taxonomy in PostgreSQL</p>
-                </div>
-                <button
-                  onClick={() => setIsNewCategoryOpen(true)}
-                  className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add Category</span>
-                </button>
-              </div>
-
-              {isNewCategoryOpen && (
-                <form
-                  onSubmit={async e => {
-                    e.preventDefault()
-                    const res = await fetch('/api/categories', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify(newCategory),
-                    })
-                    if (res.ok) {
-                      const created = await res.json()
-                      setCategoriesList(prev => [...prev, created])
-                      setIsNewCategoryOpen(false)
-                      setNewCategory({ title: '', slug: '', description: '', image: '' })
-                    }
-                  }}
-                  className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 text-xs"
-                >
-                  <h4 className="font-bold text-slate-900">Create New Category</h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    <input
-                      type="text"
-                      placeholder="Category Title"
-                      required
-                      value={newCategory.title}
-                      onChange={e => setNewCategory({ ...newCategory, title: e.target.value })}
-                      className="px-3 py-2 bg-white border border-slate-200 rounded-lg"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Slug (e.g. metal-3d-printers)"
-                      value={newCategory.slug}
-                      onChange={e => setNewCategory({ ...newCategory, slug: e.target.value })}
-                      className="px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono"
-                    />
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsNewCategoryOpen(false)}
-                      className="px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg font-bold"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-1.5 bg-blue-600 text-white rounded-lg font-bold"
-                    >
-                      Save Category
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {/* Edit Category Modal */}
-              {editingCategory && (
-                <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-                  <form onSubmit={handleSaveEditCategory} className="bg-white rounded-3xl max-w-xl w-full p-6 space-y-4 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto text-xs">
-                    <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                      <div>
-                        <h4 className="text-base font-black text-slate-900">
-                          Edit Category: {editingCategory.title}
-                        </h4>
-                        <div className="text-[11px] font-mono text-slate-400">ID: {editingCategory.id}</div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setEditingCategory(null)}
-                        className="text-slate-400 hover:text-slate-700 font-bold text-lg cursor-pointer"
-                      >
-                        âœ•
-                      </button>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">Category Title</label>
-                          <input
-                            type="text"
-                            required
-                            value={editingCategory.title}
-                            onChange={e => setEditingCategory({ ...editingCategory, title: e.target.value })}
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
-                          />
-                        </div>
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">Slug</label>
-                          <input
-                            type="text"
-                            value={editingCategory.slug}
-                            onChange={e => setEditingCategory({ ...editingCategory, slug: e.target.value })}
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-[11px]"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">Subtitle</label>
-                          <input
-                            type="text"
-                            value={editingCategory.subtitle || ''}
-                            onChange={e => setEditingCategory({ ...editingCategory, subtitle: e.target.value })}
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
-                          />
-                        </div>
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">Icon Name</label>
-                          <input
-                            type="text"
-                            value={editingCategory.icon || 'Box'}
-                            onChange={e => setEditingCategory({ ...editingCategory, icon: e.target.value })}
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-[11px]"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block font-bold text-slate-700 mb-1">Category Image (PostgreSQL Storage or URL)</label>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={editingCategory.image || ''}
-                            onChange={e => setEditingCategory({ ...editingCategory, image: e.target.value })}
-                            className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-[11px]"
-                          />
-                          <label className="inline-flex items-center space-x-1.5 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg cursor-pointer transition-colors shrink-0">
-                            <Upload className="w-3.5 h-3.5" />
-                            <span className="text-[11px] font-bold">
-                              {uploadingField ? 'Uploading...' : 'Upload'}
-                            </span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={e => {
-                                const file = e.target.files?.[0]
-                                if (file) {
-                                  handleDirectImageUpload(file, url => {
-                                    setEditingCategory((prev: any) => ({ ...prev, image: url }))
-                                  })
-                                }
-                              }}
-                            />
-                          </label>
-                        </div>
-                        {editingCategory.image && (
-                          <div className="mt-2 flex items-center space-x-3 p-2 bg-slate-50 rounded-xl border border-slate-200 w-fit">
-                            <img
-                              src={editingCategory.image}
-                              alt="Category preview"
-                              className="w-12 h-12 object-cover bg-white rounded-lg border border-slate-200"
-                              onError={e => { (e.target as HTMLElement).style.display = 'none' }}
-                            />
-                            <span className="text-[11px] text-slate-500 font-mono truncate max-w-xs">{editingCategory.image}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block font-bold text-slate-700 mb-1">Hero Banner URL</label>
-                        <input
-                          type="text"
-                          value={editingCategory.hero_banner || ''}
-                          onChange={e => setEditingCategory({ ...editingCategory, hero_banner: e.target.value })}
-                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-[11px]"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block font-bold text-slate-700 mb-1">Description</label>
-                        <textarea
-                          rows={3}
-                          value={editingCategory.description || ''}
-                          onChange={e => setEditingCategory({ ...editingCategory, description: e.target.value })}
-                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="pt-3 border-t border-slate-200 flex justify-end space-x-2">
-                      <button
-                        type="button"
-                        onClick={() => setEditingCategory(null)}
-                        className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-bold cursor-pointer"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md cursor-pointer"
-                      >
-                        Save Category to PostgreSQL
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {categoriesList.map(cat => (
-                  <div key={cat.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex items-start justify-between">
-                    <div>
-                      <h4 className="font-bold text-slate-900 text-sm">{cat.title}</h4>
-                      <div className="text-[11px] font-mono text-slate-400">slug: {cat.slug}</div>
-                      <p className="text-xs text-slate-600 mt-1 line-clamp-2">{cat.description}</p>
-                    </div>
-                    <div className="flex items-center space-x-1 shrink-0">
-                      <button
-                        onClick={() => setEditingCategory(cat)}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
-                        title="Edit category"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteCategory(cat.id)}
-                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-md cursor-pointer"
-                        title="Delete category"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* ====================================================
               TAB 8: SITE SETTINGS & CMS
