@@ -102,15 +102,6 @@ export const Header: React.FC = () => {
     setActiveMegaMenu(null)
   }, [location])
 
-    const shopLinks = [
-    { name: 'All Store Catalog', route: '/shop' },
-    { name: 'CAD Software Solutions', route: '/shop?category=cad-software' },
-    { name: '3D Printers & Scanners (Products)', route: '/shop/products' },
-    { name: '3D Printer Filaments (PLA & PLA+)', route: '/shop/filaments' },
-    { name: 'FDM 3D Printers', route: '/shop/fdm' },
-    { name: 'DLP & LCD 3D Printers', route: '/shop/dlp' },
-    { name: 'Precision 3D Scanners', route: '/shop/scanners' },
-  ]
 
   const toggleMobileSection = (section: string) => {
     setExpandedMobileSection(prev => (prev === section ? null : section))
@@ -741,7 +732,7 @@ export const Header: React.FC = () => {
                     <Link to="/products/cad-software" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs font-bold text-red-600 py-1">
                       View All CAD Software →
                     </Link>
-                    {cadSoftwareCategories.map(cat => (
+                    {navConfig.cadMegaMenu.categories.map(cat => (
                       <div key={cat.id} className="pt-2">
                         <div className="flex items-center gap-2 mb-1.5">
                           <div className="h-5 px-1.5 py-0.5 rounded bg-white border border-slate-200 flex items-center justify-center">
@@ -799,7 +790,7 @@ export const Header: React.FC = () => {
                     <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs font-bold text-red-600 py-1">
                       View All 3D Printers Catalog →
                     </Link>
-                    {megaCategories.map(cat => (
+                    {navConfig.hardwareMegaMenu.categories.map(cat => (
                       <div key={cat.id} className="pt-1">
                         <Link
                           to={cat.route}
@@ -833,7 +824,7 @@ export const Header: React.FC = () => {
                   onClick={() => toggleMobileSection('shop')}
                   className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50"
                 >
-                  <span className="font-semibold">Shop (Software, 3D Printers &amp; Filaments)</span>
+                  <span className="font-semibold">Shop ({navConfig.shopDropdown.bannerTitle})</span>
                   <ChevronDown
                     className={`w-4 h-4 transition-transform ${
                       expandedMobileSection === 'shop' ? 'rotate-180 text-red-600' : ''
@@ -841,16 +832,36 @@ export const Header: React.FC = () => {
                   />
                 </button>
                 {expandedMobileSection === 'shop' && (
-                  <div className="pl-4 py-1 space-y-1 border-l-2 border-red-100 ml-3">
-                    {shopLinks.map(s => (
+                  <div className="pl-4 py-1 space-y-2 border-l-2 border-red-100 ml-3">
+                    <Link
+                      to={navConfig.shopDropdown.allStoreRoute}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block text-xs font-bold text-red-600 py-1"
+                    >
+                      {navConfig.shopDropdown.allStoreLinkText} →
+                    </Link>
+                    {navConfig.shopDropdown.cards.map(card => (
                       <Link
-                        key={s.route}
-                        to={s.route}
-                        className="block text-xs text-slate-600 hover:text-red-600 py-1"
+                        key={card.id}
+                        to={card.route}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="block text-xs text-slate-700 hover:text-red-600 py-1 font-medium"
                       >
-                        {s.name}
+                        • {card.title} <span className="text-[10px] text-slate-400">({card.badge})</span>
                       </Link>
                     ))}
+                    <div className="pt-1 border-t border-slate-100 space-y-1">
+                      {navConfig.shopDropdown.shortcuts.map((sc, idx) => (
+                        <Link
+                          key={idx}
+                          to={sc.route}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="block text-xs text-slate-500 hover:text-red-600 py-0.5"
+                        >
+                          → {sc.label}
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
