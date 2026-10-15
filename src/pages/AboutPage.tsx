@@ -83,21 +83,6 @@ export const AboutPage: React.FC = () => {
             <p className="text-sm text-slate-700 leading-relaxed">
               With a strong foundation built over more than three decades, Leniva CAD Solutions continues to help architects, engineers, designers, manufacturers, and businesses adopt the right technology to improve productivity, streamline workflows, and bring ideas to life.
             </p>
-
-            <div className="p-4 rounded-xl bg-slate-900 text-white flex items-center justify-between gap-4">
-              <div className="space-y-0.5">
-                <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Our Guiding Principle</span>
-                <p className="text-sm font-bold text-white">
-                  Trusted Technology. Practical Solutions.
-                </p>
-              </div>
-              <button
-                onClick={() => openQuoteModal('Technology Recommendation Request')}
-                className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg transition-colors shrink-0 cursor-pointer"
-              >
-                Get in Touch
-              </button>
-            </div>
           </div>
 
           <div className="lg:col-span-5 space-y-4">
