@@ -527,95 +527,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
         </div>
 
         {/* Shop Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* SIDEBAR FILTER */}
-          <aside className="lg:col-span-3 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Shop Categories
-                </h3>
-                {selectedCategory !== 'all' && (
-                  <button
-                    onClick={() => handleCategoryChange('all')}
-                    className="text-[11px] text-red-600 hover:underline font-semibold cursor-pointer"
-                  >
-                    Reset
-                  </button>
-                )}
-              </div>
-              <div className="space-y-1">
-                {filterOptions.map(cat => {
-                  const Icon = cat.icon
-                  const isActive = selectedCategory === cat.id
-                  return (
-                    <button
-                      key={cat.id}
-                      onClick={() => handleCategoryChange(cat.id)}
-                      className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-xl transition-all flex items-center justify-between cursor-pointer ${
-                        isActive
-                          ? 'bg-red-50 text-red-700 font-bold border border-red-200/80 shadow-xs'
-                          : 'text-slate-600 hover:bg-slate-50 border border-transparent'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-2 truncate">
-                        <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-red-600' : 'text-slate-400'}`} />
-                        <span className="truncate">{cat.label.split('(')[0]}</span>
-                      </div>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${
-                        isActive ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-500'
-                      }`}>
-                        {cat.count}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Quick Links Banner 1: CAD Software Hub */}
-            <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-xl border border-blue-100 space-y-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 block">
-                CAD Software Hub
-              </span>
-              <h4 className="text-xs font-bold text-slate-900">
-                Official DWG CAD & 3D Tools
-              </h4>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
-                Explore perpetual Graebert ARES, SketchUp Pro subscriptions & Chaos photorealistic rendering.
-              </p>
-              <Link
-                to="/products/cad-software"
-                className="inline-flex items-center space-x-1 text-xs font-bold text-blue-600 hover:text-blue-700 pt-1"
-              >
-                <span>Explore CAD Software Hub</span>
-                <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-
-            {/* Quick Links Banner 2: Make3D Filaments */}
-            <div className="p-4 bg-gradient-to-br from-red-50 to-rose-50/50 rounded-xl border border-red-100 space-y-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-red-600 block">
-                Dedicated Showcase
-              </span>
-              <h4 className="text-xs font-bold text-slate-900">
-                Looking for Make3D Filaments?
-              </h4>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
-                Explore our full PLA & PLA+ color palette with mechanical comparison tables.
-              </p>
-              <Link
-                to="/shop/filaments"
-                className="inline-flex items-center space-x-1 text-xs font-bold text-red-600 hover:text-red-700 pt-1"
-              >
-                <span>Open Filaments Page</span>
-                <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-          </aside>
-
-          {/* MAIN PRODUCT SECTIONS */}
-          <main className="lg:col-span-9 space-y-10">
+        <main className="w-full space-y-10">
             {totalVisibleCount === 0 ? (
               <div className="bg-white p-12 text-center rounded-2xl border border-slate-200 space-y-3">
                 <Package className="w-10 h-10 mx-auto text-slate-300" />
@@ -699,7 +611,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
                       </div>
 
                       {/* Grid */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         {(selectedCategory === 'ares'
                           ? aresItems
                           : selectedCategory === 'sketchup'
@@ -757,7 +669,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
                       </div>
 
                       {/* Grid */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         {(selectedCategory === 'fdm'
                           ? fdmItems
                           : selectedCategory === 'dlp'
@@ -813,7 +725,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
                       </div>
 
                       {/* Grid */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         {scannerItems.map(item => (
                           <ProductCard key={item.id} item={item} />
                         ))}
@@ -860,7 +772,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
                       </div>
 
                       {/* Grid */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         {filamentItems.map(item => (
                           <ProductCard key={item.id} item={item} />
                         ))}
@@ -870,7 +782,6 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
               </>
             )}
           </main>
-        </div>
 
         {/* QUICK VIEW MODAL */}
         {quickViewItem && (
