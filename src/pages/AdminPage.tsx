@@ -813,7 +813,7 @@ export default function AdminPage() {
     return { ...CAD_DEFAULTS }
   }
 
-  type CadSectionKey = 'identity' | 'sections' | 'hero' | 'overview' | 'features' | 'requirements' | 'faqs' | 'licensing' | 'preview' | 'json'
+  type CadSectionKey = 'identity' | 'hero' | 'overview' | 'features' | 'requirements' | 'faqs' | 'licensing' | 'preview' | 'json'
 
   const [customCadProducts, setCustomCadProducts] = useState<CadProductItem[]>(loadCustomCadProducts)
   const cadProducts = [...DEFAULT_CAD_PRODUCTS, ...customCadProducts]
@@ -876,20 +876,6 @@ export default function AdminPage() {
     updateCadField('enabledSections', updatedSections)
     const label = CAD_SECTION_METADATA.find(m => m.key === secKey)?.shortLabel || secKey
     setCadSaveMsg(`✓ ${label} section ${!currentVal ? 'ENABLED (Visible)' : 'DISABLED (Hidden)'}.`)
-  }
-
-  const setAllCadSections = (enable: boolean) => {
-    const updatedSections: CadEnabledSections = {
-      hero: enable,
-      specStrip: enable,
-      overview: enable,
-      features: enable,
-      requirements: enable,
-      faqs: enable,
-      licensing: enable,
-    }
-    updateCadField('enabledSections', updatedSections)
-    setCadSaveMsg(`✓ All product sections ${enable ? 'ENABLED (Visible)' : 'DISABLED (Hidden)'}.`)
   }
 
   const updateCadHighlight = (index: number, value: string) => {
@@ -3914,7 +3900,6 @@ export default function AdminPage() {
 
             const sectionTabs: { key: CadSectionKey; label: string; badge?: string; badgeColor?: 'emerald' | 'rose' | 'amber' | 'indigo' }[] = [
               { key: 'identity',     label: '1. Identity & SEO' },
-              { key: 'sections',     label: '⚡ Section Visibility', badge: `${activeSectionsCount}/7 Active`, badgeColor: activeSectionsCount === 7 ? 'emerald' : activeSectionsCount === 0 ? 'rose' : 'amber' },
               { key: 'hero',         label: '2. Hero Banner', badge: curSections.hero !== false ? 'ON' : 'OFF', badgeColor: curSections.hero !== false ? 'emerald' : 'rose' },
               { key: 'overview',     label: '3. Overview & Cards', badge: curSections.overview !== false ? 'ON' : 'OFF', badgeColor: curSections.overview !== false ? 'emerald' : 'rose' },
               { key: 'features',     label: '4. Deep Features & Standards', badge: curSections.features !== false ? 'ON' : 'OFF', badgeColor: curSections.features !== false ? 'emerald' : 'rose' },
@@ -3925,58 +3910,77 @@ export default function AdminPage() {
               { key: 'json',         label: '9. Full Page Raw JSON' },
             ]
 
-            const renderSectionVisibilityBanner = (
+            const renderSectionToggleBar = (
               secKey: keyof CadEnabledSections,
               title: string,
               desc: string
             ) => {
               const isEnabled = curSections[secKey] !== false
               return (
-                <div className={`p-4 rounded-2xl border transition-all mb-5 ${
+                <div className={`p-3.5 sm:p-4 rounded-2xl border transition-all mb-4 ${
                   isEnabled
-                    ? 'bg-gradient-to-r from-emerald-50/80 via-emerald-50/40 to-teal-50/30 border-emerald-200'
-                    : 'bg-gradient-to-r from-rose-50/90 via-rose-50/50 to-orange-50/30 border-rose-200'
+                    ? 'bg-slate-50/90 border-slate-200'
+                    : 'bg-rose-50/70 border-rose-200'
                 }`}>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="flex items-start sm:items-center space-x-3">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${
-                        isEnabled ? 'bg-emerald-600 text-white' : 'bg-rose-500 text-white'
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors shadow-2xs ${
+                        isEnabled ? 'bg-emerald-600 text-white' : 'bg-slate-300 text-slate-600'
                       }`}>
                         <Power className="w-4 h-4" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <div className="flex items-center space-x-2">
-                          <span className="text-xs font-black text-slate-900">{title}</span>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                          <span className="text-xs font-bold text-slate-900 truncate">{title}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${
                             isEnabled ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
                           }`}>
-                            {isEnabled ? '● Visible / Enabled' : '○ Hidden / Disabled'}
+                            {isEnabled ? '● Live on Page' : '○ Hidden from Page'}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-600 mt-0.5">
+                        <p className="text-[11px] text-slate-500 mt-0.5 truncate hidden sm:block">
                           {desc}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+
+                    {/* Interactive Toggle Switch */}
+                    <div className="flex items-center space-x-2.5 shrink-0">
+                      <span className="text-xs font-semibold text-slate-600 hidden sm:inline">
+                        {isEnabled ? 'Section Enabled' : 'Section Disabled'}
+                      </span>
                       <button
                         type="button"
                         onClick={() => toggleCadSection(secKey)}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-1.5 shadow-xs ${
-                          isEnabled
-                            ? 'bg-white hover:bg-rose-50 text-rose-700 border border-rose-300'
-                            : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+                          isEnabled ? 'bg-emerald-600' : 'bg-slate-300'
                         }`}
+                        role="switch"
+                        aria-checked={isEnabled}
+                        title={`Click to ${isEnabled ? 'disable' : 'enable'} ${title}`}
                       >
-                        <Power className="w-3.5 h-3.5" />
-                        <span>{isEnabled ? 'Disable This Section' : 'Enable This Section'}</span>
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-xs ${
+                            isEnabled ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
                       </button>
                     </div>
                   </div>
+
                   {!isEnabled && (
-                    <div className="mt-3 p-2.5 bg-rose-100/70 border border-rose-200 rounded-lg text-rose-800 text-[11px] font-semibold flex items-center space-x-2">
-                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                      <span>This section is currently <strong>DISABLED</strong>. Visitors to the live website will not see this section on the product page.</span>
+                    <div className="mt-2.5 pt-2.5 border-t border-rose-200/80 flex items-center justify-between text-xs text-rose-700">
+                      <span className="flex items-center space-x-1.5 font-medium">
+                        <AlertCircle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                        <span>This section is currently <strong>DISABLED</strong>. Visitors will not see this on the live page.</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => toggleCadSection(secKey)}
+                        className="font-bold underline hover:text-rose-900 cursor-pointer ml-2 shrink-0"
+                      >
+                        Enable Section Now
+                      </button>
                     </div>
                   )}
                 </div>
@@ -4079,25 +4083,25 @@ export default function AdminPage() {
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5">
                     {cadProducts.map(p => {
                       const isActive = activeCadProduct === p.key
                       return (
                         <div
                           key={p.key}
                           onClick={() => { setActiveCadProduct(p.key); setRawJsonError('') }}
-                          className={`relative text-left p-3 rounded-xl border transition-all cursor-pointer ${
+                          className={`relative text-left p-3 rounded-xl border transition-all cursor-pointer min-w-0 ${
                             isActive
                               ? 'bg-indigo-600 text-white border-indigo-600 shadow-md ring-2 ring-indigo-400/40'
                               : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50'
                           }`}
                         >
-                          <div className="flex items-start justify-between">
-                            <span className={`text-[9px] font-bold uppercase tracking-wider ${isActive ? 'text-indigo-200' : 'text-slate-400'}`}>
+                          <div className="flex items-start justify-between min-w-0">
+                            <span className={`text-[9px] font-bold uppercase tracking-wider truncate ${isActive ? 'text-indigo-200' : 'text-slate-400'}`}>
                               {p.brand}
                             </span>
                             {p.isCustom && (
-                              <span className={`text-[8px] font-bold uppercase px-1.5 py-0.2 rounded ${isActive ? 'bg-indigo-800 text-indigo-100' : 'bg-amber-100 text-amber-800'}`}>
+                              <span className={`text-[8px] font-bold uppercase px-1.5 py-0.2 rounded shrink-0 ml-1 ${isActive ? 'bg-indigo-800 text-indigo-100' : 'bg-amber-100 text-amber-800'}`}>
                                 Custom
                               </span>
                             )}
@@ -4299,8 +4303,8 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  {/* 10 Full-Page Section Tabs with Visibility Badges */}
-                  <div className="flex overflow-x-auto border-b border-slate-200 bg-slate-50/80 scrollbar-none">
+                  {/* Full-Page Section Tabs with Visibility Badges */}
+                  <div className="flex overflow-x-auto border-b border-slate-200 bg-slate-50/80 scrollbar-thin scrollbar-thumb-slate-300">
                     {sectionTabs.map(tab => (
                       <button
                         key={tab.key}
@@ -4313,7 +4317,6 @@ export default function AdminPage() {
                       >
                         {tab.key === 'json' && <Code className="w-3.5 h-3.5" />}
                         {tab.key === 'preview' && <Eye className="w-3.5 h-3.5" />}
-                        {tab.key === 'sections' && <Sliders className="w-3.5 h-3.5 text-indigo-600" />}
                         {tab.key === 'faqs' && <HelpCircle className="w-3.5 h-3.5" />}
                         {tab.key === 'requirements' && <Monitor className="w-3.5 h-3.5" />}
                         <span>{tab.label}</span>
@@ -4477,125 +4480,15 @@ export default function AdminPage() {
                       </div>
                     )}
 
-                    {/* ====================================================
-                        SECTION: SECTION VISIBILITY CONTROL CENTER
-                       ==================================================== */}
-                    {cadEditSection === 'sections' && (
-                      <div className="space-y-6">
-                        {/* Control Center Summary Banner */}
-                        <div className="p-5 bg-gradient-to-r from-indigo-50 via-blue-50 to-slate-50 rounded-2xl border border-indigo-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                          <div>
-                            <div className="flex items-center space-x-2">
-                              <h4 className="text-sm font-black text-slate-900">Product Page Sections Architecture</h4>
-                              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-600 text-white">
-                                {activeSectionsCount} / 7 Sections Live
-                              </span>
-                            </div>
-                            <p className="text-xs text-slate-600 mt-1 max-w-2xl">
-                              Enable or disable any section of <strong>{cur.productName || activeMeta.label}</strong> below. Disabled sections are completely removed from the live website and public customer views.
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => setAllCadSections(true)}
-                              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center space-x-1.5"
-                            >
-                              <Check className="w-3.5 h-3.5" />
-                              <span>Enable All (7)</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setAllCadSections(false)}
-                              className="px-3.5 py-2 bg-white hover:bg-rose-50 hover:text-rose-700 text-slate-700 border border-slate-200 hover:border-rose-300 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-1.5"
-                            >
-                              <Power className="w-3.5 h-3.5" />
-                              <span>Disable All</span>
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* 7 Section Cards Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {CAD_SECTION_METADATA.map((meta, idx) => {
-                            const isEnabled = curSections[meta.key] !== false
-                            const targetTab: CadSectionKey =
-                              meta.key === 'hero' || meta.key === 'specStrip' ? 'hero' :
-                              meta.key === 'overview' ? 'overview' :
-                              meta.key === 'features' ? 'features' :
-                              meta.key === 'requirements' ? 'requirements' :
-                              meta.key === 'faqs' ? 'faqs' : 'licensing'
-
-                            return (
-                              <div
-                                key={meta.key}
-                                className={`p-4 rounded-2xl border transition-all relative ${
-                                  isEnabled
-                                    ? 'bg-white border-slate-200 hover:border-emerald-300 hover:shadow-xs'
-                                    : 'bg-rose-50/30 border-rose-200 hover:border-rose-300'
-                                }`}
-                              >
-                                <div className="flex items-start justify-between gap-3">
-                                  <div className="flex items-start space-x-3">
-                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs ${
-                                      isEnabled ? 'bg-indigo-100 text-indigo-700' : 'bg-rose-100 text-rose-700'
-                                    }`}>
-                                      #{idx + 1}
-                                    </div>
-                                    <div>
-                                      <div className="flex items-center space-x-2">
-                                        <h5 className="text-xs font-black text-slate-900">{meta.label}</h5>
-                                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ${
-                                          isEnabled ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                                        }`}>
-                                          {isEnabled ? '● Visible' : '○ Hidden'}
-                                        </span>
-                                      </div>
-                                      <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
-                                        {meta.description}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                                  <button
-                                    type="button"
-                                    onClick={() => setCadEditSection(targetTab)}
-                                    className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center space-x-1 cursor-pointer"
-                                  >
-                                    <span>Edit Section Content →</span>
-                                  </button>
-
-                                  <button
-                                    type="button"
-                                    onClick={() => toggleCadSection(meta.key)}
-                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-1.5 shadow-xs ${
-                                      isEnabled
-                                        ? 'bg-white hover:bg-rose-50 text-rose-700 border border-rose-300'
-                                        : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                                    }`}
-                                  >
-                                    <Power className="w-3.5 h-3.5" />
-                                    <span>{isEnabled ? 'Disable Section' : 'Enable Section'}</span>
-                                  </button>
-                                </div>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    )}
-
                     {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                         SECTION 2: HERO BANNER & HEADER
                        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
                     {cadEditSection === 'hero' && (
                       <div className="space-y-4">
-                        {renderSectionVisibilityBanner(
+                        {renderSectionToggleBar(
                           'hero',
                           'Hero Banner & Header Section',
-                          'Toggle whether the hero headline, badge, main product image, and primary callout buttons appear on the page.'
+                          'Toggle whether the hero headline, badge, main product image, and primary callout buttons appear on the live page.'
                         )}
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -4694,19 +4587,32 @@ export default function AdminPage() {
                               <p className="text-xs font-black text-slate-800">Hero Quick Spec Strip</p>
                               <p className="text-[11px] text-slate-500">Horizontal counters displayed directly below the hero CTA buttons.</p>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <button
-                                type="button"
-                                onClick={() => toggleCadSection('specStrip')}
-                                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center space-x-1 ${
+                            <div className="flex items-center space-x-3">
+                              <div className="flex items-center space-x-1.5">
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
                                   curSections.specStrip !== false
-                                    ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800'
-                                    : 'bg-rose-100 hover:bg-rose-200 text-rose-800'
-                                }`}
-                              >
-                                <Power className="w-3 h-3" />
-                                <span>Strip: {curSections.specStrip !== false ? 'Enabled' : 'Disabled'}</span>
-                              </button>
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : 'bg-rose-100 text-rose-800'
+                                }`}>
+                                  {curSections.specStrip !== false ? '● Live' : '○ Hidden'}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleCadSection('specStrip')}
+                                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer focus:outline-none ${
+                                    curSections.specStrip !== false ? 'bg-emerald-600' : 'bg-slate-300'
+                                  }`}
+                                  role="switch"
+                                  aria-checked={curSections.specStrip !== false}
+                                  title="Toggle Spec Strip Visibility"
+                                >
+                                  <span
+                                    className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-xs ${
+                                      curSections.specStrip !== false ? 'translate-x-4.5' : 'translate-x-0.5'
+                                    }`}
+                                  />
+                                </button>
+                              </div>
                               <button
                                 onClick={addCadSpecStrip}
                                 className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center space-x-1"
@@ -4753,10 +4659,10 @@ export default function AdminPage() {
                        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
                     {cadEditSection === 'overview' && (
                       <div className="space-y-4">
-                        {renderSectionVisibilityBanner(
+                        {renderSectionToggleBar(
                           'overview',
                           'Overview & Feature Cards Section',
-                          'Toggle whether the product narrative paragraph, subtitle, and multi-column capability cards appear.'
+                          'Toggle whether the product narrative paragraph, subtitle, and multi-column capability cards appear on the live page.'
                         )}
 
                         <div>
@@ -4866,10 +4772,10 @@ export default function AdminPage() {
                        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
                     {cadEditSection === 'features' && (
                       <div className="space-y-4">
-                        {renderSectionVisibilityBanner(
+                        {renderSectionToggleBar(
                           'features',
                           'Deep Features & Standards Section',
-                          'Toggle whether engineering highlights, capability bullet points, and drafting standards appear.'
+                          'Toggle whether engineering highlights, capability bullet points, and drafting standards appear on the live page.'
                         )}
 
                         <div className="flex items-center justify-between">
@@ -4916,10 +4822,10 @@ export default function AdminPage() {
                        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
                     {cadEditSection === 'requirements' && (
                       <div className="space-y-4">
-                        {renderSectionVisibilityBanner(
+                        {renderSectionToggleBar(
                           'requirements',
                           'System Requirements Section',
-                          'Toggle whether the operating system, processor, memory, GPU, disk space, and display resolution specifications appear.'
+                          'Toggle whether the operating system, processor, memory, GPU, disk space, and display resolution specifications appear on the live page.'
                         )}
 
                         <div>
@@ -4997,10 +4903,10 @@ export default function AdminPage() {
                        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
                     {cadEditSection === 'faqs' && (
                       <div className="space-y-4">
-                        {renderSectionVisibilityBanner(
+                        {renderSectionToggleBar(
                           'faqs',
                           'Frequently Asked Questions (FAQs) Section',
-                          'Toggle whether the interactive FAQ accordion answering customer licensing, file compatibility, and technical questions appears.'
+                          'Toggle whether the interactive FAQ accordion answering customer licensing, file compatibility, and technical questions appears on the live page.'
                         )}
 
                         <div className="flex items-center justify-between">
@@ -5055,10 +4961,10 @@ export default function AdminPage() {
                        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
                     {cadEditSection === 'licensing' && (
                       <div className="space-y-4">
-                        {renderSectionVisibilityBanner(
+                        {renderSectionToggleBar(
                           'licensing',
                           'CTAs & Licensing Section',
-                          'Toggle whether primary/secondary CTA buttons, licensing terms, and lead enquiry routing appear on the page.'
+                          'Toggle whether primary/secondary CTA buttons, licensing terms, and lead enquiry routing appear on the live page.'
                         )}
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

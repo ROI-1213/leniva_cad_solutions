@@ -293,8 +293,8 @@ export const Header: React.FC = () => {
                 className="h-10 sm:h-11 md:h-12 w-auto object-contain transition-transform group-hover:scale-105"
               />
             </Link>
-            <div className="h-8 w-[1.5px] bg-slate-200 mx-2.5 xl:mx-3 hidden lg:block" />
-            <div className="hidden lg:flex flex-col text-[10px] leading-[1.15] text-slate-400 font-medium whitespace-nowrap">
+            <div className="h-8 w-[1.5px] bg-slate-200 mx-2.5 xl:mx-3 hidden xl:block" />
+            <div className="hidden xl:flex flex-col text-[10px] leading-[1.15] text-slate-400 font-medium whitespace-nowrap">
               <span>Engineering</span>
               <span>Possibilities</span>
               <span>Together</span>

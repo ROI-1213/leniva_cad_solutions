@@ -61,38 +61,37 @@ const ProductCardImageSlideshow: React.FC<{
 
   return (
     <div
-      className="relative h-56 bg-slate-50/90 p-4 flex items-center justify-center overflow-hidden group/slider select-none"
+      className="relative h-56 bg-slate-50/90 p-3.5 flex items-center justify-center overflow-hidden group/slider select-none"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Category Tag (Top Left) */}
-      {categoryTag && (
-        <span className="absolute top-3 left-3 z-10 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-white/95 border border-slate-200 text-slate-700 shadow-2xs backdrop-blur-xs">
-          {categoryTag}
+      {/* Top Header Bar: Brand Partner Tag (Left) & Active Model Name (Right) - Never Collide */}
+      <div className="absolute top-2.5 inset-x-2.5 z-10 flex items-center justify-between gap-1.5 pointer-events-none">
+        {brandLogo ? (
+          <div className="flex items-center space-x-1.5 bg-white/95 backdrop-blur-xs px-2 py-0.5 rounded-md border border-slate-200/90 shadow-2xs min-w-0 max-w-[58%]">
+            <img src={brandLogo} alt="Brand" className="h-3.5 w-auto max-w-[48px] object-contain shrink-0" />
+            {brandPartnerText && (
+              <span className="text-[10px] font-bold text-slate-800 truncate leading-none">{brandPartnerText}</span>
+            )}
+          </div>
+        ) : categoryTag ? (
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-white/95 border border-slate-200/90 text-slate-700 shadow-2xs backdrop-blur-xs truncate max-w-[58%] shrink-0 leading-none">
+            {categoryTag}
+          </span>
+        ) : <div />}
+
+        {/* Current Active Product Name Pill */}
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-900/85 text-white shadow-2xs backdrop-blur-xs transition-all duration-300 truncate max-w-[40%] text-right shrink-0 leading-none">
+          {slides[activeIdx].name}
         </span>
-      )}
-
-      {/* Brand Partner Badge (for CAD Software) */}
-      {brandLogo && (
-        <div className="absolute top-3 left-3 z-10 flex items-center space-x-2 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-md border border-slate-200 shadow-2xs">
-          <img src={brandLogo} alt="Brand" className="h-3.5 object-contain" />
-          {brandPartnerText && (
-            <span className="text-[10px] font-bold text-slate-800">{brandPartnerText}</span>
-          )}
-        </div>
-      )}
-
-      {/* Current Model Badge (Top Right) */}
-      <span className="absolute top-3 right-3 z-10 text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-900/85 text-white shadow-2xs backdrop-blur-xs transition-all duration-300">
-        {slides[activeIdx].name}
-      </span>
+      </div>
 
       {/* Crossfading Product Images */}
       <div className="relative w-full h-full flex items-center justify-center">
         {slides.map((slide, idx) => (
           <div
             key={slide.src}
-            className={`absolute inset-0 flex items-center justify-center p-3 transition-opacity duration-700 ease-in-out ${
+            className={`absolute inset-0 flex items-center justify-center p-2.5 transition-opacity duration-700 ease-in-out ${
               idx === activeIdx ? 'opacity-100 z-5' : 'opacity-0 z-0 pointer-events-none'
             }`}
           >
@@ -100,7 +99,7 @@ const ProductCardImageSlideshow: React.FC<{
               src={slide.src}
               alt={slide.name}
               className={`max-h-full max-w-full ${
-                objectFit === 'cover' ? 'w-full h-full object-cover rounded-lg' : 'object-contain'
+                objectFit === 'cover' ? 'w-full h-full object-cover rounded-xl' : 'object-contain'
               } drop-shadow-sm transition-transform duration-500 group-hover/slider:scale-105`}
               loading="lazy"
             />
@@ -467,9 +466,9 @@ export const HomePage: React.FC = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Card 1: FDM 3D Printers */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden min-w-0">
             <ProductCardImageSlideshow
               slides={fdmSlides}
               categoryTag="Industrial &amp; Desktop"
@@ -510,13 +509,13 @@ export const HomePage: React.FC = () => {
           </div>
 
           {/* Card 2: DLP 3D Printers */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden min-w-0">
             <ProductCardImageSlideshow
               slides={dlpSlides}
               categoryTag="High-Precision Resin"
               intervalMs={3200}
             />
-            <div className="p-6 flex flex-col flex-1 justify-between space-y-5">
+            <div className="p-5 sm:p-6 flex flex-col flex-1 justify-between space-y-4 sm:space-y-5">
               <div className="space-y-3">
                 <div>
                   <span className="text-xs font-bold uppercase tracking-wider text-red-600">Digital Light Processing</span>
@@ -526,17 +525,17 @@ export const HomePage: React.FC = () => {
                   High-precision photopolymer resin systems engineered for direct jewellery casting patterns, dental models, and intricate micro-components.
                 </p>
                 <div className="space-y-2 pt-1 border-t border-slate-100 text-xs text-slate-700">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                    <span>Direct castable resin with 100% clean burnout</span>
+                  <div className="flex items-start space-x-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
+                    <span className="leading-snug">Direct castable resin with 100% clean burnout</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                    <span>Razor-sharp filigree and ultra-smooth surface finish</span>
+                  <div className="flex items-start space-x-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
+                    <span className="leading-snug">Razor-sharp filigree and ultra-smooth surface finish</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                    <span>EKA HT, EKA XL, and EKA XLE series</span>
+                  <div className="flex items-start space-x-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
+                    <span className="leading-snug">EKA HT, EKA XL, and EKA XLE series</span>
                   </div>
                 </div>
               </div>
@@ -551,7 +550,7 @@ export const HomePage: React.FC = () => {
           </div>
 
           {/* Card 3: Industrial LCD 3D Printers */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden min-w-0 md:col-span-2 lg:col-span-1">
             <ProductCardImageSlideshow
               slides={lcdSlides}
               categoryTag="8K &amp; 16K MSLA"
@@ -620,17 +619,17 @@ export const HomePage: React.FC = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Card 1: ARES CAD by Graebert */}
-            <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden min-w-0">
               <ProductCardImageSlideshow
                 slides={aresSlides}
                 brandLogo="/images/brands/ares-cad.png"
                 brandPartnerText="Official Graebert Partner"
                 intervalMs={3500}
-                objectFit="cover"
+                objectFit="contain"
               />
-              <div className="p-6 flex flex-col flex-1 justify-between space-y-5">
+              <div className="p-5 sm:p-6 flex flex-col flex-1 justify-between space-y-4 sm:space-y-5">
                 <div className="space-y-3">
                   <div>
                     <span className="text-xs font-bold uppercase tracking-wider text-red-600">DWG 2D &amp; 3D CAD</span>
@@ -640,17 +639,17 @@ export const HomePage: React.FC = () => {
                     Cost-effective, modern DWG-native CAD software featuring Trinity technology across Desktop, Cloud, and Mobile with dedicated Mechanical and Electrical suites.
                   </p>
                   <div className="space-y-2 pt-1 border-t border-slate-100 text-xs text-slate-700">
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                      <span>Perpetual and flexible annual licensing</span>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
+                      <span className="leading-snug">Perpetual and flexible annual licensing</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                      <span>Trinity ecosystem: Desktop, Cloud (Kudo), Mobile (Touch)</span>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
+                      <span className="leading-snug">Trinity ecosystem: Desktop, Cloud (Kudo), Mobile (Touch)</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                      <span>ARES Commander, Standard, Mechanical &amp; Electrical</span>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
+                      <span className="leading-snug">ARES Commander, Standard, Mechanical &amp; Electrical</span>
                     </div>
                   </div>
                 </div>
@@ -665,15 +664,15 @@ export const HomePage: React.FC = () => {
             </div>
 
             {/* Card 2: Trimble SketchUp */}
-            <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden min-w-0">
               <ProductCardImageSlideshow
                 slides={sketchupSlides}
                 brandLogo="/images/brands/sketchup.png"
                 brandPartnerText="Authorized Trimble Partner"
                 intervalMs={3800}
-                objectFit="cover"
+                objectFit="contain"
               />
-              <div className="p-6 flex flex-col flex-1 justify-between space-y-5">
+              <div className="p-5 sm:p-6 flex flex-col flex-1 justify-between space-y-4 sm:space-y-5">
                 <div className="space-y-3">
                   <div>
                     <span className="text-xs font-bold uppercase tracking-wider text-red-600">3D Modeling &amp; BIM</span>
@@ -683,17 +682,17 @@ export const HomePage: React.FC = () => {
                     The world's most intuitive 3D modeling platform for architects, interior designers, and construction professionals, featuring LayOut documentation and Scan-to-BIM.
                   </p>
                   <div className="space-y-2 pt-1 border-t border-slate-100 text-xs text-slate-700">
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                      <span>Fast, intuitive conceptual design &amp; 3D modeling</span>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
+                      <span className="leading-snug">Fast, intuitive conceptual design &amp; 3D modeling</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                      <span>2D LayOut construction sets &amp; Scan-to-BIM integration</span>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
+                      <span className="leading-snug">2D LayOut construction sets &amp; Scan-to-BIM integration</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                      <span>SketchUp Pro, SketchUp Studio, and Scan workflows</span>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
+                      <span className="leading-snug">SketchUp Pro, SketchUp Studio, and Scan workflows</span>
                     </div>
                   </div>
                 </div>
@@ -708,15 +707,15 @@ export const HomePage: React.FC = () => {
             </div>
 
             {/* Card 3: Chaos Rendering Suites */}
-            <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden min-w-0 md:col-span-2 lg:col-span-1">
               <ProductCardImageSlideshow
                 slides={chaosSlides}
                 brandLogo="/images/brands/chaos.jpg"
                 brandPartnerText="Authorized Chaos Partner"
                 intervalMs={3600}
-                objectFit="cover"
+                objectFit="contain"
               />
-              <div className="p-6 flex flex-col flex-1 justify-between space-y-5">
+              <div className="p-5 sm:p-6 flex flex-col flex-1 justify-between space-y-4 sm:space-y-5">
                 <div className="space-y-3">
                   <div>
                     <span className="text-xs font-bold uppercase tracking-wider text-red-600">Visualization &amp; Rendering</span>
@@ -726,17 +725,17 @@ export const HomePage: React.FC = () => {
                     Industry-leading photorealistic ray tracing, real-time visualization, and VR walkthrough engines trusted by architectural visualizers and design studios worldwide.
                   </p>
                   <div className="space-y-2 pt-1 border-t border-slate-100 text-xs text-slate-700">
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                      <span>Real-time rendering &amp; VR walkthroughs (Enscape)</span>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
+                      <span className="leading-snug">Real-time rendering &amp; VR walkthroughs (Enscape)</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                      <span>Photorealistic ray-tracing fidelity (V-Ray &amp; Corona)</span>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
+                      <span className="leading-snug">Photorealistic ray-tracing fidelity (V-Ray &amp; Corona)</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                      <span>Enscape, Chaos V-Ray, and Chaos Corona</span>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
+                      <span className="leading-snug">Enscape, Chaos V-Ray, and Chaos Corona</span>
                     </div>
                   </div>
                 </div>

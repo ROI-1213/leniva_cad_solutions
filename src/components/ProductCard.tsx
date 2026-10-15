@@ -34,13 +34,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           loading="lazy"
         />
 
-        {/* Clean Single Badge */}
-        <div className="absolute top-3.5 left-3.5 flex items-center gap-1.5 z-10">
-          <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-white/95 text-slate-800 rounded-full shadow-2xs border border-slate-200/70 backdrop-blur-sm">
+        {/* Clean Single Badge - Protected against overlapping wishlist */}
+        <div className="absolute top-3.5 left-3.5 flex items-center gap-1.5 z-10 max-w-[calc(100%-3.75rem)]">
+          <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-white/95 text-slate-800 rounded-full shadow-2xs border border-slate-200/70 backdrop-blur-sm truncate">
             {product.technology}
           </span>
           {product.isNew && (
-            <span className="px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-red-600 text-white rounded-full shadow-2xs">
+            <span className="px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-red-600 text-white rounded-full shadow-2xs shrink-0">
               New
             </span>
           )}
