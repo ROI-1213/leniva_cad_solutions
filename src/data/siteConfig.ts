@@ -2,7 +2,7 @@ export const siteConfig = {
   name: 'LENIVA CAD SOLUTIONS',
   shortName: 'Leniva',
   tagline: 'CAD • 3D DESIGN • 3D SCANNING • REVERSE ENGINEERING • 3D PRINTING • ENGINEERING SOLUTIONS',
-  description: 'Leniva CAD Solutions is an engineering technology partner providing professional CAD software, high-precision 3D scanners, industrial 3D printers, additive manufacturing services, and reverse engineering solutions.',
+  description: 'Leniva CAD Solutions (LCS), established in 1990 in Bengaluru, is a trusted CAD and 3D technology partner providing leading Engineering CAD Software, 3D Printers & 3D Scanners with over three decades of experience.',
   phone: '+91 98441 16476',
   supportPhone: '+91 96069 84210',
   secondaryPhone: '+91 96069 84210',
