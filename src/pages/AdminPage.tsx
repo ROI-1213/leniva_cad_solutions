@@ -29,13 +29,28 @@ import {
   X,
   Copy,
   Power,
+  Printer,
+  Scan,
+  Box,
+  Tag,
+  Palette,
+  Sparkles,
+  SlidersHorizontal,
+  Info,
+  List,
 } from 'lucide-react'
 import {
   CadEnabledSections,
   DEFAULT_CAD_SECTIONS,
   CAD_SECTION_METADATA,
 } from '../utils/cadSoftwareConfig'
-import { products as fallbackProducts } from '../data/products'
+import {
+  ProductItem,
+  KeySpecItem,
+  getStoredProductsCatalog,
+  saveStoredProductsCatalog,
+  resetStoredProductsCatalog,
+} from '../utils/productCatalog'
 import { blogPosts as fallbackBlogs } from '../data/blogs'
 
 interface Stats {
@@ -70,23 +85,6 @@ interface ContactMessage {
   message: string
   status: string
   created_at: string
-}
-
-interface ProductItem {
-  id: string
-  slug: string
-  name: string
-  brand: string
-  category: string
-  category_slug: string
-  technology: string
-  tagline: string
-  short_description?: string
-  description?: string
-  hero_image: string
-  price: number
-  in_stock: boolean
-  is_featured: boolean
 }
 
 
@@ -138,7 +136,7 @@ export default function AdminPage() {
   // Lists
   const [quotes, setQuotes] = useState<QuoteRequest[]>([])
   const [contacts, setContacts] = useState<ContactMessage[]>([])
-  const [productsList, setProductsList] = useState<ProductItem[]>([])
+  const [productsList, setProductsList] = useState<ProductItem[]>(getStoredProductsCatalog)
   const [blogsList, setBlogsList] = useState<BlogPostItem[]>([])
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([
     {
@@ -153,19 +151,31 @@ export default function AdminPage() {
 
   // Search & Filter
   const [productSearch, setProductSearch] = useState('')
+  const [selectedCatalogCategory, setSelectedCatalogCategory] = useState<'all' | 'printers' | 'scanners' | 'filaments' | 'cad'>('all')
   const [quoteFilter, setQuoteFilter] = useState('all')
 
   // Modals / Forms
   const [selectedQuote, setSelectedQuote] = useState<QuoteRequest | null>(null)
   const [quoteNotesInput, setQuoteNotesInput] = useState('')
   const [isNewProductOpen, setIsNewProductOpen] = useState(false)
-  const [editingProduct, setEditingProduct] = useState<any>(null)
+  const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null)
+  const [activeEditTab, setActiveEditTab] = useState<'overview' | 'media' | 'pricing' | 'specs' | 'tech_specs' | 'features' | 'applications' | 'materials' | 'specialized'>('overview')
   const [editingBlog, setEditingBlog] = useState<BlogPostItem | null>(null)
   const [uploadingField, setUploadingField] = useState<string | null>(null)
 
+  // Sub-item temporary inputs inside Product Edit Modal
+  const [newKeySpec, setNewKeySpec] = useState<KeySpecItem>({ label: '', value: '' })
+  const [newSpecRow, setNewSpecRow] = useState<{ property: string; value: string }>({ property: '', value: '' })
+  const [newFeatureInput, setNewFeatureInput] = useState('')
+  const [newAppInput, setNewAppInput] = useState('')
+  const [newAudienceInput, setNewAudienceInput] = useState('')
+  const [newMatInput, setNewMatInput] = useState('')
+  const [newGalleryImgInput, setNewGalleryImgInput] = useState('')
+  const [productSaveSuccessMsg, setProductSaveSuccessMsg] = useState('')
+
   const [newProd, setNewProd] = useState({
     name: '',
-    brand: 'Leniva',
+    brand: 'Make3D',
     category: 'FDM 3D Printers',
     categorySlug: 'fdm-3d-printers',
     technology: 'Industrial FDM',
@@ -1128,27 +1138,13 @@ export default function AdminPage() {
       const usersVal = usersRes.status === 'fulfilled' ? usersRes.value : null
       const settingsVal = settingsRes.status === 'fulfilled' ? settingsRes.value : null
 
-      // Fallback products if API not connected
+      // Load stored or default full product catalog
       if (Array.isArray(prodsVal) && prodsVal.length > 0) {
         setProductsList(prodsVal)
+        saveStoredProductsCatalog(prodsVal)
       } else {
-        const mappedProducts: ProductItem[] = fallbackProducts.map((p, idx) => ({
-          id: p.id || `prod-${idx}`,
-          slug: p.slug || p.id,
-          name: p.name,
-          brand: p.brand || 'Leniva',
-          category: p.category || '3D Printers',
-          category_slug: p.categorySlug || 'fdm-3d-printers',
-          technology: p.technology || 'Additive Manufacturing',
-          tagline: p.tagline || 'High Performance CAD & 3D Solution',
-          short_description: p.shortDescription || '',
-          description: p.description || '',
-          hero_image: p.heroImage || p.images?.[0] || '/images/products/pratham-mini.png',
-          price: (p as any).price || 95000,
-          in_stock: p.inStock ?? true,
-          is_featured: p.isFeatured ?? true,
-        }))
-        setProductsList(mappedProducts)
+        const storedCatalog = getStoredProductsCatalog()
+        setProductsList(storedCatalog)
       }
 
       // Fallback blogs
@@ -1290,7 +1286,7 @@ export default function AdminPage() {
 
       // Set Stats
       setStats(statsVal || {
-        totalProducts: prodsVal?.length || fallbackProducts.length,
+        totalProducts: prodsVal?.length || productsList.length || 37,
         totalQuotes: quotesVal?.length || 3,
         totalContacts: contactsVal?.length || 2,
         totalBlogs: blogsVal?.length || fallbackBlogs.length,
@@ -1344,81 +1340,127 @@ export default function AdminPage() {
   // Product operations
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault()
+    const newId = newProd.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') || `prod-${Date.now()}`
+    const createdItem: ProductItem = {
+      id: newId,
+      slug: newId,
+      name: newProd.name,
+      brand: newProd.brand || 'Make3D',
+      category: newProd.category,
+      category_slug: newProd.categorySlug,
+      technology: newProd.technology,
+      tagline: newProd.tagline,
+      short_description: newProd.short_description,
+      description: newProd.description,
+      hero_image: newProd.heroImage || '/images/products/pratham-mini.png',
+      images: [newProd.heroImage || '/images/products/pratham-mini.png'],
+      price: newProd.price,
+      original_price: newProd.original_price,
+      in_stock: true,
+      is_featured: true,
+      is_quote_based: false,
+      key_specs: [],
+      specifications: {},
+      features: [],
+      applications: [],
+      materials: [],
+      who_is_it_for: [],
+    }
+
+    const updated = [createdItem, ...productsList]
+    setProductsList(updated)
+    saveStoredProductsCatalog(updated)
+
     try {
-      const res = await fetch('/api/products', {
+      await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newProd, in_stock: true, is_featured: true }),
+        body: JSON.stringify(createdItem),
       })
-      if (res.ok) {
-        const created = await res.json()
-        setProductsList(prev => [created, ...prev])
-        setIsNewProductOpen(false)
-        setNewProd({
-          name: '',
-          brand: 'Leniva',
-          category: 'FDM 3D Printers',
-          categorySlug: 'fdm-3d-printers',
-          technology: 'Industrial FDM',
-          tagline: 'High Speed Precision System',
-          description: '',
-          short_description: '',
-          price: 95000,
-          original_price: 110000,
-          heroImage: '/images/products/pratham-mini.png',
-        })
-        loadAllData()
-      }
     } catch (err) {
-      console.error(err)
+      console.warn('API sync skipped, saved to local catalog', err)
     }
+
+    setIsNewProductOpen(false)
+    setNewProd({
+      name: '',
+      brand: 'Make3D',
+      category: 'FDM 3D Printers',
+      categorySlug: 'fdm-3d-printers',
+      technology: 'Industrial FDM',
+      tagline: 'High Speed Precision System',
+      description: '',
+      short_description: '',
+      price: 95000,
+      original_price: 110000,
+      heroImage: '/images/products/pratham-mini.png',
+    })
+    setProductSaveSuccessMsg(`Product "${createdItem.name}" created and added to live catalog!`)
+    setTimeout(() => setProductSaveSuccessMsg(''), 4000)
   }
 
   const handleSaveEditProduct = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingProduct) return
+    const updatedList = productsList.map(p => p.id === editingProduct.id ? editingProduct : p)
+    setProductsList(updatedList)
+    saveStoredProductsCatalog(updatedList)
+
     try {
-      const res = await fetch(`/api/products/${editingProduct.id}`, {
+      await fetch(`/api/products/${editingProduct.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editingProduct),
       })
-      if (res.ok) {
-        const updated = await res.json()
-        setProductsList(prev => prev.map(p => p.id === updated.id ? updated : p))
-        setEditingProduct(null)
-      }
     } catch (err) {
-      console.error(err)
+      console.warn('API sync skipped, saved to local catalog', err)
     }
+
+    setProductSaveSuccessMsg(`Saved all full sections for "${editingProduct.name}"!`)
+    setEditingProduct(null)
+    setTimeout(() => setProductSaveSuccessMsg(''), 4000)
   }
 
   const handleToggleStock = async (product: ProductItem) => {
+    const updatedStock = !product.in_stock
+    const updatedList = productsList.map(p => p.id === product.id ? { ...p, in_stock: updatedStock } : p)
+    setProductsList(updatedList)
+    saveStoredProductsCatalog(updatedList)
+
     try {
-      const updatedStock = !product.in_stock
-      const res = await fetch(`/api/products/${product.id}`, {
+      await fetch(`/api/products/${product.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ in_stock: updatedStock }),
       })
-      if (res.ok) {
-        setProductsList(prev => prev.map(p => p.id === product.id ? { ...p, in_stock: updatedStock } : p))
-      }
     } catch (err) {
-      console.error(err)
+      console.warn('API sync skipped', err)
     }
   }
 
   const handleDeleteProduct = async (id: string) => {
-    if (!confirm(`Delete product ${id} permanently from PostgreSQL?`)) return
+    const prod = productsList.find(p => p.id === id)
+    if (!confirm(`Are you sure you want to delete "${prod?.name || id}" permanently from catalog?`)) return
+    const updatedList = productsList.filter(p => p.id !== id)
+    setProductsList(updatedList)
+    saveStoredProductsCatalog(updatedList)
+
     try {
-      const res = await fetch(`/api/products/${id}`, { method: 'DELETE' })
-      if (res.ok) {
-        setProductsList(prev => prev.filter(p => p.id !== id))
-      }
+      await fetch(`/api/products/${id}`, { method: 'DELETE' })
     } catch (err) {
-      console.error(err)
+      console.warn('API sync skipped', err)
     }
+
+    setProductSaveSuccessMsg(`Deleted product "${prod?.name || id}" from catalog.`)
+    setTimeout(() => setProductSaveSuccessMsg(''), 4000)
+  }
+
+  const handleResetCatalog = () => {
+    if (!confirm('Are you sure you want to reset the entire product catalog back to factory defaults? This restores all 3D Printers, Scanners, Filaments, and CAD software with their complete original sections and specifications.')) return
+    const defaults = resetStoredProductsCatalog()
+    setProductsList(defaults)
+    setProductSaveSuccessMsg('Catalog reset to complete factory defaults (3D Printers, Scanners, Filaments & Software)!')
+    setTimeout(() => setProductSaveSuccessMsg(''), 4000)
   }
 
   // Blog operations
@@ -1691,12 +1733,72 @@ export default function AdminPage() {
     )
   }
 
-  // Filtered Products
-  const filteredProducts = productsList.filter(p =>
-    p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-    p.category.toLowerCase().includes(productSearch.toLowerCase()) ||
-    p.brand.toLowerCase().includes(productSearch.toLowerCase())
-  )
+  // Counts by category
+  const printersCount = productsList.filter(p =>
+    p.category_slug.includes('printer') ||
+    p.category.toLowerCase().includes('printer') ||
+    ['fdm-3d-printers', 'dlp-3d-printers', 'industrial-lcd-3d-printers'].includes(p.category_slug)
+  ).length
+
+  const scannersCount = productsList.filter(p =>
+    p.category_slug.includes('scanner') ||
+    p.category.toLowerCase().includes('scanner') ||
+    p.technology.toLowerCase().includes('scanner')
+  ).length
+
+  const filamentsCount = productsList.filter(p =>
+    p.category_slug.includes('filament') ||
+    p.category.toLowerCase().includes('filament') ||
+    p.technology.toLowerCase().includes('materials')
+  ).length
+
+  const cadCount = productsList.filter(p =>
+    p.category_slug.includes('cad') ||
+    p.category.toLowerCase().includes('cad') ||
+    p.category.toLowerCase().includes('software')
+  ).length
+
+  // Filtered Products with category and search
+  const filteredProducts = productsList.filter(p => {
+    // Category tab filter
+    if (selectedCatalogCategory === 'printers') {
+      const isPrinter =
+        p.category_slug.includes('printer') ||
+        p.category.toLowerCase().includes('printer') ||
+        ['fdm-3d-printers', 'dlp-3d-printers', 'industrial-lcd-3d-printers'].includes(p.category_slug)
+      if (!isPrinter) return false
+    } else if (selectedCatalogCategory === 'scanners') {
+      const isScanner =
+        p.category_slug.includes('scanner') ||
+        p.category.toLowerCase().includes('scanner') ||
+        p.technology.toLowerCase().includes('scanner')
+      if (!isScanner) return false
+    } else if (selectedCatalogCategory === 'filaments') {
+      const isFilament =
+        p.category_slug.includes('filament') ||
+        p.category.toLowerCase().includes('filament') ||
+        p.technology.toLowerCase().includes('materials')
+      if (!isFilament) return false
+    } else if (selectedCatalogCategory === 'cad') {
+      const isCad =
+        p.category_slug.includes('cad') ||
+        p.category.toLowerCase().includes('cad') ||
+        p.category.toLowerCase().includes('software')
+      if (!isCad) return false
+    }
+
+    if (!productSearch) return true
+    const q = productSearch.toLowerCase()
+    return (
+      p.name.toLowerCase().includes(q) ||
+      p.category.toLowerCase().includes(q) ||
+      p.brand.toLowerCase().includes(q) ||
+      p.technology.toLowerCase().includes(q) ||
+      p.slug.toLowerCase().includes(q) ||
+      (p.tagline && p.tagline.toLowerCase().includes(q)) ||
+      (p.materials && p.materials.some(m => m.toLowerCase().includes(q)))
+    )
+  })
 
   // Filtered Quotes
   const filteredQuotes = quotes.filter(q => {
@@ -2253,54 +2355,162 @@ export default function AdminPage() {
           {/* ====================================================
               TAB 4: PRODUCTS CATALOG (FULL CRUD)
              ==================================================== */}
+          {/* ====================================================
+              TAB 4: PRODUCTS & HARDWARE CATALOG (FULL SECTIONS EDITOR)
+             ==================================================== */}
           {activeTab === 'products' && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-lg font-black text-slate-900">Equipment Catalog Management</h3>
-                  <p className="text-xs text-slate-500">Add, edit pricing, toggle stock, or delete any product</p>
-                </div>
-                <div className="flex items-center space-x-3 w-full sm:w-auto">
-                  <div className="relative flex-1 sm:w-60">
-                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder="Search machines..."
-                      value={productSearch}
-                      onChange={e => setProductSearch(e.target.value)}
-                      className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg"
-                    />
+              {/* Success Notification Banner */}
+              {productSaveSuccessMsg && (
+                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-bold flex items-center justify-between shadow-xs animate-in fade-in">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>{productSaveSuccessMsg}</span>
                   </div>
                   <button
+                    onClick={() => setProductSaveSuccessMsg('')}
+                    className="text-emerald-600 hover:text-emerald-800 font-bold"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              {/* Header and Controls */}
+              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <h3 className="text-xl font-black text-slate-900 tracking-tight">Products & Equipment Catalog</h3>
+                    <span className="px-2.5 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-black">
+                      {productsList.length} Live Items
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Complete full-sections editor: customize hero images, gallery, key specs, full technical spec tables, features, materials, applications, filament swatches & scanner metrology.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
+                  <button
+                    onClick={handleResetCatalog}
+                    className="inline-flex items-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer transition-colors"
+                    title="Restore catalog to original factory specs & products"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Reset Defaults</span>
+                  </button>
+                  <button
                     onClick={() => setIsNewProductOpen(true)}
-                    className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-colors shrink-0"
+                    className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-colors"
                   >
                     <Plus className="w-4 h-4" />
-                    <span>Add New Machine</span>
+                    <span>+ Add New Product</span>
                   </button>
+                </div>
+              </div>
+
+              {/* Category Filter Pills & Search */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1 border-t border-slate-100">
+                <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs">
+                  <button
+                    onClick={() => setSelectedCatalogCategory('all')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                      selectedCatalogCategory === 'all'
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    All Products ({productsList.length})
+                  </button>
+                  <button
+                    onClick={() => setSelectedCatalogCategory('printers')}
+                    className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                      selectedCatalogCategory === 'printers'
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    <span>3D Printers ({printersCount})</span>
+                  </button>
+                  <button
+                    onClick={() => setSelectedCatalogCategory('scanners')}
+                    className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                      selectedCatalogCategory === 'scanners'
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <Scan className="w-3.5 h-3.5" />
+                    <span>3D Scanners ({scannersCount})</span>
+                  </button>
+                  <button
+                    onClick={() => setSelectedCatalogCategory('filaments')}
+                    className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                      selectedCatalogCategory === 'filaments'
+                        ? 'bg-amber-600 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <Box className="w-3.5 h-3.5" />
+                    <span>Filaments & Spools ({filamentsCount})</span>
+                  </button>
+                  <button
+                    onClick={() => setSelectedCatalogCategory('cad')}
+                    className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                      selectedCatalogCategory === 'cad'
+                        ? 'bg-purple-600 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <Monitor className="w-3.5 h-3.5" />
+                    <span>CAD Software ({cadCount})</span>
+                  </button>
+                </div>
+
+                <div className="relative w-full sm:w-64 shrink-0">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search machines, filaments, specs..."
+                    value={productSearch}
+                    onChange={e => setProductSearch(e.target.value)}
+                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-blue-500 transition-colors"
+                  />
+                  {productSearch && (
+                    <button
+                      onClick={() => setProductSearch('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </div>
               </div>
 
               {/* Add New Product Form */}
               {isNewProductOpen && (
-                <form onSubmit={handleCreateProduct} className="p-5 bg-blue-50/50 border border-blue-200 rounded-2xl space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-black text-blue-950">Add New 3D Printer or Scanner</h4>
+                <form onSubmit={handleCreateProduct} className="p-6 bg-blue-50/70 border border-blue-200 rounded-2xl space-y-4 text-xs animate-in fade-in">
+                  <div className="flex items-center justify-between border-b border-blue-200/70 pb-3">
+                    <div>
+                      <h4 className="text-sm font-black text-blue-950">Add New Product to Catalog</h4>
+                      <p className="text-[11px] text-blue-700">Once created, you can edit all full sections (specs, features, gallery, materials) in the complete editor.</p>
+                    </div>
                     <button
                       type="button"
                       onClick={() => setIsNewProductOpen(false)}
-                      className="text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
+                      className="text-slate-400 hover:text-slate-600 font-bold"
                     >
                       Cancel
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Product Name</label>
+                      <label className="block font-bold text-slate-700 mb-1">Product Title</label>
                       <input
                         type="text"
-                        placeholder="e.g. Pratham Ultra Pro"
+                        placeholder="e.g. Pratham Ultra Pro Max"
                         value={newProd.name}
                         onChange={e => setNewProd({ ...newProd, name: e.target.value })}
                         required
@@ -2316,33 +2526,76 @@ export default function AdminPage() {
                           categorySlug: e.target.value,
                           category: e.target.options[e.target.selectedIndex].text,
                         })}
-                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg"
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-medium"
                       >
                         <option value="fdm-3d-printers">FDM 3D Printers</option>
                         <option value="dlp-3d-printers">DLP 3D Printers</option>
                         <option value="industrial-lcd-3d-printers">Industrial LCD 3D Printers</option>
                         <option value="3d-scanners">3D Scanners</option>
+                        <option value="filaments">Filaments & Consumables</option>
                         <option value="cad-software">CAD Software</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Tagline</label>
+                      <label className="block font-bold text-slate-700 mb-1">Brand</label>
                       <input
                         type="text"
-                        value={newProd.tagline}
-                        onChange={e => setNewProd({ ...newProd, tagline: e.target.value })}
+                        value={newProd.brand}
+                        onChange={e => setNewProd({ ...newProd, brand: e.target.value })}
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Technology Badge</label>
+                      <input
+                        type="text"
+                        value={newProd.technology}
+                        onChange={e => setNewProd({ ...newProd, technology: e.target.value })}
                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg"
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Price / Status (INR, or 0 for Quote)</label>
+                      <label className="block font-bold text-slate-700 mb-1">Selling Price (INR ₹, 0 for Quote)</label>
                       <input
                         type="number"
                         value={newProd.price}
                         onChange={e => setNewProd({ ...newProd, price: Number(e.target.value) })}
-                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg"
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono"
                       />
                     </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">MRP / Original Price (INR ₹)</label>
+                      <input
+                        type="number"
+                        value={newProd.original_price}
+                        onChange={e => setNewProd({ ...newProd, original_price: Number(e.target.value) })}
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Tagline</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Industrial Monolithic 3D Printer for Functional Tooling"
+                      value={newProd.tagline}
+                      onChange={e => setNewProd({ ...newProd, tagline: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Hero Image URL</label>
+                    <input
+                      type="text"
+                      value={newProd.heroImage}
+                      onChange={e => setNewProd({ ...newProd, heroImage: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono text-[11px]"
+                    />
                   </div>
 
                   <div className="flex justify-end space-x-2 pt-2">
@@ -2355,289 +2608,1338 @@ export default function AdminPage() {
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-md cursor-pointer"
+                      className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-md cursor-pointer"
                     >
-                      Save to PostgreSQL
+                      Create & Open in Full Editor
                     </button>
                   </div>
                 </form>
               )}
 
-              {/* Edit Product Modal */}
+              {/* ====================================================
+                  COMPLETE FULL SECTIONS PRODUCT EDIT MODAL
+                 ==================================================== */}
               {editingProduct && (
-                <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-                  <form onSubmit={handleSaveEditProduct} className="bg-white rounded-3xl max-w-2xl w-full p-6 space-y-4 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
-                    <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                      <div>
-                        <h4 className="text-base font-black text-slate-900">
-                          Edit Machine: {editingProduct.name}
-                        </h4>
-                        <div className="text-[11px] font-mono text-slate-400">ID: {editingProduct.id}</div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setEditingProduct(null)}
-                        className="text-slate-400 hover:text-slate-700 font-bold text-lg cursor-pointer"
-                      >
-                        âœ•
-                      </button>
-                    </div>
-
-                    <div className="space-y-3 text-xs">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">Product Title</label>
-                          <input
-                            type="text"
-                            required
-                            value={editingProduct.name}
-                            onChange={e => setEditingProduct({ ...editingProduct, name: e.target.value })}
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
-                          />
+                <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 animate-in fade-in">
+                  <div className="bg-white rounded-3xl max-w-5xl w-full max-h-[94vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden text-xs">
+                    {/* Modal Header */}
+                    <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+                      <div className="flex items-center space-x-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center shrink-0">
+                          {editingProduct.hero_image ? (
+                            <img src={editingProduct.hero_image} alt="" className="w-full h-full object-contain p-1" />
+                          ) : (
+                            <Box className="w-5 h-5 text-slate-400" />
+                          )}
                         </div>
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">Slug (URL)</label>
-                          <input
-                            type="text"
-                            value={editingProduct.slug || ''}
-                            onChange={e => setEditingProduct({ ...editingProduct, slug: e.target.value })}
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-[11px]"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">Brand</label>
-                          <input
-                            type="text"
-                            value={editingProduct.brand}
-                            onChange={e => setEditingProduct({ ...editingProduct, brand: e.target.value })}
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
-                          />
-                        </div>
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">Category</label>
-                          <input
-                            type="text"
-                            value={editingProduct.category}
-                            onChange={e => setEditingProduct({ ...editingProduct, category: e.target.value })}
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
-                          />
-                        </div>
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">Category Slug</label>
-                          <input
-                            type="text"
-                            value={editingProduct.category_slug || ''}
-                            onChange={e => setEditingProduct({ ...editingProduct, category_slug: e.target.value })}
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-[11px]"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">Technology</label>
-                          <input
-                            type="text"
-                            value={editingProduct.technology || ''}
-                            onChange={e => setEditingProduct({ ...editingProduct, technology: e.target.value })}
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
-                          />
-                        </div>
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">Selling Price</label>
-                          <input
-                            type="number"
-                            value={editingProduct.price ?? 0}
-                            onChange={e => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono"
-                          />
-                        </div>
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">Original / MRP Price</label>
-                          <input
-                            type="number"
-                            value={editingProduct.original_price ?? 0}
-                            onChange={e => setEditingProduct({ ...editingProduct, original_price: Number(e.target.value) })}
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block font-bold text-slate-700 mb-1">Tagline</label>
-                        <input
-                          type="text"
-                          value={editingProduct.tagline || ''}
-                          onChange={e => setEditingProduct({ ...editingProduct, tagline: e.target.value })}
-                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block font-bold text-slate-700 mb-1">Hero Image (PostgreSQL Storage or URL)</label>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={editingProduct.hero_image || ''}
-                            onChange={e => setEditingProduct({ ...editingProduct, hero_image: e.target.value })}
-                            className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-[11px]"
-                          />
-                          <label className="inline-flex items-center space-x-1.5 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg cursor-pointer transition-colors shrink-0">
-                            <Upload className="w-3.5 h-3.5" />
-                            <span className="text-[11px] font-bold">
-                              {uploadingField ? 'Uploading...' : 'Upload Image'}
+                        <div className="min-w-0">
+                          <div className="flex items-center space-x-2">
+                            <h4 className="text-base font-black text-white truncate">{editingProduct.name}</h4>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-600/30 text-blue-300 border border-blue-500/40">
+                              {editingProduct.category}
                             </span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={e => {
-                                const file = e.target.files?.[0]
-                                if (file) {
-                                  handleDirectImageUpload(file, url => {
-                                    setEditingProduct((prev: any) => ({ ...prev, hero_image: url }))
-                                  })
-                                }
-                              }}
-                            />
-                          </label>
-                        </div>
-                        {editingProduct.hero_image && (
-                          <div className="mt-2 flex items-center space-x-3 p-2 bg-slate-50 rounded-xl border border-slate-200 w-fit">
-                            <img
-                              src={editingProduct.hero_image}
-                              alt="Hero preview"
-                              className="w-12 h-12 object-contain bg-white rounded-lg border border-slate-200"
-                              onError={e => { (e.target as HTMLElement).style.display = 'none' }}
-                            />
-                            <span className="text-[11px] text-slate-500 font-mono truncate max-w-xs">{editingProduct.hero_image}</span>
                           </div>
-                        )}
+                          <div className="text-[11px] font-mono text-slate-400 truncate">
+                            slug: /products/{editingProduct.slug} • Brand: {editingProduct.brand} • Tech: {editingProduct.technology}
+                          </div>
+                        </div>
                       </div>
 
-                      <div>
-                        <label className="block font-bold text-slate-700 mb-1">Short Description</label>
-                        <textarea
-                          rows={2}
-                          value={editingProduct.short_description || ''}
-                          onChange={e => setEditingProduct({ ...editingProduct, short_description: e.target.value })}
-                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block font-bold text-slate-700 mb-1">Full Detailed Description</label>
-                        <textarea
-                          rows={4}
-                          value={editingProduct.description || ''}
-                          onChange={e => setEditingProduct({ ...editingProduct, description: e.target.value })}
-                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
-                        />
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-4 pt-1 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                        <label className="flex items-center space-x-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={editingProduct.in_stock !== false}
-                            onChange={e => setEditingProduct({ ...editingProduct, in_stock: e.target.checked })}
-                            className="w-4 h-4 text-blue-600 rounded"
-                          />
-                          <span className="font-bold text-slate-800">In Stock (Available for Delivery)</span>
-                        </label>
-                        <label className="flex items-center space-x-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={!!editingProduct.is_featured}
-                            onChange={e => setEditingProduct({ ...editingProduct, is_featured: e.target.checked })}
-                            className="w-4 h-4 text-blue-600 rounded"
-                          />
-                          <span className="font-bold text-slate-800">Featured Showcase</span>
-                        </label>
-                        <label className="flex items-center space-x-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={!!editingProduct.is_quote_based}
-                            onChange={e => setEditingProduct({ ...editingProduct, is_quote_based: e.target.checked })}
-                            className="w-4 h-4 text-blue-600 rounded"
-                          />
-                          <span className="font-bold text-slate-800">Quote Based</span>
-                        </label>
+                      <div className="flex items-center space-x-2 shrink-0">
+                        <a
+                          href={editingProduct.category_slug === 'filaments' ? '/shop?category=filaments' : `/products/${editingProduct.slug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center space-x-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-[11px] font-bold transition-colors"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>View Live</span>
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => setEditingProduct(null)}
+                          className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 text-base font-bold cursor-pointer"
+                        >
+                          ✕
+                        </button>
                       </div>
                     </div>
 
-                    <div className="pt-3 border-t border-slate-200 flex justify-end space-x-2">
-                      <button
-                        type="button"
-                        onClick={() => setEditingProduct(null)}
-                        className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-bold cursor-pointer"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-md cursor-pointer"
-                      >
-                        Save Changes to PostgreSQL
-                      </button>
+                    {/* Modal Sticky Section Navigation Bar */}
+                    <div className="px-6 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center space-x-1.5 overflow-x-auto shrink-0 scrollbar-none">
+                      {[
+                        { id: 'overview', label: '1. Overview & Info', icon: Info },
+                        { id: 'media', label: `2. Gallery (${editingProduct.images?.length || 1})`, icon: Eye },
+                        { id: 'pricing', label: '3. Pricing & Stock', icon: Tag },
+                        { id: 'specs', label: `4. Key Specs (${editingProduct.key_specs?.length || 0})`, icon: Sparkles },
+                        { id: 'tech_specs', label: `5. Tech Specs (${Object.keys(editingProduct.specifications || {}).length})`, icon: SlidersHorizontal },
+                        { id: 'features', label: `6. Features (${editingProduct.features?.length || 0})`, icon: List },
+                        { id: 'applications', label: `7. Applications (${(editingProduct.applications?.length || 0) + (editingProduct.who_is_it_for?.length || 0)})`, icon: Box },
+                        { id: 'materials', label: `8. Materials (${editingProduct.materials?.length || 0})`, icon: Layers },
+                        {
+                          id: 'specialized',
+                          label: editingProduct.category_slug === 'filaments' || editingProduct.category.toLowerCase().includes('filament')
+                            ? '9. Filament Swatch'
+                            : '9. Scanner Metrology',
+                          icon: Palette,
+                        },
+                      ].map(tab => {
+                        const TabIcon = tab.icon
+                        const isActive = activeEditTab === tab.id
+                        return (
+                          <button
+                            key={tab.id}
+                            type="button"
+                            onClick={() => setActiveEditTab(tab.id as any)}
+                            className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer ${
+                              isActive
+                                ? 'bg-blue-600 text-white shadow-xs'
+                                : 'text-slate-600 hover:bg-slate-200/70 hover:text-slate-900'
+                            }`}
+                          >
+                            <TabIcon className="w-3.5 h-3.5" />
+                            <span>{tab.label}</span>
+                          </button>
+                        )
+                      })}
                     </div>
-                  </form>
+
+                    {/* Modal Scrollable Body */}
+                    <form onSubmit={handleSaveEditProduct} className="flex-1 overflow-y-auto p-6 space-y-6">
+                      {/* TAB 1: OVERVIEW & GENERAL */}
+                      {activeEditTab === 'overview' && (
+                        <div className="space-y-4 animate-in fade-in">
+                          <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 flex items-center justify-between">
+                            <div className="font-bold text-blue-950">Section 1: General Information & Page Branding</div>
+                            <span className="text-[11px] text-blue-700">Controls hero typography, URL routing, and metadata</span>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="sm:col-span-2">
+                              <label className="block font-bold text-slate-700 mb-1">Product Title</label>
+                              <input
+                                type="text"
+                                required
+                                value={editingProduct.name}
+                                onChange={e => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 font-bold"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">URL Slug</label>
+                              <input
+                                type="text"
+                                required
+                                value={editingProduct.slug || ''}
+                                onChange={e => setEditingProduct({ ...editingProduct, slug: e.target.value })}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-[11px]"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Category</label>
+                              <select
+                                value={editingProduct.category}
+                                onChange={e => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-medium"
+                              >
+                                <option value="FDM 3D Printers">FDM 3D Printers</option>
+                                <option value="DLP 3D Printers">DLP 3D Printers</option>
+                                <option value="Industrial LCD 3D Printers">Industrial LCD 3D Printers</option>
+                                <option value="3D Scanners">3D Scanners</option>
+                                <option value="Filaments & Materials">Filaments & Materials</option>
+                                <option value="CAD & Engineering Software">CAD & Engineering Software</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Category Slug</label>
+                              <input
+                                type="text"
+                                value={editingProduct.category_slug || ''}
+                                onChange={e => setEditingProduct({ ...editingProduct, category_slug: e.target.value })}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-[11px]"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Brand</label>
+                              <input
+                                type="text"
+                                value={editingProduct.brand || ''}
+                                onChange={e => setEditingProduct({ ...editingProduct, brand: e.target.value })}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Technology Badge (Hero Ribbon)</label>
+                              <input
+                                type="text"
+                                value={editingProduct.technology || ''}
+                                onChange={e => setEditingProduct({ ...editingProduct, technology: e.target.value })}
+                                placeholder="e.g. Fused Deposition Modeling (FDM / FFF)"
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Promotional Badge (Highlight Chip)</label>
+                              <input
+                                type="text"
+                                value={editingProduct.badge || ''}
+                                onChange={e => setEditingProduct({ ...editingProduct, badge: e.target.value })}
+                                placeholder="e.g. Most Popular • Industrial Workhorse"
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1">Tagline / Headline</label>
+                            <input
+                              type="text"
+                              value={editingProduct.tagline || ''}
+                              onChange={e => setEditingProduct({ ...editingProduct, tagline: e.target.value })}
+                              placeholder="e.g. Standard 300 mm Industrial Prototype Workhorse"
+                              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1">Short Description (Catalog cards & meta)</label>
+                            <textarea
+                              rows={2}
+                              value={editingProduct.short_description || ''}
+                              onChange={e => setEditingProduct({ ...editingProduct, short_description: e.target.value })}
+                              placeholder="Brief summary displayed on cards..."
+                              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1">Full Detailed Engineering Description</label>
+                            <textarea
+                              rows={4}
+                              value={editingProduct.description || ''}
+                              onChange={e => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                              placeholder="Comprehensive breakdown of machine chassis, motion guide, hotend, and reliability..."
+                              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1">Official Brochure Download URL (PDF)</label>
+                            <input
+                              type="text"
+                              value={editingProduct.brochure_url || ''}
+                              onChange={e => setEditingProduct({ ...editingProduct, brochure_url: e.target.value })}
+                              placeholder="e.g. /brochures/pratham-3.pdf"
+                              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-[11px]"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* TAB 2: MEDIA & GALLERY */}
+                      {activeEditTab === 'media' && (
+                        <div className="space-y-5 animate-in fade-in">
+                          <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 flex items-center justify-between">
+                            <div className="font-bold text-blue-950">Section 2: Hero & Multi-Image Gallery Showcase</div>
+                            <span className="text-[11px] text-blue-700">Add multiple views, close-ups, and extruder imagery</span>
+                          </div>
+
+                          {/* Hero Main Image */}
+                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                            <label className="block font-bold text-slate-800">Primary Hero Image</label>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={editingProduct.hero_image || ''}
+                                onChange={e => setEditingProduct({ ...editingProduct, hero_image: e.target.value })}
+                                placeholder="/images/products/pratham-mini.png"
+                                className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono text-[11px]"
+                              />
+                              <label className="inline-flex items-center space-x-1.5 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg cursor-pointer transition-colors shrink-0">
+                                <Upload className="w-3.5 h-3.5" />
+                                <span className="font-bold">
+                                  {uploadingField === 'hero' ? 'Uploading...' : 'Upload Image'}
+                                </span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={e => {
+                                    const file = e.target.files?.[0]
+                                    if (file) {
+                                      setUploadingField('hero')
+                                      handleDirectImageUpload(file, url => {
+                                        setEditingProduct({ ...editingProduct, hero_image: url })
+                                        setUploadingField(null)
+                                      })
+                                    }
+                                  }}
+                                />
+                              </label>
+                            </div>
+                            {editingProduct.hero_image && (
+                              <div className="mt-2 flex items-center space-x-3 p-2 bg-white rounded-xl border border-slate-200 w-fit">
+                                <img
+                                  src={editingProduct.hero_image}
+                                  alt="Hero preview"
+                                  className="w-16 h-16 object-contain bg-slate-50 rounded-lg border border-slate-200 p-1"
+                                  onError={e => { (e.target as HTMLElement).style.display = 'none' }}
+                                />
+                                <div className="text-[11px]">
+                                  <div className="font-bold text-slate-800">Hero Main Photo</div>
+                                  <div className="text-slate-500 font-mono truncate max-w-xs">{editingProduct.hero_image}</div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Gallery Images List */}
+                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <label className="block font-bold text-slate-800">
+                                Additional Gallery Images ({(editingProduct.images || []).length} Photos)
+                              </label>
+                              <span className="text-[11px] text-slate-500">Thumbnails displayed in the product carousel</span>
+                            </div>
+
+                            {/* Gallery Thumbnails Grid */}
+                            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                              {(editingProduct.images || []).map((img, idx) => (
+                                <div key={idx} className="relative group rounded-xl overflow-hidden border border-slate-200 bg-white aspect-square flex items-center justify-center p-1">
+                                  <img src={img} alt={`Gallery ${idx}`} className="w-full h-full object-contain" />
+                                  <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-1 p-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditingProduct({ ...editingProduct, hero_image: img })}
+                                      className="p-1 bg-blue-600 text-white rounded text-[10px] font-bold hover:bg-blue-700"
+                                      title="Set as Hero Image"
+                                    >
+                                      Main
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const updatedImgs = (editingProduct.images || []).filter((_, i) => i !== idx)
+                                        setEditingProduct({ ...editingProduct, images: updatedImgs })
+                                      }}
+                                      className="p-1 bg-red-600 text-white rounded text-[10px] font-bold hover:bg-red-700"
+                                      title="Remove from Gallery"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Add Image to Gallery */}
+                            <div className="pt-2 flex gap-2">
+                              <input
+                                type="text"
+                                placeholder="Paste image URL (e.g. /images/products/pratham-angle-2.png)"
+                                value={newGalleryImgInput}
+                                onChange={e => setNewGalleryImgInput(e.target.value)}
+                                className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono text-[11px]"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (newGalleryImgInput.trim()) {
+                                    const updatedImgs = [...(editingProduct.images || []), newGalleryImgInput.trim()]
+                                    setEditingProduct({ ...editingProduct, images: updatedImgs })
+                                    setNewGalleryImgInput('')
+                                  }
+                                }}
+                                className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg shrink-0 cursor-pointer"
+                              >
+                                + Add Image
+                              </button>
+                              <label className="inline-flex items-center space-x-1.5 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg cursor-pointer transition-colors shrink-0">
+                                <Upload className="w-3.5 h-3.5" />
+                                <span className="font-bold">Upload to Gallery</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={e => {
+                                    const file = e.target.files?.[0]
+                                    if (file) {
+                                      handleDirectImageUpload(file, url => {
+                                        const updatedImgs = [...(editingProduct.images || []), url]
+                                        setEditingProduct({ ...editingProduct, images: updatedImgs })
+                                      })
+                                    }
+                                  }}
+                                />
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* TAB 3: PRICING & STOCK */}
+                      {activeEditTab === 'pricing' && (
+                        <div className="space-y-4 animate-in fade-in">
+                          <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 flex items-center justify-between">
+                            <div className="font-bold text-blue-950">Section 3: Commercial Pricing, Inventory & Flags</div>
+                            <span className="text-[11px] text-blue-700">Set direct retail price or quote-based inquiry mode</span>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                              <label className="block font-bold text-slate-700">Selling Price (INR ₹)</label>
+                              <input
+                                type="number"
+                                value={editingProduct.price ?? 0}
+                                onChange={e => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
+                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono text-base font-bold text-slate-900"
+                              />
+                              <p className="text-[11px] text-slate-500">Enter 0 if the product pricing is strictly based on custom inquiry.</p>
+                            </div>
+                            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                              <label className="block font-bold text-slate-700">MRP / Original Price (INR ₹)</label>
+                              <input
+                                type="number"
+                                value={editingProduct.original_price ?? 0}
+                                onChange={e => setEditingProduct({ ...editingProduct, original_price: Number(e.target.value) })}
+                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono text-base font-bold text-slate-900"
+                              />
+                              <p className="text-[11px] text-slate-500">Used to show slashed discount MRP pricing (e.g. ₹1,20,000).</p>
+                            </div>
+                          </div>
+
+                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                            <label className="block font-bold text-slate-800">Status & Commercial Flags</label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <label className="flex items-center space-x-2.5 p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:bg-blue-50/30">
+                                <input
+                                  type="checkbox"
+                                  checked={editingProduct.in_stock !== false}
+                                  onChange={e => setEditingProduct({ ...editingProduct, in_stock: e.target.checked })}
+                                  className="w-4 h-4 text-blue-600 rounded"
+                                />
+                                <div>
+                                  <div className="font-bold text-slate-800">In Stock (Available for Delivery)</div>
+                                  <div className="text-[11px] text-slate-500">Uncheck to display "Out of Stock"</div>
+                                </div>
+                              </label>
+
+                              <label className="flex items-center space-x-2.5 p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:bg-blue-50/30">
+                                <input
+                                  type="checkbox"
+                                  checked={!!editingProduct.is_quote_based}
+                                  onChange={e => setEditingProduct({ ...editingProduct, is_quote_based: e.target.checked })}
+                                  className="w-4 h-4 text-blue-600 rounded"
+                                />
+                                <div>
+                                  <div className="font-bold text-slate-800">Quote-Based Inquiries</div>
+                                  <div className="text-[11px] text-slate-500">Shows "Request Official Quote" instead of checkout</div>
+                                </div>
+                              </label>
+
+                              <label className="flex items-center space-x-2.5 p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:bg-blue-50/30">
+                                <input
+                                  type="checkbox"
+                                  checked={!!editingProduct.is_featured}
+                                  onChange={e => setEditingProduct({ ...editingProduct, is_featured: e.target.checked })}
+                                  className="w-4 h-4 text-blue-600 rounded"
+                                />
+                                <div>
+                                  <div className="font-bold text-slate-800">Featured Showcase</div>
+                                  <div className="text-[11px] text-slate-500">Spotlight on homepage hero and top catalogs</div>
+                                </div>
+                              </label>
+
+                              <label className="flex items-center space-x-2.5 p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:bg-blue-50/30">
+                                <input
+                                  type="checkbox"
+                                  checked={!!editingProduct.is_new}
+                                  onChange={e => setEditingProduct({ ...editingProduct, is_new: e.target.checked })}
+                                  className="w-4 h-4 text-blue-600 rounded"
+                                />
+                                <div>
+                                  <div className="font-bold text-slate-800">New Release Badge</div>
+                                  <div className="text-[11px] text-slate-500">Displays vibrant "New Launch" tag on cards</div>
+                                </div>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* TAB 4: KEY SPECS HIGHLIGHTS */}
+                      {activeEditTab === 'specs' && (
+                        <div className="space-y-4 animate-in fade-in">
+                          <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 flex items-center justify-between">
+                            <div>
+                              <div className="font-bold text-blue-950">Section 4: Key Highlight Spec Badges</div>
+                              <div className="text-[11px] text-blue-700">Shown in the quick-specs strip right below the product title</div>
+                            </div>
+                            <span className="px-2 py-0.5 bg-blue-200 text-blue-800 rounded-md font-mono text-[11px] font-bold">
+                              {(editingProduct.key_specs || []).length} Badges
+                            </span>
+                          </div>
+
+                          {/* Existing Key Specs List */}
+                          <div className="space-y-2">
+                            {(editingProduct.key_specs || []).map((spec, idx) => (
+                              <div key={idx} className="flex items-center gap-2 p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                                <div className="w-1/3">
+                                  <input
+                                    type="text"
+                                    value={spec.label}
+                                    onChange={e => {
+                                      const updated = [...(editingProduct.key_specs || [])]
+                                      updated[idx] = { ...updated[idx], label: e.target.value }
+                                      setEditingProduct({ ...editingProduct, key_specs: updated })
+                                    }}
+                                    placeholder="Label (e.g. Build Volume)"
+                                    className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-bold text-slate-800"
+                                  />
+                                </div>
+                                <div className="flex-1">
+                                  <input
+                                    type="text"
+                                    value={spec.value}
+                                    onChange={e => {
+                                      const updated = [...(editingProduct.key_specs || [])]
+                                      updated[idx] = { ...updated[idx], value: e.target.value }
+                                      setEditingProduct({ ...editingProduct, key_specs: updated })
+                                    }}
+                                    placeholder="Value (e.g. 300 × 300 × 300 mm)"
+                                    className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-700"
+                                  />
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const updated = (editingProduct.key_specs || []).filter((_, i) => i !== idx)
+                                    setEditingProduct({ ...editingProduct, key_specs: updated })
+                                  }}
+                                  className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg cursor-pointer"
+                                  title="Delete key spec"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Add New Key Spec Form */}
+                          <div className="p-3.5 bg-blue-50/40 rounded-xl border border-blue-200 space-y-2">
+                            <div className="font-bold text-slate-800 text-[11px]">+ Add New Highlight Spec Badge</div>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                placeholder="Spec Label (e.g. Layer Resolution)"
+                                value={newKeySpec.label}
+                                onChange={e => setNewKeySpec({ ...newKeySpec, label: e.target.value })}
+                                className="w-1/3 px-3 py-1.5 bg-white border border-slate-200 rounded-lg"
+                              />
+                              <input
+                                type="text"
+                                placeholder="Spec Value (e.g. 0.08 – 0.3 mm)"
+                                value={newKeySpec.value}
+                                onChange={e => setNewKeySpec({ ...newKeySpec, value: e.target.value })}
+                                className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (newKeySpec.label.trim() && newKeySpec.value.trim()) {
+                                    const updated = [...(editingProduct.key_specs || []), { ...newKeySpec }]
+                                    setEditingProduct({ ...editingProduct, key_specs: updated })
+                                    setNewKeySpec({ label: '', value: '' })
+                                  }
+                                }}
+                                className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shrink-0 cursor-pointer"
+                              >
+                                + Add Spec
+                              </button>
+                            </div>
+
+                            {/* Presets */}
+                            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                              <span className="text-[10px] text-slate-500 font-bold">Quick Presets:</span>
+                              {[
+                                { label: 'Build Volume', value: '300 × 300 × 300 mm' },
+                                { label: 'Print Speed', value: 'Up to 120 mm/s' },
+                                { label: 'Layer Resolution', value: '0.08 – 0.3 mm' },
+                                { label: 'Max Extruder Temp', value: '300°C' },
+                                { label: 'Max Bed Temp', value: '120°C' },
+                                { label: 'Dimensional Tolerance', value: '±0.1 mm' },
+                              ].map((p, i) => (
+                                <button
+                                  key={i}
+                                  type="button"
+                                  onClick={() => {
+                                    const updated = [...(editingProduct.key_specs || []), p]
+                                    setEditingProduct({ ...editingProduct, key_specs: updated })
+                                  }}
+                                  className="px-2 py-0.5 bg-white hover:bg-blue-100 border border-slate-200 text-slate-700 rounded text-[10px] font-medium transition-colors"
+                                >
+                                  + {p.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* TAB 5: TECHNICAL SPECIFICATIONS TABLE */}
+                      {activeEditTab === 'tech_specs' && (
+                        <div className="space-y-4 animate-in fade-in">
+                          <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 flex items-center justify-between">
+                            <div>
+                              <div className="font-bold text-blue-950">Section 5: Comprehensive Technical Specifications Table</div>
+                              <div className="text-[11px] text-blue-700">Rendered in the detailed engineering spec sheet on product pages</div>
+                            </div>
+                            <span className="px-2 py-0.5 bg-blue-200 text-blue-800 rounded-md font-mono text-[11px] font-bold">
+                              {Object.keys(editingProduct.specifications || {}).length} Parameters
+                            </span>
+                          </div>
+
+                          {/* Existing Specs Table */}
+                          <div className="border border-slate-200 rounded-xl overflow-hidden">
+                            <table className="w-full text-left text-xs">
+                              <thead className="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
+                                <tr>
+                                  <th className="py-2.5 px-3 w-1/3">Property / Parameter</th>
+                                  <th className="py-2.5 px-3">Specification Detail</th>
+                                  <th className="py-2.5 px-2 text-right w-12">Action</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100">
+                                {Object.entries(editingProduct.specifications || {}).map(([prop, val]) => (
+                                  <tr key={prop} className="hover:bg-slate-50">
+                                    <td className="py-2 px-3 font-bold text-slate-900">{prop}</td>
+                                    <td className="py-2 px-3">
+                                      <input
+                                        type="text"
+                                        value={val}
+                                        onChange={e => {
+                                          setEditingProduct({
+                                            ...editingProduct,
+                                            specifications: {
+                                              ...(editingProduct.specifications || {}),
+                                              [prop]: e.target.value,
+                                            },
+                                          })
+                                        }}
+                                        className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-slate-800"
+                                      />
+                                    </td>
+                                    <td className="py-2 px-2 text-right">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const updatedSpecs = { ...(editingProduct.specifications || {}) }
+                                          delete updatedSpecs[prop]
+                                          setEditingProduct({ ...editingProduct, specifications: updatedSpecs })
+                                        }}
+                                        className="p-1 text-red-500 hover:bg-red-50 rounded"
+                                        title="Delete row"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+
+                          {/* Add New Specification Row */}
+                          <div className="p-3.5 bg-blue-50/40 rounded-xl border border-blue-200 space-y-2">
+                            <div className="font-bold text-slate-800 text-[11px]">+ Add Technical Specification Row</div>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                placeholder="Property Name (e.g. Build Envelope)"
+                                value={newSpecRow.property}
+                                onChange={e => setNewSpecRow({ ...newSpecRow, property: e.target.value })}
+                                className="w-1/3 px-3 py-1.5 bg-white border border-slate-200 rounded-lg"
+                              />
+                              <input
+                                type="text"
+                                placeholder="Specification Value (e.g. 300 × 300 × 300 mm)"
+                                value={newSpecRow.value}
+                                onChange={e => setNewSpecRow({ ...newSpecRow, value: e.target.value })}
+                                className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (newSpecRow.property.trim()) {
+                                    setEditingProduct({
+                                      ...editingProduct,
+                                      specifications: {
+                                        ...(editingProduct.specifications || {}),
+                                        [newSpecRow.property.trim()]: newSpecRow.value.trim(),
+                                      },
+                                    })
+                                    setNewSpecRow({ property: '', value: '' })
+                                  }
+                                }}
+                                className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shrink-0 cursor-pointer"
+                              >
+                                + Add Row
+                              </button>
+                            </div>
+
+                            {/* Quick Add Presets */}
+                            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                              <span className="text-[10px] text-slate-500 font-bold">Quick Spec Presets:</span>
+                              {[
+                                'Print Technology',
+                                'Build Envelope',
+                                'Extruder Type',
+                                'Nozzle Diameter',
+                                'Maximum Hotend Temp',
+                                'Printbed Temp',
+                                'Motion System',
+                                'Filament Compatibility',
+                                'Display Interface',
+                                'Connectivity',
+                                'Supported File Formats',
+                                'Chassis Construction',
+                                'Power Supply',
+                                'Printer Dimensions & Weight',
+                              ].map((key, i) => (
+                                <button
+                                  key={i}
+                                  type="button"
+                                  onClick={() => setNewSpecRow({ ...newSpecRow, property: key })}
+                                  className="px-2 py-0.5 bg-white hover:bg-blue-100 border border-slate-200 text-slate-700 rounded text-[10px] font-medium"
+                                >
+                                  + {key}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* TAB 6: CORE FEATURES */}
+                      {activeEditTab === 'features' && (
+                        <div className="space-y-4 animate-in fade-in">
+                          <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 flex items-center justify-between">
+                            <div>
+                              <div className="font-bold text-blue-950">Section 6: Core Features & Engineering Highlights</div>
+                              <div className="text-[11px] text-blue-700">Bullet points highlighting standout capabilities and hardware design</div>
+                            </div>
+                            <span className="px-2 py-0.5 bg-blue-200 text-blue-800 rounded-md font-mono text-[11px] font-bold">
+                              {(editingProduct.features || []).length} Features
+                            </span>
+                          </div>
+
+                          {/* Existing Features List */}
+                          <div className="space-y-2">
+                            {(editingProduct.features || []).map((feat, idx) => (
+                              <div key={idx} className="flex items-start gap-2 p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                                <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                  {idx + 1}
+                                </span>
+                                <textarea
+                                  rows={2}
+                                  value={feat}
+                                  onChange={e => {
+                                    const updated = [...(editingProduct.features || [])]
+                                    updated[idx] = e.target.value
+                                    setEditingProduct({ ...editingProduct, features: updated })
+                                  }}
+                                  className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const updated = (editingProduct.features || []).filter((_, i) => i !== idx)
+                                    setEditingProduct({ ...editingProduct, features: updated })
+                                  }}
+                                  className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg cursor-pointer shrink-0"
+                                  title="Delete feature"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Add Feature Form */}
+                          <div className="p-3.5 bg-blue-50/40 rounded-xl border border-blue-200 space-y-2">
+                            <div className="font-bold text-slate-800 text-[11px]">+ Add Highlight Feature</div>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                placeholder="e.g. Rigid industrial all-metal MS frame eliminates vibration for high-precision printing"
+                                value={newFeatureInput}
+                                onChange={e => setNewFeatureInput(e.target.value)}
+                                className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (newFeatureInput.trim()) {
+                                    const updated = [...(editingProduct.features || []), newFeatureInput.trim()]
+                                    setEditingProduct({ ...editingProduct, features: updated })
+                                    setNewFeatureInput('')
+                                  }
+                                }}
+                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shrink-0 cursor-pointer"
+                              >
+                                + Add Feature
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* TAB 7: APPLICATIONS & TARGET AUDIENCE */}
+                      {activeEditTab === 'applications' && (
+                        <div className="space-y-5 animate-in fade-in">
+                          <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 flex items-center justify-between">
+                            <div className="font-bold text-blue-950">Section 7: Industrial Applications & Target Personas</div>
+                            <span className="text-[11px] text-blue-700">Guides prospective buyers to the right solution</span>
+                          </div>
+
+                          {/* Applications */}
+                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                            <label className="block font-bold text-slate-800">
+                              Industrial Applications & Use Cases ({(editingProduct.applications || []).length} items)
+                            </label>
+
+                            <div className="flex flex-wrap gap-2">
+                              {(editingProduct.applications || []).map((app, idx) => (
+                                <span
+                                  key={idx}
+                                  className="inline-flex items-center space-x-1 px-3 py-1 bg-white border border-slate-300 text-slate-800 rounded-lg font-medium shadow-2xs"
+                                >
+                                  <span>{app}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const updated = (editingProduct.applications || []).filter((_, i) => i !== idx)
+                                      setEditingProduct({ ...editingProduct, applications: updated })
+                                    }}
+                                    className="text-slate-400 hover:text-red-500 font-bold ml-1"
+                                  >
+                                    ✕
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+
+                            <div className="flex gap-2 pt-1">
+                              <input
+                                type="text"
+                                placeholder="Add application (e.g. Functional Prototype Testing, Tooling & Jigs)"
+                                value={newAppInput}
+                                onChange={e => setNewAppInput(e.target.value)}
+                                className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (newAppInput.trim()) {
+                                    const updated = [...(editingProduct.applications || []), newAppInput.trim()]
+                                    setEditingProduct({ ...editingProduct, applications: updated })
+                                    setNewAppInput('')
+                                  }
+                                }}
+                                className="px-4 py-1.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg cursor-pointer"
+                              >
+                                + Add Application
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Who Is It For */}
+                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                            <label className="block font-bold text-slate-800">
+                              Target Audience / Who Is It For ({(editingProduct.who_is_it_for || []).length} personas)
+                            </label>
+
+                            <div className="flex flex-wrap gap-2">
+                              {(editingProduct.who_is_it_for || []).map((user, idx) => (
+                                <span
+                                  key={idx}
+                                  className="inline-flex items-center space-x-1 px-3 py-1 bg-white border border-slate-300 text-slate-800 rounded-lg font-medium shadow-2xs"
+                                >
+                                  <span>{user}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const updated = (editingProduct.who_is_it_for || []).filter((_, i) => i !== idx)
+                                      setEditingProduct({ ...editingProduct, who_is_it_for: updated })
+                                    }}
+                                    className="text-slate-400 hover:text-red-500 font-bold ml-1"
+                                  >
+                                    ✕
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+
+                            <div className="flex gap-2 pt-1">
+                              <input
+                                type="text"
+                                placeholder="Add target audience (e.g. R&D Engineering Teams, STEM Labs)"
+                                value={newAudienceInput}
+                                onChange={e => setNewAudienceInput(e.target.value)}
+                                className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (newAudienceInput.trim()) {
+                                    const updated = [...(editingProduct.who_is_it_for || []), newAudienceInput.trim()]
+                                    setEditingProduct({ ...editingProduct, who_is_it_for: updated })
+                                    setNewAudienceInput('')
+                                  }
+                                }}
+                                className="px-4 py-1.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg cursor-pointer"
+                              >
+                                + Add Audience
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* TAB 8: MATERIALS COMPATIBILITY */}
+                      {activeEditTab === 'materials' && (
+                        <div className="space-y-4 animate-in fade-in">
+                          <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 flex items-center justify-between">
+                            <div className="font-bold text-blue-950">Section 8: Compatible Polymers, Resins & Materials</div>
+                            <span className="text-[11px] text-blue-700">Supported thermoplastics and engineering filaments</span>
+                          </div>
+
+                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                            <label className="block font-bold text-slate-800">
+                              Supported Materials ({(editingProduct.materials || []).length} types)
+                            </label>
+
+                            <div className="flex flex-wrap gap-2">
+                              {(editingProduct.materials || []).map((mat, idx) => (
+                                <span
+                                  key={idx}
+                                  className="inline-flex items-center space-x-1 px-3 py-1 bg-white border border-slate-300 text-slate-800 rounded-lg font-bold shadow-2xs"
+                                >
+                                  <span>{mat}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const updated = (editingProduct.materials || []).filter((_, i) => i !== idx)
+                                      setEditingProduct({ ...editingProduct, materials: updated })
+                                    }}
+                                    className="text-slate-400 hover:text-red-500 font-bold ml-1"
+                                  >
+                                    ✕
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+
+                            <div className="flex gap-2 pt-1">
+                              <input
+                                type="text"
+                                placeholder="Add material (e.g. Carbon-Fiber PLA, TPU 95A, Nylon)"
+                                value={newMatInput}
+                                onChange={e => setNewMatInput(e.target.value)}
+                                className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (newMatInput.trim()) {
+                                    const updated = [...(editingProduct.materials || []), newMatInput.trim()]
+                                    setEditingProduct({ ...editingProduct, materials: updated })
+                                    setNewMatInput('')
+                                  }
+                                }}
+                                className="px-4 py-1.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg cursor-pointer"
+                              >
+                                + Add Material
+                              </button>
+                            </div>
+
+                            {/* Preset Buttons */}
+                            <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-200">
+                              <span className="text-[10px] text-slate-500 font-bold">Quick Presets:</span>
+                              {[
+                                'PLA',
+                                'PLA+',
+                                'ABS',
+                                'PETG',
+                                'TPU (95A)',
+                                'Carbon-Fiber PLA',
+                                'Nylon (PA)',
+                                'PC-ABS',
+                                'Standard Resin',
+                                'Castable Wax Resin',
+                                'Dental Model Resin',
+                              ].map((mat, i) => (
+                                <button
+                                  key={i}
+                                  type="button"
+                                  onClick={() => {
+                                    if (!(editingProduct.materials || []).includes(mat)) {
+                                      const updated = [...(editingProduct.materials || []), mat]
+                                      setEditingProduct({ ...editingProduct, materials: updated })
+                                    }
+                                  }}
+                                  className="px-2 py-0.5 bg-white hover:bg-blue-100 border border-slate-200 text-slate-700 rounded text-[10px] font-medium"
+                                >
+                                  + {mat}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* TAB 9: SPECIALIZED CATEGORY PARAMETERS (FILAMENTS / SCANNERS) */}
+                      {activeEditTab === 'specialized' && (
+                        <div className="space-y-5 animate-in fade-in">
+                          {/* FILAMENT SPECIFIC CONTROLS */}
+                          {(editingProduct.category_slug === 'filaments' || editingProduct.category.toLowerCase().includes('filament')) ? (
+                            <div className="p-5 bg-amber-50/50 rounded-2xl border border-amber-200 space-y-4">
+                              <div className="flex items-center space-x-2">
+                                <Palette className="w-5 h-5 text-amber-700" />
+                                <h4 className="text-sm font-black text-amber-950">Filament & Consumables Precision Settings</h4>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">Filament Material</label>
+                                  <select
+                                    value={editingProduct.filament_material || 'PLA'}
+                                    onChange={e => setEditingProduct({ ...editingProduct, filament_material: e.target.value })}
+                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-bold"
+                                  >
+                                    <option value="PLA">PLA</option>
+                                    <option value="PLA+">PLA+</option>
+                                    <option value="PETG">PETG</option>
+                                    <option value="ABS">ABS</option>
+                                    <option value="TPU">TPU</option>
+                                    <option value="Resin">Resin</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">Color Name</label>
+                                  <input
+                                    type="text"
+                                    value={editingProduct.filament_color || ''}
+                                    onChange={e => setEditingProduct({ ...editingProduct, filament_color: e.target.value })}
+                                    placeholder="e.g. Grey / Silver, Gold, Red"
+                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-bold"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">Color Hex & Swatch</label>
+                                  <div className="flex items-center space-x-2">
+                                    <input
+                                      type="color"
+                                      value={editingProduct.filament_color_hex || '#4b5563'}
+                                      onChange={e => setEditingProduct({ ...editingProduct, filament_color_hex: e.target.value })}
+                                      className="w-10 h-9 p-0.5 border border-slate-300 rounded-lg cursor-pointer bg-white"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={editingProduct.filament_color_hex || '#4b5563'}
+                                      onChange={e => setEditingProduct({ ...editingProduct, filament_color_hex: e.target.value })}
+                                      className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono text-xs font-bold"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">Diameter</label>
+                                  <input
+                                    type="text"
+                                    value={editingProduct.filament_diameter || '1.75 mm'}
+                                    onChange={e => setEditingProduct({ ...editingProduct, filament_diameter: e.target.value })}
+                                    placeholder="1.75 mm"
+                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">Spool Weight</label>
+                                  <input
+                                    type="text"
+                                    value={editingProduct.filament_weight || '1 KG'}
+                                    onChange={e => setEditingProduct({ ...editingProduct, filament_weight: e.target.value })}
+                                    placeholder="1 KG"
+                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">Print Temp</label>
+                                  <input
+                                    type="text"
+                                    value={editingProduct.filament_print_temp || '190°C – 220°C'}
+                                    onChange={e => setEditingProduct({ ...editingProduct, filament_print_temp: e.target.value })}
+                                    placeholder="190°C – 220°C"
+                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">Bed Temp</label>
+                                  <input
+                                    type="text"
+                                    value={editingProduct.filament_bed_temp || '50°C – 60°C'}
+                                    onChange={e => setEditingProduct({ ...editingProduct, filament_bed_temp: e.target.value })}
+                                    placeholder="50°C – 60°C"
+                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            /* 3D SCANNER SPECIFIC CONTROLS */
+                            <div className="p-5 bg-emerald-50/50 rounded-2xl border border-emerald-200 space-y-4">
+                              <div className="flex items-center space-x-2">
+                                <Scan className="w-5 h-5 text-emerald-700" />
+                                <h4 className="text-sm font-black text-emerald-950">3D Optical Scanner Metrology Parameters</h4>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">Scanner Model Name</label>
+                                  <input
+                                    type="text"
+                                    value={editingProduct.scanner_model_name || editingProduct.name}
+                                    onChange={e => setEditingProduct({ ...editingProduct, scanner_model_name: e.target.value })}
+                                    placeholder="e.g. 3DeVOK MQ"
+                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-bold"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">Volumetric Accuracy</label>
+                                  <input
+                                    type="text"
+                                    value={editingProduct.scanner_accuracy || ''}
+                                    onChange={e => setEditingProduct({ ...editingProduct, scanner_accuracy: e.target.value })}
+                                    placeholder="e.g. Up to 0.08 mm"
+                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">Point Resolution</label>
+                                  <input
+                                    type="text"
+                                    value={editingProduct.scanner_resolution || ''}
+                                    onChange={e => setEditingProduct({ ...editingProduct, scanner_resolution: e.target.value })}
+                                    placeholder="e.g. 0.1 mm Point Distance"
+                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">Scan Acquisition Speed</label>
+                                  <input
+                                    type="text"
+                                    value={editingProduct.scanner_speed || ''}
+                                    onChange={e => setEditingProduct({ ...editingProduct, scanner_speed: e.target.value })}
+                                    placeholder="e.g. Up to 4,500,000 pts/s"
+                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">Optical Light Source / Technology</label>
+                                  <input
+                                    type="text"
+                                    value={editingProduct.scanner_optical_tech || ''}
+                                    onChange={e => setEditingProduct({ ...editingProduct, scanner_optical_tech: e.target.value })}
+                                    placeholder="e.g. 22-Line IR Laser + VCSEL"
+                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">Color / Texture Camera</label>
+                                  <input
+                                    type="text"
+                                    value={editingProduct.scanner_color_support || ''}
+                                    onChange={e => setEditingProduct({ ...editingProduct, scanner_color_support: e.target.value })}
+                                    placeholder="e.g. 24-Bit RGB Photoreal Texture"
+                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">Wireless Transmission</label>
+                                  <input
+                                    type="text"
+                                    value={editingProduct.scanner_wireless || ''}
+                                    onChange={e => setEditingProduct({ ...editingProduct, scanner_wireless: e.target.value })}
+                                    placeholder="e.g. Supported via Optional Handle"
+                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Modal Sticky Footer */}
+                      <div className="pt-4 border-t border-slate-200 flex items-center justify-between sticky bottom-0 bg-white/95 backdrop-blur-xs py-2">
+                        <div className="text-[11px] text-slate-500 font-mono">
+                          Configured: {(editingProduct.features || []).length} features • {Object.keys(editingProduct.specifications || {}).length} specs • {(editingProduct.materials || []).length} materials
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => setEditingProduct(null)}
+                            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="inline-flex items-center space-x-1.5 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-colors"
+                          >
+                            <Save className="w-4 h-4" />
+                            <span>Save Changes to PostgreSQL & Local</span>
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
                 </div>
               )}
 
-              {/* Products Table */}
-              <div className="overflow-x-auto">
+              {/* Products Catalog Table */}
+              <div className="overflow-x-auto border border-slate-200 rounded-2xl">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider bg-slate-50/50">
-                      <th className="py-3 px-3">Product</th>
-                      <th className="py-3 px-3">Category</th>
-                      <th className="py-3 px-3">Brand</th>
-                      <th className="py-3 px-3">Price</th>
+                    <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider bg-slate-50/70 text-[10px]">
+                      <th className="py-3 px-4">Product & Visual</th>
+                      <th className="py-3 px-3">Category & Tech</th>
+                      <th className="py-3 px-3">Price / Model</th>
+                      <th className="py-3 px-3">Sections Configured</th>
                       <th className="py-3 px-3">Stock Status</th>
-                      <th className="py-3 px-3 text-right">Actions</th>
+                      <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {filteredProducts.map(p => (
-                      <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                      <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-11 h-11 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                              {p.hero_image ? (
+                                <img src={p.hero_image} alt="" className="w-full h-full object-contain p-1" />
+                              ) : (
+                                <Box className="w-5 h-5 text-slate-400" />
+                              )}
+                            </div>
+                            <div>
+                              <div className="font-bold text-slate-900 text-sm hover:text-blue-600 transition-colors">
+                                {p.name}
+                              </div>
+                              <div className="text-[11px] text-slate-400 font-mono">/products/{p.slug}</div>
+                              {p.tagline && (
+                                <div className="text-[11px] text-slate-500 line-clamp-1 max-w-xs">{p.tagline}</div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+
                         <td className="py-3 px-3">
-                          <div className="font-bold text-slate-900">{p.name}</div>
-                          <div className="text-[11px] text-slate-400 font-mono">{p.slug}</div>
+                          <div className="space-y-1">
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">
+                              {p.category}
+                            </span>
+                            <div className="text-[11px] text-slate-500 truncate max-w-[150px] font-medium">
+                              {p.technology}
+                            </div>
+                          </div>
                         </td>
-                        <td className="py-3 px-3 text-slate-600">{p.category}</td>
-                        <td className="py-3 px-3 text-slate-700">{p.brand}</td>
-                        <td className="py-3 px-3 font-semibold text-slate-900">
-                          'Quote Based'
+
+                        <td className="py-3 px-3">
+                          {p.is_quote_based || p.price === 0 ? (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700">
+                              Quote Based
+                            </span>
+                          ) : (
+                            <div>
+                              <div className="font-black text-slate-900 text-sm font-mono">
+                                ₹{p.price?.toLocaleString('en-IN')}
+                              </div>
+                              {p.original_price && p.original_price > p.price && (
+                                <div className="text-[10px] text-slate-400 line-through font-mono">
+                                  ₹{p.original_price?.toLocaleString('en-IN')}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </td>
+
+                        <td className="py-3 px-3">
+                          <div className="text-[11px] text-slate-600 space-y-0.5">
+                            <div className="font-medium text-slate-700">
+                              {Object.keys(p.specifications || {}).length} specs • {(p.features || []).length} features
+                            </div>
+                            <div className="text-[10px] text-slate-400">
+                              {(p.materials || []).length} materials • {(p.images || []).length} photos
+                            </div>
+                          </div>
+                        </td>
+
                         <td className="py-3 px-3">
                           <button
                             onClick={() => handleToggleStock(p)}
-                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold cursor-pointer transition-all ${
-                              p.in_stock !== false ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-red-100 text-red-700 hover:bg-red-200'
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-all ${
+                              p.in_stock !== false
+                                ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                                : 'bg-red-100 text-red-700 hover:bg-red-200'
                             }`}
                             title="Click to toggle stock availability"
                           >
-                            {p.in_stock !== false ? 'âœ“ In Stock' : 'âœ• Out of Stock'}
+                            {p.in_stock !== false ? '✓ In Stock' : '✕ Out of Stock'}
                           </button>
                         </td>
-                        <td className="py-3 px-3 text-right space-x-1.5">
+
+                        <td className="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
                           <button
-                            onClick={() => setEditingProduct(p)}
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
-                            title="Edit product details"
+                            onClick={() => {
+                              setEditingProduct({ ...p })
+                              setActiveEditTab('overview')
+                            }}
+                            className="inline-flex items-center space-x-1 px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-xs"
+                            title="Edit full product sections"
                           >
-                            <Edit className="w-4 h-4" />
+                            <Edit className="w-3.5 h-3.5" />
+                            <span>Edit Full Sections</span>
                           </button>
+                          <a
+                            href={p.category_slug === 'filaments' ? '/shop?category=filaments' : `/products/${p.slug}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                            title="View on live website"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
                           <button
                             onClick={() => handleDeleteProduct(p.id)}
-                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                             title="Delete product"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </td>
                       </tr>

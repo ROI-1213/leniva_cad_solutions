@@ -13,6 +13,8 @@ import {
   Info,
 } from 'lucide-react'
 import { products } from '../data/products'
+import { Product } from '../types'
+import { getStoredProductsCatalog } from '../utils/productCatalog'
 import { ProductCard } from '../components/ProductCard'
 import { useApp } from '../context/AppContext'
 import PrathamDesktopPage from './PrathamDesktopPage'
@@ -69,78 +71,116 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
   }
   const resolvedSlug = slug ? (slugAliases[slug.toLowerCase()] || slug.toLowerCase()) : ''
 
-  // Delegate dedicated product pages if accessed through this generic component
-  if (resolvedSlug === 'pratham-desktop') {
-    return <PrathamDesktopPage />
-  }
-  if (resolvedSlug === 'pratham-mini') {
-    return <PrathamMiniPage />
-  }
-  if (resolvedSlug === 'pratham-3' || resolvedSlug === 'pratham-3-0') {
-    return <Pratham3Page />
-  }
-  if (resolvedSlug === 'pratham-5' || resolvedSlug === 'pratham-5-0') {
-    return <Pratham5Page />
-  }
-  if (resolvedSlug === 'pratham-6' || resolvedSlug === 'pratham-6-0') {
-    return <Pratham6Page />
-  }
-  if (resolvedSlug === 'pratham-x-600') {
-    return <PrathamX600Page />
-  }
-  if (resolvedSlug === 'pratham-x' || resolvedSlug === 'pratham-x-1000') {
-    return <PrathamX1000Page />
-  }
-  if (resolvedSlug === 'pratham-3-rapid') {
-    return <Pratham3RapidPage />
-  }
-  if (resolvedSlug === 'enscape' || resolvedSlug === 'enscape-3d' || resolvedSlug === 'chaos-enscape') {
-    return <EnscapePage />
-  }
-  if (resolvedSlug === 'vray' || resolvedSlug === 'v-ray' || resolvedSlug === 'chaos-vray' || resolvedSlug === 'chaos-v-ray') {
-    return <VRayPage />
-  }
-  if (resolvedSlug === 'corona' || resolvedSlug === 'chaos-corona' || resolvedSlug === 'chaos-corona-renderer') {
-    return <CoronaPage />
-  }
-  if (resolvedSlug === 'sketchup-studio' || resolvedSlug === 'sketchup_studio' || resolvedSlug === 'sketchupstudio') {
-    return <SketchUpStudioPage />
-  }
-  if (resolvedSlug === 'sketchup-scan' || resolvedSlug === 'sketchup-pro-scan' || resolvedSlug === 'sketchupproscan') {
-    return <SketchUpProScanPage />
-  }
-  if (resolvedSlug === 'ares-mechanical' || resolvedSlug === 'aresmechanical' || resolvedSlug === 'ares_mechanical') {
-    return <AresMechanicalPage />
-  }
-  if (resolvedSlug === 'ares-electrical' || resolvedSlug === 'areselectrical' || resolvedSlug === 'ares_electrical') {
-    return <AresElectricalPage />
-  }
-  if (resolvedSlug === 'ares-standard' || resolvedSlug === 'aresstandard' || resolvedSlug === 'ares_standard') {
-    return <AresStandardPage />
-  }
-  if (resolvedSlug === 'ares-commander' || resolvedSlug === 'arescommander' || resolvedSlug === 'ares_commander') {
-    return <AresCommanderPage />
-  }
-  if (resolvedSlug === 'eka-ht') {
-    return <EkaHtPage />
-  }
-  if (resolvedSlug === 'eka-xl' || resolvedSlug === 'eka-xl-2') {
-    return <EkaXlPage />
-  }
-  if (resolvedSlug === 'eka-xle') {
-    return <EkaXlePage />
-  }
-  if (resolvedSlug === 'eka-gt-max' || resolvedSlug === 'industrial-lcd-3d-printers-eka-gt-max') {
-    return <EkaGtMaxPage />
-  }
-  if (resolvedSlug === 'eka-f1-16k' || resolvedSlug === 'eka-f1-16k-industrial-lcd-jewelry-3d-printer') {
-    return <EkaF116kPage />
+  const storedCatalog = getStoredProductsCatalog()
+  const customProd = storedCatalog.find(
+    p => (p.slug && p.slug.toLowerCase() === resolvedSlug) || (p.id && p.id.toLowerCase() === resolvedSlug)
+  )
+
+  // Has this product been modified by the admin in localStorage?
+  const isCustomEdited = typeof window !== 'undefined' &&
+    !!localStorage.getItem('leniva_admin_products_catalog') &&
+    !!customProd
+
+  // Delegate dedicated product pages ONLY if no custom admin edits exist for this machine
+  if (!isCustomEdited) {
+    if (resolvedSlug === 'pratham-desktop') {
+      return <PrathamDesktopPage />
+    }
+    if (resolvedSlug === 'pratham-mini') {
+      return <PrathamMiniPage />
+    }
+    if (resolvedSlug === 'pratham-3' || resolvedSlug === 'pratham-3-0') {
+      return <Pratham3Page />
+    }
+    if (resolvedSlug === 'pratham-5' || resolvedSlug === 'pratham-5-0') {
+      return <Pratham5Page />
+    }
+    if (resolvedSlug === 'pratham-6' || resolvedSlug === 'pratham-6-0') {
+      return <Pratham6Page />
+    }
+    if (resolvedSlug === 'pratham-x-600') {
+      return <PrathamX600Page />
+    }
+    if (resolvedSlug === 'pratham-x' || resolvedSlug === 'pratham-x-1000') {
+      return <PrathamX1000Page />
+    }
+    if (resolvedSlug === 'pratham-3-rapid') {
+      return <Pratham3RapidPage />
+    }
+    if (resolvedSlug === 'enscape' || resolvedSlug === 'enscape-3d' || resolvedSlug === 'chaos-enscape') {
+      return <EnscapePage />
+    }
+    if (resolvedSlug === 'vray' || resolvedSlug === 'v-ray' || resolvedSlug === 'chaos-vray' || resolvedSlug === 'chaos-v-ray') {
+      return <VRayPage />
+    }
+    if (resolvedSlug === 'corona' || resolvedSlug === 'chaos-corona' || resolvedSlug === 'chaos-corona-renderer') {
+      return <CoronaPage />
+    }
+    if (resolvedSlug === 'sketchup-studio' || resolvedSlug === 'sketchup_studio' || resolvedSlug === 'sketchupstudio') {
+      return <SketchUpStudioPage />
+    }
+    if (resolvedSlug === 'sketchup-scan' || resolvedSlug === 'sketchup-pro-scan' || resolvedSlug === 'sketchupproscan') {
+      return <SketchUpProScanPage />
+    }
+    if (resolvedSlug === 'ares-mechanical' || resolvedSlug === 'aresmechanical' || resolvedSlug === 'ares_mechanical') {
+      return <AresMechanicalPage />
+    }
+    if (resolvedSlug === 'ares-electrical' || resolvedSlug === 'areselectrical' || resolvedSlug === 'ares_electrical') {
+      return <AresElectricalPage />
+    }
+    if (resolvedSlug === 'ares-standard' || resolvedSlug === 'aresstandard' || resolvedSlug === 'ares_standard') {
+      return <AresStandardPage />
+    }
+    if (resolvedSlug === 'ares-commander' || resolvedSlug === 'arescommander' || resolvedSlug === 'ares_commander') {
+      return <AresCommanderPage />
+    }
+    if (resolvedSlug === 'eka-ht') {
+      return <EkaHtPage />
+    }
+    if (resolvedSlug === 'eka-xl' || resolvedSlug === 'eka-xl-2') {
+      return <EkaXlPage />
+    }
+    if (resolvedSlug === 'eka-xle') {
+      return <EkaXlePage />
+    }
+    if (resolvedSlug === 'eka-gt-max' || resolvedSlug === 'industrial-lcd-3d-printers-eka-gt-max') {
+      return <EkaGtMaxPage />
+    }
+    if (resolvedSlug === 'eka-f1-16k' || resolvedSlug === 'eka-f1-16k-industrial-lcd-jewelry-3d-printer') {
+      return <EkaF116kPage />
+    }
   }
 
   // Find product by slug or id or alias
-  const product = products.find(
-    p => p.slug.toLowerCase() === resolvedSlug || p.id.toLowerCase() === resolvedSlug
-  )
+  const product: Product | undefined = customProd
+    ? {
+        id: customProd.id,
+        slug: customProd.slug,
+        name: customProd.name,
+        brand: customProd.brand,
+        category: customProd.category,
+        categorySlug: customProd.category_slug,
+        technology: customProd.technology as any,
+        tagline: customProd.tagline,
+        shortDescription: customProd.short_description || '',
+        description: customProd.description || '',
+        heroImage: customProd.hero_image,
+        images: customProd.images && customProd.images.length > 0 ? customProd.images : [customProd.hero_image],
+        keySpecs: customProd.key_specs || [],
+        specifications: customProd.specifications || {},
+        features: customProd.features || [],
+        applications: customProd.applications || [],
+        materials: customProd.materials || [],
+        whoIsItFor: customProd.who_is_it_for || [],
+        brochureUrl: customProd.brochure_url,
+        price: customProd.price,
+        inStock: customProd.in_stock,
+        isFeatured: customProd.is_featured,
+        isNew: customProd.is_new,
+      }
+    : products.find(
+        p => p.slug.toLowerCase() === resolvedSlug || p.id.toLowerCase() === resolvedSlug
+      )
 
   if (!product) {
     return <Navigate to="/products" replace />
@@ -204,7 +244,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
             {/* Thumbnail Selector */}
             {product.images.length > 1 && (
               <div className="flex items-center space-x-3 overflow-x-auto pb-1">
-                {product.images.map((img, idx) => (
+                {product.images.map((img: string, idx: number) => (
                   <button
                     key={idx}
                     onClick={() => setActiveImageIndex(idx)}
@@ -303,7 +343,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
                     Key Performance Highlights
                   </span>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                    {product.keySpecs.map((s, idx) => (
+                    {product.keySpecs.map((s: any, idx: number) => (
                       <div key={idx} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
                         <div className="text-slate-400 font-medium text-[10px] uppercase">{s.label}</div>
                         <div className="font-bold text-slate-800 text-xs mt-0.5 truncate">{s.value}</div>
@@ -442,7 +482,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
             <div className="space-y-4 max-w-4xl">
               <h3 className="text-xl font-bold text-slate-950">Engineered Features</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {product.features.map((feature, idx) => (
+                {product.features.map((feature: string, idx: number) => (
                   <div key={idx} className="flex items-start space-x-3 p-4 bg-slate-50 rounded-xl border border-slate-100">
                     <CheckCircle2 className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                     <span className="text-xs text-slate-700 leading-relaxed font-medium">{feature}</span>
@@ -459,13 +499,13 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
               <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
                 <table className="w-full text-xs text-left">
                   <tbody className="divide-y divide-slate-100">
-                    {Object.entries(product.specifications).map(([key, val], idx) => (
+                    {Object.entries(product.specifications).map(([key, val], idx: number) => (
                       <tr key={key} className={idx % 2 === 0 ? 'bg-slate-50/50' : 'bg-white'}>
                         <td className="py-3 px-4 font-bold text-slate-700 w-1/3 border-r border-slate-100">
                           {key}
                         </td>
                         <td className="py-3 px-4 text-slate-900 font-medium">
-                          {val}
+                          {String(val)}
                         </td>
                       </tr>
                     ))}
@@ -480,7 +520,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
             <div className="space-y-4 max-w-4xl">
               <h3 className="text-xl font-bold text-slate-950">Proven Industrial Applications</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {product.applications.map((app, idx) => (
+                {product.applications.map((app: string, idx: number) => (
                   <div key={idx} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 text-xs font-semibold text-slate-800 flex items-center space-x-2.5">
                     <span className="w-2 h-2 bg-red-600 rounded-full" />
                     <span>{app}</span>
@@ -495,7 +535,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
             <div className="space-y-4 max-w-4xl">
               <h3 className="text-xl font-bold text-slate-950">Compatible Material Formulations</h3>
               <div className="flex flex-wrap gap-2.5">
-                {product.materials.map((mat, idx) => (
+                {product.materials.map((mat: string, idx: number) => (
                   <span key={idx} className="px-4 py-2 bg-slate-100 text-slate-800 text-xs font-semibold rounded-xl border border-slate-200">
                     {mat}
                   </span>
@@ -512,7 +552,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
             <div className="space-y-4 max-w-4xl">
               <h3 className="text-xl font-bold text-slate-950">Target Professionals & Teams</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {product.whoIsItFor.map((user, idx) => (
+                {product.whoIsItFor.map((user: string, idx: number) => (
                   <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs font-semibold text-slate-800 flex items-center space-x-2">
                     <CheckCircle className="w-4 h-4 text-emerald-600" />
                     <span>{user}</span>
