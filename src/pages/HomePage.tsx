@@ -5,6 +5,9 @@ import {
   Phone,
   ChevronLeft,
   ChevronRight,
+  Printer,
+  Laptop,
+  CheckCircle2,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 
@@ -207,9 +210,393 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* ====================================================
+          SECTION 2: 3D PRINTER CATEGORIES (CORE BUSINESS INTRO)
+         ==================================================== */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-10 gap-4">
+          <div className="space-y-2 max-w-2xl">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-red-600 text-xs font-bold uppercase tracking-wider">
+              <Printer className="w-3.5 h-3.5" />
+              <span>Core Business • 3D Printing Systems</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
+              3D Printer Technologies
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
+              We provide proven additive manufacturing systems tailored for functional engineering prototypes, fine jewellery casting, dental models, and industrial production.
+            </p>
+          </div>
+          <Link
+            to="/products"
+            className="inline-flex items-center space-x-1.5 text-sm font-bold text-red-600 hover:text-red-700 transition-colors shrink-0 group"
+          >
+            <span>View All 3D Printers</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+          {/* Card 1: FDM 3D Printers */}
+          <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden">
+            <div className="h-52 bg-slate-50 p-6 flex items-center justify-center relative overflow-hidden">
+              <span className="absolute top-4 left-4 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-700 shadow-2xs">
+                Industrial &amp; Desktop
+              </span>
+              <img
+                src="/images/products/pratham-3-rapid.png"
+                alt="FDM 3D Printers — Pratham Series"
+                className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <div className="p-6 flex flex-col flex-1 justify-between space-y-5">
+              <div className="space-y-3">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-red-600">Fused Deposition Modeling</span>
+                  <h3 className="text-xl font-bold text-slate-950 mt-0.5">FDM 3D Printers</h3>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  Robust extrusion systems built for functional prototypes, jigs, tooling, and durable engineering parts with build envelopes up to 1 meter³.
+                </p>
+                <div className="space-y-2 pt-1 border-t border-slate-100 text-xs text-slate-700">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                    <span>Build volumes from 170 mm to 1000 mm³</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                    <span>PLA, ABS, PETG, TPU, Nylon &amp; Carbon-Fiber</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                    <span>Pratham Mini, Desktop, 3.0, 5.0, 6.0 &amp; X Series</span>
+                  </div>
+                </div>
+              </div>
+              <Link
+                to="/products/fdm-3d-printers"
+                className="w-full py-2.5 px-4 rounded-xl bg-slate-950 hover:bg-red-600 text-white text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 transition-colors cursor-pointer"
+              >
+                <span>Explore FDM Printers</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 2: DLP 3D Printers */}
+          <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden">
+            <div className="h-52 bg-slate-50 p-6 flex items-center justify-center relative overflow-hidden">
+              <span className="absolute top-4 left-4 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-700 shadow-2xs">
+                High-Precision Resin
+              </span>
+              <img
+                src="/images/products/eka-xl.png"
+                alt="DLP 3D Printers — EKA Series"
+                className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <div className="p-6 flex flex-col flex-1 justify-between space-y-5">
+              <div className="space-y-3">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-red-600">Digital Light Processing</span>
+                  <h3 className="text-xl font-bold text-slate-950 mt-0.5">DLP 3D Printers</h3>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  High-precision photopolymer resin systems engineered for direct jewellery casting patterns, dental models, and intricate micro-components.
+                </p>
+                <div className="space-y-2 pt-1 border-t border-slate-100 text-xs text-slate-700">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                    <span>Direct castable resin with 100% clean burnout</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                    <span>Razor-sharp filigree and ultra-smooth surface finish</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                    <span>EKA HT, EKA XL, and EKA XLE series</span>
+                  </div>
+                </div>
+              </div>
+              <Link
+                to="/products/dlp-3d-printers"
+                className="w-full py-2.5 px-4 rounded-xl bg-slate-950 hover:bg-red-600 text-white text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 transition-colors cursor-pointer"
+              >
+                <span>Explore DLP Printers</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 3: Industrial LCD 3D Printers */}
+          <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden">
+            <div className="h-52 bg-slate-50 p-6 flex items-center justify-center relative overflow-hidden">
+              <span className="absolute top-4 left-4 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-700 shadow-2xs">
+                8K &amp; 16K MSLA
+              </span>
+              <img
+                src="/images/products/eka-gt-max.png"
+                alt="Industrial LCD 3D Printers — EKA GT MAX & F1 16K"
+                className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <div className="p-6 flex flex-col flex-1 justify-between space-y-5">
+              <div className="space-y-3">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-red-600">Masked Stereolithography</span>
+                  <h3 className="text-xl font-bold text-slate-950 mt-0.5">Industrial LCD Printers</h3>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  High-speed monochrome LCD masking systems for rapid batch throughput, micro-fine detailing, and productive engineering resin manufacturing.
+                </p>
+                <div className="space-y-2 pt-1 border-t border-slate-100 text-xs text-slate-700">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                    <span>Up to 16K ultra-high resolution monochrome panels</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                    <span>High cure speed for rapid batch output</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                    <span>EKA GT MAX &amp; EKA F1 16K micro-detailing</span>
+                  </div>
+                </div>
+              </div>
+              <Link
+                to="/products/industrial-lcd-3d-printers"
+                className="w-full py-2.5 px-4 rounded-xl bg-slate-950 hover:bg-red-600 text-white text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 transition-colors cursor-pointer"
+              >
+                <span>Explore LCD Printers</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Consultation Callout for 3D Printers */}
+        <div className="mt-8 p-5 sm:p-6 rounded-2xl bg-slate-900 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <p className="font-bold text-sm sm:text-base text-white">Need help choosing the right 3D printer for your workflow?</p>
+            <p className="text-xs sm:text-sm text-slate-300 font-normal">Our team helps you assess build volume, material compatibility, and production speed requirements.</p>
+          </div>
+          <button
+            onClick={() => openQuoteModal('3D Printer Technology Recommendation')}
+            className="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white text-xs sm:text-sm font-bold rounded-xl transition-all shrink-0 cursor-pointer shadow-sm"
+          >
+            Request Recommendation
+          </button>
+        </div>
+      </section>
 
       {/* ====================================================
-          SECTION 6: COMPANY INTRODUCTION
+          SECTION 3: CAD & 3D DESIGN SOFTWARE (CORE BUSINESS INTRO)
+         ==================================================== */}
+      <section className="bg-slate-50/70 border-y border-slate-200/80 py-10 sm:py-14">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-10 gap-4">
+            <div className="space-y-2 max-w-2xl">
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-red-600 text-xs font-bold uppercase tracking-wider">
+                <Laptop className="w-3.5 h-3.5" />
+                <span>Core Business • Authorized Software Partner</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
+                CAD &amp; 3D Design Software
+              </h2>
+              <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
+                Authorized reseller and technical partner for leading 2D/3D CAD, BIM, and photorealistic rendering suites with authentic licensing, deployment, and ongoing support.
+              </p>
+            </div>
+            <Link
+              to="/products/cad-software"
+              className="inline-flex items-center space-x-1.5 text-sm font-bold text-red-600 hover:text-red-700 transition-colors shrink-0 group"
+            >
+              <span>View All CAD Software</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+            {/* Card 1: ARES CAD by Graebert */}
+            <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden">
+              <div className="h-52 bg-slate-100 relative overflow-hidden">
+                <img
+                  src="/images/software/ares-commander.jpg"
+                  alt="ARES CAD Software by Graebert"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-4">
+                  <div className="flex items-center space-x-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/50">
+                    <img
+                      src="/images/brands/ares-cad.png"
+                      alt="ARES Logo"
+                      className="h-4 object-contain"
+                    />
+                    <span className="text-[11px] font-bold text-slate-900">Official Graebert Partner</span>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 flex flex-col flex-1 justify-between space-y-5">
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-red-600">DWG 2D &amp; 3D CAD</span>
+                    <h3 className="text-xl font-bold text-slate-950 mt-0.5">ARES CAD Systems</h3>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    Cost-effective, modern DWG-native CAD software featuring Trinity technology across Desktop, Cloud, and Mobile with dedicated Mechanical and Electrical suites.
+                  </p>
+                  <div className="space-y-2 pt-1 border-t border-slate-100 text-xs text-slate-700">
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                      <span>Perpetual and flexible annual licensing</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                      <span>Trinity ecosystem: Desktop, Cloud (Kudo), Mobile (Touch)</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                      <span>ARES Commander, Standard, Mechanical &amp; Electrical</span>
+                    </div>
+                  </div>
+                </div>
+                <Link
+                  to="/products/cad-software"
+                  className="w-full py-2.5 px-4 rounded-xl bg-slate-950 hover:bg-red-600 text-white text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 transition-colors cursor-pointer"
+                >
+                  <span>Explore ARES CAD</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Card 2: Trimble SketchUp */}
+            <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden">
+              <div className="h-52 bg-slate-100 relative overflow-hidden">
+                <img
+                  src="/images/software/sketchup-pro.jpg"
+                  alt="Trimble SketchUp Pro & Studio"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-4">
+                  <div className="flex items-center space-x-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/50">
+                    <img
+                      src="/images/brands/sketchup.png"
+                      alt="SketchUp Logo"
+                      className="h-4 object-contain"
+                    />
+                    <span className="text-[11px] font-bold text-slate-900">Authorized Trimble Partner</span>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 flex flex-col flex-1 justify-between space-y-5">
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-red-600">3D Modeling &amp; BIM</span>
+                    <h3 className="text-xl font-bold text-slate-950 mt-0.5">Trimble SketchUp</h3>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    The world's most intuitive 3D modeling platform for architects, interior designers, and construction professionals, featuring LayOut documentation and Scan-to-BIM.
+                  </p>
+                  <div className="space-y-2 pt-1 border-t border-slate-100 text-xs text-slate-700">
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                      <span>Fast, intuitive conceptual design &amp; 3D modeling</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                      <span>2D LayOut construction sets &amp; Scan-to-BIM integration</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                      <span>SketchUp Pro, SketchUp Studio, and Scan workflows</span>
+                    </div>
+                  </div>
+                </div>
+                <Link
+                  to="/products/sketchup"
+                  className="w-full py-2.5 px-4 rounded-xl bg-slate-950 hover:bg-red-600 text-white text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 transition-colors cursor-pointer"
+                >
+                  <span>Explore SketchUp</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Card 3: Chaos Rendering Suites */}
+            <div className="bg-white rounded-2xl border border-slate-200/90 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden">
+              <div className="h-52 bg-slate-100 relative overflow-hidden">
+                <img
+                  src="/images/software/enscape-3d.jpg"
+                  alt="Chaos Visualization Suites — Enscape & V-Ray"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-4">
+                  <div className="flex items-center space-x-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/50">
+                    <img
+                      src="/images/brands/chaos.jpg"
+                      alt="Chaos Logo"
+                      className="h-4 object-contain rounded-xs"
+                    />
+                    <span className="text-[11px] font-bold text-slate-900">Authorized Chaos Partner</span>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 flex flex-col flex-1 justify-between space-y-5">
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-red-600">Visualization &amp; Rendering</span>
+                    <h3 className="text-xl font-bold text-slate-950 mt-0.5">Chaos Rendering</h3>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    Industry-leading photorealistic ray tracing, real-time visualization, and VR walkthrough engines trusted by architectural visualizers and design studios worldwide.
+                  </p>
+                  <div className="space-y-2 pt-1 border-t border-slate-100 text-xs text-slate-700">
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                      <span>Real-time rendering &amp; VR walkthroughs (Enscape)</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                      <span>Photorealistic ray-tracing fidelity (V-Ray &amp; Corona)</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                      <span>Enscape, Chaos V-Ray, and Chaos Corona</span>
+                    </div>
+                  </div>
+                </div>
+                <Link
+                  to="/products/enscape"
+                  className="w-full py-2.5 px-4 rounded-xl bg-slate-950 hover:bg-red-600 text-white text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 transition-colors cursor-pointer"
+                >
+                  <span>Explore Chaos Suites</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Consultation Callout for CAD Software */}
+          <div className="mt-8 p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <p className="font-bold text-sm sm:text-base text-slate-900">Looking for commercial, team, or educational CAD licenses?</p>
+              <p className="text-xs sm:text-sm text-slate-600 font-normal">We provide official licenses, flexible multi-seat volume options, and certified onboarding support.</p>
+            </div>
+            <button
+              onClick={() => openQuoteModal('CAD Software Licensing Inquiry')}
+              className="px-5 py-2.5 bg-slate-950 hover:bg-red-600 text-white text-xs sm:text-sm font-bold rounded-xl transition-all shrink-0 cursor-pointer shadow-sm"
+            >
+              Request Software Quote
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ====================================================
+          SECTION 4: COMPANY INTRODUCTION
          ==================================================== */}
       <section className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-12">
         <div className="bg-slate-50/80 rounded-3xl p-8 sm:p-12 lg:p-14 border border-slate-200/80 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
