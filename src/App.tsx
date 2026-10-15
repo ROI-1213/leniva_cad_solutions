@@ -1,4 +1,4 @@
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, Component, ErrorInfo, ReactNode } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AppProvider } from './context/AppContext'
 import Header from './components/Header'
@@ -76,6 +76,73 @@ const PageLoader = () => (
   </div>
 )
 
+// Deployment chunk error boundary
+interface ErrorBoundaryProps {
+  children: ReactNode
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean
+}
+
+class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError(): ErrorBoundaryState {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('App caught an error:', error, errorInfo)
+    const isChunkError =
+      error.message?.includes('Failed to fetch dynamically imported module') ||
+      error.message?.includes('Importing a module script failed') ||
+      error.name === 'ChunkLoadError'
+
+    if (isChunkError) {
+      const storageKey = 'leniva_chunk_reload'
+      const lastReload = sessionStorage.getItem(storageKey)
+      const now = Date.now()
+      if (!lastReload || now - parseInt(lastReload) > 10000) {
+        sessionStorage.setItem(storageKey, now.toString())
+        window.location.reload()
+      }
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-white px-4">
+          <div className="max-w-md text-center space-y-4">
+            <div className="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-slate-900">Application Update Detected</h2>
+            <p className="text-sm text-slate-600">
+              A new update was deployed. Please refresh to load the latest version.
+            </p>
+            <button
+              onClick={() => {
+                sessionStorage.removeItem('leniva_chunk_reload')
+                window.location.reload()
+              }}
+              className="px-6 py-2.5 bg-red-600 text-white text-sm font-bold rounded-xl shadow-md hover:bg-red-700 transition-all cursor-pointer"
+            >
+              Refresh Page
+            </button>
+          </div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 export default function App() {
   const location = useLocation()
@@ -88,8 +155,9 @@ export default function App() {
         {!isAdminRoute && <Header />}
 
         <main className="flex-1">
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
+          <AppErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
               {/* 1. Home */}
               <Route path="/" element={<HomePage />} />
 
@@ -486,6 +554,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
+          </AppErrorBoundary>
         </main>
 
 
