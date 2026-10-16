@@ -1,10 +1,13 @@
 import React from 'react'
 import { siteConfig } from '../data/siteConfig'
+import { useApp } from '../context/AppContext'
 
 export const WhatsAppButton: React.FC = () => {
+  const { liveSiteSettings } = useApp()
+  const waNumber = (liveSiteSettings?.whatsapp || siteConfig.whatsappNumber).replace(/[^0-9]/g, '')
   return (
     <a
-      href={`https://wa.me/${siteConfig.whatsappNumber}?text=Hello%20Leniva%20CAD%20Solutions,%20I%20would%20like%20to%20request%20a%20quote%20for%20your%20products%20and%20engineering%20services.`}
+      href={`https://wa.me/${waNumber}?text=Hello%20${encodeURIComponent(liveSiteSettings?.companyName || siteConfig.name)},%20I%20would%20like%20to%20request%20a%20quote%20for%20your%20products%20and%20engineering%20services.`}
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-emerald-500 hover:bg-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all duration-300 group"

@@ -80,7 +80,7 @@ export const ContactPage: React.FC = () => {
                   <div>
                     <strong className="block text-slate-900 font-semibold mb-0.5">Phone Inquiries</strong>
                     <p className="text-slate-600">Main: <a href={`tel:${liveSiteSettings.phone}`} className="hover:text-red-600 font-medium">{liveSiteSettings.phone}</a></p>
-                    <p className="text-slate-600">Secondary: <a href={`tel:${siteConfig.supportPhone}`} className="hover:text-red-600 font-medium">{siteConfig.supportPhone}</a></p>
+                    <p className="text-slate-600">Secondary: <a href={`tel:${liveSiteSettings.secondaryPhone || siteConfig.supportPhone}`} className="hover:text-red-600 font-medium">{liveSiteSettings.secondaryPhone || siteConfig.supportPhone}</a></p>
                   </div>
                 </div>
 
@@ -118,8 +118,7 @@ export const ContactPage: React.FC = () => {
                   </div>
                   <div>
                     <strong className="block text-slate-900 font-semibold mb-0.5">Operational Hours</strong>
-                    <p className="text-slate-600">Monday – Friday: 9:30 AM – 6:00 PM</p>
-                    <p className="text-slate-600">Saturday: 9:30 AM – 1:30 PM</p>
+                    <p className="text-slate-600">{liveSiteSettings.workingHours || 'Monday – Friday: 9:30 AM – 6:00 PM | Saturday: 9:30 AM – 1:30 PM'}</p>
                   </div>
                 </div>
               </div>
@@ -127,13 +126,13 @@ export const ContactPage: React.FC = () => {
               {/* Direct WhatsApp Action Card */}
               <div className="pt-4 border-t border-slate-100">
                 <a
-                  href={`https://wa.me/${liveSiteSettings.whatsapp || siteConfig.whatsappNumber}?text=Hello%20Leniva%20CAD%20Solutions,%20I%20have%20an%20engineering%20inquiry.`}
+                  href={`https://wa.me/${(liveSiteSettings.whatsapp || siteConfig.whatsappNumber).replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(liveSiteSettings.companyName || siteConfig.name)},%20I%20have%20an%20engineering%20inquiry.`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl flex items-center justify-center space-x-2 transition-colors shadow-sm"
                 >
                   <MessageSquare className="w-4 h-4" />
-                  <span>Chat on WhatsApp Directly ({liveSiteSettings.phone})</span>
+                  <span>Chat on WhatsApp Directly ({liveSiteSettings.whatsapp || liveSiteSettings.phone})</span>
                 </a>
               </div>
             </div>

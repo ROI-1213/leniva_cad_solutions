@@ -157,6 +157,9 @@ export const Footer: React.FC = () => {
             <div>
               <strong className="text-white block mb-0.5">Google Address & Headquarters</strong>
               <p>{liveSiteSettings.address}</p>
+              {liveSiteSettings.workingHours && (
+                <p className="text-slate-400 mt-1.5 text-[11px]"><strong className="text-slate-300">Hours:</strong> {liveSiteSettings.workingHours}</p>
+              )}
               <a
                 href={siteConfig.mapUrl}
                 target="_blank"
@@ -173,7 +176,7 @@ export const Footer: React.FC = () => {
             <div>
               <strong className="text-white block mb-0.5">Direct Phone Numbers</strong>
               <p>Main Contact: <a href={`tel:${liveSiteSettings.phone}`} className="hover:text-red-400">{liveSiteSettings.phone}</a></p>
-              <p>Secondary Contact: <a href={`tel:${siteConfig.supportPhone}`} className="hover:text-red-400">{siteConfig.supportPhone}</a></p>
+              <p>Secondary Contact: <a href={`tel:${liveSiteSettings.secondaryPhone || siteConfig.supportPhone}`} className="hover:text-red-400">{liveSiteSettings.secondaryPhone || siteConfig.supportPhone}</a></p>
             </div>
           </div>
 
@@ -182,7 +185,7 @@ export const Footer: React.FC = () => {
             <div>
               <strong className="text-white block mb-0.5">Email Communications</strong>
               <p>Main Email: <a href={`mailto:${liveSiteSettings.email}`} className="hover:text-red-400">{liveSiteSettings.email}</a></p>
-              <p className="text-slate-500 mt-0.5">WhatsApp: <a href={`https://wa.me/${liveSiteSettings.whatsapp || siteConfig.whatsappNumber}`} target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400">{liveSiteSettings.phone}</a></p>
+              <p className="text-slate-500 mt-0.5">WhatsApp: <a href={`https://wa.me/${(liveSiteSettings.whatsapp || siteConfig.whatsappNumber).replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 font-mono">{liveSiteSettings.whatsapp || siteConfig.whatsappNumber}</a></p>
             </div>
           </div>
         </div>
@@ -190,7 +193,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Strip: Copyright & Social */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div>
-            © {new Date().getFullYear()} <strong className="text-slate-300 font-semibold">{siteConfig.name}</strong>. All rights reserved. Built for professional additive manufacturing, CAD engineering & metrology.
+            © {new Date().getFullYear()} <strong className="text-slate-300 font-semibold">{liveSiteSettings.companyName || siteConfig.name}</strong>. All rights reserved. Built for professional additive manufacturing, CAD engineering & metrology.
           </div>
 
           <div className="flex items-center space-x-4">

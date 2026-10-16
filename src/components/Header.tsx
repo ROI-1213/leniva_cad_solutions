@@ -109,6 +109,14 @@ export const Header: React.FC = () => {
 
   return (
     <header ref={headerRef} className="w-full bg-slate-50/95 backdrop-blur-md z-50 sticky top-0 transition-all">
+      {/* Dynamic Top Announcement Notice from Admin */}
+      {liveSiteSettings.bannerNotice && (
+        <div className="bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white text-[11px] sm:text-xs py-1.5 px-4 text-center font-medium tracking-wide flex items-center justify-center gap-2 shadow-inner">
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+          <span>{liveSiteSettings.bannerNotice}</span>
+        </div>
+      )}
+
       {/* 1. TOP UTILITY STRIP (Light matching user mockup) */}
       <div className="border-b border-slate-200/70 text-xs text-slate-600 py-1.5 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
@@ -132,7 +140,7 @@ export const Header: React.FC = () => {
               <span className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-300 flex items-center justify-center shrink-0">
                 <Target className="w-2.5 h-2.5 text-emerald-600" />
               </span>
-              <span>Technical Support: <strong className="text-slate-800 font-semibold">{siteConfig.supportPhone}</strong></span>
+              <span>Technical Support: <strong className="text-slate-800 font-semibold">{liveSiteSettings.secondaryPhone || siteConfig.supportPhone}</strong></span>
             </div>
           </div>
 
@@ -893,7 +901,7 @@ export const Header: React.FC = () => {
                 <span>Request a Demo</span>
               </button>
               <div className="text-center text-[11px] text-slate-500 pt-2">
-                Tech Support: <a href={`tel:${siteConfig.supportPhone}`} className="text-red-600 font-bold">{siteConfig.supportPhone}</a>
+                Tech Support: <a href={`tel:${liveSiteSettings.secondaryPhone || siteConfig.supportPhone}`} className="text-red-600 font-bold">{liveSiteSettings.secondaryPhone || siteConfig.supportPhone}</a>
               </div>
             </div>
           </div>

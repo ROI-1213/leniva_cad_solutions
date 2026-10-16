@@ -2,14 +2,41 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import { CartItem, WishlistItem, QuoteFormData } from '../types'
 import { siteConfig } from '../data/siteConfig'
 
-interface SiteSettingsType {
+export interface SiteSettingsType {
   companyName: string
   phone: string
+  secondaryPhone?: string
   email: string
   address: string
   workingHours: string
   whatsapp: string
   bannerNotice: string
+}
+
+const defaultSiteSettings: SiteSettingsType = {
+  companyName: siteConfig.name,
+  phone: siteConfig.phone,
+  secondaryPhone: siteConfig.supportPhone || '+91 96069 84210',
+  email: siteConfig.email,
+  address: siteConfig.address,
+  workingHours: siteConfig.workingHours,
+  whatsapp: siteConfig.whatsappNumber,
+  bannerNotice: 'Now Delivering Advanced 3D Scanners & Industrial Printers PAN-India',
+}
+
+const getStoredSiteSettings = (): SiteSettingsType => {
+  try {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('leniva_site_settings') : null
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      if (parsed && typeof parsed === 'object') {
+        return { ...defaultSiteSettings, ...parsed }
+      }
+    }
+  } catch {
+    // fallback
+  }
+  return defaultSiteSettings
 }
 
 interface AppContextType {
@@ -40,7 +67,7 @@ interface AppContextType {
   openSearchModal: () => void
   closeSearchModal: () => void
 
-  // Live Site Settings from PostgreSQL
+  // Live Site Settings from PostgreSQL / localStorage
   liveSiteSettings: SiteSettingsType
 }
 
@@ -74,28 +101,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Search Modal state
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
 
-  // Live Site Settings from PostgreSQL (defaults from static siteConfig)
-  const [liveSiteSettings, setLiveSiteSettings] = useState<SiteSettingsType>({
-    companyName: siteConfig.name,
-    phone: siteConfig.phone,
-    email: siteConfig.email,
-    address: siteConfig.address,
-    workingHours: siteConfig.workingHours,
-    whatsapp: siteConfig.whatsappNumber,
-    bannerNotice: 'Now Delivering Advanced 3D Scanners & Industrial Printers PAN-India',
-  })
+  // Live Site Settings reactive state
+  const [liveSiteSettings, setLiveSiteSettings] = useState<SiteSettingsType>(getStoredSiteSettings)
 
-  // Fetch live settings from PostgreSQL on mount
+  // Listen to leniva_site_settings_updated event
+  useEffect(() => {
+    const handleUpdate = () => {
+      setLiveSiteSettings(getStoredSiteSettings())
+    }
+    window.addEventListener('leniva_site_settings_updated', handleUpdate)
+    window.addEventListener('storage', handleUpdate)
+    return () => {
+      window.removeEventListener('leniva_site_settings_updated', handleUpdate)
+      window.removeEventListener('storage', handleUpdate)
+    }
+  }, [])
+
+  // Fetch live settings from PostgreSQL on mount and synchronize
   useEffect(() => {
     fetch('/api/settings')
       .then(r => r.json())
       .then(data => {
         if (data?.general_info) {
-          setLiveSiteSettings(prev => ({ ...prev, ...data.general_info }))
+          setLiveSiteSettings(prev => {
+            const merged = { ...prev, ...data.general_info }
+            try {
+              localStorage.setItem('leniva_site_settings', JSON.stringify(merged))
+            } catch {
+              // ignore
+            }
+            return merged
+          })
         }
       })
       .catch(() => {
-        // Silently fall back to siteConfig defaults
+        // Silently fall back to localStorage/siteConfig defaults
       })
   }, [])
 

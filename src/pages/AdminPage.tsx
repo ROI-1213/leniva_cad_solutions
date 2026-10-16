@@ -1552,6 +1552,7 @@ export default function AdminPage() {
     setSettingsSavedMsg('')
     try {
       localStorage.setItem('leniva_site_settings', JSON.stringify(siteSettings))
+      window.dispatchEvent(new Event('leniva_site_settings_updated'))
       const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1563,8 +1564,9 @@ export default function AdminPage() {
         setSettingsSavedMsg('Settings saved successfully!')
       }
       setTimeout(() => setSettingsSavedMsg(''), 4000)
-    } catch (err) {
+    } catch {
       localStorage.setItem('leniva_site_settings', JSON.stringify(siteSettings))
+      window.dispatchEvent(new Event('leniva_site_settings_updated'))
       setSettingsSavedMsg('Settings saved successfully!')
       setTimeout(() => setSettingsSavedMsg(''), 4000)
     }
@@ -6763,6 +6765,7 @@ export default function AdminPage() {
                     onClick={() => {
                       setSiteSettings(defaultSiteSettings)
                       localStorage.setItem('leniva_site_settings', JSON.stringify(defaultSiteSettings))
+                      window.dispatchEvent(new Event('leniva_site_settings_updated'))
                       setSettingsSavedMsg('Reset to official Leniva contact details!')
                       setTimeout(() => setSettingsSavedMsg(''), 4000)
                     }}
