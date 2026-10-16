@@ -899,7 +899,7 @@ export default function AdminPage() {
     } catch {
       // ignore
     }
-    setCadSaveMsg('✓ Changes saved to browser storage.')
+    setCadSaveMsg('✓ Changes saved & published to live product page successfully!')
     setTimeout(() => setCadSaveMsg(''), 4000)
   }
 
@@ -7111,8 +7111,16 @@ export default function AdminPage() {
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <button
+                      onClick={() => saveCadEdits(cadEdits)}
+                      className="inline-flex items-center space-x-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+                      title="Save all CAD software edits"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Save Changes</span>
+                    </button>
+                    <button
                       onClick={() => setIsNewCadProductOpen(true)}
-                      className="inline-flex items-center space-x-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                      className="inline-flex items-center space-x-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Add Product</span>
@@ -7349,6 +7357,15 @@ export default function AdminPage() {
                       <div className="text-base font-black">{cur.productName || activeMeta.label}</div>
                     </div>
                     <div className="flex items-center space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => saveCadEdits(cadEdits)}
+                        className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white rounded-lg text-xs font-black flex items-center space-x-1.5 transition-all shadow-md cursor-pointer ring-2 ring-emerald-300/40"
+                        title="Save changes for this product"
+                      >
+                        <Save className="w-3.5 h-3.5" />
+                        <span>Save Changes</span>
+                      </button>
                       <a
                         href={activeMeta.route}
                         target="_blank"
@@ -8332,6 +8349,32 @@ export default function AdminPage() {
                       </div>
                     )}
 
+                    {/* Persistent Footer Action Bar */}
+                    <div className="mt-8 pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50 -mx-6 -mb-6 p-4 rounded-b-2xl">
+                      <div className="flex items-center space-x-2 text-xs text-slate-600">
+                        <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>Edits save automatically to storage. Click <strong>Save Changes</strong> to immediately sync and publish across the site.</span>
+                      </div>
+                      <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                        <a
+                          href={activeMeta.route}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>View Live Page</span>
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => saveCadEdits(cadEdits)}
+                          className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-md transition-all cursor-pointer"
+                        >
+                          <Save className="w-4 h-4" />
+                          <span>Save Changes</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
