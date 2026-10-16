@@ -25,10 +25,12 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useApp } from '../context/AppContext'
-import { proScanData } from '../data/proScanData'
+import { proScanData as defaultProScanData } from '../data/proScanData'
+import { useCadPageData } from '../utils/cadSoftwareConfig'
 
 export const SketchUpProScanPage: React.FC = () => {
   const { openQuoteModal } = useApp()
+  const { data: proScanData } = useCadPageData('sketchup_proscan', defaultProScanData)
 
   // State
   const [activeWorkflowStep, setActiveWorkflowStep] = useState<number>(0)

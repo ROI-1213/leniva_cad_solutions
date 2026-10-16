@@ -896,6 +896,7 @@ export default function AdminPage() {
     setCadEdits(updatedEdits)
     try {
       window.dispatchEvent(new Event('leniva_cad_edits_updated'))
+      window.dispatchEvent(new Event('leniva_products_catalog_updated'))
     } catch {
       // ignore
     }

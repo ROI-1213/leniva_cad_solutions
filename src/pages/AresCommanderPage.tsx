@@ -41,10 +41,11 @@ import {
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { aresCommanderData, AresCommanderFaq } from '../data/aresCommanderData'
+import { useCadPageData } from '../utils/cadSoftwareConfig'
 
 export const AresCommanderPage: React.FC = () => {
   const { submitQuote } = useApp()
-  const data = aresCommanderData
+  const { data } = useCadPageData('ares_commander', aresCommanderData)
 
   // Navigation & Interactive Tabs
   const [activeNav, setActiveNav] = useState<string>('overview')

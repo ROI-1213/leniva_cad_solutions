@@ -27,10 +27,11 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { useApp } from '../context/AppContext'
 import { aresStandardData } from '../data/aresStandardData'
+import { useCadPageData } from '../utils/cadSoftwareConfig'
 
 export const AresStandardPage: React.FC = () => {
   const { openQuoteModal } = useApp()
-  const data = aresStandardData
+  const { data } = useCadPageData('ares_standard', aresStandardData)
 
   // State
   const [activeTab, setActiveTab] = useState<string>('overview')

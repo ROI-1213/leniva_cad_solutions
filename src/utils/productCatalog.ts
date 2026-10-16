@@ -183,6 +183,48 @@ export const buildDefaultProductCatalog = (): ProductItem[] => {
   return [...hardwareAndSoftwareItems, ...filamentItems]
 }
 
+const CAD_SLUG_TO_KEY_MAP: Record<string, string> = {
+  'ares-mechanical': 'ares_mechanical',
+  'ares-electrical': 'ares_electrical',
+  'ares-standard': 'ares_standard',
+  'ares-commander': 'ares_commander',
+  enscape: 'chaos_enscape',
+  vray: 'chaos_vray',
+  'sketchup-studio': 'sketchup_studio',
+  'sketchup-scan': 'sketchup_proscan',
+  'sketchup-proscan': 'sketchup_proscan',
+}
+
+const applyCadEditsToCatalog = (items: ProductItem[]): ProductItem[] => {
+  try {
+    const raw = localStorage.getItem('leniva_cad_software_edits')
+    if (!raw) return items
+    const cadEdits = JSON.parse(raw)
+    if (!cadEdits || typeof cadEdits !== 'object') return items
+
+    return items.map(item => {
+      const cadKey = CAD_SLUG_TO_KEY_MAP[item.slug] || CAD_SLUG_TO_KEY_MAP[item.id]
+      const edit = cadKey ? cadEdits[cadKey] : null
+      if (!edit) return item
+
+      return {
+        ...item,
+        name: edit.productName || item.name,
+        brand: edit.brand || item.brand,
+        tagline: edit.supportingHeadline || edit.headline || item.tagline,
+        short_description: edit.shortDescription || item.short_description,
+        description: edit.description || item.description,
+        hero_image: edit.heroImage || item.hero_image,
+        images: edit.heroImage ? [edit.heroImage, ...(item.images || []).slice(1)] : item.images,
+        features: Array.isArray(edit.highlights) && edit.highlights.length > 0 ? edit.highlights : item.features,
+        key_specs: Array.isArray(edit.specStrip) && edit.specStrip.length > 0 ? edit.specStrip : item.key_specs,
+      }
+    })
+  } catch {
+    return items
+  }
+}
+
 export const getStoredProductsCatalog = (): ProductItem[] => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY_PRODUCTS_CATALOG)
@@ -194,13 +236,13 @@ export const getStoredProductsCatalog = (): ProductItem[] => {
           item.original_price = 0
           item.is_quote_based = true
         })
-        return parsed
+        return applyCadEditsToCatalog(parsed)
       }
     }
   } catch (err) {
     console.error('Failed to parse stored products catalog', err)
   }
-  return buildDefaultProductCatalog()
+  return applyCadEditsToCatalog(buildDefaultProductCatalog())
 }
 
 export const saveStoredProductsCatalog = (items: ProductItem[]) => {

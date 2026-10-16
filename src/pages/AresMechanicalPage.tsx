@@ -27,12 +27,12 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useApp } from '../context/AppContext'
-import { aresMechanicalData } from '../data/aresMechanicalData'
-import { useCadSectionVisibility } from '../utils/cadSoftwareConfig'
+import { aresMechanicalData as defaultAresMechanicalData } from '../data/aresMechanicalData'
+import { useCadPageData } from '../utils/cadSoftwareConfig'
 
 export const AresMechanicalPage: React.FC = () => {
   const { openQuoteModal } = useApp()
-  const { isEnabled } = useCadSectionVisibility('ares_mechanical')
+  const { isEnabled, data: aresMechanicalData, edits: cadEdits } = useCadPageData('ares_mechanical', defaultAresMechanicalData)
 
   // State
   const [activeWorkflowStep, setActiveWorkflowStep] = useState<number>(0)
@@ -137,10 +137,10 @@ export const AresMechanicalPage: React.FC = () => {
             <div className="flex items-center space-x-3">
               <span className="font-extrabold text-sm sm:text-base text-slate-900 tracking-tight flex items-center gap-1.5">
                 <Wrench className="w-4 h-4 text-blue-600" />
-                <span>ARES Mechanical</span>
+                <span>{aresMechanicalData.identity.productName}</span>
               </span>
               <span className="hidden md:inline-flex px-2 py-0.5 text-[11px] font-bold uppercase rounded bg-blue-50 text-blue-700 border border-blue-200">
-                Graebert DWG
+                {aresMechanicalData.identity.brand} DWG
               </span>
             </div>
 
@@ -163,10 +163,10 @@ export const AresMechanicalPage: React.FC = () => {
 
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => openQuoteModal('ARES Mechanical (Graebert)')}
+                onClick={() => openQuoteModal(`${aresMechanicalData.identity.productName} (${aresMechanicalData.identity.brand})`)}
                 className="inline-flex items-center space-x-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold px-3.5 py-2 rounded-lg transition-all shadow-sm hover:shadow"
               >
-                <span>Request Quote</span>
+                <span>{cadEdits?.pricingCta || 'Request Quote'}</span>
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -256,10 +256,10 @@ export const AresMechanicalPage: React.FC = () => {
               {/* CTAs */}
               <div className="flex flex-wrap gap-3 pt-2">
                 <button
-                  onClick={() => openQuoteModal('ARES Mechanical (Commercial License)')}
+                  onClick={() => openQuoteModal(`${aresMechanicalData.identity.productName} (Commercial License)`)}
                   className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg hover:shadow-blue-600/30 text-sm"
                 >
-                  <span>Request a Quote</span>
+                  <span>{cadEdits?.pricingCta || 'Request a Quote'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
                 <button

@@ -36,10 +36,12 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useApp } from '../context/AppContext'
-import { enscapeData, EnscapeGalleryItem } from '../data/enscapeData'
+import { enscapeData as defaultEnscapeData, EnscapeGalleryItem } from '../data/enscapeData'
+import { useCadPageData } from '../utils/cadSoftwareConfig'
 
 export const EnscapePage: React.FC = () => {
   const { openQuoteModal } = useApp()
+  const { data: enscapeData } = useCadPageData('chaos_enscape', defaultEnscapeData)
 
   // Sticky sub-nav active section
   const [activeSection, setActiveSection] = useState<string>('overview')

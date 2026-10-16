@@ -41,10 +41,12 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useApp } from '../context/AppContext'
-import { vrayData, VRayGalleryItem } from '../data/vrayData'
+import { vrayData as defaultVRayData, VRayGalleryItem } from '../data/vrayData'
+import { useCadPageData } from '../utils/cadSoftwareConfig'
 
 export const VRayPage: React.FC = () => {
   const { openQuoteModal } = useApp()
+  const { data: vrayData } = useCadPageData('chaos_vray', defaultVRayData)
 
   // Sticky sub-nav active section
   const [activeSection, setActiveSection] = useState<string>('overview')

@@ -28,10 +28,12 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useApp } from '../context/AppContext'
-import { sketchUpStudioData } from '../data/sketchupStudioData'
+import { sketchUpStudioData as defaultSketchUpStudioData } from '../data/sketchupStudioData'
+import { useCadPageData } from '../utils/cadSoftwareConfig'
 
 export const SketchUpStudioPage: React.FC = () => {
   const { openQuoteModal } = useApp()
+  const { data: sketchUpStudioData } = useCadPageData('sketchup_studio', defaultSketchUpStudioData)
 
   // State
   const [activeTab, setActiveTab] = useState<'create' | 'visualize' | 'collaborate'>('create')
