@@ -1,0 +1,238 @@
+import fs from 'fs'
+
+const RESTFUL_OBJECT_ID = 'ff808181a09d98f701a1436dd2b96f43'
+const RESTFUL_URL = `https://api.restful-api.dev/objects/${RESTFUL_OBJECT_ID}`
+const NTFY_TOPIC = 'leniva_cad_cms_live_v2'
+const NTFY_POST_URL = `https://ntfy.sh/${NTFY_TOPIC}`
+const NTFY_POLL_URL = `https://ntfy.sh/${NTFY_TOPIC}/json?poll=1&since=all`
+const BYTEBIN_POST_URL = 'https://bytebin.lucko.me/post'
+const TMP_CACHE_FILE = '/tmp/leniva_cms_state.json'
+
+let memoryCache = null
+
+function readLocalCache() {
+  if (memoryCache && memoryCache.updatedAt) return memoryCache
+  try {
+    if (fs.existsSync(TMP_CACHE_FILE)) {
+      const raw = fs.readFileSync(TMP_CACHE_FILE, 'utf8')
+      const parsed = JSON.parse(raw)
+      if (parsed && typeof parsed.updatedAt === 'number') {
+        memoryCache = parsed
+        return parsed
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return null
+}
+
+function writeLocalCache(state) {
+  memoryCache = state
+  try {
+    fs.writeFileSync(TMP_CACHE_FILE, JSON.stringify(state), 'utf8')
+  } catch {
+    // ignore
+  }
+}
+
+async function fetchBytebin(key) {
+  if (!key) return null
+  try {
+    const res = await fetch(`https://bytebin.lucko.me/${key}`, {
+      headers: { Accept: 'application/json' },
+    })
+    if (!res.ok) return null
+    return await res.json()
+  } catch {
+    return null
+  }
+}
+
+async function fetchFromRestful() {
+  try {
+    const res = await fetch(RESTFUL_URL, {
+      headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
+    })
+    if (!res.ok) return null
+    const json = await res.json()
+    return json?.data || null
+  } catch {
+    return null
+  }
+}
+
+async function fetchFromNtfy() {
+  try {
+    const res = await fetch(NTFY_POLL_URL, {
+      headers: { 'Cache-Control': 'no-cache' },
+    })
+    if (!res.ok) return null
+    const text = await res.text()
+    const lines = text
+      .split('\n')
+      .map(l => l.trim())
+      .filter(Boolean)
+    let newest = null
+    for (const line of lines) {
+      try {
+        const evt = JSON.parse(line)
+        if (evt.event === 'message' && evt.message) {
+          const parsed = JSON.parse(evt.message)
+          if (parsed && typeof parsed.updatedAt === 'number') {
+            if (!newest || parsed.updatedAt > newest.updatedAt) {
+              newest = parsed
+            }
+          }
+        }
+      } catch {
+        // ignore malformed line
+      }
+    }
+    return newest
+  } catch {
+    return null
+  }
+}
+
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
+  }
+
+  if (req.method === 'GET') {
+    try {
+      const [restfulPtr, ntfyPtr] = await Promise.all([
+        fetchFromRestful(),
+        fetchFromNtfy(),
+      ])
+      const cached = readLocalCache()
+
+      const candidates = [restfulPtr, ntfyPtr, cached].filter(
+        c => c && typeof c.updatedAt === 'number' && c.updatedAt > 0
+      )
+
+      if (candidates.length === 0) {
+        return res.status(200).json({
+          success: true,
+          updatedAt: 0,
+          keys: {},
+        })
+      }
+
+      candidates.sort((a, b) => b.updatedAt - a.updatedAt)
+      const winner = candidates[0]
+
+      let fullKeys = { ...(winner.inlineKeys || winner.keys || {}) }
+      if (winner.bytebinKey) {
+        const blob = await fetchBytebin(winner.bytebinKey)
+        if (blob && blob.keys && typeof blob.keys === 'object') {
+          fullKeys = { ...fullKeys, ...blob.keys }
+        }
+      }
+
+      const finalState = {
+        updatedAt: winner.updatedAt,
+        bytebinKey: winner.bytebinKey || null,
+        keys: fullKeys,
+      }
+      writeLocalCache(finalState)
+
+      return res.status(200).json({
+        success: true,
+        updatedAt: finalState.updatedAt,
+        bytebinKey: finalState.bytebinKey,
+        keys: finalState.keys,
+      })
+    } catch (err) {
+      return res.status(200).json({
+        success: false,
+        updatedAt: 0,
+        keys: {},
+        error: err?.message || 'Failed to load cloud CMS state',
+      })
+    }
+  }
+
+  if (req.method === 'POST' || req.method === 'PUT') {
+    try {
+      const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {}
+      const updatedAt = Number(body.updatedAt) || Date.now()
+      const keys = body.keys && typeof body.keys === 'object' ? body.keys : {}
+      let bytebinKey = body.bytebinKey || null
+
+      if (!bytebinKey) {
+        try {
+          const bRes = await fetch(BYTEBIN_POST_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ updatedAt, keys }),
+          })
+          if (bRes.ok) {
+            const bJson = await bRes.json()
+            bytebinKey = bJson.key || null
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      const inlineKeys = {}
+      const compactKeyNames = [
+        'leniva_admin_password',
+        'leniva_site_settings',
+        'leniva_cad_software_edits',
+        'leniva_custom_cad_products',
+        'leniva_home_page_content_v1',
+        'leniva_about_page_content_v1',
+        'leniva_navigation_config',
+      ]
+      for (const k of compactKeyNames) {
+        if (k in keys) {
+          const val = keys[k]
+          if (val === null || (typeof val === 'string' && val.length < 35000)) {
+            inlineKeys[k] = val
+          }
+        }
+      }
+
+      const pointer = {
+        updatedAt,
+        bytebinKey,
+        inlineKeys,
+      }
+
+      writeLocalCache({ updatedAt, bytebinKey, keys })
+
+      await Promise.allSettled([
+        fetch(RESTFUL_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: 'leniva_cms_store_v1', data: pointer }),
+        }),
+        fetch(NTFY_POST_URL, {
+          method: 'POST',
+          body: JSON.stringify({ updatedAt, bytebinKey }),
+        }),
+      ])
+
+      return res.status(200).json({
+        success: true,
+        updatedAt,
+        bytebinKey,
+      })
+    } catch (err) {
+      return res.status(500).json({
+        success: false,
+        error: err?.message || 'Failed to save cloud CMS state',
+      })
+    }
+  }
+
+  return res.status(405).json({ error: 'Method not allowed' })
+}

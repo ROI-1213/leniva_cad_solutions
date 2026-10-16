@@ -1,4 +1,4 @@
-import { Suspense, lazy, Component, ErrorInfo, ReactNode } from 'react'
+import { Suspense, lazy, Component, ErrorInfo, ReactNode, useState, useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AppProvider } from './context/AppContext'
 import Header from './components/Header'
@@ -147,6 +147,15 @@ class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
 export default function App() {
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith('/admin')
+  const [cloudSyncVersion, setCloudSyncVersion] = useState(0)
+
+  useEffect(() => {
+    const handleCloudSynced = () => {
+      setCloudSyncVersion(v => v + 1)
+    }
+    window.addEventListener('leniva_cloud_cms_synced', handleCloudSynced)
+    return () => window.removeEventListener('leniva_cloud_cms_synced', handleCloudSynced)
+  }, [])
 
   return (
     <AppProvider>
@@ -154,7 +163,7 @@ export default function App() {
         <ScrollToTop />
         {!isAdminRoute && <Header />}
 
-        <main className="flex-1">
+        <main className="flex-1" key={isAdminRoute ? 'admin' : `public-${cloudSyncVersion}`}>
           <AppErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <Routes>
