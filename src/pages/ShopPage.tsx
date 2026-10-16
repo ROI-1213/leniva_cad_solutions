@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { useParams, useSearchParams, Link } from 'react-router-dom'
 import {
-  Search,
   Heart,
   Eye,
   X,
@@ -13,8 +12,6 @@ import {
   CircleDot,
   Box,
   Layers,
-  SlidersHorizontal,
-  ChevronDown,
   Sparkles,
   Laptop,
   Monitor,
@@ -39,8 +36,6 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
   const { toggleWishlist, isInWishlist, openQuoteModal } = useApp()
 
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [inStockOnly, setInStockOnly] = useState(false)
   const [quickViewItem, setQuickViewItem] = useState<ShopItem | null>(null)
   const [navConfig, setNavConfig] = useState<MasterNavigationConfig>(getStoredNavigationConfig)
 
@@ -105,63 +100,46 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
     { id: 'scanners', label: 'Precision 3D Scanners', icon: Box, count: shopItemList.filter(i => i.category === 'scanners').length },
   ]
 
-  // Filter items helper
-  const filterList = (items: ShopItem[]) => {
-    return items.filter(item => {
-      if (inStockOnly && !item.inStock) return false
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase()
-        return (
-          item.name.toLowerCase().includes(q) ||
-          item.shortDescription.toLowerCase().includes(q) ||
-          item.categoryName.toLowerCase().includes(q) ||
-          (item.brand && item.brand.toLowerCase().includes(q))
-        )
-      }
-      return true
-    })
-  }
-
   // Grouped products
   const cadItems = useMemo(() => {
-    return filterList(shopItemList.filter(i => i.category === 'cad-software'))
-  }, [shopItemList, inStockOnly, searchQuery])
+    return shopItemList.filter(i => i.category === 'cad-software')
+  }, [shopItemList])
 
   const aresItems = useMemo(() => {
-    return filterList(shopItemList.filter(i => i.category === 'cad-software' && (i.brand === 'Graebert' || i.name.toLowerCase().includes('ares'))))
-  }, [shopItemList, inStockOnly, searchQuery])
+    return shopItemList.filter(i => i.category === 'cad-software' && (i.brand === 'Graebert' || i.name.toLowerCase().includes('ares')))
+  }, [shopItemList])
 
   const sketchupItems = useMemo(() => {
-    return filterList(shopItemList.filter(i => i.category === 'cad-software' && (i.brand === 'Trimble' || i.name.toLowerCase().includes('sketchup'))))
-  }, [shopItemList, inStockOnly, searchQuery])
+    return shopItemList.filter(i => i.category === 'cad-software' && (i.brand === 'Trimble' || i.name.toLowerCase().includes('sketchup')))
+  }, [shopItemList])
 
   const chaosItems = useMemo(() => {
-    return filterList(shopItemList.filter(i => i.category === 'cad-software' && (i.brand === 'Chaos' || i.name.toLowerCase().includes('v-ray') || i.name.toLowerCase().includes('vray') || i.name.toLowerCase().includes('enscape') || i.name.toLowerCase().includes('corona'))))
-  }, [shopItemList, inStockOnly, searchQuery])
+    return shopItemList.filter(i => i.category === 'cad-software' && (i.brand === 'Chaos' || i.name.toLowerCase().includes('v-ray') || i.name.toLowerCase().includes('vray') || i.name.toLowerCase().includes('enscape') || i.name.toLowerCase().includes('corona')))
+  }, [shopItemList])
 
   const printerItems = useMemo(() => {
-    return filterList(shopItemList.filter(i => ['fdm', 'dlp', 'lcd'].includes(i.category)))
-  }, [shopItemList, inStockOnly, searchQuery])
+    return shopItemList.filter(i => ['fdm', 'dlp', 'lcd'].includes(i.category))
+  }, [shopItemList])
 
   const fdmItems = useMemo(() => {
-    return filterList(shopItemList.filter(i => i.category === 'fdm'))
-  }, [shopItemList, inStockOnly, searchQuery])
+    return shopItemList.filter(i => i.category === 'fdm')
+  }, [shopItemList])
 
   const dlpItems = useMemo(() => {
-    return filterList(shopItemList.filter(i => i.category === 'dlp'))
-  }, [shopItemList, inStockOnly, searchQuery])
+    return shopItemList.filter(i => i.category === 'dlp')
+  }, [shopItemList])
 
   const lcdItems = useMemo(() => {
-    return filterList(shopItemList.filter(i => i.category === 'lcd'))
-  }, [shopItemList, inStockOnly, searchQuery])
+    return shopItemList.filter(i => i.category === 'lcd')
+  }, [shopItemList])
 
   const scannerItems = useMemo(() => {
-    return filterList(shopItemList.filter(i => i.category === 'scanners'))
-  }, [shopItemList, inStockOnly, searchQuery])
+    return shopItemList.filter(i => i.category === 'scanners')
+  }, [shopItemList])
 
   const filamentItems = useMemo(() => {
-    return filterList(shopItemList.filter(i => i.category === 'make3d-filaments'))
-  }, [shopItemList, inStockOnly, searchQuery])
+    return shopItemList.filter(i => i.category === 'make3d-filaments')
+  }, [shopItemList])
 
   // Total matching count
   const totalVisibleCount = useMemo(() => {
@@ -365,203 +343,18 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
           </div>
         </div>
 
-        {/* MAIN CONTROLS: DROPDOWN SELECTOR & SEARCH */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-          {/* Search Input */}
-          <div className="relative flex-1 max-w-md">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search CAD software, 3D printers, scanners, or filaments..."
-              className="w-full pl-9 pr-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all"
-            />
-            <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-
-          {/* DROPDOWN SELECTOR FOR SECTIONS */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center space-x-2">
-              <label htmlFor="shop-dropdown" className="text-xs font-bold text-slate-700 whitespace-nowrap flex items-center space-x-1">
-                <SlidersHorizontal className="w-3.5 h-3.5 text-red-600" />
-                <span>Shop Section:</span>
-              </label>
-              <div className="relative">
-                <select
-                  id="shop-dropdown"
-                  value={selectedCategory}
-                  onChange={e => handleCategoryChange(e.target.value)}
-                  className="appearance-none bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-red-500 focus:outline-none cursor-pointer shadow-xs transition-colors"
-                >
-                  <option value="all">🌟 All Sections (CAD, Printers, Scanners & Filaments)</option>
-                  <option value="cad-software">💻 CAD & 3D Design Software (Graebert, Trimble & Chaos)</option>
-                  <option value="products">📦 3D Printers & Scanners (Hardware Products)</option>
-                  <option value="make3d-filaments">🧵 3D Printer Filaments (Make3D PLA & PLA+)</option>
-                  <option value="ares">📐 ARES CAD (Graebert)</option>
-                  <option value="sketchup">🏗️ SketchUp 3D Modeling (Trimble)</option>
-                  <option value="chaos">🎨 Chaos Visualization (V-Ray & Enscape)</option>
-                  <option value="fdm">🖨️ FDM 3D Printers</option>
-                  <option value="dlp">💡 DLP 3D Printers</option>
-                  <option value="lcd">🖥️ Industrial LCD Printers</option>
-                  <option value="scanners">📡 3D Scanners</option>
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2.5 top-3 pointer-events-none" />
-              </div>
-            </div>
-
-            {/* In-Stock Toggle */}
-            <label className="flex items-center space-x-2 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer hover:bg-slate-100 transition-colors">
-              <input
-                type="checkbox"
-                checked={inStockOnly}
-                onChange={e => setInStockOnly(e.target.checked)}
-                className="rounded text-red-600 focus:ring-red-500 w-3.5 h-3.5 cursor-pointer"
-              />
-              <span>In Stock Only</span>
-            </label>
-          </div>
-        </div>
-
-        {/* Quick Filter Tabs / Pills */}
-        <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none">
-          <button
-            onClick={() => handleCategoryChange('all')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-              selectedCategory === 'all'
-                ? 'bg-slate-900 text-white shadow-sm'
-                : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-100'
-            }`}
-          >
-            All Items ({shopItemList.length})
-          </button>
-          <button
-            onClick={() => handleCategoryChange('cad-software')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center space-x-1.5 ${
-              selectedCategory === 'cad-software' || selectedCategory === 'ares' || selectedCategory === 'sketchup' || selectedCategory === 'chaos'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-white text-slate-700 border border-slate-200 hover:border-blue-200 hover:bg-blue-50/50'
-            }`}
-          >
-            <Laptop className="w-3.5 h-3.5 text-blue-600" />
-            <span>CAD Software ({shopItemList.filter(i => i.category === 'cad-software').length})</span>
-          </button>
-          <button
-            onClick={() => handleCategoryChange('products')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center space-x-1.5 ${
-              selectedCategory === 'products'
-                ? 'bg-red-600 text-white shadow-sm'
-                : 'bg-white text-slate-700 border border-slate-200 hover:border-red-200 hover:bg-red-50/50'
-            }`}
-          >
-            <Box className="w-3.5 h-3.5" />
-            <span>3D Printers & Scanners ({shopItemList.filter(i => ['fdm', 'dlp', 'lcd', 'scanners'].includes(i.category)).length})</span>
-          </button>
-          <button
-            onClick={() => handleCategoryChange('make3d-filaments')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center space-x-1.5 ${
-              selectedCategory === 'make3d-filaments' || selectedCategory === 'filaments'
-                ? 'bg-red-600 text-white shadow-sm'
-                : 'bg-white text-slate-700 border border-slate-200 hover:border-red-200 hover:bg-red-50/50'
-            }`}
-          >
-            <CircleDot className="w-3.5 h-3.5 text-red-600" />
-            <span>3D Printer Filaments ({shopItemList.filter(i => i.category === 'make3d-filaments').length})</span>
-          </button>
-          <button
-            onClick={() => handleCategoryChange('ares')}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
-              selectedCategory === 'ares'
-                ? 'bg-slate-800 text-white'
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-            }`}
-          >
-            ARES CAD
-          </button>
-          <button
-            onClick={() => handleCategoryChange('sketchup')}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
-              selectedCategory === 'sketchup'
-                ? 'bg-slate-800 text-white'
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-            }`}
-          >
-            SketchUp
-          </button>
-          <button
-            onClick={() => handleCategoryChange('chaos')}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
-              selectedCategory === 'chaos'
-                ? 'bg-slate-800 text-white'
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-            }`}
-          >
-            Chaos Rendering
-          </button>
-          <button
-            onClick={() => handleCategoryChange('fdm')}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
-              selectedCategory === 'fdm'
-                ? 'bg-slate-800 text-white'
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-            }`}
-          >
-            FDM Printers
-          </button>
-          <button
-            onClick={() => handleCategoryChange('dlp')}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
-              selectedCategory === 'dlp'
-                ? 'bg-slate-800 text-white'
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-            }`}
-          >
-            DLP Printers
-          </button>
-          <button
-            onClick={() => handleCategoryChange('lcd')}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
-              selectedCategory === 'lcd'
-                ? 'bg-slate-800 text-white'
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-            }`}
-          >
-            LCD Printers
-          </button>
-          <button
-            onClick={() => handleCategoryChange('scanners')}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
-              selectedCategory === 'scanners'
-                ? 'bg-slate-800 text-white'
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-            }`}
-          >
-            3D Scanners
-          </button>
-        </div>
-
         {/* Shop Layout */}
         <main className="w-full space-y-10">
             {totalVisibleCount === 0 ? (
               <div className="bg-white p-12 text-center rounded-2xl border border-slate-200 space-y-3">
                 <Package className="w-10 h-10 mx-auto text-slate-300" />
-                <h4 className="text-base font-bold text-slate-900">No items match your filter criteria</h4>
-                <p className="text-xs text-slate-500">Try selecting another category or clearing your search query.</p>
+                <h4 className="text-base font-bold text-slate-900">No items in this section</h4>
+                <p className="text-xs text-slate-500">Explore all products across our additive and CAD solutions catalog.</p>
                 <button
-                  onClick={() => {
-                    handleCategoryChange('all')
-                    setSearchQuery('')
-                  }}
+                  onClick={() => handleCategoryChange('all')}
                   className="px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-xl shadow-xs hover:bg-red-700 transition-colors cursor-pointer"
                 >
-                  Reset All Filters
+                  View All Products
                 </button>
               </div>
             ) : (
