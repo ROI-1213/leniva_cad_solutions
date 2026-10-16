@@ -1,18 +1,40 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { ChevronRight, Calendar, Clock, Share2, Tag } from 'lucide-react'
 import { blogPosts } from '../data/blogs'
+import { getStoredBlogsAsBlogPosts } from '../utils/blogCatalog'
+import { BlogPost } from '../types'
 
 export const BlogPostPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>()
-  const post = blogPosts.find(b => b.slug === slug)
+  const [allPosts, setAllPosts] = useState<BlogPost[]>(() => {
+    try {
+      return getStoredBlogsAsBlogPosts()
+    } catch {
+      return blogPosts
+    }
+  })
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      try {
+        setAllPosts(getStoredBlogsAsBlogPosts())
+      } catch (err) {
+        console.error('Failed to update live blogs in detail page', err)
+      }
+    }
+    window.addEventListener('leniva_blogs_catalog_updated', handleUpdate)
+    return () => window.removeEventListener('leniva_blogs_catalog_updated', handleUpdate)
+  }, [])
+
+  const post = allPosts.find(b => b.slug === slug || b.id === slug)
   const [copied, setCopied] = useState(false)
 
   if (!post) {
     return <Navigate to="/blog" replace />
   }
 
-  const relatedPosts = blogPosts.filter(b => b.id !== post.id).slice(0, 2)
+  const relatedPosts = allPosts.filter(b => b.id !== post.id).slice(0, 2)
 
   const handleShare = () => {
     if (navigator.clipboard) {

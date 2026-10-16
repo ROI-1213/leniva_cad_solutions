@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, X, ArrowRight, Printer, Wrench, ShoppingBag, BookOpen } from 'lucide-react'
 import { useApp } from '../context/AppContext'
@@ -6,6 +6,8 @@ import { products } from '../data/products'
 import { services } from '../data/services'
 import { shopItems } from '../data/shop'
 import { blogPosts } from '../data/blogs'
+import { getStoredProductsAsProducts, getStoredProductsAsShopItems } from '../utils/productCatalog'
+import { getStoredBlogsAsBlogPosts } from '../utils/blogCatalog'
 
 export const SearchModal: React.FC = () => {
   const { isSearchModalOpen, closeSearchModal } = useApp()
@@ -21,12 +23,36 @@ export const SearchModal: React.FC = () => {
     }
   }, [isSearchModalOpen])
 
+  const currentProducts = useMemo(() => {
+    try {
+      return getStoredProductsAsProducts()
+    } catch {
+      return products
+    }
+  }, [isSearchModalOpen])
+
+  const currentShop = useMemo(() => {
+    try {
+      return getStoredProductsAsShopItems()
+    } catch {
+      return shopItems
+    }
+  }, [isSearchModalOpen])
+
+  const currentBlogs = useMemo(() => {
+    try {
+      return getStoredBlogsAsBlogPosts()
+    } catch {
+      return blogPosts
+    }
+  }, [isSearchModalOpen])
+
   if (!isSearchModalOpen) return null
 
   const cleanQuery = query.toLowerCase().trim()
 
   const filteredProducts = cleanQuery
-    ? products.filter(
+    ? currentProducts.filter(
         p =>
           p.name.toLowerCase().includes(cleanQuery) ||
           p.technology.toLowerCase().includes(cleanQuery) ||
@@ -43,7 +69,7 @@ export const SearchModal: React.FC = () => {
     : []
 
   const filteredShop = cleanQuery
-    ? shopItems.filter(
+    ? currentShop.filter(
         item =>
           item.name.toLowerCase().includes(cleanQuery) ||
           item.categoryName.toLowerCase().includes(cleanQuery)
@@ -51,7 +77,7 @@ export const SearchModal: React.FC = () => {
     : []
 
   const filteredBlogs = cleanQuery
-    ? blogPosts.filter(
+    ? currentBlogs.filter(
         b =>
           b.title.toLowerCase().includes(cleanQuery) ||
           b.tags.some(t => t.toLowerCase().includes(cleanQuery))

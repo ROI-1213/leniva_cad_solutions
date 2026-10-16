@@ -1,6 +1,8 @@
 import { products as fallbackProducts } from '../data/products'
 import { filamentProducts } from '../data/filamentsData'
 import { devokMQData, devokMTData } from '../data/scannersData'
+import { Product, ShopItem } from '../types'
+import { shopItems as fallbackShopItems } from '../data/shop'
 
 export interface KeySpecItem {
   label: string
@@ -26,6 +28,7 @@ export interface ProductItem {
   is_featured: boolean
   is_quote_based?: boolean
   is_new?: boolean
+  is_admin_customized?: boolean
   rating?: number
   reviews_count?: number
   badge?: string
@@ -203,6 +206,9 @@ export const getStoredProductsCatalog = (): ProductItem[] => {
 export const saveStoredProductsCatalog = (items: ProductItem[]) => {
   try {
     localStorage.setItem(STORAGE_KEY_PRODUCTS_CATALOG, JSON.stringify(items))
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('leniva_products_catalog_updated'))
+    }
   } catch (err) {
     console.error('Failed to save products catalog to localStorage', err)
   }
@@ -211,8 +217,91 @@ export const saveStoredProductsCatalog = (items: ProductItem[]) => {
 export const resetStoredProductsCatalog = (): ProductItem[] => {
   try {
     localStorage.removeItem(STORAGE_KEY_PRODUCTS_CATALOG)
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('leniva_products_catalog_updated'))
+    }
   } catch (err) {
     console.error('Failed to remove stored products catalog', err)
   }
   return buildDefaultProductCatalog()
+}
+
+/**
+ * Returns all products formatted as Product[], including newly added custom products from the admin.
+ */
+export const getStoredProductsAsProducts = (): Product[] => {
+  const catalog = getStoredProductsCatalog()
+  return catalog.map(item => ({
+    id: item.id,
+    slug: item.slug || item.id,
+    name: item.name,
+    brand: item.brand || 'Make3D',
+    category: item.category,
+    categorySlug: item.category_slug,
+    technology: (item.technology as any) || 'FDM 3D Printer',
+    tagline: item.tagline || '',
+    description: item.description || '',
+    shortDescription: item.short_description || item.description || '',
+    heroImage: item.hero_image,
+    images: Array.isArray(item.images) && item.images.length > 0 ? item.images : [item.hero_image],
+    keySpecs: item.key_specs ? [...item.key_specs] : [],
+    specifications: item.specifications ? { ...item.specifications } : {},
+    features: item.features ? [...item.features] : [],
+    applications: item.applications ? [...item.applications] : [],
+    materials: item.materials ? [...item.materials] : [],
+    whoIsItFor: item.who_is_it_for ? [...item.who_is_it_for] : [],
+    brochureUrl: item.brochure_url || '',
+    price: 0,
+    priceDisplay: 'Quote on Request',
+    inStock: item.in_stock,
+    isNew: item.is_new ?? false,
+    isFeatured: item.is_featured ?? true,
+  }))
+}
+
+/**
+ * Returns all items formatted as ShopItem[], combining default items with newly added products from the admin.
+ */
+export const getStoredProductsAsShopItems = (): ShopItem[] => {
+  const catalog = getStoredProductsCatalog()
+  const customShopItems: ShopItem[] = []
+
+  const normalizeCategory = (slug?: string, tech?: string): string => {
+    const s = (slug || '').toLowerCase()
+    const t = (tech || '').toLowerCase()
+    if (s.includes('fdm') || t.includes('fdm')) return 'fdm'
+    if (s.includes('dlp') || t.includes('dlp')) return 'dlp'
+    if (s.includes('lcd') || t.includes('lcd')) return 'lcd'
+    if (s.includes('scanner') || t.includes('scanner')) return 'scanners'
+    if (s.includes('filament') || t.includes('material') || t.includes('consumable')) return 'make3d-filaments'
+    if (s.includes('cad') || s.includes('software') || t.includes('cad') || t.includes('software')) return 'cad-software'
+    return s || 'products'
+  }
+
+  for (const p of catalog) {
+    const isAlreadyInShop = fallbackShopItems.some(s => s.slug === p.slug || s.id === p.id)
+    if (!isAlreadyInShop) {
+      customShopItems.push({
+        id: p.id,
+        slug: p.slug || p.id,
+        name: p.name,
+        category: normalizeCategory(p.category_slug, p.technology),
+        categoryName: p.category || '3D Printers',
+        brand: p.brand || 'Make3D',
+        price: 0,
+        image: p.hero_image,
+        inStock: p.in_stock,
+        rating: 5.0,
+        reviewsCount: 12,
+        badge: p.is_featured ? 'Featured' : undefined,
+        isQuoteBased: true,
+        productSlug: p.slug || p.id,
+        isContain: true,
+        shortDescription: p.short_description || p.description || '',
+        specifications: p.specifications || {},
+      })
+    }
+  }
+
+  return [...fallbackShopItems, ...customShopItems]
 }

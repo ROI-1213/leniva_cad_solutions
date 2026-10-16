@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { products } from '../data/products'
+import { getStoredProductsAsProducts } from '../utils/productCatalog'
 import { ProductCard } from '../components/ProductCard'
 import { useApp } from '../context/AppContext'
 import { Product } from '../types'
@@ -190,15 +191,36 @@ export const ProductsPage: React.FC = () => {
     return true
   }
 
+  // Live stored products catalog (includes newly added custom products from admin)
+  const [allProducts, setAllProducts] = useState<Product[]>(() => {
+    try {
+      return getStoredProductsAsProducts()
+    } catch {
+      return products
+    }
+  })
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      try {
+        setAllProducts(getStoredProductsAsProducts())
+      } catch (err) {
+        console.error('Failed to update live products in ProductsPage', err)
+      }
+    }
+    window.addEventListener('leniva_products_catalog_updated', handleUpdate)
+    return () => window.removeEventListener('leniva_products_catalog_updated', handleUpdate)
+  }, [])
+
   // Filter hardware products only (strictly no CAD software)
   const hardwareProducts = useMemo(() => {
-    return products.filter(
+    return allProducts.filter(
       (p) =>
         p.categorySlug !== 'cad-software' &&
         !p.technology.toLowerCase().includes('software') &&
         !['Trimble', 'Graebert', 'Chaos'].includes(p.brand)
     )
-  }, [])
+  }, [allProducts])
 
   // Group products by hardware sections
   const activeSections = useMemo(() => {

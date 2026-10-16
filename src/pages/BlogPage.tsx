@@ -1,18 +1,39 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, Clock, Calendar, ArrowRight } from 'lucide-react'
 import { blogPosts } from '../data/blogs'
+import { getStoredBlogsAsBlogPosts } from '../utils/blogCatalog'
+import { BlogPost } from '../types'
 
 export const BlogPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState<string>('')
+  const [allPosts, setAllPosts] = useState<BlogPost[]>(() => {
+    try {
+      return getStoredBlogsAsBlogPosts()
+    } catch {
+      return blogPosts
+    }
+  })
 
-  const categories = useMemo(() => {
-    return ['all', ...Array.from(new Set(blogPosts.map(b => b.category)))]
+  useEffect(() => {
+    const handleUpdate = () => {
+      try {
+        setAllPosts(getStoredBlogsAsBlogPosts())
+      } catch (err) {
+        console.error('Failed to update live blogs', err)
+      }
+    }
+    window.addEventListener('leniva_blogs_catalog_updated', handleUpdate)
+    return () => window.removeEventListener('leniva_blogs_catalog_updated', handleUpdate)
   }, [])
 
+  const categories = useMemo(() => {
+    return ['all', ...Array.from(new Set(allPosts.map(b => b.category)))]
+  }, [allPosts])
+
   const filteredPosts = useMemo(() => {
-    return blogPosts.filter(post => {
+    return allPosts.filter(post => {
       if (selectedCategory !== 'all' && post.category !== selectedCategory) return false
       if (searchQuery) {
         const q = searchQuery.toLowerCase()
@@ -24,7 +45,7 @@ export const BlogPage: React.FC = () => {
       }
       return true
     })
-  }, [selectedCategory, searchQuery])
+  }, [allPosts, selectedCategory, searchQuery])
 
   return (
     <div className="bg-slate-50 min-h-screen py-10 space-y-10">

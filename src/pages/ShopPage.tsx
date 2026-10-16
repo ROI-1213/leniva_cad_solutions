@@ -20,6 +20,7 @@ import {
   Monitor,
 } from 'lucide-react'
 import { shopItems } from '../data/shop'
+import { getStoredProductsAsShopItems } from '../utils/productCatalog'
 import { useApp } from '../context/AppContext'
 import { ShopItem } from '../types'
 import { getStoredNavigationConfig, MasterNavigationConfig } from '../utils/navigationConfig'
@@ -69,19 +70,39 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
     }
   }
 
+  const [shopItemList, setShopItemList] = useState<ShopItem[]>(() => {
+    try {
+      return getStoredProductsAsShopItems()
+    } catch {
+      return shopItems
+    }
+  })
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      try {
+        setShopItemList(getStoredProductsAsShopItems())
+      } catch (err) {
+        console.error('Failed to update live items in ShopPage', err)
+      }
+    }
+    window.addEventListener('leniva_products_catalog_updated', handleUpdate)
+    return () => window.removeEventListener('leniva_products_catalog_updated', handleUpdate)
+  }, [])
+
   // Sidebar / Dropdown options
   const filterOptions = [
-    { id: 'all', label: 'All Catalog (All Sections)', icon: Layers, count: shopItems.length },
-    { id: 'cad-software', label: 'CAD & 3D Design Software', icon: Laptop, count: shopItems.filter(i => i.category === 'cad-software').length },
-    { id: 'products', label: '3D Printers & Scanners (Hardware)', icon: Box, count: shopItems.filter(i => ['fdm', 'dlp', 'lcd', 'scanners'].includes(i.category)).length },
-    { id: 'make3d-filaments', label: '3D Printer Filaments (PLA & PLA+)', icon: CircleDot, count: shopItems.filter(i => i.category === 'make3d-filaments').length },
-    { id: 'ares', label: 'ARES DWG CAD (Graebert)', icon: Monitor, count: shopItems.filter(i => i.category === 'cad-software' && i.brand === 'Graebert').length },
-    { id: 'sketchup', label: 'SketchUp 3D Modeling (Trimble)', icon: Box, count: shopItems.filter(i => i.category === 'cad-software' && i.brand === 'Trimble').length },
-    { id: 'chaos', label: 'Chaos Visualization (V-Ray & Enscape)', icon: Sparkles, count: shopItems.filter(i => i.category === 'cad-software' && i.brand === 'Chaos').length },
-    { id: 'fdm', label: 'FDM 3D Printers', icon: Printer, count: shopItems.filter(i => i.category === 'fdm').length },
-    { id: 'dlp', label: 'DLP 3D Printers', icon: Printer, count: shopItems.filter(i => i.category === 'dlp').length },
-    { id: 'lcd', label: 'Industrial LCD Printers', icon: Printer, count: shopItems.filter(i => i.category === 'lcd').length },
-    { id: 'scanners', label: 'Precision 3D Scanners', icon: Box, count: shopItems.filter(i => i.category === 'scanners').length },
+    { id: 'all', label: 'All Catalog (All Sections)', icon: Layers, count: shopItemList.length },
+    { id: 'cad-software', label: 'CAD & 3D Design Software', icon: Laptop, count: shopItemList.filter(i => i.category === 'cad-software').length },
+    { id: 'products', label: '3D Printers & Scanners (Hardware)', icon: Box, count: shopItemList.filter(i => ['fdm', 'dlp', 'lcd', 'scanners'].includes(i.category)).length },
+    { id: 'make3d-filaments', label: '3D Printer Filaments (PLA & PLA+)', icon: CircleDot, count: shopItemList.filter(i => i.category === 'make3d-filaments').length },
+    { id: 'ares', label: 'ARES DWG CAD (Graebert)', icon: Monitor, count: shopItemList.filter(i => i.category === 'cad-software' && i.brand === 'Graebert').length },
+    { id: 'sketchup', label: 'SketchUp 3D Modeling (Trimble)', icon: Box, count: shopItemList.filter(i => i.category === 'cad-software' && i.brand === 'Trimble').length },
+    { id: 'chaos', label: 'Chaos Visualization (V-Ray & Enscape)', icon: Sparkles, count: shopItemList.filter(i => i.category === 'cad-software' && i.brand === 'Chaos').length },
+    { id: 'fdm', label: 'FDM 3D Printers', icon: Printer, count: shopItemList.filter(i => i.category === 'fdm').length },
+    { id: 'dlp', label: 'DLP 3D Printers', icon: Printer, count: shopItemList.filter(i => i.category === 'dlp').length },
+    { id: 'lcd', label: 'Industrial LCD Printers', icon: Printer, count: shopItemList.filter(i => i.category === 'lcd').length },
+    { id: 'scanners', label: 'Precision 3D Scanners', icon: Box, count: shopItemList.filter(i => i.category === 'scanners').length },
   ]
 
   // Filter items helper
@@ -103,44 +124,44 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
 
   // Grouped products
   const cadItems = useMemo(() => {
-    return filterList(shopItems.filter(i => i.category === 'cad-software'))
-  }, [inStockOnly, searchQuery])
+    return filterList(shopItemList.filter(i => i.category === 'cad-software'))
+  }, [shopItemList, inStockOnly, searchQuery])
 
   const aresItems = useMemo(() => {
-    return filterList(shopItems.filter(i => i.category === 'cad-software' && i.brand === 'Graebert'))
-  }, [inStockOnly, searchQuery])
+    return filterList(shopItemList.filter(i => i.category === 'cad-software' && i.brand === 'Graebert'))
+  }, [shopItemList, inStockOnly, searchQuery])
 
   const sketchupItems = useMemo(() => {
-    return filterList(shopItems.filter(i => i.category === 'cad-software' && i.brand === 'Trimble'))
-  }, [inStockOnly, searchQuery])
+    return filterList(shopItemList.filter(i => i.category === 'cad-software' && i.brand === 'Trimble'))
+  }, [shopItemList, inStockOnly, searchQuery])
 
   const chaosItems = useMemo(() => {
-    return filterList(shopItems.filter(i => i.category === 'cad-software' && i.brand === 'Chaos'))
-  }, [inStockOnly, searchQuery])
+    return filterList(shopItemList.filter(i => i.category === 'cad-software' && i.brand === 'Chaos'))
+  }, [shopItemList, inStockOnly, searchQuery])
 
   const printerItems = useMemo(() => {
-    return filterList(shopItems.filter(i => ['fdm', 'dlp', 'lcd'].includes(i.category)))
-  }, [inStockOnly, searchQuery])
+    return filterList(shopItemList.filter(i => ['fdm', 'dlp', 'lcd'].includes(i.category)))
+  }, [shopItemList, inStockOnly, searchQuery])
 
   const fdmItems = useMemo(() => {
-    return filterList(shopItems.filter(i => i.category === 'fdm'))
-  }, [inStockOnly, searchQuery])
+    return filterList(shopItemList.filter(i => i.category === 'fdm'))
+  }, [shopItemList, inStockOnly, searchQuery])
 
   const dlpItems = useMemo(() => {
-    return filterList(shopItems.filter(i => i.category === 'dlp'))
-  }, [inStockOnly, searchQuery])
+    return filterList(shopItemList.filter(i => i.category === 'dlp'))
+  }, [shopItemList, inStockOnly, searchQuery])
 
   const lcdItems = useMemo(() => {
-    return filterList(shopItems.filter(i => i.category === 'lcd'))
-  }, [inStockOnly, searchQuery])
+    return filterList(shopItemList.filter(i => i.category === 'lcd'))
+  }, [shopItemList, inStockOnly, searchQuery])
 
   const scannerItems = useMemo(() => {
-    return filterList(shopItems.filter(i => i.category === 'scanners'))
-  }, [inStockOnly, searchQuery])
+    return filterList(shopItemList.filter(i => i.category === 'scanners'))
+  }, [shopItemList, inStockOnly, searchQuery])
 
   const filamentItems = useMemo(() => {
-    return filterList(shopItems.filter(i => i.category === 'make3d-filaments'))
-  }, [inStockOnly, searchQuery])
+    return filterList(shopItemList.filter(i => i.category === 'make3d-filaments'))
+  }, [shopItemList, inStockOnly, searchQuery])
 
   // Total matching count
   const totalVisibleCount = useMemo(() => {
@@ -419,7 +440,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
                 : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-100'
             }`}
           >
-            All Items ({shopItems.length})
+            All Items ({shopItemList.length})
           </button>
           <button
             onClick={() => handleCategoryChange('cad-software')}
@@ -430,7 +451,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
             }`}
           >
             <Laptop className="w-3.5 h-3.5 text-blue-600" />
-            <span>CAD Software ({shopItems.filter(i => i.category === 'cad-software').length})</span>
+            <span>CAD Software ({shopItemList.filter(i => i.category === 'cad-software').length})</span>
           </button>
           <button
             onClick={() => handleCategoryChange('products')}
@@ -441,7 +462,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
             }`}
           >
             <Box className="w-3.5 h-3.5" />
-            <span>3D Printers & Scanners ({shopItems.filter(i => ['fdm', 'dlp', 'lcd', 'scanners'].includes(i.category)).length})</span>
+            <span>3D Printers & Scanners ({shopItemList.filter(i => ['fdm', 'dlp', 'lcd', 'scanners'].includes(i.category)).length})</span>
           </button>
           <button
             onClick={() => handleCategoryChange('make3d-filaments')}
@@ -452,7 +473,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
             }`}
           >
             <CircleDot className="w-3.5 h-3.5 text-red-600" />
-            <span>3D Printer Filaments ({shopItems.filter(i => i.category === 'make3d-filaments').length})</span>
+            <span>3D Printer Filaments ({shopItemList.filter(i => i.category === 'make3d-filaments').length})</span>
           </button>
           <button
             onClick={() => handleCategoryChange('ares')}

@@ -76,10 +76,15 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
     p => (p.slug && p.slug.toLowerCase() === resolvedSlug) || (p.id && p.id.toLowerCase() === resolvedSlug)
   )
 
-  // Has this product been modified by the admin in localStorage?
-  const isCustomEdited = typeof window !== 'undefined' &&
-    !!localStorage.getItem('leniva_admin_products_catalog') &&
-    !!customProd
+  const hasAdminCatalog = typeof window !== 'undefined' && !!localStorage.getItem('leniva_admin_products_catalog')
+
+  // If the product was deleted by the admin from the catalog, cleanly redirect to catalog
+  if (hasAdminCatalog && !customProd) {
+    return <Navigate to="/products" replace />
+  }
+
+  // If this product was customized by the admin, use the dynamic renderer so changes reflect immediately!
+  const isCustomEdited = !!customProd && !!customProd.is_admin_customized
 
   // Delegate dedicated product pages ONLY if no custom admin edits exist for this machine
   if (!isCustomEdited) {

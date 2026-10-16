@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import {
   ChevronRight,
@@ -6,8 +6,10 @@ import {
 } from 'lucide-react'
 import { productCategories } from '../data/categories'
 import { products } from '../data/products'
+import { getStoredProductsAsProducts } from '../utils/productCatalog'
 import { ProductCard } from '../components/ProductCard'
 import { useApp } from '../context/AppContext'
+import { Product } from '../types'
 import DlpCategoryPage from './DlpCategoryPage'
 import IndustrialLcdCategoryPage from './IndustrialLcdCategoryPage'
 import ScannersCategoryPage from './ScannersCategoryPage'
@@ -38,12 +40,36 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({ forcedSl
     return <Navigate to="/products" replace />
   }
 
+  // Live stored products catalog (includes newly added custom products from admin)
+  const [allProducts, setAllProducts] = useState<Product[]>(() => {
+    try {
+      return getStoredProductsAsProducts()
+    } catch {
+      return products
+    }
+  })
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      try {
+        setAllProducts(getStoredProductsAsProducts())
+      } catch (err) {
+        console.error('Failed to update live products in CategoryDetailPage', err)
+      }
+    }
+    window.addEventListener('leniva_products_catalog_updated', handleUpdate)
+    return () => window.removeEventListener('leniva_products_catalog_updated', handleUpdate)
+  }, [])
+
   // Find all products matching this category
-  const categoryProducts = products.filter(p => p.categorySlug === slug)
+  const categoryProducts = allProducts.filter(p => p.categorySlug === slug)
 
   // Check if CAD Software category
   const isCadSoftware = slug === 'cad-software' || category.slug === 'cad-software' || category.id === 'software'
   const isFdm = slug === 'fdm-3d-printers' || category.slug === 'fdm-3d-printers'
+
+  const knownFdmIds = ['pratham-mini', 'pratham-desktop', 'pratham-3', 'pratham-5', 'pratham-6', 'pratham-3-rapid', 'pratham-x-600', 'pratham-x']
+  const additionalFdmProducts = categoryProducts.filter(p => !knownFdmIds.includes(p.id))
 
   // FDM sections
   const fdmSections = [
@@ -71,6 +97,12 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({ forcedSl
       description: 'Massive monolithic additive manufacturing systems with all-axis industrial ball screws and up to 1 m³ build capacity.',
       products: categoryProducts.filter(p => ['pratham-x-600', 'pratham-x'].includes(p.id)),
     },
+    ...(additionalFdmProducts.length > 0 ? [{
+      title: 'Additional Industrial Systems',
+      badge: 'Additive Manufacturing',
+      description: 'Custom configurations and newly added industrial systems from catalog.',
+      products: additionalFdmProducts,
+    }] : []),
   ]
 
   // Brand groupings in requested priority order: 1st Graebert, 2nd SketchUp, 3rd Chaos

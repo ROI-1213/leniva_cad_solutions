@@ -65,6 +65,11 @@ import {
   saveStoredAboutContent,
   resetStoredAboutContent,
 } from '../utils/aboutContentConfig'
+import {
+  BlogPostItem,
+  getStoredBlogItems,
+  saveStoredBlogItems,
+} from '../utils/blogCatalog'
 import { blogPosts as fallbackBlogs } from '../data/blogs'
 
 interface Stats {
@@ -103,18 +108,7 @@ interface ContactMessage {
 
 
 
-interface BlogPostItem {
-  id: string
-  slug: string
-  title: string
-  category: string
-  read_time: string
-  date: string
-  excerpt?: string
-  content?: string
-  image?: string
-  published: boolean
-}
+
 
 interface AdminUser {
   id: number
@@ -154,7 +148,7 @@ export default function AdminPage() {
   const [quotes, setQuotes] = useState<QuoteRequest[]>([])
   const [contacts, setContacts] = useState<ContactMessage[]>([])
   const [productsList, setProductsList] = useState<ProductItem[]>(getStoredProductsCatalog)
-  const [blogsList, setBlogsList] = useState<BlogPostItem[]>([])
+  const [blogsList, setBlogsList] = useState<BlogPostItem[]>(getStoredBlogItems)
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([
     {
       id: 1,
@@ -1175,20 +1169,10 @@ export default function AdminPage() {
       // Fallback blogs
       if (Array.isArray(blogsVal) && blogsVal.length > 0) {
         setBlogsList(blogsVal)
+        saveStoredBlogItems(blogsVal)
       } else {
-        const mappedBlogs: BlogPostItem[] = fallbackBlogs.map(b => ({
-          id: b.id,
-          slug: b.slug,
-          title: b.title,
-          category: b.category,
-          read_time: b.readTime,
-          date: b.date,
-          excerpt: b.excerpt,
-          content: b.content,
-          image: b.image,
-          published: true,
-        }))
-        setBlogsList(mappedBlogs)
+        const storedBlogs = getStoredBlogItems()
+        setBlogsList(storedBlogs)
       }
 
       // Fallback Quotes
@@ -1391,20 +1375,25 @@ export default function AdminPage() {
       return
     }
 
-    const existingIdx = productsList.findIndex(p => p.id === editingProduct.id)
+    const productToSave: ProductItem = {
+      ...editingProduct,
+      is_admin_customized: true,
+    }
+
+    const existingIdx = productsList.findIndex(p => p.id === productToSave.id)
     const isNew = existingIdx < 0
     const updatedList = isNew
-      ? [editingProduct, ...productsList]
-      : productsList.map(p => p.id === editingProduct.id ? editingProduct : p)
+      ? [productToSave, ...productsList]
+      : productsList.map(p => p.id === productToSave.id ? productToSave : p)
 
     setProductsList(updatedList)
     saveStoredProductsCatalog(updatedList)
 
     try {
-      await fetch(`/api/products/${editingProduct.id}`, {
+      await fetch(`/api/products/${productToSave.id}`, {
         method: isNew ? 'POST' : 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingProduct),
+        body: JSON.stringify(productToSave),
       })
     } catch (err) {
       console.warn('API sync skipped, saved to local catalog', err)
@@ -1412,8 +1401,8 @@ export default function AdminPage() {
 
     setProductSaveSuccessMsg(
       isNew
-        ? `Product "${editingProduct.name}" successfully created with all full sections and added to live catalog!`
-        : `Saved all full sections for "${editingProduct.name}"!`
+        ? `Product "${productToSave.name}" successfully created with all full sections and added to live catalog!`
+        : `Saved all full sections for "${productToSave.name}"!`
     )
     setEditingProduct(null)
     setTimeout(() => setProductSaveSuccessMsg(''), 4000)
@@ -1421,7 +1410,7 @@ export default function AdminPage() {
 
   const handleToggleStock = async (product: ProductItem) => {
     const updatedStock = !product.in_stock
-    const updatedList = productsList.map(p => p.id === product.id ? { ...p, in_stock: updatedStock } : p)
+    const updatedList = productsList.map(p => p.id === product.id ? { ...p, in_stock: updatedStock, is_admin_customized: true } : p)
     setProductsList(updatedList)
     saveStoredProductsCatalog(updatedList)
 
@@ -1464,58 +1453,71 @@ export default function AdminPage() {
   // Blog operations
   const handleCreateBlog = async (e: React.FormEvent) => {
     e.preventDefault()
+    const newId = `blog-${Date.now()}`
+    const blogItem: BlogPostItem = {
+      id: newId,
+      slug: newBlog.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') || newId,
+      title: newBlog.title,
+      category: newBlog.category,
+      read_time: newBlog.read_time,
+      date: new Date().toISOString().split('T')[0],
+      excerpt: newBlog.excerpt,
+      content: newBlog.content,
+      image: newBlog.image,
+      published: true,
+    }
+
+    const updated = [blogItem, ...blogsList]
+    setBlogsList(updated)
+    saveStoredBlogItems(updated)
+    setIsNewBlogOpen(false)
+    setNewBlog({
+      title: '',
+      category: '3D Printing Innovations',
+      read_time: '5 min read',
+      excerpt: '',
+      content: '',
+      image: '/images/showcase/pratham-showcase.png',
+    })
+
     try {
-      const res = await fetch('/api/blogs', {
+      await fetch('/api/blogs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newBlog, published: true }),
+        body: JSON.stringify(blogItem),
       })
-      if (res.ok) {
-        const created = await res.json()
-        setBlogsList(prev => [created, ...prev])
-        setIsNewBlogOpen(false)
-        setNewBlog({
-          title: '',
-          category: '3D Printing Innovations',
-          read_time: '5 min read',
-          excerpt: '',
-          content: '',
-          image: '/images/showcase/pratham-showcase.png',
-        })
-      }
     } catch (err) {
-      console.error(err)
+      console.warn('API sync skipped, saved locally', err)
     }
   }
 
   const handleDeleteBlog = async (id: string) => {
-    if (!confirm(`Delete article ${id} from PostgreSQL?`)) return
+    if (!confirm(`Are you sure you want to delete this article?`)) return
+    const updated = blogsList.filter(b => b.id !== id)
+    setBlogsList(updated)
+    saveStoredBlogItems(updated)
     try {
-      const res = await fetch(`/api/blogs/${id}`, { method: 'DELETE' })
-      if (res.ok) {
-        setBlogsList(prev => prev.filter(b => b.id !== id))
-      }
+      await fetch(`/api/blogs/${id}`, { method: 'DELETE' })
     } catch (err) {
-      console.error(err)
+      console.warn('API sync skipped', err)
     }
   }
 
   const handleSaveEditBlog = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingBlog) return
+    const updated = blogsList.map(b => b.id === editingBlog.id ? editingBlog : b)
+    setBlogsList(updated)
+    saveStoredBlogItems(updated)
+    setEditingBlog(null)
     try {
-      const res = await fetch(`/api/blogs/${editingBlog.id}`, {
+      await fetch(`/api/blogs/${editingBlog.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editingBlog),
       })
-      if (res.ok) {
-        const updated = await res.json()
-        setBlogsList(prev => prev.map(b => b.id === updated.id ? updated : b))
-        setEditingBlog(null)
-      }
     } catch (err) {
-      console.error(err)
+      console.warn('API sync skipped', err)
     }
   }
 
