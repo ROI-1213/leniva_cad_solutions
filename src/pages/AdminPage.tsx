@@ -7065,37 +7065,6 @@ export default function AdminPage() {
 
             return (
               <div className="space-y-5 min-w-0">
-                {/* Hardware vs CAD Software Guidance Banner */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
-                      <Shield className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-black text-slate-900">Leniva CAD Software Management Suite</p>
-                      <p className="text-[11px] text-slate-600">
-                        Edit complete product pages for CAD software below. Looking to manage 3D Printers or Scanners?
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={() => { setActiveTab('products'); handleStartCreateNewProduct('fdm') }}
-                      className="px-3 py-1.5 bg-white hover:bg-slate-50 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center space-x-1"
-                    >
-                      <Package className="w-3.5 h-3.5" />
-                      <span>Add 3D Printer / Scanner</span>
-                    </button>
-                    <button
-                      onClick={() => setIsNewCadProductOpen(true)}
-                      className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center space-x-1.5 shadow-sm"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Add New CAD Product</span>
-                    </button>
-                  </div>
-                </div>
-
                 {/* Header Toolbar */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div>
@@ -7119,13 +7088,6 @@ export default function AdminPage() {
                       <span>Save Changes</span>
                     </button>
                     <button
-                      onClick={() => setIsNewCadProductOpen(true)}
-                      className="inline-flex items-center space-x-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Add Product</span>
-                    </button>
-                    <button
                       onClick={resetCadProduct}
                       className="inline-flex items-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                       title="Reset this product to factory defaults"
@@ -7146,17 +7108,10 @@ export default function AdminPage() {
 
                 {/* Product Selector Cards */}
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="mb-3">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                       Select Product to Edit ({cadProducts.length} Total)
                     </p>
-                    <button
-                      onClick={() => setIsNewCadProductOpen(true)}
-                      className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center space-x-1 cursor-pointer"
-                    >
-                      <Plus className="w-3 h-3" />
-                      <span>Add Another Product</span>
-                    </button>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 min-w-0">
@@ -7191,16 +7146,6 @@ export default function AdminPage() {
                         </div>
                       )
                     })}
-
-                    {/* "+ Add New Product" card in grid */}
-                    <button
-                      type="button"
-                      onClick={() => setIsNewCadProductOpen(true)}
-                      className="flex flex-col items-center justify-center p-3 rounded-xl border-2 border-dashed border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/40 text-slate-500 hover:text-indigo-600 transition-all cursor-pointer group"
-                    >
-                      <Plus className="w-4 h-4 mb-1 group-hover:scale-110 transition-transform" />
-                      <span className="text-xs font-bold">+ Add CAD Product</span>
-                    </button>
                   </div>
                 </div>
 
@@ -8384,13 +8329,6 @@ export default function AdminPage() {
                     <h4 className="text-sm font-black text-slate-900">
                       All CAD Software Products ({cadProducts.length})
                     </h4>
-                    <button
-                      onClick={() => setIsNewCadProductOpen(true)}
-                      className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center space-x-1 cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Add Product</span>
-                    </button>
                   </div>
 
                   <div className="overflow-x-auto">
