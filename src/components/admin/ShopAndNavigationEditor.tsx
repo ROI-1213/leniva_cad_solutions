@@ -30,17 +30,6 @@ export const ShopAndNavigationEditor: React.FC = () => {
   const [newShortcutLabel, setNewShortcutLabel] = useState('')
   const [newShortcutRoute, setNewShortcutRoute] = useState('')
 
-  const [newCadProdName, setNewCadProdName] = useState('')
-  const [newCadProdSlug, setNewCadProdSlug] = useState('')
-  const [newCadProdSpec, setNewCadProdSpec] = useState('')
-  const [newCadProdImage, setNewCadProdImage] = useState('')
-  const [newCadProdBadge, setNewCadProdBadge] = useState('')
-
-  const [newHwProdName, setNewHwProdName] = useState('')
-  const [newHwProdSlug, setNewHwProdSlug] = useState('')
-  const [newHwProdSpec, setNewHwProdSpec] = useState('')
-  const [newHwProdBadge, setNewHwProdBadge] = useState('')
-
   const handleSaveNavConfig = () => {
     saveStoredNavigationConfig(navConfigData)
     setNavSavedMsg('Shop & Navigation Dropdown changes saved live across website!')
@@ -605,73 +594,17 @@ export const ShopAndNavigationEditor: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Add New CAD Product to Current Brand */}
-                <div className="bg-violet-50/50 border border-violet-200/70 rounded-xl p-4 space-y-3">
-                  <div className="flex items-center space-x-2 text-violet-900 font-bold text-xs">
-                    <Plus className="w-4 h-4" />
-                    <span>Add New Software Product to {curCadBrand.label}</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
-                    <input
-                      type="text"
-                      value={newCadProdName}
-                      onChange={e => setNewCadProdName(e.target.value)}
-                      placeholder="Product Name (e.g. ARES Trinity)"
-                      className="px-3 py-2 bg-white border border-slate-200 rounded-xl"
-                    />
-                    <input
-                      type="text"
-                      value={newCadProdSlug}
-                      onChange={e => setNewCadProdSlug(e.target.value)}
-                      placeholder="Slug / Route (/software/ares)"
-                      className="font-mono px-3 py-2 bg-white border border-slate-200 rounded-xl"
-                    />
-                    <input
-                      type="text"
-                      value={newCadProdSpec}
-                      onChange={e => setNewCadProdSpec(e.target.value)}
-                      placeholder="Spec / Subtitle (2D/3D DWG)"
-                      className="px-3 py-2 bg-white border border-slate-200 rounded-xl"
-                    />
-                    <input
-                      type="text"
-                      value={newCadProdBadge}
-                      onChange={e => setNewCadProdBadge(e.target.value)}
-                      placeholder="Badge (e.g. Lifetime)"
-                      className="px-3 py-2 bg-white border border-slate-200 rounded-xl"
-                    />
-                  </div>
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!newCadProdName.trim()) return
-                        const newItem: CadMegaProduct = {
-                          name: newCadProdName.trim(),
-                          slug: newCadProdSlug.trim() || `/software/${newCadProdName.toLowerCase().replace(/\s+/g, '-')}`,
-                          spec: newCadProdSpec.trim() || 'Professional Edition',
-                          image: newCadProdImage.trim() || '/images/software/ares-commander.png',
-                          badge: newCadProdBadge.trim() || undefined,
-                        }
-                        const newProds = [...curCadBrand.products, newItem]
-                        const updated = navConfigData.cadMegaMenu.categories.map(c =>
-                          c.id === curCadBrand.id ? { ...c, products: newProds } : c
-                        )
-                        setNavConfigData({
-                          ...navConfigData,
-                          cadMegaMenu: { ...navConfigData.cadMegaMenu, categories: updated }
-                        })
-                        setNewCadProdName('')
-                        setNewCadProdSlug('')
-                        setNewCadProdSpec('')
-                        setNewCadProdImage('')
-                        setNewCadProdBadge('')
-                      }}
-                      className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 cursor-pointer shadow-xs"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Add Product to {curCadBrand.label}</span>
-                    </button>
+                {/* CAD Software Central Catalog Sync Banner */}
+                <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 flex items-center justify-between text-xs">
+                  <div className="space-y-1">
+                    <div className="font-bold text-slate-900 flex items-center space-x-1.5">
+                      <CheckCircle className="w-4 h-4 text-emerald-600" />
+                      <span>Products Synchronized with Central Catalog</span>
+                    </div>
+                    <p className="text-slate-500 leading-relaxed">
+                      CAD software products are added and customized in the <strong>Products &amp; Equipment Catalog</strong> tab.
+                      Any software added under Graebert (ARES), Trimble (SketchUp), or Chaos (V-Ray, Enscape, Corona) automatically appears here in the mega menu and in the live Shop under CAD Software.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -915,71 +848,17 @@ export const ShopAndNavigationEditor: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Add New Hardware Product to Category */}
-                <div className="bg-blue-50/50 border border-blue-200/70 rounded-xl p-4 space-y-3">
-                  <div className="flex items-center space-x-2 text-blue-900 font-bold text-xs">
-                    <Plus className="w-4 h-4" />
-                    <span>Add New Machine / Item to {curHwCat.label}</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
-                    <input
-                      type="text"
-                      value={newHwProdName}
-                      onChange={e => setNewHwProdName(e.target.value)}
-                      placeholder="Item Name (e.g. FlashForge Creator 4S)"
-                      className="px-3 py-2 bg-white border border-slate-200 rounded-xl"
-                    />
-                    <input
-                      type="text"
-                      value={newHwProdSlug}
-                      onChange={e => setNewHwProdSlug(e.target.value)}
-                      placeholder="Slug / Route (/products/...)"
-                      className="font-mono px-3 py-2 bg-white border border-slate-200 rounded-xl"
-                    />
-                    <input
-                      type="text"
-                      value={newHwProdSpec}
-                      onChange={e => setNewHwProdSpec(e.target.value)}
-                      placeholder="Spec (e.g. 400x350x500mm)"
-                      className="px-3 py-2 bg-white border border-slate-200 rounded-xl"
-                    />
-                    <input
-                      type="text"
-                      value={newHwProdBadge}
-                      onChange={e => setNewHwProdBadge(e.target.value)}
-                      placeholder="Badge (e.g. Flagship)"
-                      className="px-3 py-2 bg-white border border-slate-200 rounded-xl"
-                    />
-                  </div>
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!newHwProdName.trim()) return
-                        const newItem: HardwareMegaProduct = {
-                          name: newHwProdName.trim(),
-                          slug: newHwProdSlug.trim() || `/products/${newHwProdName.toLowerCase().replace(/\s+/g, '-')}`,
-                          spec: newHwProdSpec.trim() || 'Industrial Grade',
-                          badge: newHwProdBadge.trim() || undefined,
-                        }
-                        const newProds = [...curHwCat.products, newItem]
-                        const updated = navConfigData.hardwareMegaMenu.categories.map(c =>
-                          c.id === curHwCat.id ? { ...c, products: newProds } : c
-                        )
-                        setNavConfigData({
-                          ...navConfigData,
-                          hardwareMegaMenu: { ...navConfigData.hardwareMegaMenu, categories: updated }
-                        })
-                        setNewHwProdName('')
-                        setNewHwProdSlug('')
-                        setNewHwProdSpec('')
-                        setNewHwProdBadge('')
-                      }}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 cursor-pointer shadow-xs"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Add Item to {curHwCat.label}</span>
-                    </button>
+                {/* Hardware Central Catalog Sync Banner */}
+                <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 flex items-center justify-between text-xs">
+                  <div className="space-y-1">
+                    <div className="font-bold text-slate-900 flex items-center space-x-1.5">
+                      <CheckCircle className="w-4 h-4 text-emerald-600" />
+                      <span>Machines Synchronized with Central Catalog</span>
+                    </div>
+                    <p className="text-slate-500 leading-relaxed">
+                      3D Printers and Scanners are added and customized in the <strong>Products &amp; Equipment Catalog</strong> tab.
+                      Any machine or consumable added under FDM, DLP, LCD, 3D Scanners, or Filaments automatically appears here in the mega menu and in the live Shop under its exact section.
+                    </p>
                   </div>
                 </div>
               </div>

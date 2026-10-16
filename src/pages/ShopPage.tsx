@@ -96,9 +96,9 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
     { id: 'cad-software', label: 'CAD & 3D Design Software', icon: Laptop, count: shopItemList.filter(i => i.category === 'cad-software').length },
     { id: 'products', label: '3D Printers & Scanners (Hardware)', icon: Box, count: shopItemList.filter(i => ['fdm', 'dlp', 'lcd', 'scanners'].includes(i.category)).length },
     { id: 'make3d-filaments', label: '3D Printer Filaments (PLA & PLA+)', icon: CircleDot, count: shopItemList.filter(i => i.category === 'make3d-filaments').length },
-    { id: 'ares', label: 'ARES DWG CAD (Graebert)', icon: Monitor, count: shopItemList.filter(i => i.category === 'cad-software' && i.brand === 'Graebert').length },
-    { id: 'sketchup', label: 'SketchUp 3D Modeling (Trimble)', icon: Box, count: shopItemList.filter(i => i.category === 'cad-software' && i.brand === 'Trimble').length },
-    { id: 'chaos', label: 'Chaos Visualization (V-Ray & Enscape)', icon: Sparkles, count: shopItemList.filter(i => i.category === 'cad-software' && i.brand === 'Chaos').length },
+    { id: 'ares', label: 'ARES DWG CAD (Graebert)', icon: Monitor, count: shopItemList.filter(i => i.category === 'cad-software' && (i.brand === 'Graebert' || i.name.toLowerCase().includes('ares'))).length },
+    { id: 'sketchup', label: 'SketchUp 3D Modeling (Trimble)', icon: Box, count: shopItemList.filter(i => i.category === 'cad-software' && (i.brand === 'Trimble' || i.name.toLowerCase().includes('sketchup'))).length },
+    { id: 'chaos', label: 'Chaos Visualization (V-Ray & Enscape)', icon: Sparkles, count: shopItemList.filter(i => i.category === 'cad-software' && (i.brand === 'Chaos' || i.name.toLowerCase().includes('v-ray') || i.name.toLowerCase().includes('vray') || i.name.toLowerCase().includes('enscape') || i.name.toLowerCase().includes('corona'))).length },
     { id: 'fdm', label: 'FDM 3D Printers', icon: Printer, count: shopItemList.filter(i => i.category === 'fdm').length },
     { id: 'dlp', label: 'DLP 3D Printers', icon: Printer, count: shopItemList.filter(i => i.category === 'dlp').length },
     { id: 'lcd', label: 'Industrial LCD Printers', icon: Printer, count: shopItemList.filter(i => i.category === 'lcd').length },
@@ -128,15 +128,15 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
   }, [shopItemList, inStockOnly, searchQuery])
 
   const aresItems = useMemo(() => {
-    return filterList(shopItemList.filter(i => i.category === 'cad-software' && i.brand === 'Graebert'))
+    return filterList(shopItemList.filter(i => i.category === 'cad-software' && (i.brand === 'Graebert' || i.name.toLowerCase().includes('ares'))))
   }, [shopItemList, inStockOnly, searchQuery])
 
   const sketchupItems = useMemo(() => {
-    return filterList(shopItemList.filter(i => i.category === 'cad-software' && i.brand === 'Trimble'))
+    return filterList(shopItemList.filter(i => i.category === 'cad-software' && (i.brand === 'Trimble' || i.name.toLowerCase().includes('sketchup'))))
   }, [shopItemList, inStockOnly, searchQuery])
 
   const chaosItems = useMemo(() => {
-    return filterList(shopItemList.filter(i => i.category === 'cad-software' && i.brand === 'Chaos'))
+    return filterList(shopItemList.filter(i => i.category === 'cad-software' && (i.brand === 'Chaos' || i.name.toLowerCase().includes('v-ray') || i.name.toLowerCase().includes('vray') || i.name.toLowerCase().includes('enscape') || i.name.toLowerCase().includes('corona'))))
   }, [shopItemList, inStockOnly, searchQuery])
 
   const printerItems = useMemo(() => {

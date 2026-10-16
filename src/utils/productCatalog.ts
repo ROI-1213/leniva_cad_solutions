@@ -259,49 +259,157 @@ export const getStoredProductsAsProducts = (): Product[] => {
   }))
 }
 
-/**
- * Returns all items formatted as ShopItem[], combining default items with newly added products from the admin.
- */
-export const getStoredProductsAsShopItems = (): ShopItem[] => {
-  const catalog = getStoredProductsCatalog()
-  const customShopItems: ShopItem[] = []
+export const normalizeShopCategory = (p: ProductItem): { category: string; categoryName: string; brand: string } => {
+  const cat = (p.category || '').toLowerCase()
+  const catSlug = (p.category_slug || '').toLowerCase()
+  const tech = (p.technology || '').toLowerCase()
+  const brand = (p.brand || '').trim()
+  const name = (p.name || '').toLowerCase()
 
-  const normalizeCategory = (slug?: string, tech?: string): string => {
-    const s = (slug || '').toLowerCase()
-    const t = (tech || '').toLowerCase()
-    if (s.includes('fdm') || t.includes('fdm')) return 'fdm'
-    if (s.includes('dlp') || t.includes('dlp')) return 'dlp'
-    if (s.includes('lcd') || t.includes('lcd')) return 'lcd'
-    if (s.includes('scanner') || t.includes('scanner')) return 'scanners'
-    if (s.includes('filament') || t.includes('material') || t.includes('consumable')) return 'make3d-filaments'
-    if (s.includes('cad') || s.includes('software') || t.includes('cad') || t.includes('software')) return 'cad-software'
-    return s || 'products'
-  }
-
-  for (const p of catalog) {
-    const isAlreadyInShop = fallbackShopItems.some(s => s.slug === p.slug || s.id === p.id)
-    if (!isAlreadyInShop) {
-      customShopItems.push({
-        id: p.id,
-        slug: p.slug || p.id,
-        name: p.name,
-        category: normalizeCategory(p.category_slug, p.technology),
-        categoryName: p.category || '3D Printers',
-        brand: p.brand || 'Make3D',
-        price: 0,
-        image: p.hero_image,
-        inStock: p.in_stock,
-        rating: 5.0,
-        reviewsCount: 12,
-        badge: p.is_featured ? 'Featured' : undefined,
-        isQuoteBased: true,
-        productSlug: p.slug || p.id,
-        isContain: true,
-        shortDescription: p.short_description || p.description || '',
-        specifications: p.specifications || {},
-      })
+  // 1. Filaments & Consumables
+  if (
+    cat.includes('filament') ||
+    catSlug.includes('filament') ||
+    tech.includes('material') ||
+    tech.includes('consumable') ||
+    cat.includes('material') ||
+    p.filament_material ||
+    p.filament_color
+  ) {
+    return {
+      category: 'make3d-filaments',
+      categoryName: '3D Printer Filaments',
+      brand: brand || 'Make3D',
     }
   }
 
-  return [...fallbackShopItems, ...customShopItems]
+  // 2. 3D Scanners & Metrology
+  if (
+    cat.includes('scanner') ||
+    catSlug.includes('scanner') ||
+    tech.includes('scanner') ||
+    tech.includes('metrology') ||
+    name.includes('scanner') ||
+    name.includes('devok') ||
+    name.includes('einscan') ||
+    p.id.includes('scanner') ||
+    p.id.includes('devok')
+  ) {
+    return {
+      category: 'scanners',
+      categoryName: 'Precision 3D Scanners',
+      brand: brand || (name.includes('einscan') ? 'Shining 3D' : '3DeVOK'),
+    }
+  }
+
+  // 3. CAD & 3D Design Software
+  if (
+    cat.includes('cad') ||
+    cat.includes('software') ||
+    catSlug.includes('cad') ||
+    catSlug.includes('software') ||
+    tech.includes('cad') ||
+    tech.includes('software') ||
+    tech.includes('engine') ||
+    brand.toLowerCase() === 'graebert' ||
+    brand.toLowerCase() === 'trimble' ||
+    brand.toLowerCase() === 'chaos' ||
+    name.includes('ares') ||
+    name.includes('sketchup') ||
+    name.includes('v-ray') ||
+    name.includes('vray') ||
+    name.includes('enscape') ||
+    name.includes('corona')
+  ) {
+    let cleanBrand = brand
+    if (name.includes('ares') || cat.includes('ares') || brand.toLowerCase().includes('graebert')) {
+      cleanBrand = 'Graebert'
+    } else if (name.includes('sketchup') || cat.includes('sketchup') || brand.toLowerCase().includes('trimble')) {
+      cleanBrand = 'Trimble'
+    } else if (
+      name.includes('v-ray') ||
+      name.includes('vray') ||
+      name.includes('enscape') ||
+      name.includes('corona') ||
+      brand.toLowerCase().includes('chaos')
+    ) {
+      cleanBrand = 'Chaos'
+    }
+    return {
+      category: 'cad-software',
+      categoryName: 'CAD & 3D Software',
+      brand: cleanBrand || 'Engineering Software',
+    }
+  }
+
+  // 4. 3D Printers: DLP
+  if (cat.includes('dlp') || catSlug.includes('dlp') || tech.includes('dlp') || name.includes('dlp') || name.includes('eka')) {
+    return {
+      category: 'dlp',
+      categoryName: 'DLP 3D Printers',
+      brand: brand || 'Make3D',
+    }
+  }
+
+  // 5. 3D Printers: LCD
+  if (cat.includes('lcd') || catSlug.includes('lcd') || tech.includes('lcd') || name.includes('lcd')) {
+    return {
+      category: 'lcd',
+      categoryName: 'Industrial LCD Printers',
+      brand: brand || 'Make3D',
+    }
+  }
+
+  // 6. 3D Printers: FDM
+  return {
+    category: 'fdm',
+    categoryName: 'FDM 3D Printers',
+    brand: brand || 'Make3D',
+  }
+}
+
+/**
+ * Returns all items formatted as ShopItem[], dynamically mapped from the live products catalog.
+ * Any product added or edited in 3D Printers, CAD Software, Scanners, or Filaments reflects immediately in the Shop.
+ */
+export const getStoredProductsAsShopItems = (): ShopItem[] => {
+  const catalog = getStoredProductsCatalog()
+
+  return catalog.map(p => {
+    const fallback = fallbackShopItems.find(s => s.slug === p.slug || s.id === p.id || s.productSlug === p.slug)
+    const { category, categoryName, brand } = normalizeShopCategory(p)
+    const isFilament = category === 'make3d-filaments'
+
+    let specs: Record<string, string> = fallback?.specifications ? { ...fallback.specifications } : {}
+    if (p.specifications && Object.keys(p.specifications).length > 0) {
+      specs = { ...specs, ...p.specifications }
+    } else if (p.key_specs && p.key_specs.length > 0) {
+      p.key_specs.forEach(k => {
+        if (k.label && k.value) specs[k.label] = k.value
+      })
+    }
+
+    return {
+      id: p.id,
+      slug: p.slug || p.id,
+      name: p.name,
+      category,
+      categoryName: p.category || categoryName,
+      brand: brand || fallback?.brand || 'Make3D',
+      price: 0,
+      originalPrice: 0,
+      image: p.hero_image || fallback?.image || (p.images && p.images[0]) || '/images/products/pratham-mini.png',
+      inStock: p.in_stock ?? fallback?.inStock ?? true,
+      rating: p.rating || fallback?.rating || 5.0,
+      reviewsCount: p.reviews_count || fallback?.reviewsCount || 12,
+      shortDescription: p.short_description || p.tagline || fallback?.shortDescription || p.description || '',
+      weightOrVolume: p.filament_weight || fallback?.weightOrVolume || (isFilament ? '1 KG (1.75 mm)' : undefined),
+      colorOptions: p.filament_color ? [p.filament_color] : fallback?.colorOptions,
+      specifications: specs,
+      badge: p.badge || (p.is_featured ? 'Featured' : fallback?.badge),
+      isQuoteBased: true,
+      productSlug: isFilament ? undefined : (p.slug || p.id),
+      isContain: true,
+    }
+  })
 }

@@ -250,30 +250,138 @@ export const getStoredNavigationConfig = (): MasterNavigationConfig => {
   if (typeof window === 'undefined') return DEFAULT_NAVIGATION_CONFIG
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return DEFAULT_NAVIGATION_CONFIG
-    const parsed = JSON.parse(raw)
-    return {
+    let parsed: any = null
+    if (raw) {
+      try {
+        parsed = JSON.parse(raw)
+      } catch {
+        // ignore
+      }
+    }
+
+    const config: MasterNavigationConfig = {
       shopDropdown: {
         ...DEFAULT_NAVIGATION_CONFIG.shopDropdown,
-        ...(parsed.shopDropdown || {}),
-        cards: parsed.shopDropdown?.cards || DEFAULT_NAVIGATION_CONFIG.shopDropdown.cards,
-        shortcuts: parsed.shopDropdown?.shortcuts || DEFAULT_NAVIGATION_CONFIG.shopDropdown.shortcuts,
+        ...(parsed?.shopDropdown || {}),
+        cards: parsed?.shopDropdown?.cards || DEFAULT_NAVIGATION_CONFIG.shopDropdown.cards,
+        shortcuts: parsed?.shopDropdown?.shortcuts || DEFAULT_NAVIGATION_CONFIG.shopDropdown.shortcuts,
       },
       cadMegaMenu: {
         ...DEFAULT_NAVIGATION_CONFIG.cadMegaMenu,
-        ...(parsed.cadMegaMenu || {}),
-        categories: parsed.cadMegaMenu?.categories || DEFAULT_NAVIGATION_CONFIG.cadMegaMenu.categories,
+        ...(parsed?.cadMegaMenu || {}),
+        categories: (parsed?.cadMegaMenu?.categories || DEFAULT_NAVIGATION_CONFIG.cadMegaMenu.categories).map((c: any) => ({
+          ...c,
+          products: [...c.products],
+        })),
       },
       hardwareMegaMenu: {
         ...DEFAULT_NAVIGATION_CONFIG.hardwareMegaMenu,
-        ...(parsed.hardwareMegaMenu || {}),
-        categories: parsed.hardwareMegaMenu?.categories || DEFAULT_NAVIGATION_CONFIG.hardwareMegaMenu.categories,
+        ...(parsed?.hardwareMegaMenu || {}),
+        categories: (parsed?.hardwareMegaMenu?.categories || DEFAULT_NAVIGATION_CONFIG.hardwareMegaMenu.categories).map((c: any) => ({
+          ...c,
+          products: [...c.products],
+        })),
       },
       shopPage: {
         ...DEFAULT_NAVIGATION_CONFIG.shopPage,
-        ...(parsed.shopPage || {}),
+        ...(parsed?.shopPage || {}),
       },
     }
+
+    // Merge custom products from main products catalog into mega menu categories
+    try {
+      const catalogRaw = localStorage.getItem('leniva_admin_products_catalog')
+      if (catalogRaw) {
+        const catalog = JSON.parse(catalogRaw)
+        if (Array.isArray(catalog)) {
+          for (const item of catalog) {
+            const cat = (item.category || '').toLowerCase()
+            const tech = (item.technology || '').toLowerCase()
+            const brand = (item.brand || '').toLowerCase()
+            const name = (item.name || '').toLowerCase()
+            const slug = item.slug || item.id
+
+            // Check if CAD Software
+            const isCad =
+              cat.includes('cad') ||
+              cat.includes('software') ||
+              tech.includes('cad') ||
+              tech.includes('software') ||
+              brand.includes('graebert') ||
+              brand.includes('trimble') ||
+              brand.includes('chaos') ||
+              name.includes('ares') ||
+              name.includes('sketchup') ||
+              name.includes('v-ray') ||
+              name.includes('vray') ||
+              name.includes('enscape') ||
+              name.includes('corona')
+
+            if (isCad) {
+              let targetBrandId: 'ares' | 'sketchup' | 'chaos' = 'ares'
+              if (brand.includes('trimble') || name.includes('sketchup')) targetBrandId = 'sketchup'
+              else if (
+                brand.includes('chaos') ||
+                name.includes('v-ray') ||
+                name.includes('vray') ||
+                name.includes('enscape') ||
+                name.includes('corona')
+              ) {
+                targetBrandId = 'chaos'
+              }
+
+              const targetCat = config.cadMegaMenu.categories.find(c => c.id === targetBrandId)
+              if (targetCat) {
+                const alreadyExists = targetCat.products.some(p => p.slug.includes(slug) || p.name.toLowerCase() === name)
+                if (!alreadyExists) {
+                  targetCat.products.push({
+                    name: item.name,
+                    slug: `/products/${slug}`,
+                    spec: item.tagline || 'Engineering Software',
+                    image: item.hero_image || '/images/software/ares-commander.jpg',
+                    badge: item.badge,
+                  })
+                }
+              }
+            } else {
+              // Hardware: 3D Printers & Scanners & Filaments
+              let targetHwId: 'fdm' | 'dlp' | 'lcd' | 'scanners' | 'filaments' = 'fdm'
+              if (cat.includes('filament') || tech.includes('material') || cat.includes('material')) targetHwId = 'filaments'
+              else if (
+                cat.includes('scanner') ||
+                tech.includes('scanner') ||
+                name.includes('scanner') ||
+                name.includes('devok') ||
+                name.includes('einscan')
+              ) {
+                targetHwId = 'scanners'
+              } else if (cat.includes('dlp') || tech.includes('dlp') || name.includes('dlp')) {
+                targetHwId = 'dlp'
+              } else if (cat.includes('lcd') || tech.includes('lcd') || name.includes('lcd')) {
+                targetHwId = 'lcd'
+              }
+
+              const targetCat = config.hardwareMegaMenu.categories.find(c => c.id === targetHwId)
+              if (targetCat) {
+                const alreadyExists = targetCat.products.some(p => p.slug.includes(slug) || p.name.toLowerCase() === name)
+                if (!alreadyExists) {
+                  targetCat.products.push({
+                    name: item.name,
+                    slug: targetHwId === 'filaments' ? `/shop/filaments/${slug}` : `/products/${slug}`,
+                    spec: item.tagline || (targetHwId === 'filaments' ? '3D Filament' : 'Additive System'),
+                    badge: item.badge,
+                  })
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    return config
   } catch {
     return DEFAULT_NAVIGATION_CONFIG
   }
