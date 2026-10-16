@@ -12,6 +12,7 @@ import {
   Plus,
   RefreshCw,
   Eye,
+  EyeOff,
   Upload,
   LogOut,
   AlertCircle,
@@ -123,8 +124,10 @@ export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     return localStorage.getItem('leniva_admin_auth') === 'true'
   })
-  const [usernameInput, setUsernameInput] = useState('admin')
-  const [passwordInput, setPasswordInput] = useState('Admin@Leniva2026!')
+  const [usernameInput, setUsernameInput] = useState('')
+  const [passwordInput, setPasswordInput] = useState('')
+  const [showLoginPassword, setShowLoginPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
   const [loginError, setLoginError] = useState('')
 
   type AdminTab =
@@ -1662,6 +1665,8 @@ export default function AdminPage() {
                 type="text"
                 value={usernameInput}
                 onChange={e => setUsernameInput(e.target.value)}
+                placeholder="Enter admin username"
+                autoComplete="off"
                 required
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
               />
@@ -1671,13 +1676,30 @@ export default function AdminPage() {
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
                 Admin Password
               </label>
-              <input
-                type="password"
-                value={passwordInput}
-                onChange={e => setPasswordInput(e.target.value)}
-                required
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
-              />
+              <div className="relative">
+                <input
+                  type={showLoginPassword ? 'text' : 'password'}
+                  value={passwordInput}
+                  onChange={e => setPasswordInput(e.target.value)}
+                  placeholder="Enter admin password"
+                  autoComplete="new-password"
+                  required
+                  className="w-full px-4 py-2.5 pr-11 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowLoginPassword(prev => !prev)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                  aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
+                  title={showLoginPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showLoginPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <button
@@ -6828,27 +6850,57 @@ export default function AdminPage() {
                           <label className="block text-[11px] font-bold uppercase tracking-wider text-amber-900 mb-1">
                             New Password *
                           </label>
-                          <input
-                            type="password"
-                            required
-                            placeholder="Enter new password"
-                            value={newPasswordValue}
-                            onChange={e => setNewPasswordValue(e.target.value)}
-                            className="w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-xl text-xs font-medium text-slate-900 outline-none focus:ring-2 focus:ring-amber-500"
-                          />
+                          <div className="relative">
+                            <input
+                              type={showNewPassword ? 'text' : 'password'}
+                              required
+                              placeholder="Enter new password"
+                              value={newPasswordValue}
+                              onChange={e => setNewPasswordValue(e.target.value)}
+                              className="w-full px-3.5 py-2.5 pr-10 bg-white border border-amber-300 rounded-xl text-xs font-medium text-slate-900 outline-none focus:ring-2 focus:ring-amber-500"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowNewPassword(prev => !prev)}
+                              className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                              aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+                              title={showNewPassword ? 'Hide password' : 'Show password'}
+                            >
+                              {showNewPassword ? (
+                                <EyeOff className="w-4 h-4" />
+                              ) : (
+                                <Eye className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
                         </div>
                         <div>
                           <label className="block text-[11px] font-bold uppercase tracking-wider text-amber-900 mb-1">
                             Confirm New Password *
                           </label>
-                          <input
-                            type="password"
-                            required
-                            placeholder="Re-enter new password"
-                            value={confirmPasswordValue}
-                            onChange={e => setConfirmPasswordValue(e.target.value)}
-                            className="w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-xl text-xs font-medium text-slate-900 outline-none focus:ring-2 focus:ring-amber-500"
-                          />
+                          <div className="relative">
+                            <input
+                              type={showNewPassword ? 'text' : 'password'}
+                              required
+                              placeholder="Re-enter new password"
+                              value={confirmPasswordValue}
+                              onChange={e => setConfirmPasswordValue(e.target.value)}
+                              className="w-full px-3.5 py-2.5 pr-10 bg-white border border-amber-300 rounded-xl text-xs font-medium text-slate-900 outline-none focus:ring-2 focus:ring-amber-500"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowNewPassword(prev => !prev)}
+                              className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                              aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+                              title={showNewPassword ? 'Hide password' : 'Show password'}
+                            >
+                              {showNewPassword ? (
+                                <EyeOff className="w-4 h-4" />
+                              ) : (
+                                <Eye className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
                         </div>
                       </div>
 
