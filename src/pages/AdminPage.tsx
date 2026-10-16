@@ -1117,12 +1117,6 @@ export default function AdminPage() {
     setIsLoading(false)
   }
 
-  const handleBypassLogin = () => {
-    setIsAuthenticated(true)
-    localStorage.setItem('leniva_admin_auth', 'true')
-    loadAllData()
-  }
-
   const handleLogout = () => {
     setIsAuthenticated(false)
     localStorage.removeItem('leniva_admin_auth')
@@ -1650,9 +1644,6 @@ export default function AdminPage() {
               <Shield className="w-8 h-8" />
             </div>
             <h2 className="text-2xl font-black text-slate-900 tracking-tight">Leniva CAD Admin Console</h2>
-            <p className="text-xs text-slate-500 font-mono">
-              Database: PostgreSQL (leniv698 @ 127.0.0.1 / localhost)
-            </p>
           </div>
 
           {loginError && (
@@ -1689,36 +1680,12 @@ export default function AdminPage() {
               />
             </div>
 
-            <div className="p-3 bg-blue-50/80 border border-blue-200/80 rounded-xl text-[11px] text-blue-900 space-y-1 font-mono">
-              <div><strong>Default Superadmin:</strong> <code>admin</code></div>
-              <div><strong>Default Password:</strong> <code>Admin@Leniva2026!</code></div>
-              <div className="text-[10px] text-blue-700 mt-1">âœ“ Full Control Enabled â€” Direct Native PostgreSQL</div>
-            </div>
-
             <button
               type="submit"
               disabled={isLoading}
               className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all cursor-pointer disabled:opacity-50"
             >
-              {isLoading ? 'Verifying PostgreSQL Credentials...' : 'Sign In with Full Admin Control'}
-            </button>
-
-            <div className="relative my-2 text-center">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200" />
-              </div>
-              <span className="relative bg-white px-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Or Direct Access
-              </span>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleBypassLogin}
-              className="w-full py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center space-x-1.5 shadow-xs"
-            >
-              <CheckCircle className="w-4 h-4 text-emerald-600" />
-              <span>1-Click Instant Preview (Bypass Sign-In)</span>
+              {isLoading ? 'Verifying Credentials...' : 'Sign In with Full Admin Control'}
             </button>
 
             <div className="pt-2 text-center">
