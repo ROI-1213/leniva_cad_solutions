@@ -12,12 +12,14 @@ import {
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import {
-  ekaXleData,
+  ekaXleData as defaultEkaXleData,
   engineeringWorkGallery,
 } from '../data/ekaProductsData'
+import { mergeCatalogWithHardwareData } from '../utils/productCatalog'
 
 export const EkaXlePage: React.FC = () => {
   const { openQuoteModal } = useApp()
+  const ekaXleData = mergeCatalogWithHardwareData('eka-xle', defaultEkaXleData)
 
   // Interactive State
   const [openFaq, setOpenFaq] = useState<number | null>(0)

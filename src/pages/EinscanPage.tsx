@@ -10,6 +10,7 @@ import {
   Eye,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
+import { getCatalogProductBySlug } from '../utils/productCatalog'
 
 interface ScannerItem {
   id: string
@@ -50,6 +51,17 @@ const einscanProducts: ScannerItem[] = [
 export const EinscanPage: React.FC = () => {
   const { openQuoteModal } = useApp()
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null)
+  const catalogProd = getCatalogProductBySlug('einscan-3d-scanner')
+
+  const activeProducts: ScannerItem[] = einscanProducts.map(item => ({
+    ...item,
+    name: catalogProd?.name || item.name,
+    subtitle: catalogProd?.tagline || item.subtitle,
+    bullets: catalogProd?.features && catalogProd.features.length > 0 ? catalogProd.features : item.bullets,
+    image: catalogProd?.hero_image || item.image,
+    badge: catalogProd?.badge || item.badge,
+    brochureUrl: catalogProd?.brochure_url || item.brochureUrl,
+  }))
 
   return (
     <div className="bg-slate-50 min-h-screen text-slate-900 pb-20">
@@ -64,26 +76,26 @@ export const EinscanPage: React.FC = () => {
             <ChevronRight className="w-3.5 h-3.5" />
             <Link to="/products/3d-scanners" className="hover:text-red-600 transition-colors">3D Scanners</Link>
             <ChevronRight className="w-3.5 h-3.5" />
-            <span className="text-slate-900 font-bold">EINSTAR 3D Scanner</span>
+            <span className="text-slate-900 font-bold">{catalogProd?.name || 'EINSTAR 3D Scanner'}</span>
           </nav>
 
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-3 max-w-3xl">
               <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold uppercase tracking-wider">
                 <Scan className="w-3.5 h-3.5" />
-                <span>Handheld 3D Digitization</span>
+                <span>{catalogProd?.badge || 'Handheld 3D Digitization'}</span>
               </div>
               <h1 className="text-3xl sm:text-5xl font-black text-slate-950 tracking-tight">
-                EINSTAR 3D Scanner
+                {catalogProd?.hero_heading || catalogProd?.name || 'EINSTAR 3D Scanner'}
               </h1>
               <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
-                EINSTAR handheld 3D scanner delivers high-quality 3D data with true color fidelity for 3D printing, reverse engineering, digital archiving, and education at an accessible investment.
+                {catalogProd?.description || 'EINSTAR handheld 3D scanner delivers high-quality 3D data with true color fidelity for 3D printing, reverse engineering, digital archiving, and education at an accessible investment.'}
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3 shrink-0">
               <a
-                href="/brochures/einstar.pdf"
+                href={catalogProd?.brochure_url || '/brochures/einstar.pdf'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-5 py-3 bg-[#0062cc] hover:bg-[#004fa8] text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-2 cursor-pointer"
@@ -92,7 +104,7 @@ export const EinscanPage: React.FC = () => {
                 <span>View Brochure</span>
               </a>
               <a
-                href="/brochures/einstar.pdf"
+                href={catalogProd?.brochure_url || '/brochures/einstar.pdf'}
                 download="einstar-brochure.pdf"
                 className="px-5 py-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-2 cursor-pointer"
               >
@@ -100,7 +112,7 @@ export const EinscanPage: React.FC = () => {
                 <span>Download Brochure</span>
               </a>
               <button
-                onClick={() => openQuoteModal('EINSTAR Live Consultation')}
+                onClick={() => openQuoteModal(`${catalogProd?.name || 'EINSTAR'} Live Consultation`)}
                 className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl border border-slate-300 transition-all flex items-center space-x-2 cursor-pointer"
               >
                 <Phone className="w-4 h-4 text-red-600" />
@@ -116,7 +128,7 @@ export const EinscanPage: React.FC = () => {
          ==================================================== */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
         <div className="space-y-6">
-          {einscanProducts.map(item => (
+          {activeProducts.map(item => (
             <ProductCard
               key={item.id}
               item={item}

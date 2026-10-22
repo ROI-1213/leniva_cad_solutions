@@ -16,10 +16,12 @@ import {
   Crosshair,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
-import { devokMTData } from '../data/scannersData'
+import { devokMTData as defaultDevokMTData } from '../data/scannersData'
+import { mergeCatalogWithHardwareData } from '../utils/productCatalog'
 
 export const DevokMTPage: React.FC = () => {
   const { openQuoteModal } = useApp()
+  const devokMTData = mergeCatalogWithHardwareData('3devok-mt', defaultDevokMTData)
   const [selectedGalleryImg, setSelectedGalleryImg] = useState<string | null>(null)
   const [activeTechIndex, setActiveTechIndex] = useState(0)
 

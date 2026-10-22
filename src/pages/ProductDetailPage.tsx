@@ -166,18 +166,31 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
         category: customProd.category,
         categorySlug: customProd.category_slug,
         technology: customProd.technology as any,
+        badge: customProd.badge,
+        heroHeading: customProd.hero_heading,
+        heroSubtitle: customProd.hero_subtitle,
         tagline: customProd.tagline,
         shortDescription: customProd.short_description || '',
         description: customProd.description || '',
         heroImage: customProd.hero_image,
         images: customProd.images && customProd.images.length > 0 ? customProd.images : [customProd.hero_image],
+        brochureUrl: customProd.brochure_url,
+        videoUrl: customProd.video_url,
         keySpecs: customProd.key_specs || [],
         specifications: customProd.specifications || {},
         features: customProd.features || [],
+        featureCards: customProd.feature_cards || [],
+        overviewHeading: customProd.overview_heading,
+        overviewDescription: customProd.overview_description,
+        overviewCards: customProd.overview_cards || [],
         applications: customProd.applications || [],
         materials: customProd.materials || [],
         whoIsItFor: customProd.who_is_it_for || [],
-        brochureUrl: customProd.brochure_url,
+        printGallery: customProd.print_gallery || [],
+        supportCards: customProd.support_cards || [],
+        faqs: customProd.faqs || [],
+        licensingPlans: customProd.licensing_plans || [],
+        systemRequirements: customProd.system_requirements || [],
         price: customProd.price,
         inStock: customProd.in_stock,
         isFeatured: customProd.is_featured,
@@ -467,9 +480,28 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
 
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
-            <div className="space-y-6 max-w-4xl text-sm leading-relaxed text-slate-700">
-              <h3 className="text-xl font-bold text-slate-950">Detailed System Overview</h3>
-              <p>{product.description}</p>
+            <div className="space-y-6 max-w-5xl text-sm leading-relaxed text-slate-700">
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold text-slate-950">
+                  {product.overviewHeading || 'Detailed System Overview'}
+                </h3>
+                <p>{product.overviewDescription || product.description}</p>
+              </div>
+              {product.overviewCards && product.overviewCards.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+                  {product.overviewCards.map((card, idx) => (
+                    <div key={idx} className="p-5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+                      {card.subtitle && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-red-600">
+                          {card.subtitle}
+                        </span>
+                      )}
+                      <h4 className="text-sm font-black text-slate-900">{card.title}</h4>
+                      <p className="text-xs text-slate-600 leading-relaxed">{card.description}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="bg-red-50/60 p-5 rounded-2xl border border-red-100 space-y-2">
                 <div className="flex items-center space-x-2 text-red-800 font-bold text-xs">
                   <Info className="w-4 h-4" />
@@ -484,8 +516,23 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
 
           {/* TAB 2: KEY FEATURES */}
           {activeTab === 'features' && (
-            <div className="space-y-4 max-w-4xl">
+            <div className="space-y-6 max-w-5xl">
               <h3 className="text-xl font-bold text-slate-950">Engineered Features</h3>
+              {product.featureCards && product.featureCards.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {product.featureCards.map((card, idx) => (
+                    <div key={idx} className="p-5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+                      {(card.subtitle || card.category) && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600">
+                          {card.subtitle || card.category}
+                        </span>
+                      )}
+                      <h4 className="text-sm font-black text-slate-900">{card.title}</h4>
+                      <p className="text-xs text-slate-600 leading-relaxed">{card.description}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {product.features.map((feature: string, idx: number) => (
                   <div key={idx} className="flex items-start space-x-3 p-4 bg-slate-50 rounded-xl border border-slate-100">
@@ -567,6 +614,70 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
             </div>
           )}
         </div>
+
+        {/* Print / Scan / Render Showcase Gallery */}
+        {product.printGallery && product.printGallery.length > 0 && (
+          <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200/90 shadow-sm space-y-6">
+            <div>
+              <h2 className="text-xl font-black text-slate-950">Sample Showcase & Applications Gallery</h2>
+              <p className="text-xs text-slate-500 mt-1">Real-world benchmark outputs, engineering prototypes, and production parts.</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {product.printGallery.map((item, idx) => (
+                <div key={idx} className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 flex flex-col">
+                  <div className="aspect-video bg-white overflow-hidden">
+                    <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="p-4 space-y-1.5 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      {item.category && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-red-600">{item.category}</span>
+                      )}
+                      {item.material && (
+                        <span className="text-[10px] font-mono bg-slate-200/80 text-slate-700 px-2 py-0.5 rounded">{item.material}</span>
+                      )}
+                    </div>
+                    <h4 className="text-sm font-bold text-slate-900">{item.title}</h4>
+                    {item.description && <p className="text-xs text-slate-600 leading-relaxed">{item.description}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Support Cards & FAQs Section */}
+        {((product.supportCards && product.supportCards.length > 0) || (product.faqs && product.faqs.length > 0)) && (
+          <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200/90 shadow-sm space-y-8">
+            {product.supportCards && product.supportCards.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-xl font-black text-slate-950">Installation, Training & Engineering Support</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {product.supportCards.map((sc, idx) => (
+                    <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1.5">
+                      <h4 className="text-xs font-black text-slate-900">{sc.title}</h4>
+                      <p className="text-xs text-slate-600 leading-relaxed">{sc.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {product.faqs && product.faqs.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-xl font-black text-slate-950">Frequently Asked Questions</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {product.faqs.map((faq, idx) => (
+                    <div key={idx} className="p-5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+                      <h4 className="text-xs font-black text-slate-900">{faq.question}</h4>
+                      <p className="text-xs text-slate-600 leading-relaxed">{faq.answer}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Related Products Grid */}
         {relatedProducts.length > 0 && (

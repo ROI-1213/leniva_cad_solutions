@@ -22,12 +22,14 @@ import {
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import {
-  coronaData,
+  coronaData as defaultCoronaData,
   CoronaGalleryItem,
 } from '../data/coronaData'
+import { useCadPageData } from '../utils/cadSoftwareConfig'
 
 export const CoronaPage: React.FC = () => {
   const { openQuoteModal, submitQuote } = useApp()
+  const { data: coronaData } = useCadPageData('chaos_corona', defaultCoronaData)
 
   // Sticky sub-nav active section
   const [activeSection, setActiveSection] = useState<string>('overview')

@@ -46,10 +46,15 @@ import {
   CadEnabledSections,
   DEFAULT_CAD_SECTIONS,
   CAD_SECTION_METADATA,
+  CadProductItem,
+  DEFAULT_CAD_PRODUCTS,
+  CAD_DEFAULTS,
+  CAD_KEY_TO_SLUG_MAP,
 } from '../utils/cadSoftwareConfig'
 import {
   ProductItem,
   KeySpecItem,
+  CAD_SLUG_TO_KEY_MAP,
   getStoredProductsCatalog,
   saveStoredProductsCatalog,
   resetStoredProductsCatalog,
@@ -173,7 +178,19 @@ export default function AdminPage() {
   const [selectedQuote, setSelectedQuote] = useState<QuoteRequest | null>(null)
   const [quoteNotesInput, setQuoteNotesInput] = useState('')
   const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null)
-  const [activeEditTab, setActiveEditTab] = useState<'overview' | 'media' | 'pricing' | 'specs' | 'tech_specs' | 'features' | 'applications' | 'materials' | 'specialized'>('overview')
+  const [activeEditTab, setActiveEditTab] = useState<
+    | 'overview'
+    | 'overview_cards'
+    | 'media'
+    | 'pricing'
+    | 'specs'
+    | 'tech_specs'
+    | 'features'
+    | 'applications'
+    | 'materials'
+    | 'faqs_support'
+    | 'specialized'
+  >('overview')
   const [editingBlog, setEditingBlog] = useState<BlogPostItem | null>(null)
   const [uploadingField, setUploadingField] = useState<string | null>(null)
 
@@ -185,6 +202,11 @@ export default function AdminPage() {
   const [newAudienceInput, setNewAudienceInput] = useState('')
   const [newMatInput, setNewMatInput] = useState('')
   const [newGalleryImgInput, setNewGalleryImgInput] = useState('')
+  const [newOverviewCard, setNewOverviewCard] = useState({ title: '', subtitle: '', description: '', icon: 'Box', image: '' })
+  const [newFeatureCard, setNewFeatureCard] = useState({ title: '', subtitle: '', category: '', description: '', icon: 'Sparkles', image: '' })
+  const [newShowcaseItem, setNewShowcaseItem] = useState({ title: '', category: '', material: '', layer: '', image: '', description: '' })
+  const [newSupportCard, setNewSupportCard] = useState({ title: '', description: '' })
+  const [newFaqItem, setNewFaqItem] = useState({ question: '', answer: '', category: 'General' })
   const [productSaveSuccessMsg, setProductSaveSuccessMsg] = useState('')
 
   // Blog Form
@@ -293,565 +315,6 @@ export default function AdminPage() {
   }
 
   // â”€â”€â”€ CAD Software Editor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  interface CadProductItem {
-    key: string
-    label: string
-    brand: string
-    route: string
-    color: string
-    category: string
-    isCustom?: boolean
-  }
-
-  const DEFAULT_CAD_PRODUCTS: CadProductItem[] = [
-    { key: 'ares_mechanical',  label: 'ARES Mechanical',       brand: 'Graebert', route: '/products/ares-mechanical',  color: 'blue',   category: '2D Mechanical CAD' },
-    { key: 'ares_electrical',  label: 'ARES Electrical',       brand: 'Graebert', route: '/products/ares-electrical',  color: 'yellow', category: 'Electrical CAD (ECAD)' },
-    { key: 'ares_standard',    label: 'ARES Standard',         brand: 'Graebert', route: '/products/ares-standard',    color: 'slate',  category: '2D DWG CAD Software' },
-    { key: 'ares_commander',   label: 'ARES Commander',        brand: 'Graebert', route: '/products/ares-commander',   color: 'blue',   category: 'Professional 2D & 3D CAD' },
-    { key: 'chaos_enscape',    label: 'Chaos Enscape',         brand: 'Chaos',    route: '/products/enscape',          color: 'purple', category: 'Real-Time Rendering & VR' },
-    { key: 'chaos_vray',       label: 'Chaos V-Ray',           brand: 'Chaos',    route: '/products/vray',             color: 'orange', category: 'Photorealistic 3D Rendering' },
-    { key: 'sketchup_studio',  label: 'SketchUp Studio',       brand: 'Trimble',  route: '/products/sketchup-studio',  color: 'green',  category: '3D Design & BIM Suite' },
-    { key: 'sketchup_proscan', label: 'SketchUp Pro + Scan',   brand: 'Trimble',  route: '/products/sketchup-proscan', color: 'teal',   category: 'Scan-to-Model Workflows' },
-  ]
-
-  const CAD_DEFAULTS: Record<string, any> = {
-    ares_mechanical: {
-      productName: 'ARES Mechanical',
-      brand: 'Graebert',
-      category: '2D Mechanical CAD',
-      headline: 'Professional 2D Mechanical CAD Software in DWG',
-      supportingHeadline: 'Design. Draft. Document. With Mechanical Precision.',
-      shortDescription: 'Create and modify professional 2D mechanical drawings with standards-based tools, intelligent components, mechanical annotations, and a familiar DWG-based CAD environment.',
-      description: 'ARES Mechanical is a professional DWG-based mechanical CAD solution that combines the comprehensive drafting power of ARES Commander with dedicated engineering functions. It equips mechanical engineers, drafters, and manufacturing teams to author and maintain detailed production drawings using international drafting standards (ISO, ANSI, DIN, BSI, JIS), smart hardware libraries, automated mechanical layer management, and intelligent Bills of Materials (BOM).',
-      platform: 'Windows 64-bit (11 / 10)',
-      languages: 'English, German, Polish, Japanese, Korean, Traditional Chinese',
-      primaryFormat: 'DWG Native',
-      cadEngine: 'ARES Commander Engine',
-      officialUrl: 'https://www.graebert.com/in/cad-software/ares-mechanical/',
-      downloadUrl: 'https://www.graebert.com/in/cad-software/download/ares-mechanical/',
-      trialUrl: 'https://www.graebert.com/in/cad-software/download/ares-mechanical/',
-      enquiryEmail: 'contact@lenivacadsolution.in',
-      licensingNote: 'Available as perpetual license and annual subscription with optional Trinity cloud ecosystem.',
-      eyebrow: 'GRAEBERT | MECHANICAL CAD',
-      h1Highlight: 'Mechanical Precision',
-      heroBadge: 'Native DWG Mechanical Engine',
-      heroHeading: 'Professional 2D Mechanical CAD in DWG',
-      heroSupportingText: 'Create detailed mechanical drawings with a specialized CAD environment built for engineers and designers. ARES Mechanical combines native DWG editing with intelligent mechanical tools, standardized components, automated layers, and production-ready documentation.',
-      heroImage: 'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=1600&q=85',
-      secondaryImage: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
-      trialCta: 'Get Free 30-Day Trial',
-      pricingCta: 'Request a Quote',
-      specStrip: [
-        { label: 'Product', value: 'ARES Mechanical' },
-        { label: 'Type', value: '2D Mechanical CAD' },
-        { label: 'Native File Format', value: 'DWG' },
-        { label: 'Operating System', value: 'Windows 64-bit' },
-        { label: 'Core Engine', value: 'ARES Commander' },
-      ],
-      overview: {
-        heading: 'Mechanical CAD Designed Around Your Workflow',
-        subtitle: 'Engineered for Mechanical Drafting & Fabrication',
-        description: 'ARES Mechanical combines the robust DWG drafting engine of ARES Commander with dedicated engineering functions. Engineered for professionals who create detailed 2D fabrication drawings, modify existing AutoCAD Mechanical DWG projects, and reference 3D CAD models.',
-        cards: [
-          { title: 'Professional DWG Drafting', desc: 'Open, edit, create, and save native DWG technical drawings with zero conversion loss using the ARES Commander CAD engine.', icon: 'FileCode', image: 'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=600&q=80' },
-          { title: 'Mechanical-Specific Tools', desc: 'Access ready-to-use mechanical parts libraries, screw connections, hole tables, mechanical symbols, and automatic BOM generators.', icon: 'Wrench', image: 'https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=600&q=80' },
-          { title: 'Standardized Documentation', desc: 'Enforce international standards (ISO, ANSI, DIN, JIS, BSI) for drawing frames, title blocks, dimension styles, and mechanical layers.', icon: 'Award', image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80' },
-          { title: 'BOM & Parts Lists', desc: 'Automatically generate live BOMs with balloons and revision tables directly tied to drawing geometry.', icon: 'Layers', image: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=600&q=80' },
-        ],
-      },
-      highlights: [
-        'DWG-based 2D mechanical CAD',
-        'ISO, ANSI, DIN, BSI, JIS mechanical standards',
-        'Ready-to-use mechanical parts libraries (screws, pins, washers, bearings)',
-        'Automated mechanical layer management & color mapping',
-        'Mechanical annotations, surface finish, and welding symbols',
-        'Dynamic Bills of Materials (BOM) & Balloons',
-        'STEP and IGES 3D model import/export for visualization',
-        'Power Trim & smart geometric clean-up tools',
-        'Optional Trinity cloud synchronization across desktop, mobile, and web',
-      ],
-      requirements: {
-        os: 'Microsoft Windows 11 or Windows 10 (64-bit)',
-        cpu: 'Intel Core i5 / AMD Ryzen 5 processor or higher',
-        ram: '8 GB RAM (16 GB Recommended for large mechanical assemblies)',
-        gpu: 'DirectX 11 / OpenGL 3.3 compatible 3D graphics accelerator',
-        disk: '4 GB available hard-disk space for installation',
-        display: '1920 x 1080 Full HD True Color display with high DPI support',
-      },
-      faqs: [
-        { q: 'Is ARES Mechanical fully compatible with AutoCAD Mechanical DWG files?', a: 'Yes. ARES Mechanical natively opens, edits, and saves DWG files without translation or fidelity loss, including mechanical symbols, title blocks, and BOM entities.', category: 'Compatibility' },
-        { q: 'Can I purchase a perpetual license rather than a subscription?', a: 'Yes. Graebert offers perpetual licenses with optional annual maintenance, as well as flexible 1-year and 3-year subscription options.', category: 'Licensing' },
-        { q: 'Does ARES Mechanical include Trinity cloud features?', a: 'Yes, full ARES Trinity subscriptions allow editing drawings on desktop (ARES Mechanical), browser (ARES Kudo), and tablet/phone (ARES Touch).', category: 'Features' },
-      ],
-    },
-    ares_electrical: {
-      productName: 'ARES Electrical',
-      brand: 'Graebert',
-      category: 'Electrical CAD (ECAD)',
-      headline: 'Modern Electrical CAD Software to Automate Electrical Schematics in DWG',
-      supportingHeadline: 'Design Smarter. Automate Repetitive Tasks. Deliver Electrical Projects with Confidence.',
-      shortDescription: 'Create and manage electrical schematics, wiring diagrams, control panels, component libraries, and electrical project reports with a DWG-based ECAD solution designed to automate repetitive design tasks.',
-      description: 'ARES Electrical is a DWG-compatible ECAD solution developed to simplify electrical engineering and automate schematic generation. Built on the proven ARES Commander CAD engine, it combines familiar DWG drafting with automated wire numbering, component tagging, cross-referencing, multi-sheet project navigation, and automatic report generation.',
-      platform: 'Windows 64-bit',
-      languages: 'English, Portuguese, Spanish',
-      primaryFormat: 'DWG',
-      cadEngine: 'ARES Commander Engine',
-      officialUrl: 'https://www.graebert.com/in/cad-software/ares-electrical/',
-      downloadUrl: 'https://www.graebert.com/in/cad-software/download/ares-electrical/',
-      trialUrl: 'https://www.graebert.com/in/cad-software/download/ares-electrical/',
-      enquiryEmail: 'contact@lenivacadsolution.in',
-      licensingNote: 'Available as perpetual license and subscription. Contact Leniva CAD Solutions for volume licensing.',
-      eyebrow: 'GRAEBERT | ELECTRICAL ECAD',
-      h1Highlight: 'Automate Schematics',
-      heroBadge: 'DWG-Compatible ECAD',
-      heroHeading: 'Automate Electrical Schematics in DWG',
-      heroSupportingText: 'Design electrical schematics, wiring diagrams, and control panels with automatic wire numbering, intelligent symbol tagging, cross-referencing, and instantaneous project reporting.',
-      heroImage: 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=1600&q=85',
-      secondaryImage: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
-      trialCta: 'Get Free 30-Day Trial',
-      pricingCta: 'Request a Quote',
-      specStrip: [
-        { label: 'Product', value: 'ARES Electrical' },
-        { label: 'Type', value: 'Electrical CAD (ECAD)' },
-        { label: 'Format', value: 'Native DWG Projects' },
-        { label: 'Platform', value: 'Windows 64-bit' },
-        { label: 'Engine', value: 'ARES Commander' },
-      ],
-      overview: {
-        heading: 'Electrical Engineering Automation for Modern Panels & Schematics',
-        subtitle: 'From Concept to Panel Fabrication',
-        description: 'Eliminate tedious manual wiring numbering and drawing coordination. ARES Electrical automates circuit references, terminal lists, and bills of materials across multi-page DWG electrical projects.',
-        cards: [
-          { title: 'Automated Schematics', desc: 'Author intelligent schematics with automated wire numbering, cross-referencing, and real-time design rule checking.', icon: 'Zap', image: 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=600&q=80' },
-          { title: 'Control Panel Layout', desc: 'Design physical enclosure layouts with components placed to scale, duct routing, and terminal rail mounting.', icon: 'Box', image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80' },
-          { title: 'Intelligent Symbol Libraries', desc: 'Access comprehensive IEC, NFPA, and JIS electrical symbol catalogs ready for immediate drag-and-drop placement.', icon: 'Layers', image: 'https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=600&q=80' },
-          { title: 'Automated Project Reports', desc: 'Generate complete terminal plans, cable lists, BOMs, and PLC I/O tables in seconds into PDF, Excel, and DWG.', icon: 'FileText', image: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=600&q=80' },
-        ],
-      },
-      highlights: [
-        'DWG-compatible electrical CAD environment',
-        'Automatic wire numbering & contact cross-referencing',
-        'Intelligent multi-sheet project management',
-        'Automatic terminal list & cable list generation',
-        'IEC, NFPA, and IEEE standard electrical symbol libraries',
-        'Control panel layout design with scale equipment enclosures',
-        'PLC I/O wiring diagrams and signal address mapping',
-        'One-click PDF project documentation exports',
-      ],
-      requirements: {
-        os: 'Microsoft Windows 11 or Windows 10 (64-bit only)',
-        cpu: 'Intel Core i5 / i7 or AMD Ryzen 5 / 7',
-        ram: '8 GB minimum (16 GB recommended for multi-sheet schematics)',
-        gpu: 'OpenGL 3.3 compatible graphics card with 2 GB VRAM',
-        disk: '5 GB free disk space for software and complete symbol libraries',
-        display: '1920 x 1080 display resolution',
-      },
-      faqs: [
-        { q: 'Can ARES Electrical handle multi-page electrical drawings in one project?', a: 'Yes, ARES Electrical manages entire multi-sheet projects as a unified database while saving each drawing as native DWG.', category: 'Workflow' },
-        { q: 'Does it automatically renumber wires if a component is inserted?', a: 'Yes, the smart numbering engine automatically cascades wire and terminal numbers across all sheets without manual intervention.', category: 'Automation' },
-      ],
-    },
-    ares_standard: {
-      productName: 'ARES Standard',
-      brand: 'Graebert',
-      category: '2D DWG CAD Software',
-      headline: 'Powerful 2D CAD. Practical by Design.',
-      supportingHeadline: 'Create, view and modify DWG drawings with ARES Standard.',
-      shortDescription: 'Cost-effective 2D CAD software built on the ARES CAD platform. Designed for users who need dependable 2D drafting and DWG editing without advanced features.',
-      description: 'ARES Standard is based on the same CAD platform as ARES Commander and is designed for users who primarily work with 2D drawings in DWG format. It provides drafting, editing and printing tools in a cost-effective desktop application for Windows.',
-      platform: 'Windows 64-bit',
-      languages: 'English',
-      primaryFormat: 'DWG',
-      cadEngine: 'ARES Platform',
-      officialUrl: 'https://www.graebert.com/in/cad-software/ares-standard/',
-      downloadUrl: 'https://www.graebert.com/in/cad-software/download/ares-standard/',
-      trialUrl: 'https://www.graebert.com/in/cad-software/ares-standard/',
-      enquiryEmail: 'contact@lenivacadsolution.in',
-      licensingNote: 'Perpetual and subscription license options. Contact us to confirm current regional availability.',
-      eyebrow: 'GRAEBERT | 2D DWG CAD SOFTWARE',
-      h1Highlight: 'Practical by Design',
-      heroBadge: 'Cost-Effective 2D DWG CAD',
-      heroHeading: 'Powerful 2D CAD. Practical by Design.',
-      heroSupportingText: 'Create, view and modify DWG drawings with a familiar CAD interface at a practical price point.',
-      heroImage: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=80',
-      secondaryImage: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
-      trialCta: 'Get Free 30-Day Trial',
-      pricingCta: 'Request a Quote',
-      specStrip: [
-        { label: 'Product', value: 'ARES Standard' },
-        { label: 'Platform', value: 'Windows 64-bit' },
-        { label: 'Core Format', value: 'Native DWG' },
-        { label: 'Primary Use', value: '2D Drafting & Editing' },
-        { label: 'Trial', value: '30-Day Free Trial' },
-      ],
-      overview: {
-        heading: 'Focused 2D CAD for Everyday Drawing Work',
-        subtitle: 'Essential 2D Drafting Tools Without Overcomplexity',
-        description: 'ARES Standard provides drafting, editing and printing tools in a cost-effective desktop application for Windows.',
-        cards: [
-          { title: 'Create 2D Drawings', desc: 'Develop new technical drawings using a range of 2D drafting tools, including layers, blocks and dimensions.', icon: 'FileCode', image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=600&q=80' },
-          { title: 'Modify Existing DWG Files', desc: 'Open and edit DWG drawings created with AutoCAD or other DWG-based CAD software with zero data loss.', icon: 'Edit', image: 'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=600&q=80' },
-          { title: 'Print & Export', desc: 'Configure layouts, viewports, plot styles and publish clean PDF documents ready for construction or manufacture.', icon: 'FileText', image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80' },
-        ],
-      },
-      highlights: [
-        'Native DWG read and write support',
-        'Complete set of essential 2D drafting tools',
-        'Layers, blocks, hatches, and precision dimensioning',
-        'Familiar CAD user interface with command-line aliases',
-        'Windows 64-bit desktop application',
-        'Paper space layout sheets and plot style configurations',
-        '30-Day Free Trial available',
-      ],
-      requirements: {
-        os: 'Windows 11 or Windows 10 (64-bit)',
-        cpu: 'Intel Core i3 / AMD Ryzen 3 or higher',
-        ram: '4 GB minimum (8 GB recommended)',
-        gpu: 'DirectX 9 / OpenGL 2.1 graphics adapter',
-        disk: '2 GB available hard disk space',
-        display: '1366 x 768 minimum display resolution',
-      },
-      faqs: [
-        { q: 'How does ARES Standard differ from ARES Commander?', a: 'ARES Standard is focused exclusively on 2D drafting and DWG editing, making it more affordable for users who do not need 3D solid modeling, Trinity cloud, or ACIS solids.', category: 'Comparison' },
-      ],
-    },
-    ares_commander: {
-      productName: 'ARES Commander',
-      brand: 'Graebert',
-      category: 'Professional 2D & 3D CAD',
-      headline: 'Powerful DWG-Based 2D & 3D CAD Software',
-      supportingHeadline: 'Create, edit and share professional CAD drawings across Windows, macOS and Linux.',
-      shortDescription: 'Professional DWG-based CAD solution for 2D drafting, 3D modelling, BIM-to-CAD documentation, and cloud collaboration. Runs on Windows, macOS and Linux.',
-      description: 'ARES Commander is a professional DWG-based CAD solution developed by Graebert. It enables users to create, edit, view and document 2D drawings and 3D models on desktop computers across Windows, macOS and Linux. It combines native DWG support, productivity features, BIM-to-CAD capabilities, automation and optional collaboration through the ARES Trinity ecosystem.',
-      platform: 'Windows, macOS, Linux',
-      languages: 'English, German, French, Italian, Spanish, Portuguese, Japanese, Korean, Chinese',
-      primaryFormat: 'DWG Native',
-      cadEngine: 'ARES CAD Engine',
-      officialUrl: 'https://www.graebert.com/in/cad-software/ares-commander/',
-      downloadUrl: 'https://www.graebert.com/in/cad-software/download/',
-      trialUrl: 'https://www.graebert.com/in/cad-software/download/',
-      enquiryEmail: 'contact@lenivacadsolution.in',
-      licensingNote: 'Available as perpetual license and annual subscription. Trinity subscription includes desktop, cloud (ARES Kudo) and mobile (ARES Touch) access.',
-      eyebrow: 'GRAEBERT | PROFESSIONAL CAD SOFTWARE',
-      h1Highlight: 'Powerful DWG-Based CAD',
-      heroBadge: 'Native DWG 2D & 3D CAD Engine',
-      heroHeading: 'Powerful DWG-Based 2D & 3D CAD Software',
-      heroSupportingText: 'Create, edit and document professional CAD drawings with ARES Commander. Work natively in DWG, explore 2D drafting and 3D modelling, import BIM models, automate workflows and collaborate across desktop, browser and mobile.',
-      heroImage: '/images/ares-commander/ares-commander-hero.jpg',
-      secondaryImage: '/images/ares-standard/cad-mech-drafting.jpg',
-      trialCta: 'Start Free 30-Day Trial',
-      pricingCta: 'Request a Quote',
-      specStrip: [
-        { label: 'Product', value: 'ARES Commander' },
-        { label: 'Platform', value: 'Windows / macOS / Linux' },
-        { label: 'Native Format', value: 'DWG' },
-        { label: 'CAD Type', value: '2D Drafting & 3D Modelling' },
-        { label: 'Trial', value: '30-Day Free Trial' },
-      ],
-      overview: {
-        heading: 'Professional CAD That Works the Way You Do',
-        subtitle: 'DWG-Native Drafting, Modelling and Documentation',
-        description: 'ARES Commander provides the complete professional CAD toolkit â€” from 2D precision drafting and 3D solid modelling to BIM-to-CAD documentation, cloud collaboration and automation tools.',
-        cards: [
-          { title: '2D Drafting & Documentation', desc: 'Create precise 2D drawings with a full set of professional drafting tools, layer management, dimensions, annotations and PDF export.', icon: 'FileCode', image: '/images/ares-standard/cad-arch-floorplan.jpg' },
-          { title: '3D Solid Modelling', desc: 'Build, edit and visualize 3D models using solid and surface modelling tools with ACIS solid kernel and STEP/IGES import/export.', icon: 'Box', image: '/images/ares-standard/cad-mech-drafting.jpg' },
-          { title: 'BIM-to-CAD Workflows', desc: 'Import Revit and IFC BIM models and extract professional CAD documentation, floor plans, sections and elevations.', icon: 'Building', image: '/images/ares-standard/cad-eng-schematic.jpg' },
-          { title: 'ARES Trinity Ecosystem', desc: 'Work across desktop (ARES Commander), browser (ARES Kudo) and mobile (ARES Touch) with full DWG synchronization.', icon: 'Globe', image: '/images/ares-standard/cad-interior-space-plan.jpg' },
-        ],
-      },
-      highlights: [
-        'Native DWG read and write without conversion',
-        '2D precision drafting and annotation tools',
-        '3D solid and surface modelling with ACIS kernel',
-        'PDF import and export workflows',
-        'BIM model import from Revit (.rvt) and IFC files',
-        'Dynamic Blocks support',
-        'Cross-platform: Windows, macOS, Linux',
-        'Power Trim and smart geometry tools',
-        'ARES Trinity â€” desktop, cloud and mobile CAD',
-        '30-Day free trial available',
-      ],
-      requirements: {
-        os: 'Windows 11 / 10 (64-bit), macOS 12+, or supported Linux distribution',
-        cpu: 'Intel Core i5 / AMD Ryzen 5 or higher (i7 / Ryzen 7 recommended for 3D)',
-        ram: '8 GB RAM minimum (16 GB recommended for 3D modelling and BIM workflows)',
-        gpu: 'OpenGL 3.3 / DirectX 11 compatible graphics card with 2 GB VRAM',
-        disk: '4 GB available hard-disk space',
-        display: '1920 x 1080 Full HD display (HiDPI / Retina supported)',
-      },
-      faqs: [
-        { q: 'Is ARES Commander fully compatible with AutoCAD DWG files?', a: 'Yes. ARES Commander reads and writes native DWG files without conversion, preserving all drawing data including blocks, xrefs, layouts and custom entities.', category: 'Compatibility' },
-        { q: 'Can I use ARES Commander on macOS and Linux?', a: 'Yes. ARES Commander runs natively on Windows, macOS and supported Linux distributions. Contact Leniva CAD Solutions to confirm current supported OS versions.', category: 'Platform' },
-        { q: 'What is ARES Trinity?', a: 'ARES Trinity is an ecosystem that connects ARES Commander (desktop), ARES Kudo (cloud browser CAD) and ARES Touch (mobile CAD) so you can work seamlessly across all devices.', category: 'Features' },
-        { q: 'Does ARES Commander support 3D solid modelling?', a: 'Yes. ARES Commander includes 3D solid and surface modelling tools powered by the ACIS kernel, including extrude, revolve, sweep, loft and Boolean operations.', category: 'Features' },
-      ],
-    },
-    chaos_enscape: {
-      productName: 'Chaos Enscape',
-      brand: 'Chaos',
-      category: 'Real-Time Rendering & VR',
-      headline: 'Real-Time Rendering That Keeps Up With Your Ideas',
-      supportingHeadline: 'Design, visualize, and present â€” all inside your design workflow.',
-      shortDescription: 'Real-time rendering and virtual reality plugin for Revit, SketchUp, Rhino, Archicad, and Vectorworks. Walk through models, see changes live, and communicate ideas instantly.',
-      description: 'Enscape is a real-time visualization solution that connects directly with supported CAD and BIM applications. Explore your model in a fully rendered environment, see design changes as they happen, and communicate ideas through immersive walkthroughs, images, videos, and virtual reality.',
-      platform: 'Windows (with macOS support for SketchUp/Archicad/Vectorworks)',
-      languages: 'English, German, French, Italian, Spanish, Portuguese, Japanese, Chinese',
-      primaryFormat: 'Plugin for Revit, SketchUp, Rhino, Archicad, Vectorworks',
-      cadEngine: 'Chaos Real-Time Ray Tracing Engine',
-      officialUrl: 'https://www.chaos.com/enscape',
-      downloadUrl: 'https://www.chaos.com/enscape/trial',
-      trialUrl: 'https://www.chaos.com/enscape/trial',
-      enquiryEmail: 'contact@lenivacadsolution.in',
-      licensingNote: 'Fixed and floating annual subscriptions. Enterprise and educational licenses available.',
-      eyebrow: 'CHAOS ENSCAPE | REAL-TIME RENDERING & VR',
-      h1Highlight: 'Your Ideas',
-      heroBadge: 'Real-Time Rendering & VR',
-      heroHeading: 'Real-Time Rendering That Keeps Up With Your Ideas',
-      heroSupportingText: 'Explore your model in a fully rendered environment directly inside your CAD or BIM tool. Instant photorealism with zero render wait times.',
-      heroImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=85',
-      secondaryImage: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80',
-      trialCta: 'Start Free Trial',
-      pricingCta: 'Request a Quote',
-      specStrip: [
-        { label: 'CAD & BIM Platforms', value: '5+ Supported' },
-        { label: 'Rendering Speed', value: 'Real-Time' },
-        { label: 'VR Capabilities', value: 'One-Click VR' },
-        { label: 'Asset Library', value: '4,000+ Assets' },
-        { label: 'License Type', value: 'Subscription' },
-      ],
-      overview: {
-        heading: 'Real-Time Visualization, Right Inside Your Design Tool',
-        subtitle: 'Direct Bi-Directional Synchronization with BIM',
-        description: 'Explore your design without leaving your supported CAD or BIM application. Enscape brings a fully rendered view directly into your active workspace.',
-        cards: [
-          { title: 'Live Synchronization', desc: 'Every change made in Revit, SketchUp, or Rhino reflects instantly in Enscape photorealistic viewport.', icon: 'RefreshCw', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80' },
-          { title: 'Virtual Reality Walkthroughs', desc: 'Connect an Oculus Rift, HTC Vive, or Windows MR headset with one click and walk through your building.', icon: 'Monitor', image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80' },
-          { title: 'Curated 3D Asset Library', desc: 'Over 4,000 low-poly high-detail trees, people, vehicles, furniture, and lighting fixtures ready to place.', icon: 'Package', image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=600&q=80' },
-          { title: 'Standalone Exports', desc: 'Export web links, 360 panoramas, and standalone .EXE files that clients can explore on any PC without software.', icon: 'ExternalLink', image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=600&q=80' },
-        ],
-      },
-      highlights: [
-        'Real-time rendering directly inside Revit, SketchUp, Rhino, Archicad, Vectorworks',
-        'One-click Virtual Reality walkthroughs (Oculus, HTC Vive, HP Reverb)',
-        '360-degree panorama exports for mobile and web viewing',
-        'Standalone executable (.exe) exports for client walkthroughs',
-        '4,000+ curated 3D assets (plants, furniture, people, lighting)',
-        'Atmospheric control (sun position, fog, clouds, time of day)',
-        'Video path creator for animated architectural fly-throughs',
-      ],
-      requirements: {
-        os: 'Windows 11 or Windows 10 (64-bit)',
-        cpu: 'Intel or AMD multi-core processor (i7 / Ryzen 7 recommended)',
-        ram: '16 GB RAM (32 GB recommended for complex BIM models)',
-        gpu: 'NVIDIA GeForce RTX 2060 or AMD Radeon RX 5700 XT with 6 GB+ VRAM',
-        disk: '4 GB available SSD storage',
-        display: 'Full HD display (4K recommended for ultra-high-res output)',
-      },
-      faqs: [
-        { q: 'Which CAD software does Enscape work with?', a: 'Enscape works directly with Autodesk Revit, Trimble SketchUp, Rhino, Graphisoft Archicad, and Vectorworks.', category: 'Compatibility' },
-        { q: 'Do my clients need an Enscape license to view standalone files?', a: 'No, standalone .exe files and web links can be viewed by anyone on compatible hardware without an Enscape license.', category: 'Sharing' },
-      ],
-    },
-    chaos_vray: {
-      productName: 'Chaos V-Ray',
-      brand: 'Chaos',
-      category: 'Photorealistic 3D Rendering',
-      headline: 'Create Your Most Realistic Work Yet with Chaos V-Ray',
-      supportingHeadline: 'Photorealistic rendering for design, visualization, and production.',
-      shortDescription: 'Industry-standard physically based ray-tracing renderer for architecture, product design, VFX, and advertising.',
-      description: 'V-Ray is professional 3D rendering software that helps artists and designers transform complex 3D scenes into realistic images and animations. With physically based ray tracing, advanced lighting and material tools, and flexible CPU and GPU rendering options.',
-      platform: 'Windows, macOS, Linux (host dependent)',
-      languages: 'English',
-      primaryFormat: 'Plugin for 3ds Max, SketchUp, Rhino, Revit, Cinema 4D, Maya, Houdini, Unreal',
-      cadEngine: 'V-Ray Production Ray Tracing Engine',
-      officialUrl: 'https://www.chaos.com/vray',
-      downloadUrl: 'https://www.chaos.com/vray/trial',
-      trialUrl: 'https://www.chaos.com/vray/trial',
-      enquiryEmail: 'contact@lenivacadsolution.in',
-      licensingNote: 'V-Ray Solo, V-Ray Plus, and V-Ray Premium annual and monthly subscription options.',
-      eyebrow: 'CHAOS V-RAY | PHOTOREALISTIC 3D RENDERING',
-      h1Highlight: 'Chaos V-Ray',
-      heroBadge: 'Photorealistic 3D Rendering',
-      heroHeading: 'Create Your Most Realistic Work Yet',
-      heroSupportingText: 'Physically accurate ray tracing, GPU+CPU hybrid rendering, and 18,500+ Chaos Cosmos render-ready assets.',
-      heroImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=85',
-      secondaryImage: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80',
-      trialCta: 'Start Free Trial',
-      pricingCta: 'Request a Quote',
-      specStrip: [
-        { label: 'Host Applications', value: '9+ Supported' },
-        { label: 'Industry Awards', value: 'Academy Award' },
-        { label: 'Asset Library', value: '18,500+ Cosmos' },
-        { label: 'Rendering Engine', value: 'CPU + GPU Hybrid' },
-        { label: 'Real-Time Preview', value: 'V-Ray Vision' },
-      ],
-      overview: {
-        heading: 'The Rendering Engine Behind Photorealistic Results',
-        subtitle: 'Physically Based Light Transport & Material Accuracy',
-        description: 'V-Ray gives professionals absolute control over how light interacts with a scene, how surfaces appear, and how the final image or cinematic animation is produced.',
-        cards: [
-          { title: 'Award-Winning Ray Tracing', desc: 'Simulate light bouncing, optical caustics, subsurface scattering, and atmospheric effects with scientific accuracy.', icon: 'Award', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80' },
-          { title: 'CPU + GPU Hybrid Rendering', desc: 'Harness all your graphics cards and multi-core CPUs together for blistering fast production rendering.', icon: 'Cpu', image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80' },
-          { title: 'Chaos Cosmos Library', desc: 'Instant access to over 18,500 smart 3D models, materials, and high-dynamic-range (HDRI) skies.', icon: 'Package', image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=600&q=80' },
-          { title: 'V-Ray Frame Buffer (VFB)', desc: 'Post-process, color grade, adjust light mix interactively without re-rendering.', icon: 'Sliders', image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80' },
-        ],
-      },
-      highlights: [
-        'Physically based ray tracing for true-to-life lighting and reflection',
-        'Hybrid CPU and GPU rendering for maximum hardware utilization',
-        'V-Ray Vision for interactive real-time design exploration',
-        'V-Ray Frame Buffer with Light Mix and built-in compositing',
-        'Chaos Cosmos: 18,500+ curated 3D models, PBR materials, HDRI skies',
-        'Chaos Scatter tool for populating millions of trees, stones, grass',
-        'Supported across 3ds Max, SketchUp, Rhino, Revit, Cinema 4D, Maya',
-      ],
-      requirements: {
-        os: 'Windows 11 / 10, macOS 12+, or Linux 64-bit',
-        cpu: 'Intel 64-bit or AMD multi-core processor with SSE4.2 support',
-        ram: '16 GB RAM minimum (32 GB - 64 GB recommended for production scenes)',
-        gpu: 'NVIDIA RTX series graphics card (RTX 3070 / 4070 or better) with latest Studio drivers',
-        disk: '10 GB free disk space for application and Cosmos library cache',
-        display: '1920 x 1080 display resolution or higher',
-      },
-      faqs: [
-        { q: 'What is V-Ray Light Mix?', a: 'Light Mix allows you to adjust the intensity, color, and enable/disable any light fixture in your scene interactively after the rendering finishes without re-rendering.', category: 'Features' },
-        { q: 'Can I use V-Ray on multiple computers?', a: 'V-Ray Premium and Floating licenses can be shared across computers in your studio network.', category: 'Licensing' },
-      ],
-    },
-    sketchup_studio: {
-      productName: 'SketchUp Studio',
-      brand: 'Trimble',
-      category: '3D Design & BIM Suite',
-      headline: 'SketchUp Studio â€” The Complete 3D Design Suite',
-      supportingHeadline: 'Model. Render. Scan. Import. All in One Subscription.',
-      shortDescription: 'Trimble SketchUp Studio bundles SketchUp Pro, LayOut, V-Ray for SketchUp, Scan Essentials, and Revit Importer in a single Windows subscription.',
-      description: "Trimble's premier subscription bundle for architects and design professionals. Includes SketchUp Pro 3D modeler, LayOut 2D documentation, Chaos V-Ray photorealistic rendering, Scan Essentials point cloud tools, and native Revit BIM file import.",
-      platform: 'Windows 64-bit (11 / 10)',
-      languages: 'English, French, German, Italian, Spanish, Japanese, Korean, Traditional Chinese',
-      primaryFormat: 'SKP, DWG, DXF, RVT, IFC, OBJ, FBX, STL, DAE',
-      cadEngine: 'Trimble SketchUp Engine + Chaos V-Ray',
-      officialUrl: 'https://www.sketchup.com/plans-and-pricing/sketchup-studio',
-      downloadUrl: 'https://www.sketchup.com/try-sketchup',
-      trialUrl: 'https://www.sketchup.com/try-sketchup',
-      enquiryEmail: 'contact@lenivacadsolution.in',
-      licensingNote: 'Annual subscription per seat (Windows only). Commercial and Educational options available.',
-      eyebrow: 'TRIMBLE | SKETCHUP STUDIO',
-      h1Highlight: 'Complete 3D Design Suite',
-      heroBadge: 'Trimble SketchUp Studio',
-      heroHeading: 'The Complete 3D Design Suite from Trimble',
-      heroSupportingText: 'SketchUp Pro + LayOut + Chaos V-Ray + Scan Essentials + Revit Importer in one seamless Windows subscription.',
-      heroImage: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=1600&q=85',
-      secondaryImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
-      trialCta: 'Start Free Trial',
-      pricingCta: 'Request a Quote',
-      specStrip: [
-        { label: 'Bundle', value: 'Studio Windows' },
-        { label: 'Modeling', value: 'SketchUp Pro' },
-        { label: 'Rendering', value: 'V-Ray Included' },
-        { label: 'Scanning', value: 'Scan Essentials' },
-        { label: 'BIM Import', value: 'Revit Importer' },
-      ],
-      overview: {
-        heading: 'Everything You Need to Design, Render, and Document Buildings',
-        subtitle: 'The Ultimate Trimble Creative Bundle',
-        description: 'SketchUp Studio delivers industry-leading 3D conceptual modeling, point-cloud as-built capture, Revit BIM interoperability, photorealistic rendering, and 2D permit documentation.',
-        cards: [
-          { title: 'SketchUp Pro 3D Modeler', desc: 'The intuitive, fast, and flexible 3D modeling tool loved by architects and interior designers worldwide.', icon: 'Box', image: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=600&q=80' },
-          { title: 'Chaos V-Ray for SketchUp', desc: 'Create cinematic photoreal interior and exterior renderings without leaving SketchUp.', icon: 'Sparkles', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80' },
-          { title: 'Scan Essentials Point Cloud', desc: 'Import LiDAR, drone, and terrestrial laser scans directly into SketchUp to model reality.', icon: 'Crosshair', image: 'https://images.unsplash.com/photo-1619468129361-605ebea04b44?auto=format&fit=crop&w=600&q=80' },
-          { title: 'Revit Importer', desc: 'Bring Revit (.rvt) models into SketchUp with preserved geometry, tags, and material classifications.', icon: 'Building2', image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=600&q=80' },
-        ],
-      },
-      highlights: [
-        'SketchUp Pro desktop 3D modeling software',
-        'LayOut for precision 2D drawing sets, sections, and elevations',
-        'Chaos V-Ray for photorealistic interior & exterior rendering',
-        'Scan Essentials for modeling on top of point clouds (E57, RCP, LAS)',
-        'Native Revit Importer to convert Revit files into SketchUp geometry',
-        'Trimble Connect cloud storage for team collaboration',
-        'PreDesign climate insight tool for early architectural planning',
-      ],
-      requirements: {
-        os: 'Windows 11 or Windows 10 (64-bit only - Studio is Windows exclusive)',
-        cpu: '2.5+ GHz Intel Core i7 / AMD Ryzen 7 processor',
-        ram: '16 GB RAM minimum (32 GB recommended for point clouds and rendering)',
-        gpu: 'Discrete graphics card (NVIDIA RTX 3060 / 4060 or AMD Radeon equivalent) with 4 GB+ VRAM',
-        disk: '10 GB free SSD storage',
-        display: '1920 x 1080 display with high DPI scaling',
-      },
-      faqs: [
-        { q: 'Is SketchUp Studio available for macOS?', a: 'The Studio subscription features (V-Ray, Scan Essentials, Revit Importer) are Windows-only. Mac users can use SketchUp Pro with separate V-Ray licenses.', category: 'Platform' },
-        { q: 'Does SketchUp Studio include V-Ray license?', a: 'Yes, full commercial V-Ray for SketchUp is included in the SketchUp Studio annual subscription.', category: 'Licensing' },
-      ],
-    },
-    sketchup_proscan: {
-      productName: 'SketchUp Pro + Scan Essentials',
-      brand: 'Trimble',
-      category: 'Scan-to-Model Workflows',
-      headline: 'SketchUp Pro with Scan Essentials â€” Scan-to-Model Workflows',
-      supportingHeadline: 'Import Point Clouds. Model Reality. Deliver Accurate As-Built Drawings.',
-      shortDescription: 'SketchUp Pro bundled with Scan Essentials for survey, renovation, and BIM professionals working with LiDAR, photogrammetry, and 3D laser scan data.',
-      description: 'SketchUp Pro paired with the Scan Essentials plugin. Designed for survey, heritage preservation, interior fit-out, and facility renovation teams who capture spaces with 3D scanners and model directly from dense point cloud data.',
-      platform: 'Windows 64-bit',
-      languages: 'English',
-      primaryFormat: 'SKP, E57, RCP, RCS, LAS, LAZ, DWG, DXF',
-      cadEngine: 'Trimble SketchUp Engine + Trimble Scan Essentials',
-      officialUrl: 'https://www.sketchup.com/products/scan-essentials',
-      downloadUrl: 'https://www.sketchup.com/try-sketchup',
-      trialUrl: 'https://www.sketchup.com/try-sketchup',
-      enquiryEmail: 'contact@lenivacadsolution.in',
-      licensingNote: 'Annual commercial subscription. Contact Leniva CAD Solutions for bundle quotes and scanner hardware pairing.',
-      eyebrow: 'TRIMBLE | SCAN-TO-BIM',
-      h1Highlight: 'Scan-to-Model Workflows',
-      heroBadge: 'Scan-to-Model CAD',
-      heroHeading: 'Model Reality from Point Clouds',
-      heroSupportingText: 'Import LiDAR and photogrammetry scans directly into SketchUp and model with real-world millimeter accuracy.',
-      heroImage: 'https://images.unsplash.com/photo-1619468129361-605ebea04b44?auto=format&fit=crop&w=1600&q=85',
-      secondaryImage: 'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=800&q=80',
-      trialCta: 'Start Free Trial',
-      pricingCta: 'Request a Quote',
-      specStrip: [
-        { label: 'Bundle', value: 'SketchUp Pro + Scan' },
-        { label: 'Point Cloud Formats', value: 'E57, RCP, LAS, LAZ' },
-        { label: 'Snapping', value: 'Snap to Point Cloud' },
-        { label: 'Documentation', value: 'LayOut Included' },
-        { label: 'OS', value: 'Windows 64-bit' },
-      ],
-      overview: {
-        heading: 'Bridge the Physical and Digital Worlds Seamlessly',
-        subtitle: 'From Laser Scan to As-Built Documentation',
-        description: 'Import point clouds from terrestrial scanners (FARO, Leica, Trimble) or handheld scanners, snap geometry directly to points, inspect deviation, and generate 2D construction drawings in LayOut.',
-        cards: [
-          { title: 'Dense Point Cloud Import', desc: 'Import billions of scan points in E57, Autodesk RCP/RCS, LAS, and LAZ formats with blazing fast visualization.', icon: 'Crosshair', image: 'https://images.unsplash.com/photo-1619468129361-605ebea04b44?auto=format&fit=crop&w=600&q=80' },
-          { title: 'Snap Geometry to Points', desc: 'Draw lines, rectangles, and walls that snap directly to cloud vertices for perfect as-built models.', icon: 'Wrench', image: 'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=600&q=80' },
-          { title: 'Inspection & Deviation Analysis', desc: 'Compare your 3D design against the scanned point cloud with false-color heat maps to spot construction tolerances.', icon: 'CheckCircle', image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80' },
-          { title: 'LayOut Point Cloud Export', desc: 'Bring scan sections directly into LayOut for dimensioning, notes, and permit drawings.', icon: 'FileText', image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=600&q=80' },
-        ],
-      },
-      highlights: [
-        'SketchUp Pro 3D modeling desktop application',
-        'Scan Essentials plugin with high-speed point cloud rendering engine',
-        'Direct support for E57, RCP, RCS, LAS, LAZ point cloud formats',
-        'Precision snapping tool for tracing geometry directly from scans',
-        'Clipping box and section cut tools for isolating rooms and floors',
-        'LayOut integration for 2D construction documentation from scans',
-        'Works with scans from FARO, Leica, Trimble, NavVis, and EinScan 3D scanners',
-      ],
-      requirements: {
-        os: 'Windows 11 or Windows 10 (64-bit)',
-        cpu: 'Intel Core i7 / i9 or AMD Ryzen 7 / 9 high-frequency processor',
-        ram: '32 GB RAM recommended for multi-gigabyte point clouds (16 GB minimum)',
-        gpu: 'NVIDIA RTX graphics card with 6 GB+ VRAM and OpenGL 3.3 support',
-        disk: 'Fast NVMe SSD with 20 GB+ free space for point cloud streaming cache',
-        display: '1920 x 1080 Full HD display',
-      },
-      faqs: [
-        { q: 'Which scanner brands are compatible with Scan Essentials?', a: 'Any scanner that exports industry-standard E57, RCP, RCS, LAS, or LAZ filesâ€”including FARO, Leica Geosystems, Trimble, NavVis, Matterport, and Shining 3D.', category: 'Hardware' },
-        { q: 'Can I dimension point clouds in LayOut?', a: 'Yes! Scan Essentials allows you to send point cloud views into LayOut and snap dimensions directly to point cloud sections.', category: 'Documentation' },
-      ],
-    },
-  }
-
   // Load custom products and edits
   const loadCustomCadProducts = (): CadProductItem[] => {
     try {
@@ -902,6 +365,53 @@ export default function AdminPage() {
   const saveCadEdits = (updatedEdits: Record<string, any>) => {
     localStorage.setItem('leniva_cad_software_edits', JSON.stringify(updatedEdits))
     setCadEdits(updatedEdits)
+
+    // Also sync CAD edits into the unified Products Catalog so both tabs stay 100% identical
+    const targetSlug = CAD_KEY_TO_SLUG_MAP[activeCadProduct]
+    const activeEdit = updatedEdits[activeCadProduct]
+    if (targetSlug && activeEdit) {
+      const updatedCatalog = productsList.map(p => {
+        if (p.slug === targetSlug || p.id === targetSlug) {
+          return {
+            ...p,
+            name: activeEdit.productName || p.name,
+            brand: activeEdit.brand || p.brand,
+            category: activeEdit.category || p.category,
+            badge: activeEdit.heroBadge || p.badge,
+            hero_heading: activeEdit.heroHeading || activeEdit.headline || p.hero_heading,
+            tagline: activeEdit.supportingHeadline || p.tagline,
+            hero_subtitle: activeEdit.heroSupportingText || p.hero_subtitle,
+            short_description: activeEdit.shortDescription || p.short_description,
+            description: activeEdit.description || p.description,
+            hero_image: activeEdit.heroImage || p.hero_image,
+            key_specs: Array.isArray(activeEdit.specStrip) && activeEdit.specStrip.length > 0 ? activeEdit.specStrip : p.key_specs,
+            features: Array.isArray(activeEdit.highlights) && activeEdit.highlights.length > 0 ? activeEdit.highlights : p.features,
+            overview_heading: activeEdit.overview?.heading || p.overview_heading,
+            overview_description: activeEdit.overview?.description || p.overview_description,
+            overview_cards: Array.isArray(activeEdit.overview?.cards)
+              ? activeEdit.overview.cards.map((c: any) => ({
+                  title: c.title,
+                  description: c.desc || c.description || '',
+                  icon: c.icon,
+                  image: c.image,
+                }))
+              : p.overview_cards,
+            faqs: Array.isArray(activeEdit.faqs)
+              ? activeEdit.faqs.map((f: any) => ({
+                  question: f.q || f.question || '',
+                  answer: f.a || f.answer || '',
+                  category: f.category || 'General',
+                }))
+              : p.faqs,
+            is_admin_customized: true,
+          }
+        }
+        return p
+      })
+      setProductsList(updatedCatalog)
+      saveStoredProductsCatalog(updatedCatalog)
+    }
+
     try {
       window.dispatchEvent(new Event('leniva_cad_edits_updated'))
       window.dispatchEvent(new Event('leniva_products_catalog_updated'))
@@ -1204,14 +714,9 @@ export default function AdminPage() {
       const usersVal = usersRes.status === 'fulfilled' ? usersRes.value : null
       const settingsVal = settingsRes.status === 'fulfilled' ? settingsRes.value : null
 
-      // Load stored or default full product catalog
-      if (Array.isArray(prodsVal) && prodsVal.length > 0) {
-        setProductsList(prodsVal)
-        saveStoredProductsCatalog(prodsVal)
-      } else {
-        const storedCatalog = getStoredProductsCatalog()
-        setProductsList(storedCatalog)
-      }
+      // Always load the rich frontend-synced product catalog (preserving custom admin edits)
+      const storedCatalog = getStoredProductsCatalog()
+      setProductsList(storedCatalog)
 
       // Fallback blogs
       if (Array.isArray(blogsVal) && blogsVal.length > 0) {
@@ -1453,6 +958,58 @@ export default function AdminPage() {
 
     setProductsList(updatedList)
     saveStoredProductsCatalog(updatedList)
+
+    // If this product is one of the 13 CAD software products, also sync into leniva_cad_software_edits
+    const cadKey = CAD_SLUG_TO_KEY_MAP[productToSave.slug] || CAD_SLUG_TO_KEY_MAP[productToSave.id]
+    if (cadKey) {
+      const existingCad = cadEdits[cadKey] || CAD_DEFAULTS[cadKey] || {}
+      const syncedCad = {
+        ...existingCad,
+        productName: productToSave.name,
+        brand: productToSave.brand,
+        category: productToSave.category,
+        heroBadge: productToSave.badge || existingCad.heroBadge,
+        headline: productToSave.hero_heading || productToSave.name,
+        heroHeading: productToSave.hero_heading || productToSave.name,
+        supportingHeadline: productToSave.tagline,
+        heroSupportingText: productToSave.hero_subtitle || productToSave.short_description,
+        shortDescription: productToSave.short_description,
+        description: productToSave.description,
+        heroImage: productToSave.hero_image,
+        secondaryImage: productToSave.images?.[1] || existingCad.secondaryImage,
+        specStrip: productToSave.key_specs || existingCad.specStrip,
+        highlights: productToSave.features || existingCad.highlights,
+        overview: {
+          ...(existingCad.overview || {}),
+          heading: productToSave.overview_heading || existingCad.overview?.heading,
+          description: productToSave.overview_description || existingCad.overview?.description,
+          cards: Array.isArray(productToSave.overview_cards) && productToSave.overview_cards.length > 0
+            ? productToSave.overview_cards.map(c => ({
+                title: c.title,
+                desc: c.description,
+                icon: c.icon || 'Box',
+                image: c.image || productToSave.hero_image,
+              }))
+            : existingCad.overview?.cards,
+        },
+        faqs: Array.isArray(productToSave.faqs) && productToSave.faqs.length > 0
+          ? productToSave.faqs.map(f => ({
+              q: f.question,
+              a: f.answer,
+              category: f.category || 'General',
+            }))
+          : existingCad.faqs,
+      }
+      const nextCadEdits = { ...cadEdits, [cadKey]: syncedCad }
+      setCadEdits(nextCadEdits)
+      localStorage.setItem('leniva_cad_software_edits', JSON.stringify(nextCadEdits))
+      try {
+        window.dispatchEvent(new Event('leniva_cad_edits_updated'))
+      } catch {
+        // ignore
+      }
+    }
+
     pushCmsStateToCloud().catch(() => false)
 
     try {
@@ -2707,19 +2264,24 @@ export default function AdminPage() {
                     {/* Modal Sticky Section Navigation Bar */}
                     <div className="px-6 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center space-x-1.5 overflow-x-auto shrink-0 scrollbar-none">
                       {[
-                        { id: 'overview', label: '1. Overview & Info', icon: Info },
-                        { id: 'media', label: `2. Gallery (${editingProduct.images?.length || 1})`, icon: Eye },
-                        { id: 'pricing', label: '3. Inventory & Flags', icon: CheckCircle2 },
+                        { id: 'overview', label: '1. Hero & Overview', icon: Info },
+                        { id: 'overview_cards', label: `2. Overview Cards (${editingProduct.overview_cards?.length || 0})`, icon: Layers },
+                        { id: 'media', label: `3. Gallery & Showcase (${(editingProduct.images?.length || 1) + (editingProduct.print_gallery?.length || 0)})`, icon: Eye },
                         { id: 'specs', label: `4. Key Specs (${editingProduct.key_specs?.length || 0})`, icon: Sparkles },
                         { id: 'tech_specs', label: `5. Tech Specs (${Object.keys(editingProduct.specifications || {}).length})`, icon: SlidersHorizontal },
-                        { id: 'features', label: `6. Features (${editingProduct.features?.length || 0})`, icon: List },
-                        { id: 'applications', label: `7. Applications (${(editingProduct.applications?.length || 0) + (editingProduct.who_is_it_for?.length || 0)})`, icon: Box },
+                        { id: 'features', label: `6. Features & Cards (${(editingProduct.features?.length || 0) + (editingProduct.feature_cards?.length || 0)})`, icon: List },
+                        { id: 'applications', label: `7. Applications & Audience (${(editingProduct.applications?.length || 0) + (editingProduct.who_is_it_for?.length || 0)})`, icon: Box },
                         { id: 'materials', label: `8. Materials (${editingProduct.materials?.length || 0})`, icon: Layers },
+                        { id: 'faqs_support', label: `9. Support & FAQs (${(editingProduct.support_cards?.length || 0) + (editingProduct.faqs?.length || 0)})`, icon: HelpCircle },
+                        { id: 'pricing', label: '10. Inventory & Flags', icon: CheckCircle2 },
                         {
                           id: 'specialized',
-                          label: editingProduct.category_slug === 'filaments' || editingProduct.category.toLowerCase().includes('filament')
-                            ? '9. Filament Swatch'
-                            : '9. Scanner Metrology',
+                          label:
+                            editingProduct.category_slug === 'filaments' || editingProduct.category.toLowerCase().includes('filament')
+                              ? '11. Filament Swatch'
+                              : editingProduct.category_slug === 'cad-software' || editingProduct.category.toLowerCase().includes('cad') || editingProduct.category.toLowerCase().includes('software')
+                              ? `11. Licensing & SysReq (${(editingProduct.licensing_plans?.length || 0) + (editingProduct.system_requirements?.length || 0)})`
+                              : '11. Scanner Metrology',
                           icon: Palette,
                         },
                       ].map(tab => {
@@ -2864,13 +2426,36 @@ export default function AdminPage() {
                             </div>
                           </div>
 
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Hero Main H1 Heading (Frontend Banner)</label>
+                              <input
+                                type="text"
+                                value={editingProduct.hero_heading ?? editingProduct.name ?? ''}
+                                onChange={e => setEditingProduct({ ...editingProduct, hero_heading: e.target.value })}
+                                placeholder="e.g. Pratham 3.0 Industrial 3D Printer"
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-semibold"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Tagline / Supporting Headline</label>
+                              <input
+                                type="text"
+                                value={editingProduct.tagline || ''}
+                                onChange={e => setEditingProduct({ ...editingProduct, tagline: e.target.value })}
+                                placeholder="e.g. Standard 300 mm Industrial Prototype Workhorse"
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
+                              />
+                            </div>
+                          </div>
+
                           <div>
-                            <label className="block font-bold text-slate-700 mb-1">Tagline / Headline</label>
-                            <input
-                              type="text"
-                              value={editingProduct.tagline || ''}
-                              onChange={e => setEditingProduct({ ...editingProduct, tagline: e.target.value })}
-                              placeholder="e.g. Standard 300 mm Industrial Prototype Workhorse"
+                            <label className="block font-bold text-slate-700 mb-1">Hero Supporting Text / Subtitle</label>
+                            <textarea
+                              rows={2}
+                              value={editingProduct.hero_subtitle ?? editingProduct.short_description ?? ''}
+                              onChange={e => setEditingProduct({ ...editingProduct, hero_subtitle: e.target.value })}
+                              placeholder="Hero banner supporting paragraph..."
                               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
                             />
                           </div>
@@ -2897,15 +2482,172 @@ export default function AdminPage() {
                             />
                           </div>
 
-                          <div>
-                            <label className="block font-bold text-slate-700 mb-1">Official Brochure Download URL (PDF)</label>
-                            <input
-                              type="text"
-                              value={editingProduct.brochure_url || ''}
-                              onChange={e => setEditingProduct({ ...editingProduct, brochure_url: e.target.value })}
-                              placeholder="e.g. /brochures/pratham-3.pdf"
-                              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-[11px]"
-                            />
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Official Brochure Download URL (PDF)</label>
+                              <input
+                                type="text"
+                                value={editingProduct.brochure_url || ''}
+                                onChange={e => setEditingProduct({ ...editingProduct, brochure_url: e.target.value })}
+                                placeholder="e.g. /brochures/pratham-3.pdf"
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-[11px]"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Product Video / Walkthrough URL</label>
+                              <input
+                                type="text"
+                                value={editingProduct.video_url || ''}
+                                onChange={e => setEditingProduct({ ...editingProduct, video_url: e.target.value })}
+                                placeholder="e.g. /videos/3devok-mq.mp4 or YouTube URL"
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-[11px]"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* TAB 2: OVERVIEW & ARCHITECTURE CARDS */}
+                      {activeEditTab === 'overview_cards' && (
+                        <div className="space-y-4 animate-in fade-in">
+                          <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 flex items-center justify-between">
+                            <div>
+                              <div className="font-bold text-blue-950">Section 2: Product Overview Section & Architecture Cards</div>
+                              <div className="text-[11px] text-blue-700">Exact overview narrative and multi-card capability pillars shown on the frontend product page</div>
+                            </div>
+                            <span className="px-2 py-0.5 bg-blue-200 text-blue-800 rounded-md font-mono text-[11px] font-bold">
+                              {(editingProduct.overview_cards || []).length} Cards
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Overview Section Heading</label>
+                              <input
+                                type="text"
+                                value={editingProduct.overview_heading || ''}
+                                onChange={e => setEditingProduct({ ...editingProduct, overview_heading: e.target.value })}
+                                placeholder="e.g. Engineered for Continuous Industrial Reliability"
+                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-900"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Overview Section Narrative Description</label>
+                              <textarea
+                                rows={3}
+                                value={editingProduct.overview_description || ''}
+                                onChange={e => setEditingProduct({ ...editingProduct, overview_description: e.target.value })}
+                                placeholder="Detailed overview paragraph displayed above the architecture/overview cards..."
+                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-3">
+                            {(editingProduct.overview_cards || []).map((card, idx) => (
+                              <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">
+                                    Overview / Pillar Card #{idx + 1}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const updated = (editingProduct.overview_cards || []).filter((_, i) => i !== idx)
+                                      setEditingProduct({ ...editingProduct, overview_cards: updated })
+                                    }}
+                                    className="p-1 text-red-500 hover:bg-red-50 rounded-lg cursor-pointer"
+                                    title="Delete card"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                  <div>
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Card Title</label>
+                                    <input
+                                      type="text"
+                                      value={card.title || ''}
+                                      onChange={e => {
+                                        const updated = [...(editingProduct.overview_cards || [])]
+                                        updated[idx] = { ...updated[idx], title: e.target.value }
+                                        setEditingProduct({ ...editingProduct, overview_cards: updated })
+                                      }}
+                                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-bold text-slate-900"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Badge / Subtitle</label>
+                                    <input
+                                      type="text"
+                                      value={card.subtitle || ''}
+                                      onChange={e => {
+                                        const updated = [...(editingProduct.overview_cards || [])]
+                                        updated[idx] = { ...updated[idx], subtitle: e.target.value }
+                                        setEditingProduct({ ...editingProduct, overview_cards: updated })
+                                      }}
+                                      placeholder="Optional badge or subtitle"
+                                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-700"
+                                    />
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Card Description</label>
+                                  <textarea
+                                    rows={2}
+                                    value={card.description || ''}
+                                    onChange={e => {
+                                      const updated = [...(editingProduct.overview_cards || [])]
+                                      updated[idx] = { ...updated[idx], description: e.target.value }
+                                      setEditingProduct({ ...editingProduct, overview_cards: updated })
+                                    }}
+                                    className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800"
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="p-4 bg-blue-50/40 rounded-2xl border border-blue-200 space-y-2.5">
+                            <div className="font-bold text-slate-800 text-[11px]">+ Add Overview / Architecture Card</div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <input
+                                type="text"
+                                placeholder="Card Title (e.g. Heavy-Duty All-Metal Gantry)"
+                                value={newOverviewCard.title}
+                                onChange={e => setNewOverviewCard({ ...newOverviewCard, title: e.target.value })}
+                                className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg"
+                              />
+                              <input
+                                type="text"
+                                placeholder="Subtitle / Badge (e.g. Structural Rigidity)"
+                                value={newOverviewCard.subtitle}
+                                onChange={e => setNewOverviewCard({ ...newOverviewCard, subtitle: e.target.value })}
+                                className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg"
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                placeholder="Card Description..."
+                                value={newOverviewCard.description}
+                                onChange={e => setNewOverviewCard({ ...newOverviewCard, description: e.target.value })}
+                                className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (newOverviewCard.title.trim()) {
+                                    const updated = [...(editingProduct.overview_cards || []), { ...newOverviewCard }]
+                                    setEditingProduct({ ...editingProduct, overview_cards: updated })
+                                    setNewOverviewCard({ title: '', subtitle: '', description: '', icon: 'Box', image: '' })
+                                  }
+                                }}
+                                className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shrink-0 cursor-pointer"
+                              >
+                                + Add Card
+                              </button>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -3046,6 +2788,156 @@ export default function AdminPage() {
                                   }}
                                 />
                               </label>
+                            </div>
+                          </div>
+
+                          {/* Print / Scan / Render Showcase Gallery Cards */}
+                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <label className="block font-bold text-slate-800">
+                                  Print / Scan / Render Showcase Gallery ({(editingProduct.print_gallery || []).length} Showcase Items)
+                                </label>
+                                <span className="text-[11px] text-slate-500">
+                                  Application & sample showcase cards displayed in the product page gallery section
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              {(editingProduct.print_gallery || []).map((item, idx) => (
+                                <div key={idx} className="p-3 bg-white rounded-xl border border-slate-200 space-y-2">
+                                  <div className="flex items-center gap-2.5">
+                                    {item.image && (
+                                      <img
+                                        src={item.image}
+                                        alt={item.title}
+                                        className="w-14 h-14 rounded-lg object-cover border border-slate-200 shrink-0 bg-slate-100"
+                                      />
+                                    )}
+                                    <div className="flex-1 min-w-0 space-y-1">
+                                      <input
+                                        type="text"
+                                        value={item.title || ''}
+                                        onChange={e => {
+                                          const updated = [...(editingProduct.print_gallery || [])]
+                                          updated[idx] = { ...updated[idx], title: e.target.value }
+                                          setEditingProduct({ ...editingProduct, print_gallery: updated })
+                                        }}
+                                        placeholder="Showcase Title"
+                                        className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded font-bold text-slate-900"
+                                      />
+                                      <div className="grid grid-cols-2 gap-1.5">
+                                        <input
+                                          type="text"
+                                          value={item.category || ''}
+                                          onChange={e => {
+                                            const updated = [...(editingProduct.print_gallery || [])]
+                                            updated[idx] = { ...updated[idx], category: e.target.value }
+                                            setEditingProduct({ ...editingProduct, print_gallery: updated })
+                                          }}
+                                          placeholder="Category"
+                                          className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[11px]"
+                                        />
+                                        <input
+                                          type="text"
+                                          value={item.material || ''}
+                                          onChange={e => {
+                                            const updated = [...(editingProduct.print_gallery || [])]
+                                            updated[idx] = { ...updated[idx], material: e.target.value }
+                                            setEditingProduct({ ...editingProduct, print_gallery: updated })
+                                          }}
+                                          placeholder="Material / Spec"
+                                          className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[11px]"
+                                        />
+                                      </div>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const updated = (editingProduct.print_gallery || []).filter((_, i) => i !== idx)
+                                        setEditingProduct({ ...editingProduct, print_gallery: updated })
+                                      }}
+                                      className="p-1 text-red-500 hover:bg-red-50 rounded shrink-0"
+                                      title="Remove showcase item"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                  <input
+                                    type="text"
+                                    value={item.image || ''}
+                                    onChange={e => {
+                                      const updated = [...(editingProduct.print_gallery || [])]
+                                      updated[idx] = { ...updated[idx], image: e.target.value }
+                                      setEditingProduct({ ...editingProduct, print_gallery: updated })
+                                    }}
+                                    placeholder="Image URL"
+                                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded font-mono text-[10px]"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={item.description || ''}
+                                    onChange={e => {
+                                      const updated = [...(editingProduct.print_gallery || [])]
+                                      updated[idx] = { ...updated[idx], description: e.target.value }
+                                      setEditingProduct({ ...editingProduct, print_gallery: updated })
+                                    }}
+                                    placeholder="Description (optional)"
+                                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[11px]"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Add New Showcase Item */}
+                            <div className="p-3 bg-blue-50/40 rounded-xl border border-blue-200 space-y-2">
+                              <div className="font-bold text-slate-800 text-[11px]">+ Add Print / Scan Showcase Item</div>
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Title (e.g. Automotive Gearbox Housing)"
+                                  value={newShowcaseItem.title}
+                                  onChange={e => setNewShowcaseItem({ ...newShowcaseItem, title: e.target.value })}
+                                  className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="Category (e.g. Functional Prototype)"
+                                  value={newShowcaseItem.category}
+                                  onChange={e => setNewShowcaseItem({ ...newShowcaseItem, category: e.target.value })}
+                                  className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="Material (e.g. ABS / Carbon Fiber)"
+                                  value={newShowcaseItem.material}
+                                  onChange={e => setNewShowcaseItem({ ...newShowcaseItem, material: e.target.value })}
+                                  className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg"
+                                />
+                              </div>
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Image URL (e.g. /images/pratham-3-work/automotive.png)"
+                                  value={newShowcaseItem.image}
+                                  onChange={e => setNewShowcaseItem({ ...newShowcaseItem, image: e.target.value })}
+                                  className="flex-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-mono text-[11px]"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (newShowcaseItem.title.trim() && newShowcaseItem.image.trim()) {
+                                      const updated = [...(editingProduct.print_gallery || []), { ...newShowcaseItem }]
+                                      setEditingProduct({ ...editingProduct, print_gallery: updated })
+                                      setNewShowcaseItem({ title: '', category: '', material: '', layer: '', image: '', description: '' })
+                                    }
+                                  }}
+                                  className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shrink-0 cursor-pointer"
+                                >
+                                  + Add Showcase
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -3371,17 +3263,122 @@ export default function AdminPage() {
                         </div>
                       )}
 
-                      {/* TAB 6: CORE FEATURES */}
+                      {/* TAB 6: CORE FEATURES & FEATURE CARDS */}
                       {activeEditTab === 'features' && (
-                        <div className="space-y-4 animate-in fade-in">
+                        <div className="space-y-5 animate-in fade-in">
                           <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 flex items-center justify-between">
                             <div>
-                              <div className="font-bold text-blue-950">Section 6: Core Features & Engineering Highlights</div>
-                              <div className="text-[11px] text-blue-700">Bullet points highlighting standout capabilities and hardware design</div>
+                              <div className="font-bold text-blue-950">Section 6: Engineered Feature Cards & Highlight Bullets</div>
+                              <div className="text-[11px] text-blue-700">Detailed feature cards and bullet highlights displayed on the product page</div>
                             </div>
                             <span className="px-2 py-0.5 bg-blue-200 text-blue-800 rounded-md font-mono text-[11px] font-bold">
-                              {(editingProduct.features || []).length} Features
+                              {(editingProduct.feature_cards || []).length} Cards • {(editingProduct.features || []).length} Bullets
                             </span>
+                          </div>
+
+                          {/* Engineered Feature Cards */}
+                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                            <label className="block font-bold text-slate-800">
+                              Engineered Feature & Key Point Cards ({(editingProduct.feature_cards || []).length} Cards)
+                            </label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              {(editingProduct.feature_cards || []).map((fc, idx) => (
+                                <div key={idx} className="p-3 bg-white rounded-xl border border-slate-200 space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600">
+                                      Feature Card #{idx + 1}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const updated = (editingProduct.feature_cards || []).filter((_, i) => i !== idx)
+                                        setEditingProduct({ ...editingProduct, feature_cards: updated })
+                                      }}
+                                      className="p-1 text-red-500 hover:bg-red-50 rounded"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-1.5">
+                                    <input
+                                      type="text"
+                                      value={fc.title || ''}
+                                      onChange={e => {
+                                        const updated = [...(editingProduct.feature_cards || [])]
+                                        updated[idx] = { ...updated[idx], title: e.target.value }
+                                        setEditingProduct({ ...editingProduct, feature_cards: updated })
+                                      }}
+                                      placeholder="Card Title"
+                                      className="px-2 py-1 bg-slate-50 border border-slate-200 rounded font-bold text-slate-900"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={fc.subtitle || fc.category || ''}
+                                      onChange={e => {
+                                        const updated = [...(editingProduct.feature_cards || [])]
+                                        updated[idx] = { ...updated[idx], subtitle: e.target.value }
+                                        setEditingProduct({ ...editingProduct, feature_cards: updated })
+                                      }}
+                                      placeholder="Badge / Category"
+                                      className="px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[11px]"
+                                    />
+                                  </div>
+                                  <textarea
+                                    rows={2}
+                                    value={fc.description || ''}
+                                    onChange={e => {
+                                      const updated = [...(editingProduct.feature_cards || [])]
+                                      updated[idx] = { ...updated[idx], description: e.target.value }
+                                      setEditingProduct({ ...editingProduct, feature_cards: updated })
+                                    }}
+                                    placeholder="Feature description..."
+                                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-slate-700"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className="p-3 bg-blue-50/40 rounded-xl border border-blue-200 space-y-2">
+                              <div className="font-bold text-slate-800 text-[11px]">+ Add Engineered Feature Card</div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Title (e.g. Auto Bed Leveling Matrix)"
+                                  value={newFeatureCard.title}
+                                  onChange={e => setNewFeatureCard({ ...newFeatureCard, title: e.target.value })}
+                                  className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="Badge / Category (e.g. Smart Calibration)"
+                                  value={newFeatureCard.subtitle}
+                                  onChange={e => setNewFeatureCard({ ...newFeatureCard, subtitle: e.target.value })}
+                                  className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg"
+                                />
+                              </div>
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Detailed description..."
+                                  value={newFeatureCard.description}
+                                  onChange={e => setNewFeatureCard({ ...newFeatureCard, description: e.target.value })}
+                                  className="flex-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (newFeatureCard.title.trim()) {
+                                      const updated = [...(editingProduct.feature_cards || []), { ...newFeatureCard }]
+                                      setEditingProduct({ ...editingProduct, feature_cards: updated })
+                                      setNewFeatureCard({ title: '', subtitle: '', category: '', description: '', icon: 'Sparkles', image: '' })
+                                    }
+                                  }}
+                                  className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shrink-0 cursor-pointer"
+                                >
+                                  + Add Card
+                                </button>
+                              </div>
+                            </div>
                           </div>
 
                           {/* Existing Features List */}
@@ -3649,11 +3646,304 @@ export default function AdminPage() {
                         </div>
                       )}
 
-                      {/* TAB 9: SPECIALIZED CATEGORY PARAMETERS (FILAMENTS / SCANNERS) */}
+                      {/* TAB 9: SUPPORT CARDS & FAQS */}
+                      {activeEditTab === 'faqs_support' && (
+                        <div className="space-y-5 animate-in fade-in">
+                          <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 flex items-center justify-between">
+                            <div>
+                              <div className="font-bold text-blue-950">Section 9: Installation / Support Cards & Product Page FAQs</div>
+                              <div className="text-[11px] text-blue-700">Warranty, training, service cards and interactive FAQ accordion items</div>
+                            </div>
+                            <span className="px-2 py-0.5 bg-blue-200 text-blue-800 rounded-md font-mono text-[11px] font-bold">
+                              {(editingProduct.support_cards || []).length} Support Cards • {(editingProduct.faqs || []).length} FAQs
+                            </span>
+                          </div>
+
+                          {/* Support Cards */}
+                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                            <label className="block font-bold text-slate-800">
+                              Installation, Training & Support Cards ({(editingProduct.support_cards || []).length})
+                            </label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              {(editingProduct.support_cards || []).map((sc, idx) => (
+                                <div key={idx} className="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5">
+                                  <div className="flex items-center justify-between">
+                                    <input
+                                      type="text"
+                                      value={sc.title || ''}
+                                      onChange={e => {
+                                        const updated = [...(editingProduct.support_cards || [])]
+                                        updated[idx] = { ...updated[idx], title: e.target.value }
+                                        setEditingProduct({ ...editingProduct, support_cards: updated })
+                                      }}
+                                      placeholder="Support Card Title"
+                                      className="flex-1 px-2 py-1 bg-slate-50 border border-slate-200 rounded font-bold text-slate-900 mr-2"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const updated = (editingProduct.support_cards || []).filter((_, i) => i !== idx)
+                                        setEditingProduct({ ...editingProduct, support_cards: updated })
+                                      }}
+                                      className="p-1 text-red-500 hover:bg-red-50 rounded"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                  <textarea
+                                    rows={2}
+                                    value={sc.description || ''}
+                                    onChange={e => {
+                                      const updated = [...(editingProduct.support_cards || [])]
+                                      updated[idx] = { ...updated[idx], description: e.target.value }
+                                      setEditingProduct({ ...editingProduct, support_cards: updated })
+                                    }}
+                                    placeholder="Support card description..."
+                                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-slate-700"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                            <div className="flex gap-2 pt-1">
+                              <input
+                                type="text"
+                                placeholder="Support Title (e.g. On-Site Commissioning)"
+                                value={newSupportCard.title}
+                                onChange={e => setNewSupportCard({ ...newSupportCard, title: e.target.value })}
+                                className="w-1/3 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg"
+                              />
+                              <input
+                                type="text"
+                                placeholder="Support Description..."
+                                value={newSupportCard.description}
+                                onChange={e => setNewSupportCard({ ...newSupportCard, description: e.target.value })}
+                                className="flex-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (newSupportCard.title.trim()) {
+                                    const updated = [...(editingProduct.support_cards || []), { ...newSupportCard }]
+                                    setEditingProduct({ ...editingProduct, support_cards: updated })
+                                    setNewSupportCard({ title: '', description: '' })
+                                  }
+                                }}
+                                className="px-4 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-bold shrink-0 cursor-pointer"
+                              >
+                                + Add Support Card
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Product FAQs */}
+                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                            <label className="block font-bold text-slate-800">
+                              Frequently Asked Questions ({(editingProduct.faqs || []).length} FAQs)
+                            </label>
+                            <div className="space-y-2.5">
+                              {(editingProduct.faqs || []).map((faq, idx) => (
+                                <div key={idx} className="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600">
+                                      FAQ #{idx + 1} {faq.category ? `• ${faq.category}` : ''}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const updated = (editingProduct.faqs || []).filter((_, i) => i !== idx)
+                                        setEditingProduct({ ...editingProduct, faqs: updated })
+                                      }}
+                                      className="p-1 text-red-500 hover:bg-red-50 rounded"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                  <input
+                                    type="text"
+                                    value={faq.question || ''}
+                                    onChange={e => {
+                                      const updated = [...(editingProduct.faqs || [])]
+                                      updated[idx] = { ...updated[idx], question: e.target.value }
+                                      setEditingProduct({ ...editingProduct, faqs: updated })
+                                    }}
+                                    placeholder="Question"
+                                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg font-bold text-slate-900"
+                                  />
+                                  <textarea
+                                    rows={2}
+                                    value={faq.answer || ''}
+                                    onChange={e => {
+                                      const updated = [...(editingProduct.faqs || [])]
+                                      updated[idx] = { ...updated[idx], answer: e.target.value }
+                                      setEditingProduct({ ...editingProduct, faqs: updated })
+                                    }}
+                                    placeholder="Answer"
+                                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                            <div className="p-3 bg-blue-50/40 rounded-xl border border-blue-200 space-y-2">
+                              <div className="font-bold text-slate-800 text-[11px]">+ Add Product FAQ</div>
+                              <input
+                                type="text"
+                                placeholder="Question..."
+                                value={newFaqItem.question}
+                                onChange={e => setNewFaqItem({ ...newFaqItem, question: e.target.value })}
+                                className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg"
+                              />
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Answer..."
+                                  value={newFaqItem.answer}
+                                  onChange={e => setNewFaqItem({ ...newFaqItem, answer: e.target.value })}
+                                  className="flex-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (newFaqItem.question.trim() && newFaqItem.answer.trim()) {
+                                      const updated = [...(editingProduct.faqs || []), { ...newFaqItem }]
+                                      setEditingProduct({ ...editingProduct, faqs: updated })
+                                      setNewFaqItem({ question: '', answer: '', category: 'General' })
+                                    }
+                                  }}
+                                  className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shrink-0 cursor-pointer"
+                                >
+                                  + Add FAQ
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* TAB 11: SPECIALIZED CATEGORY PARAMETERS (CAD / FILAMENTS / SCANNERS) */}
                       {activeEditTab === 'specialized' && (
                         <div className="space-y-5 animate-in fade-in">
-                          {/* FILAMENT SPECIFIC CONTROLS */}
-                          {(editingProduct.category_slug === 'filaments' || editingProduct.category.toLowerCase().includes('filament')) ? (
+                          {(editingProduct.category_slug === 'cad-software' || editingProduct.category.toLowerCase().includes('cad') || editingProduct.category.toLowerCase().includes('software')) ? (
+                            <div className="space-y-5">
+                              {/* Licensing Plans */}
+                              <div className="p-4 bg-purple-50/50 rounded-2xl border border-purple-200 space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="font-black text-purple-950 text-sm">
+                                    CAD Licensing & Plan Options ({(editingProduct.licensing_plans || []).length} Plans)
+                                  </div>
+                                  <span className="text-[11px] text-purple-700">Uniform licensing options displayed on the software page</span>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  {(editingProduct.licensing_plans || []).map((plan, idx) => (
+                                    <div key={idx} className="p-3 bg-white rounded-xl border border-purple-200 space-y-2">
+                                      <div className="flex items-center justify-between">
+                                        <input
+                                          type="text"
+                                          value={plan.name || ''}
+                                          onChange={e => {
+                                            const updated = [...(editingProduct.licensing_plans || [])]
+                                            updated[idx] = { ...updated[idx], name: e.target.value }
+                                            setEditingProduct({ ...editingProduct, licensing_plans: updated })
+                                          }}
+                                          placeholder="Plan Name"
+                                          className="flex-1 px-2 py-1 bg-slate-50 border border-slate-200 rounded font-bold text-slate-900 mr-2"
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const updated = (editingProduct.licensing_plans || []).filter((_, i) => i !== idx)
+                                            setEditingProduct({ ...editingProduct, licensing_plans: updated })
+                                          }}
+                                          className="p-1 text-red-500 hover:bg-red-50 rounded"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      </div>
+                                      <div className="grid grid-cols-2 gap-1.5">
+                                        <input
+                                          type="text"
+                                          value={plan.badge || ''}
+                                          onChange={e => {
+                                            const updated = [...(editingProduct.licensing_plans || [])]
+                                            updated[idx] = { ...updated[idx], badge: e.target.value }
+                                            setEditingProduct({ ...editingProduct, licensing_plans: updated })
+                                          }}
+                                          placeholder="Badge / Type"
+                                          className="px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[11px]"
+                                        />
+                                        <input
+                                          type="text"
+                                          value={plan.duration || ''}
+                                          onChange={e => {
+                                            const updated = [...(editingProduct.licensing_plans || [])]
+                                            updated[idx] = { ...updated[idx], duration: e.target.value }
+                                            setEditingProduct({ ...editingProduct, licensing_plans: updated })
+                                          }}
+                                          placeholder="Duration / Term"
+                                          className="px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[11px]"
+                                        />
+                                      </div>
+                                      <textarea
+                                        rows={2}
+                                        value={plan.description || ''}
+                                        onChange={e => {
+                                          const updated = [...(editingProduct.licensing_plans || [])]
+                                          updated[idx] = { ...updated[idx], description: e.target.value }
+                                          setEditingProduct({ ...editingProduct, licensing_plans: updated })
+                                        }}
+                                        placeholder="Plan description..."
+                                        className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-slate-700"
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* System Requirements */}
+                              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                                <div className="font-black text-slate-900 text-sm">
+                                  System Requirements Table ({(editingProduct.system_requirements || []).length} Rows)
+                                </div>
+                                <div className="space-y-2">
+                                  {(editingProduct.system_requirements || []).map((req, idx) => (
+                                    <div key={idx} className="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200">
+                                      <input
+                                        type="text"
+                                        value={req.label || ''}
+                                        onChange={e => {
+                                          const updated = [...(editingProduct.system_requirements || [])]
+                                          updated[idx] = { ...updated[idx], label: e.target.value }
+                                          setEditingProduct({ ...editingProduct, system_requirements: updated })
+                                        }}
+                                        placeholder="Component (e.g. Operating System)"
+                                        className="w-1/3 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded font-bold text-slate-800"
+                                      />
+                                      <input
+                                        type="text"
+                                        value={req.value || ''}
+                                        onChange={e => {
+                                          const updated = [...(editingProduct.system_requirements || [])]
+                                          updated[idx] = { ...updated[idx], value: e.target.value }
+                                          setEditingProduct({ ...editingProduct, system_requirements: updated })
+                                        }}
+                                        placeholder="Requirement Detail"
+                                        className="flex-1 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded text-slate-700"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const updated = (editingProduct.system_requirements || []).filter((_, i) => i !== idx)
+                                          setEditingProduct({ ...editingProduct, system_requirements: updated })
+                                        }}
+                                        className="p-1 text-red-500 hover:bg-red-50 rounded"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          ) : (editingProduct.category_slug === 'filaments' || editingProduct.category.toLowerCase().includes('filament')) ? (
                             <div className="p-5 bg-amber-50/50 rounded-2xl border border-amber-200 space-y-4">
                               <div className="flex items-center space-x-2">
                                 <Palette className="w-5 h-5 text-amber-700" />
@@ -3842,7 +4132,7 @@ export default function AdminPage() {
                       {/* Modal Sticky Footer */}
                       <div className="pt-4 border-t border-slate-200 flex items-center justify-between sticky bottom-0 bg-white/95 backdrop-blur-xs py-2">
                         <div className="text-[11px] text-slate-500 font-mono">
-                          Configured: {(editingProduct.features || []).length} features • {Object.keys(editingProduct.specifications || {}).length} specs • {(editingProduct.materials || []).length} materials
+                          Configured: {Object.keys(editingProduct.specifications || {}).length} specs • {(editingProduct.features || []).length} features • {(editingProduct.overview_cards || []).length + (editingProduct.feature_cards || []).length} cards • {(editingProduct.faqs || []).length} FAQs
                         </div>
                         <div className="flex items-center space-x-2">
                           <button
@@ -3927,10 +4217,10 @@ export default function AdminPage() {
                         <td className="py-3 px-3">
                           <div className="text-[11px] text-slate-600 space-y-0.5">
                             <div className="font-medium text-slate-700">
-                              {Object.keys(p.specifications || {}).length} specs • {(p.features || []).length} features
+                              {Object.keys(p.specifications || {}).length} specs • {(p.key_specs || []).length} key specs • {(p.features || []).length} features
                             </div>
-                            <div className="text-[10px] text-slate-400">
-                              {(p.materials || []).length} materials • {(p.images || []).length} photos
+                            <div className="text-[10px] text-slate-500">
+                              {(p.overview_cards || []).length + (p.feature_cards || []).length} section cards • {(p.faqs || []).length} FAQs • {(p.images || []).length + (p.print_gallery || []).length} visuals
                             </div>
                           </div>
                         </td>

@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { aresTouchData } from '../data/aresTouchData'
+import { useCadPageData } from '../utils/cadSoftwareConfig'
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview' },
@@ -40,7 +41,7 @@ const NAV_ITEMS = [
 
 export const AresTouchPage: React.FC = () => {
   const { openQuoteModal } = useApp()
-  const data = aresTouchData
+  const { data } = useCadPageData('ares_touch', aresTouchData)
 
   // State management
   const [activeSection, setActiveSection] = useState('overview')

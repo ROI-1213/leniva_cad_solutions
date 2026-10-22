@@ -31,14 +31,6 @@ const ScannersCategoryPage = lazy(() => import('./pages/ScannersCategoryPage'))
 const DevokMQPage = lazy(() => import('./pages/DevokMQPage'))
 const DevokMTPage = lazy(() => import('./pages/DevokMTPage'))
 const EinscanPage = lazy(() => import('./pages/EinscanPage'))
-const PrathamMiniPage = lazy(() => import('./pages/PrathamMiniPage'))
-const PrathamDesktopPage = lazy(() => import('./pages/PrathamDesktopPage'))
-const Pratham3Page = lazy(() => import('./pages/Pratham3Page'))
-const Pratham5Page = lazy(() => import('./pages/Pratham5Page'))
-const Pratham6Page = lazy(() => import('./pages/Pratham6Page'))
-const PrathamX600Page = lazy(() => import('./pages/PrathamX600Page'))
-const PrathamX1000Page = lazy(() => import('./pages/PrathamX1000Page'))
-const Pratham3RapidPage = lazy(() => import('./pages/Pratham3RapidPage'))
 const EkaHtPage = lazy(() => import('./pages/EkaHtPage'))
 const EkaXlPage = lazy(() => import('./pages/EkaXlPage'))
 const EkaXlePage = lazy(() => import('./pages/EkaXlePage'))
@@ -240,53 +232,53 @@ export default function App() {
               element={<MaterialsPage forcedCategory="accessories" />}
             />
 
-            {/* Dedicated Product Pages */}
-            <Route path="/products/pratham-mini" element={<PrathamMiniPage />} />
-            <Route path="/product/pratham-mini" element={<PrathamMiniPage />} />
-            <Route path="/pratham-mini" element={<PrathamMiniPage />} />
-            <Route path="/products/pratham-desktop" element={<PrathamDesktopPage />} />
-            <Route path="/product/pratham-desktop" element={<PrathamDesktopPage />} />
-            <Route path="/pratham-desktop" element={<PrathamDesktopPage />} />
-            <Route path="/products/pratham-3" element={<Pratham3Page />} />
-            <Route path="/product/pratham-3" element={<Pratham3Page />} />
-            <Route path="/pratham-3" element={<Pratham3Page />} />
-            <Route path="/products/pratham-3-0" element={<Pratham3Page />} />
-            <Route path="/product/pratham-3-0" element={<Pratham3Page />} />
-            <Route path="/pratham-3-0" element={<Pratham3Page />} />
+            {/* Dedicated Product Pages (routed via ProductDetailPage so Admin Catalog customizations reflect live) */}
+            <Route path="/products/pratham-mini" element={<ProductDetailPage forcedSlug="pratham-mini" />} />
+            <Route path="/product/pratham-mini" element={<ProductDetailPage forcedSlug="pratham-mini" />} />
+            <Route path="/pratham-mini" element={<ProductDetailPage forcedSlug="pratham-mini" />} />
+            <Route path="/products/pratham-desktop" element={<ProductDetailPage forcedSlug="pratham-desktop" />} />
+            <Route path="/product/pratham-desktop" element={<ProductDetailPage forcedSlug="pratham-desktop" />} />
+            <Route path="/pratham-desktop" element={<ProductDetailPage forcedSlug="pratham-desktop" />} />
+            <Route path="/products/pratham-3" element={<ProductDetailPage forcedSlug="pratham-3" />} />
+            <Route path="/product/pratham-3" element={<ProductDetailPage forcedSlug="pratham-3" />} />
+            <Route path="/pratham-3" element={<ProductDetailPage forcedSlug="pratham-3" />} />
+            <Route path="/products/pratham-3-0" element={<ProductDetailPage forcedSlug="pratham-3" />} />
+            <Route path="/product/pratham-3-0" element={<ProductDetailPage forcedSlug="pratham-3" />} />
+            <Route path="/pratham-3-0" element={<ProductDetailPage forcedSlug="pratham-3" />} />
 
             {/* Dedicated Pratham 5.0 Large-Format Industrial FDM */}
-            <Route path="/products/pratham-5" element={<Pratham5Page />} />
-            <Route path="/product/pratham-5" element={<Pratham5Page />} />
-            <Route path="/pratham-5" element={<Pratham5Page />} />
-            <Route path="/products/pratham-5-0" element={<Pratham5Page />} />
-            <Route path="/product/pratham-5-0" element={<Pratham5Page />} />
-            <Route path="/pratham-5-0" element={<Pratham5Page />} />
+            <Route path="/products/pratham-5" element={<ProductDetailPage forcedSlug="pratham-5" />} />
+            <Route path="/product/pratham-5" element={<ProductDetailPage forcedSlug="pratham-5" />} />
+            <Route path="/pratham-5" element={<ProductDetailPage forcedSlug="pratham-5" />} />
+            <Route path="/products/pratham-5-0" element={<ProductDetailPage forcedSlug="pratham-5" />} />
+            <Route path="/product/pratham-5-0" element={<ProductDetailPage forcedSlug="pratham-5" />} />
+            <Route path="/pratham-5-0" element={<ProductDetailPage forcedSlug="pratham-5" />} />
 
             {/* Dedicated Pratham 6.0 Closed-Loop Servo FDM */}
-            <Route path="/products/pratham-6" element={<Pratham6Page />} />
-            <Route path="/product/pratham-6" element={<Pratham6Page />} />
-            <Route path="/pratham-6" element={<Pratham6Page />} />
-            <Route path="/products/pratham-6-0" element={<Pratham6Page />} />
-            <Route path="/product/pratham-6-0" element={<Pratham6Page />} />
-            <Route path="/pratham-6-0" element={<Pratham6Page />} />
+            <Route path="/products/pratham-6" element={<ProductDetailPage forcedSlug="pratham-6" />} />
+            <Route path="/product/pratham-6" element={<ProductDetailPage forcedSlug="pratham-6" />} />
+            <Route path="/pratham-6" element={<ProductDetailPage forcedSlug="pratham-6" />} />
+            <Route path="/products/pratham-6-0" element={<ProductDetailPage forcedSlug="pratham-6" />} />
+            <Route path="/product/pratham-6-0" element={<ProductDetailPage forcedSlug="pratham-6" />} />
+            <Route path="/pratham-6-0" element={<ProductDetailPage forcedSlug="pratham-6" />} />
 
             {/* Dedicated Pratham X (600) Jumbo FDM */}
-            <Route path="/products/pratham-x-600" element={<PrathamX600Page />} />
-            <Route path="/product/pratham-x-600" element={<PrathamX600Page />} />
-            <Route path="/pratham-x-600" element={<PrathamX600Page />} />
+            <Route path="/products/pratham-x-600" element={<ProductDetailPage forcedSlug="pratham-x-600" />} />
+            <Route path="/product/pratham-x-600" element={<ProductDetailPage forcedSlug="pratham-x-600" />} />
+            <Route path="/pratham-x-600" element={<ProductDetailPage forcedSlug="pratham-x-600" />} />
 
             {/* Dedicated Pratham X (1000) 1 m³ Giant FDM */}
-            <Route path="/products/pratham-x" element={<PrathamX1000Page />} />
-            <Route path="/product/pratham-x" element={<PrathamX1000Page />} />
-            <Route path="/pratham-x" element={<PrathamX1000Page />} />
-            <Route path="/products/pratham-x-1000" element={<PrathamX1000Page />} />
-            <Route path="/product/pratham-x-1000" element={<PrathamX1000Page />} />
-            <Route path="/pratham-x-1000" element={<PrathamX1000Page />} />
+            <Route path="/products/pratham-x" element={<ProductDetailPage forcedSlug="pratham-x" />} />
+            <Route path="/product/pratham-x" element={<ProductDetailPage forcedSlug="pratham-x" />} />
+            <Route path="/pratham-x" element={<ProductDetailPage forcedSlug="pratham-x" />} />
+            <Route path="/products/pratham-x-1000" element={<ProductDetailPage forcedSlug="pratham-x" />} />
+            <Route path="/product/pratham-x-1000" element={<ProductDetailPage forcedSlug="pratham-x" />} />
+            <Route path="/pratham-x-1000" element={<ProductDetailPage forcedSlug="pratham-x" />} />
 
             {/* Dedicated Pratham 3 Rapid 500 mm/s CoreXY FDM */}
-            <Route path="/products/pratham-3-rapid" element={<Pratham3RapidPage />} />
-            <Route path="/product/pratham-3-rapid" element={<Pratham3RapidPage />} />
-            <Route path="/pratham-3-rapid" element={<Pratham3RapidPage />} />
+            <Route path="/products/pratham-3-rapid" element={<ProductDetailPage forcedSlug="pratham-3-rapid" />} />
+            <Route path="/product/pratham-3-rapid" element={<ProductDetailPage forcedSlug="pratham-3-rapid" />} />
+            <Route path="/pratham-3-rapid" element={<ProductDetailPage forcedSlug="pratham-3-rapid" />} />
 
             {/* Dedicated EKA Series DLP 3D Printers */}
             <Route path="/products/eka-ht" element={<EkaHtPage />} />

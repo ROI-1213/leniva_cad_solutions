@@ -36,10 +36,11 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { useApp } from '../context/AppContext'
 import { aresKudoData } from '../data/aresKudoData'
+import { useCadPageData } from '../utils/cadSoftwareConfig'
 
 export const AresKudoPage: React.FC = () => {
   const { openQuoteModal } = useApp()
-  const data = aresKudoData
+  const { data } = useCadPageData('ares_kudo', aresKudoData)
 
   // State management
   const [activeNav, setActiveNav] = useState('overview')

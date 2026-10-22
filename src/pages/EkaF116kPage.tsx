@@ -19,10 +19,12 @@ import {
   Box,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
-import { ekaF116kData, LcdGalleryItem } from '../data/industrialLcdData'
+import { ekaF116kData as defaultEkaF116kData, LcdGalleryItem } from '../data/industrialLcdData'
+import { mergeCatalogWithHardwareData } from '../utils/productCatalog'
 
 export const EkaF116kPage: React.FC = () => {
   const { openQuoteModal } = useApp()
+  const ekaF116kData = mergeCatalogWithHardwareData('eka-f1-16k', defaultEkaF116kData)
 
   // Gallery filter & lightbox state
   const [activeCategory, setActiveCategory] = useState<string>('all')

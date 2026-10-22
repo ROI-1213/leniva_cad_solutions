@@ -23,6 +23,7 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import { sketchupProAdvancedData } from '../data/sketchupProAdvancedData'
+import { useCadPageData } from '../utils/cadSoftwareConfig'
 
 // ─── Icon Map ────────────────────────────────────────────────────────────────
 const IconMap: Record<string, React.FC<{ className?: string }>> = {
@@ -59,7 +60,7 @@ const NAV_SECTIONS = [
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export default function SketchUpProAdvancedPage() {
-  const d = sketchupProAdvancedData
+  const { data: d } = useCadPageData('sketchup_advanced', sketchupProAdvancedData)
 
   const [activeSection, setActiveSection] = useState('overview')
   const [activeFaqCategory, setActiveFaqCategory] = useState<string>('all')

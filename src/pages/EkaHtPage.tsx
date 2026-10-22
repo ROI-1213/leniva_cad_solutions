@@ -13,12 +13,14 @@ import {
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import {
-  ekaHtData,
+  ekaHtData as defaultEkaHtData,
   jewelryWorkGallery,
 } from '../data/ekaProductsData'
+import { mergeCatalogWithHardwareData } from '../utils/productCatalog'
 
 export const EkaHtPage: React.FC = () => {
   const { openQuoteModal } = useApp()
+  const ekaHtData = mergeCatalogWithHardwareData('eka-ht', defaultEkaHtData)
 
   // Interactive State
   const [openFaq, setOpenFaq] = useState<number | null>(0)

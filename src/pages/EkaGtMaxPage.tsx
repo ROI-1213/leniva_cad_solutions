@@ -19,10 +19,12 @@ import {
   Factory,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
-import { ekaGtMaxData, LcdGalleryItem } from '../data/industrialLcdData'
+import { ekaGtMaxData as defaultEkaGtMaxData, LcdGalleryItem } from '../data/industrialLcdData'
+import { mergeCatalogWithHardwareData } from '../utils/productCatalog'
 
 export const EkaGtMaxPage: React.FC = () => {
   const { openQuoteModal } = useApp()
+  const ekaGtMaxData = mergeCatalogWithHardwareData('eka-gt-max', defaultEkaGtMaxData)
 
   // Gallery filter & lightbox state
   const [activeCategory, setActiveCategory] = useState<string>('all')

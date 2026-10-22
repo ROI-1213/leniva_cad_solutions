@@ -22,10 +22,12 @@ import {
   Calculator,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
-import { sketchupProData } from '../data/sketchupProData'
+import { sketchupProData as defaultSketchupProData } from '../data/sketchupProData'
+import { useCadPageData } from '../utils/cadSoftwareConfig'
 
 export const SketchUpProPage: React.FC = () => {
   const { openQuoteModal } = useApp()
+  const { data: sketchupProData } = useCadPageData('sketchup_pro', defaultSketchupProData)
 
   // State
   const [activeTab, setActiveTab] = useState<'desktop' | 'layout' | 'ipad' | 'web' | 'connect'>('desktop')

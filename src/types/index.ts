@@ -8,6 +8,70 @@ export type ProductTechnology =
   | 'Materials & Consumables'
   | 'Accessories'
 
+export interface ProductOverviewCard {
+  title: string
+  subtitle?: string
+  desc?: string
+  description?: string
+  icon?: string
+  image?: string
+}
+
+export interface ProductFeatureCard {
+  title: string
+  subtitle?: string
+  category?: string
+  badge?: string
+  highlight?: string
+  desc?: string
+  description?: string
+  icon?: string
+  image?: string
+}
+
+export interface ProductShowcaseItem {
+  title: string
+  category?: string
+  material?: string
+  specs?: string
+  desc?: string
+  description?: string
+  image: string
+}
+
+export interface ProductSupportCard {
+  title: string
+  desc?: string
+  description?: string
+}
+
+export interface ProductFaqItem {
+  q?: string
+  a?: string
+  question?: string
+  answer?: string
+  category?: string
+}
+
+export interface ProductLicensingPlan {
+  name: string
+  badge?: string
+  subtitle?: string
+  term?: string
+  duration?: string
+  description?: string
+  features: string[]
+}
+
+export interface ProductSystemRequirement {
+  label?: string
+  value?: string
+  category?: string
+  minimum?: string
+  recommended?: string
+  notes?: string
+}
+
 export interface Product {
   id: string
   slug: string
@@ -16,6 +80,9 @@ export interface Product {
   category: string
   categorySlug: string
   technology: ProductTechnology
+  badge?: string
+  heroHeading?: string
+  heroSubtitle?: string
   tagline: string
   description: string
   shortDescription: string
@@ -24,10 +91,20 @@ export interface Product {
   keySpecs: { label: string; value: string }[]
   specifications: Record<string, string>
   features: string[]
+  featureCards?: ProductFeatureCard[]
+  overviewHeading?: string
+  overviewDescription?: string
+  overviewCards?: ProductOverviewCard[]
   applications: string[]
   materials?: string[]
   whoIsItFor?: string[]
+  printGallery?: ProductShowcaseItem[]
+  supportCards?: ProductSupportCard[]
+  faqs?: ProductFaqItem[]
+  licensingPlans?: ProductLicensingPlan[]
+  systemRequirements?: ProductSystemRequirement[]
   brochureUrl?: string
+  videoUrl?: string
   price?: number
   priceDisplay?: string
   inStock?: boolean

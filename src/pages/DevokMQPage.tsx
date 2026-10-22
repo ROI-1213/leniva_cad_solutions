@@ -19,11 +19,13 @@ import {
   Archive,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
-import { devokMQData } from '../data/scannersData'
+import { devokMQData as defaultDevokMQData } from '../data/scannersData'
+import { mergeCatalogWithHardwareData } from '../utils/productCatalog'
 import { AdvancedScanningTechCinematic } from '../components/AdvancedScanningTechCinematic'
 
 export const DevokMQPage: React.FC = () => {
   const { openQuoteModal } = useApp()
+  const devokMQData = mergeCatalogWithHardwareData('3devok-mq', defaultDevokMQData)
   const [selectedGalleryImg, setSelectedGalleryImg] = useState<string | null>(null)
 
   const heroViews = [
