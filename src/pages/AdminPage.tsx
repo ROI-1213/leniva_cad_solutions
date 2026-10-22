@@ -369,13 +369,30 @@ export default function AdminPage() {
     template: 'ares_mechanical',
   })
 
-  const saveCadEdits = (updatedEdits: Record<string, any>) => {
-    localStorage.setItem('leniva_cad_software_edits', JSON.stringify(updatedEdits))
-    setCadEdits(updatedEdits)
+  const persistLeanCadEdits = (allEdits: Record<string, any>) => {
+    const lean: Record<string, any> = {}
+    Object.entries(allEdits || {}).forEach(([k, v]) => {
+      if (v && (v.is_admin_customized || k.startsWith('cad_') || v.enabledSections)) {
+        lean[k] = v
+      }
+    })
+    localStorage.setItem('leniva_cad_software_edits', JSON.stringify(lean))
+  }
+
+  const saveCadEdits = (updatedEdits: Record<string, any>, isReset = false) => {
+    const finalEdits = { ...updatedEdits }
+    if (!isReset && finalEdits[activeCadProduct]) {
+      finalEdits[activeCadProduct] = {
+        ...finalEdits[activeCadProduct],
+        is_admin_customized: true,
+      }
+    }
+    persistLeanCadEdits(finalEdits)
+    setCadEdits(finalEdits)
 
     // Also sync CAD edits into the unified Products Catalog so both tabs stay 100% identical
     const targetSlug = CAD_KEY_TO_SLUG_MAP[activeCadProduct]
-    const activeEdit = updatedEdits[activeCadProduct]
+    const activeEdit = finalEdits[activeCadProduct]
     if (targetSlug && activeEdit) {
       const updatedCatalog = productsList.map(p => {
         if (p.slug === targetSlug || p.id === targetSlug) {
@@ -391,6 +408,9 @@ export default function AdminPage() {
             short_description: activeEdit.shortDescription || p.short_description,
             description: activeEdit.description || p.description,
             hero_image: activeEdit.heroImage || p.hero_image,
+            images: activeEdit.heroImage
+              ? [activeEdit.heroImage, ...(activeEdit.secondaryImage ? [activeEdit.secondaryImage] : (p.images || []).slice(1))]
+              : p.images,
             key_specs: Array.isArray(activeEdit.specStrip) && activeEdit.specStrip.length > 0 ? activeEdit.specStrip : p.key_specs,
             features: Array.isArray(activeEdit.highlights) && activeEdit.highlights.length > 0 ? activeEdit.highlights : p.features,
             overview_heading: activeEdit.overview?.heading || p.overview_heading,
@@ -410,7 +430,7 @@ export default function AdminPage() {
                   category: f.category || 'General',
                 }))
               : p.faqs,
-            is_admin_customized: true,
+            is_admin_customized: !isReset,
           }
         }
         return p
@@ -431,7 +451,17 @@ export default function AdminPage() {
   }
 
   const updateCadField = (field: string, value: any) => {
-    const updated = { ...cadEdits, [activeCadProduct]: { ...cadEdits[activeCadProduct], [field]: value } }
+    const curProd = { ...(cadEdits[activeCadProduct] || {}), [field]: value, is_admin_customized: true }
+    if (field === 'headline') {
+      curProd.heroHeading = value
+    } else if (field === 'heroHeading') {
+      curProd.headline = value
+    } else if (field === 'shortDescription') {
+      curProd.heroSupportingText = value
+    } else if (field === 'heroSupportingText') {
+      curProd.shortDescription = value
+    }
+    const updated = { ...cadEdits, [activeCadProduct]: curProd }
     saveCadEdits(updated)
   }
 
@@ -587,8 +617,8 @@ export default function AdminPage() {
     const label = cadProducts.find(p => p.key === activeCadProduct)?.label || activeCadProduct
     if (!confirm(`Reset "${label}" to defaults? All edits for this product will be lost.`)) return
     const defaultData = CAD_DEFAULTS[activeCadProduct] || CAD_DEFAULTS.ares_mechanical
-    const updated = { ...cadEdits, [activeCadProduct]: { ...defaultData } }
-    saveCadEdits(updated)
+    const updated = { ...cadEdits, [activeCadProduct]: { ...defaultData, is_admin_customized: false } }
+    saveCadEdits(updated, true)
   }
 
   // Safe JSON fetcher that handles non-JSON / HTML responses gracefully on Vercel
@@ -952,10 +982,11 @@ export default function AdminPage() {
               category: f.category || 'General',
             }))
           : existingCad.faqs,
+        is_admin_customized: true,
       }
       const nextCadEdits = { ...cadEdits, [cadKey]: syncedCad }
       setCadEdits(nextCadEdits)
-      localStorage.setItem('leniva_cad_software_edits', JSON.stringify(nextCadEdits))
+      persistLeanCadEdits(nextCadEdits)
       try {
         window.dispatchEvent(new Event('leniva_cad_edits_updated'))
       } catch {
@@ -8037,15 +8068,30 @@ export default function AdminPage() {
                           />
                         </div>
 
-                        {/* Image URLs with Live Preview */}
+                        {/* Image URLs with Live Preview & Direct File Upload */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Hero Main Image URL</label>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Hero Main Image URL</label>
+                              <label className="inline-flex items-center space-x-1 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer">
+                                <Upload className="w-3 h-3" />
+                                <span>Upload Image</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={e => {
+                                    const file = e.target.files?.[0]
+                                    if (file) handleDirectImageUpload(file, url => updateCadField('heroImage', url))
+                                  }}
+                                />
+                              </label>
+                            </div>
                             <input
-                              type="url"
+                              type="text"
                               value={cur.heroImage || ''}
                               onChange={e => updateCadField('heroImage', e.target.value)}
-                              placeholder="https://..."
+                              placeholder="https://... or /images/..."
                               className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-mono text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none"
                             />
                             {cur.heroImage && (
@@ -8055,12 +8101,27 @@ export default function AdminPage() {
                             )}
                           </div>
                           <div>
-                            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Secondary / Floating Image URL</label>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Secondary / Floating Image URL</label>
+                              <label className="inline-flex items-center space-x-1 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer">
+                                <Upload className="w-3 h-3" />
+                                <span>Upload Image</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={e => {
+                                    const file = e.target.files?.[0]
+                                    if (file) handleDirectImageUpload(file, url => updateCadField('secondaryImage', url))
+                                  }}
+                                />
+                              </label>
+                            </div>
                             <input
-                              type="url"
+                              type="text"
                               value={cur.secondaryImage || ''}
                               onChange={e => updateCadField('secondaryImage', e.target.value)}
-                              placeholder="https://..."
+                              placeholder="https://... or /images/..."
                               className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-mono text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none"
                             />
                             {cur.secondaryImage && (
@@ -8242,9 +8303,24 @@ export default function AdminPage() {
                                     />
                                   </div>
                                   <div>
-                                    <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Image URL</label>
+                                    <div className="flex items-center justify-between mb-0.5">
+                                      <label className="block text-[9px] font-bold uppercase text-slate-400">Image URL</label>
+                                      <label className="inline-flex items-center space-x-0.5 text-[9px] font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer">
+                                        <Upload className="w-2.5 h-2.5" />
+                                        <span>Upload</span>
+                                        <input
+                                          type="file"
+                                          accept="image/*"
+                                          className="hidden"
+                                          onChange={e => {
+                                            const file = e.target.files?.[0]
+                                            if (file) handleDirectImageUpload(file, url => updateCadOverviewCard(idx, 'image', url))
+                                          }}
+                                        />
+                                      </label>
+                                    </div>
                                     <input
-                                      type="url"
+                                      type="text"
                                       value={card.image || ''}
                                       onChange={e => updateCadOverviewCard(idx, 'image', e.target.value)}
                                       className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 outline-none font-mono text-[10px]"

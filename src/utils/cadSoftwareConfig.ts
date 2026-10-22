@@ -828,20 +828,9 @@ export const CAD_DEFAULTS: Record<string, any> = {
 }
 
 export function getCadProductEdits(productKey: string): any {
-  let cadEdits: any = null
-  try {
-    const raw = localStorage.getItem('leniva_cad_software_edits')
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      if (parsed[productKey]) {
-        cadEdits = { ...parsed[productKey] }
-      }
-    }
-  } catch {
-    // ignore
-  }
+  let catalogEdits: any = null
 
-  // Also check if this CAD product was edited via the Products Catalog tab
+  // 1. Check if this CAD product was edited via the Products Catalog tab (base layer)
   try {
     const slug = CAD_KEY_TO_SLUG_MAP[productKey]
     const rawCatalog = localStorage.getItem('leniva_admin_products_catalog')
@@ -850,20 +839,19 @@ export function getCadProductEdits(productKey: string): any {
       if (Array.isArray(catalog)) {
         const prod = catalog.find((p: any) => p.slug === slug || p.id === slug)
         if (prod && prod.is_admin_customized) {
-          cadEdits = {
-            ...(cadEdits || {}),
-            productName: prod.name || cadEdits?.productName,
-            brand: prod.brand || cadEdits?.brand,
-            category: prod.category || cadEdits?.category,
-            heroBadge: prod.badge || cadEdits?.heroBadge,
-            headline: prod.hero_heading || prod.name || cadEdits?.headline,
-            heroHeading: prod.hero_heading || prod.name || cadEdits?.heroHeading,
-            supportingHeadline: prod.tagline || cadEdits?.supportingHeadline,
-            heroSupportingText: prod.hero_subtitle || prod.short_description || cadEdits?.heroSupportingText,
-            shortDescription: prod.short_description || cadEdits?.shortDescription,
-            description: prod.description || cadEdits?.description,
-            heroImage: prod.hero_image || cadEdits?.heroImage,
-            secondaryImage: prod.images?.[1] || cadEdits?.secondaryImage,
+          catalogEdits = {
+            productName: prod.name,
+            brand: prod.brand,
+            category: prod.category,
+            heroBadge: prod.badge,
+            headline: prod.hero_heading || prod.name,
+            heroHeading: prod.hero_heading || prod.name,
+            supportingHeadline: prod.tagline,
+            heroSupportingText: prod.hero_subtitle || prod.short_description,
+            shortDescription: prod.short_description,
+            description: prod.description,
+            heroImage: prod.hero_image,
+            secondaryImage: prod.images?.[1],
             ...(Array.isArray(prod.key_specs) && prod.key_specs.length > 0
               ? { specStrip: prod.key_specs }
               : {}),
@@ -873,14 +861,13 @@ export function getCadProductEdits(productKey: string): any {
             ...(prod.overview_heading || prod.overview_description || (Array.isArray(prod.overview_cards) && prod.overview_cards.length > 0)
               ? {
                   overview: {
-                    ...(cadEdits?.overview || {}),
                     ...(prod.overview_heading ? { heading: prod.overview_heading } : {}),
                     ...(prod.overview_description ? { description: prod.overview_description } : {}),
                     ...(Array.isArray(prod.overview_cards) && prod.overview_cards.length > 0
                       ? {
                           cards: prod.overview_cards.map((c: any) => ({
                             title: c.title,
-                            desc: c.description,
+                            desc: c.description || c.desc,
                             icon: c.icon || 'Box',
                             image: c.image || prod.hero_image,
                           })),
@@ -892,13 +879,39 @@ export function getCadProductEdits(productKey: string): any {
             ...(Array.isArray(prod.faqs) && prod.faqs.length > 0
               ? {
                   faqs: prod.faqs.map((f: any) => ({
-                    q: f.question,
-                    a: f.answer,
+                    q: f.question || f.q,
+                    a: f.answer || f.a,
                     category: f.category || 'General',
                   })),
                 }
               : {}),
           }
+        }
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  // 2. Overlay dedicated CAD Software Editor edits on top (highest priority)
+  let cadEdits: any = catalogEdits ? { ...catalogEdits } : null
+  try {
+    const raw = localStorage.getItem('leniva_cad_software_edits')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (parsed && parsed[productKey]) {
+        const directEdit = parsed[productKey]
+        cadEdits = {
+          ...(cadEdits || {}),
+          ...directEdit,
+          overview: {
+            ...(cadEdits?.overview || {}),
+            ...(directEdit.overview || {}),
+          },
+          requirements: {
+            ...(cadEdits?.requirements || {}),
+            ...(directEdit.requirements || {}),
+          },
         }
       }
     }
@@ -952,10 +965,12 @@ export function useCadSectionVisibility(productKey: string) {
     window.addEventListener('storage', update)
     window.addEventListener('leniva_cad_edits_updated', update)
     window.addEventListener('leniva_products_catalog_updated', update)
+    window.addEventListener('leniva_cloud_cms_synced', update)
     return () => {
       window.removeEventListener('storage', update)
       window.removeEventListener('leniva_cad_edits_updated', update)
       window.removeEventListener('leniva_products_catalog_updated', update)
+      window.removeEventListener('leniva_cloud_cms_synced', update)
     }
   }, [productKey])
 
@@ -980,13 +995,25 @@ export function mergeCadEditsWithPageData<T extends Record<string, any>>(
       result.product = {
         ...result.product,
         name: edits.productName,
+        ...(edits.brand ? { developer: edits.brand, vendor: edits.brand } : {}),
         ...(edits.shortDescription ? { tagline: edits.shortDescription } : {}),
         ...(edits.category ? { category: edits.category } : {}),
       }
     }
   }
+  if (edits.brand) {
+    if ('brand' in result) result.brand = edits.brand
+    if ('vendor' in result) result.vendor = edits.brand
+    if ('company' in result) result.company = edits.brand
+  }
+  if (edits.category && 'category' in result) {
+    result.category = edits.category
+  }
   if (edits.shortDescription && 'tagline' in result) {
     result.tagline = edits.shortDescription
+  }
+  if (edits.officialUrl && 'officialWebsite' in result) {
+    result.officialWebsite = edits.officialUrl
   }
 
   // 1. Merge SEO if present
@@ -1021,12 +1048,12 @@ export function mergeCadEditsWithPageData<T extends Record<string, any>>(
         : {}),
       ...(parsedLangs ? { languages: parsedLangs } : {}),
       ...(edits.primaryFormat ? { primaryFormat: edits.primaryFormat } : {}),
-      ...(edits.headline
+      ...(edits.headline || edits.heroHeading
         ? {
-            headline: edits.headline,
-            mainHeadline: edits.headline,
-            corePurpose: edits.headline,
-            coreMessage: edits.headline,
+            headline: edits.headline || edits.heroHeading,
+            mainHeadline: edits.headline || edits.heroHeading,
+            corePurpose: edits.headline || edits.heroHeading,
+            coreMessage: edits.headline || edits.heroHeading,
           }
         : {}),
       ...(edits.supportingHeadline
@@ -1084,19 +1111,28 @@ export function mergeCadEditsWithPageData<T extends Record<string, any>>(
         ? edits.highlights
         : undefined
 
+    const rawHeading = edits.heroHeading || edits.headline || ''
+    const rawHighlight = edits.h1Highlight !== undefined ? edits.h1Highlight : result.hero.h1Highlight
+    // For pages like Enscape and V-Ray that render {h1} <br/> <span>{h1Highlight}</span>,
+    // avoid repeating h1Highlight if rawHeading already includes it at the end.
+    let cleanH1 = rawHeading
+    if (rawHeading && rawHighlight && typeof rawHighlight === 'string' && rawHeading.trim().endsWith(rawHighlight.trim()) && rawHeading.trim() !== rawHighlight.trim()) {
+      cleanH1 = rawHeading.trim().slice(0, rawHeading.trim().length - rawHighlight.trim().length).trim()
+    }
+
     result.hero = {
       ...result.hero,
       ...(edits.eyebrow ? { eyebrow: edits.eyebrow } : {}),
-      ...(edits.heroBadge ? { badge: edits.heroBadge } : {}),
-      ...(edits.heroHeading || edits.headline
+      ...(edits.heroBadge ? { badge: edits.heroBadge, platformBadge: edits.heroBadge } : {}),
+      ...(rawHeading
         ? {
-            heading: edits.heroHeading || edits.headline,
-            headline: edits.heroHeading || edits.headline,
-            h1: edits.heroHeading || edits.headline,
-            title: edits.heroHeading || edits.headline,
+            heading: rawHeading,
+            headline: rawHeading,
+            h1: cleanH1 || rawHeading,
+            title: rawHeading,
           }
         : {}),
-      ...(edits.h1Highlight
+      ...(edits.h1Highlight !== undefined
         ? {
             h1Highlight: edits.h1Highlight,
             highlightText: edits.h1Highlight,
@@ -1110,12 +1146,14 @@ export function mergeCadEditsWithPageData<T extends Record<string, any>>(
             subheading: edits.supportingHeadline,
             subheadline: edits.supportingHeadline,
             subtitle: edits.supportingHeadline,
+            tagline: edits.supportingHeadline,
           }
         : {}),
-      ...(edits.heroSupportingText
+      ...(edits.heroSupportingText || edits.shortDescription
         ? {
-            supportingText: edits.heroSupportingText,
-            description: edits.heroSupportingText,
+            supportingText: edits.heroSupportingText || edits.shortDescription,
+            description: edits.heroSupportingText || edits.shortDescription,
+            mainDescription: edits.description || edits.heroSupportingText || edits.shortDescription,
           }
         : {}),
       ...(edits.shortDescription ? { shortDescription: edits.shortDescription } : {}),
@@ -1130,6 +1168,8 @@ export function mergeCadEditsWithPageData<T extends Record<string, any>>(
       ...(edits.downloadUrl || edits.trialUrl
         ? { trialUrl: edits.downloadUrl || edits.trialUrl }
         : {}),
+      ...(edits.trialCta ? { primaryCta: edits.trialCta } : {}),
+      ...(edits.pricingCta ? { secondaryCta: edits.pricingCta } : {}),
       ...(stripItems ? { strip: stripItems } : {}),
       ...(statsItems ? { stats: statsItems } : {}),
       ...(quickStatsItems ? { quickStats: quickStatsItems } : {}),
@@ -1143,96 +1183,142 @@ export function mergeCadEditsWithPageData<T extends Record<string, any>>(
             trustChips: highlightChips,
             trustBadges: highlightChips,
             trustSignals: highlightChips,
+            pills: highlightChips,
+            badges: highlightChips,
           }
         : {}),
     }
   }
 
-  // 4. Merge Overview / Intro if present
+  // Top-level Spec Strip arrays (SketchUpProPage / SketchUpProAdvancedPage valueStrip & CoronaPage metrics)
+  if (Array.isArray(edits.specStrip) && edits.specStrip.length > 0) {
+    if (Array.isArray(result.valueStrip)) {
+      result.valueStrip = edits.specStrip.map((s: any, idx: number) => {
+        const orig = result.valueStrip[idx] || {}
+        return {
+          ...orig,
+          id: orig.id || `spec-${idx}`,
+          icon: orig.icon || 'Box',
+          title: s.label || orig.title || '',
+          desc: s.value || orig.desc || '',
+        }
+      })
+    }
+    if (Array.isArray(result.metrics)) {
+      result.metrics = edits.specStrip.map((s: any, idx: number) => {
+        const orig = result.metrics[idx] || {}
+        return {
+          ...orig,
+          value: s.value || orig.value || '',
+          label: s.label || orig.label || '',
+          note: orig.note || '',
+        }
+      })
+    }
+  }
+
+  // 4. Merge Overview / Intro / Perks / WhyEnscape / WhyVRay / PowerOfProCards / OverviewCards
   if (edits.overview) {
-    if (result.overview) {
-      const updatedCards =
-        Array.isArray(edits.overview.cards) && edits.overview.cards.length > 0 && Array.isArray(result.overview.cards)
-          ? edits.overview.cards.map((c: any, idx: number) => {
-              const orig = result.overview.cards[idx] || {}
-              return {
-                ...orig,
-                title: c.title || orig.title || '',
-                desc: c.desc || orig.desc || '',
-                description: c.desc || orig.description || '',
-                subtitle: orig.subtitle || c.icon || '',
-                icon: c.icon || orig.icon || 'Box',
-                image: c.image || orig.image || '',
-                bullets: orig.bullets || [],
-              }
-            })
-          : result.overview.cards
+    const editCards = Array.isArray(edits.overview.cards) && edits.overview.cards.length > 0 ? edits.overview.cards : null
 
-      const updatedBlocks =
-        Array.isArray(edits.overview.cards) && edits.overview.cards.length > 0 && Array.isArray(result.overview.blocks)
-          ? edits.overview.cards.map((c: any, idx: number) => {
-              const orig = result.overview.blocks[idx] || {}
-              return {
-                ...orig,
-                title: c.title || orig.title || '',
-                description: c.desc || orig.description || '',
-                subtitle: orig.subtitle || '',
-                icon: c.icon || orig.icon || 'Box',
-                bullets: orig.bullets || [],
-              }
-            })
-          : result.overview.blocks
-
-      const updatedPillars =
-        Array.isArray(edits.overview.cards) && edits.overview.cards.length > 0 && Array.isArray(result.overview.pillars)
-          ? edits.overview.cards.map((c: any, idx: number) => {
-              const orig = result.overview.pillars[idx] || {}
-              return {
-                ...orig,
-                title: c.title || orig.title || '',
-                description: c.desc || orig.description || '',
-                icon: c.icon || orig.icon || 'Box',
-              }
-            })
-          : result.overview.pillars
-
-      const updatedHighlights =
-        Array.isArray(edits.overview.cards) && edits.overview.cards.length > 0 && Array.isArray(result.overview.highlights)
-          ? edits.overview.cards.map((c: any, idx: number) => {
-              const orig = result.overview.highlights[idx] || {}
-              return {
-                ...orig,
-                title: c.title || orig.title || '',
-                description: c.desc || orig.description || '',
-                icon: c.icon || orig.icon || 'Box',
-              }
-            })
-          : result.overview.highlights
-
-      result.overview = {
-        ...result.overview,
-        ...(edits.overview.heading
-          ? {
-              heading: edits.overview.heading,
-              title: edits.overview.heading,
-              headline: edits.overview.heading,
+    const origOverview = result.overview || {}
+    const updatedCards =
+      editCards && Array.isArray(origOverview.cards)
+        ? editCards.map((c: any, idx: number) => {
+            const orig = origOverview.cards[idx] || {}
+            return {
+              ...orig,
+              title: c.title || orig.title || '',
+              desc: c.desc || c.description || orig.desc || '',
+              description: c.desc || c.description || orig.description || '',
+              subtitle: orig.subtitle || c.icon || '',
+              icon: c.icon || orig.icon || 'Box',
+              image: c.image || orig.image || '',
+              bullets: orig.bullets || [],
             }
-          : {}),
-        ...(edits.overview.description
-          ? {
-              description: edits.overview.description,
-              intro: edits.overview.description,
-              summary: edits.overview.description,
-              lead: edits.overview.description,
+          })
+        : editCards
+        ? editCards.map((c: any) => ({
+            title: c.title || '',
+            desc: c.desc || c.description || '',
+            description: c.desc || c.description || '',
+            icon: c.icon || 'Box',
+            image: c.image || '',
+          }))
+        : origOverview.cards
+
+    const updatedBlocks =
+      editCards && Array.isArray(origOverview.blocks)
+        ? editCards.map((c: any, idx: number) => {
+            const orig = origOverview.blocks[idx] || {}
+            return {
+              ...orig,
+              title: c.title || orig.title || '',
+              description: c.desc || c.description || orig.description || '',
+              subtitle: orig.subtitle || '',
+              icon: c.icon || orig.icon || 'Box',
+              bullets: orig.bullets || [],
             }
-          : {}),
-        ...(updatedCards ? { cards: updatedCards } : {}),
-        ...(updatedBlocks ? { blocks: updatedBlocks } : {}),
-        ...(updatedPillars ? { pillars: updatedPillars } : {}),
-        ...(updatedHighlights ? { highlights: updatedHighlights } : {}),
-      }
+          })
+        : origOverview.blocks
+
+    const updatedPillars =
+      editCards && Array.isArray(origOverview.pillars)
+        ? editCards.map((c: any, idx: number) => {
+            const orig = origOverview.pillars[idx] || {}
+            return {
+              ...orig,
+              title: c.title || orig.title || '',
+              description: c.desc || c.description || orig.description || '',
+              icon: c.icon || orig.icon || 'Box',
+            }
+          })
+        : origOverview.pillars
+
+    const updatedHighlights =
+      editCards && Array.isArray(origOverview.highlights)
+        ? editCards.map((c: any, idx: number) => {
+            const orig = origOverview.highlights[idx] || {}
+            return {
+              ...orig,
+              title: c.title || orig.title || '',
+              description: c.desc || c.description || orig.description || '',
+              icon: c.icon || orig.icon || 'Box',
+            }
+          })
+        : origOverview.highlights
+
+    result.overview = {
+      ...origOverview,
+      ...(edits.overview.heading
+        ? {
+            heading: edits.overview.heading,
+            title: edits.overview.heading,
+            headline: edits.overview.heading,
+          }
+        : {}),
+      ...(edits.overview.subtitle
+        ? {
+            subtitle: edits.overview.subtitle,
+            eyebrow: edits.overview.subtitle,
+            sectionBadge: edits.overview.subtitle,
+          }
+        : {}),
+      ...(edits.overview.description
+        ? {
+            description: edits.overview.description,
+            intro: edits.overview.description,
+            summary: edits.overview.description,
+            lead: edits.overview.description,
+          }
+        : {}),
+      ...(updatedCards ? { cards: updatedCards } : {}),
+      ...(updatedBlocks ? { blocks: updatedBlocks } : {}),
+      ...(updatedPillars ? { pillars: updatedPillars } : {}),
+      ...(updatedHighlights ? { highlights: updatedHighlights } : {}),
     }
 
+    // SketchUpStudioPage intro + perks array
     if (result.intro) {
       result.intro = {
         ...result.intro,
@@ -1241,9 +1327,235 @@ export function mergeCadEditsWithPageData<T extends Record<string, any>>(
         ...(edits.overview.description ? { description: edits.overview.description } : {}),
       }
     }
+    if (Array.isArray(result.perks) && editCards) {
+      result.perks = editCards.map((c: any, idx: number) => {
+        const orig = result.perks[idx] || {}
+        return {
+          ...orig,
+          title: c.title || orig.title || '',
+          description: c.desc || c.description || orig.description || '',
+          image: c.image || orig.image || '',
+        }
+      })
+    } else if (result.perks && typeof result.perks === 'object' && !Array.isArray(result.perks)) {
+      // SketchUpProAdvancedPage perks object
+      result.perks = {
+        ...result.perks,
+        ...(edits.overview.heading ? { heading: edits.overview.heading } : {}),
+        ...(edits.overview.description ? { subheading: edits.overview.description } : {}),
+        ...(editCards && Array.isArray(result.perks.cards)
+          ? {
+              cards: editCards.map((c: any, idx: number) => {
+                const orig = result.perks.cards[idx] || {}
+                return {
+                  ...orig,
+                  title: c.title || orig.title || '',
+                  description: c.desc || c.description || orig.description || '',
+                  badge: orig.badge || c.icon || 'Feature',
+                }
+              }),
+            }
+          : {}),
+      }
+    }
+
+    // AresKudoPage introduction
+    if (result.introduction) {
+      result.introduction = {
+        ...result.introduction,
+        ...(edits.overview.heading ? { heading: edits.overview.heading } : {}),
+        ...(edits.overview.description ? { subheading: edits.overview.description } : {}),
+      }
+    }
+
+    // AresTouchPage whatIs + coreBenefits
+    if (result.whatIs) {
+      result.whatIs = {
+        ...result.whatIs,
+        ...(edits.overview.heading ? { heading: edits.overview.heading } : {}),
+        ...(edits.overview.description ? { description: edits.overview.description } : {}),
+      }
+    }
+    if (Array.isArray(result.coreBenefits) && editCards) {
+      result.coreBenefits = editCards.map((c: any, idx: number) => {
+        const orig = result.coreBenefits[idx] || {}
+        return {
+          ...orig,
+          title: c.title || orig.title || '',
+          description: c.desc || c.description || orig.description || '',
+          highlight: orig.highlight || c.icon || 'Key Benefit',
+        }
+      })
+    }
+
+    // SketchUpProPage powerOfProCards
+    if (Array.isArray(result.powerOfProCards) && editCards) {
+      result.powerOfProCards = editCards.map((c: any, idx: number) => {
+        const orig = result.powerOfProCards[idx] || {}
+        return {
+          ...orig,
+          id: orig.id || `card-${idx}`,
+          number: orig.number || `0${idx + 1}`,
+          tag: orig.tag || c.icon || 'Core Capability',
+          title: c.title || orig.title || '',
+          description: c.desc || c.description || orig.description || '',
+          bullets: orig.bullets || [],
+        }
+      })
+    }
+
+    // EnscapePage whyEnscape
+    if (result.whyEnscape) {
+      result.whyEnscape = {
+        ...result.whyEnscape,
+        ...(edits.overview.heading ? { heading: edits.overview.heading } : {}),
+        ...(edits.overview.description ? { description: edits.overview.description } : {}),
+        ...(editCards && Array.isArray(result.whyEnscape.cards)
+          ? {
+              cards: editCards.map((c: any, idx: number) => {
+                const orig = result.whyEnscape.cards[idx] || {}
+                return {
+                  ...orig,
+                  title: c.title || orig.title || '',
+                  description: c.desc || c.description || orig.description || '',
+                  tag: orig.tag || c.icon || 'Capability',
+                  image: c.image || orig.image || '',
+                }
+              }),
+            }
+          : {}),
+      }
+    }
+
+    // VRayPage whyVRay
+    if (result.whyVRay) {
+      result.whyVRay = {
+        ...result.whyVRay,
+        ...(edits.overview.heading ? { heading: edits.overview.heading } : {}),
+        ...(edits.overview.subtitle ? { eyebrow: edits.overview.subtitle } : {}),
+        ...(editCards && Array.isArray(result.whyVRay.cards)
+          ? {
+              cards: editCards.map((c: any, idx: number) => {
+                const orig = result.whyVRay.cards[idx] || {}
+                return {
+                  ...orig,
+                  title: c.title || orig.title || '',
+                  description: c.desc || c.description || orig.description || '',
+                  badge: orig.badge || c.icon || 'Pro Feature',
+                  image: c.image || orig.image || '',
+                }
+              }),
+            }
+          : {}),
+      }
+    }
+
+    // CoronaPage overviewCards
+    if (Array.isArray(result.overviewCards) && editCards) {
+      result.overviewCards = editCards.map((c: any, idx: number) => {
+        const orig = result.overviewCards[idx] || {}
+        return {
+          ...orig,
+          title: c.title || orig.title || '',
+          subtitle: orig.subtitle || c.icon || '',
+          description: c.desc || c.description || orig.description || '',
+          image: c.image || orig.image || '',
+          bullets: orig.bullets || [],
+        }
+      })
+    }
   }
 
-  // 5. Merge FAQs if present
+  // 5. Merge System Requirements if present
+  if (edits.requirements && typeof edits.requirements === 'object') {
+    const req = edits.requirements
+    const updateRowValue = (rows: any[]) =>
+      rows.map((row: any) => {
+        const keyStr = `${row.label || ''} ${row.item || ''} ${row.component || ''} ${row.category || ''}`.toLowerCase()
+        let newVal: string | undefined
+        if (keyStr.includes('operating') || keyStr.includes('os') || keyStr.includes('platform')) newVal = req.os
+        else if (keyStr.includes('processor') || keyStr.includes('cpu')) newVal = req.cpu
+        else if (keyStr.includes('memory') || keyStr.includes('ram')) newVal = req.ram
+        else if (keyStr.includes('graphics') || keyStr.includes('gpu') || keyStr.includes('video')) newVal = req.gpu
+        else if (keyStr.includes('storage') || keyStr.includes('disk') || keyStr.includes('hard')) newVal = req.disk
+        else if (keyStr.includes('display') || keyStr.includes('monitor') || keyStr.includes('resolution')) newVal = req.display
+        if (!newVal) return row
+        return {
+          ...row,
+          ...(row.spec !== undefined ? { spec: newVal } : {}),
+          ...(row.value !== undefined ? { value: newVal } : {}),
+          ...(row.detail !== undefined ? { detail: newVal } : {}),
+          ...(row.recommended !== undefined ? { recommended: newVal } : {}),
+          ...(row.windows !== undefined ? { windows: newVal } : {}),
+        }
+      })
+
+    if (Array.isArray(result.systemRequirements)) {
+      result.systemRequirements = updateRowValue(result.systemRequirements)
+    } else if (result.systemRequirements && typeof result.systemRequirements === 'object') {
+      const sr = { ...result.systemRequirements }
+      if (Array.isArray(sr.rows)) sr.rows = updateRowValue(sr.rows)
+      if (Array.isArray(sr.windowsSpecs)) sr.windowsSpecs = updateRowValue(sr.windowsSpecs)
+      if (Array.isArray(sr.general)) sr.general = updateRowValue(sr.general)
+      if (Array.isArray(sr.hardware)) sr.hardware = updateRowValue(sr.hardware)
+      if ('minOS' in sr && req.os) sr.minOS = req.os
+      if ('minGPU' in sr && req.gpu) sr.minGPU = req.gpu
+      if ('minRAM' in sr && req.ram) sr.minRAM = req.ram
+      if ('recGPU' in sr && req.gpu) sr.recGPU = req.gpu
+      if ('os' in sr && typeof sr.os === 'string' && req.os) sr.os = req.os
+      if ('cpu' in sr && typeof sr.cpu === 'string' && req.cpu) sr.cpu = req.cpu
+      if ('ram' in sr && typeof sr.ram === 'string' && req.ram) sr.ram = req.ram
+      if ('gpu' in sr && typeof sr.gpu === 'string' && req.gpu) sr.gpu = req.gpu
+      if ('storage' in sr && typeof sr.storage === 'string' && req.disk) sr.storage = req.disk
+      if (sr.android && typeof sr.android === 'object') {
+        sr.android = {
+          ...sr.android,
+          ...(req.os ? { os: req.os } : {}),
+          ...(req.cpu ? { processor: req.cpu } : {}),
+          ...(req.ram ? { ram: req.ram } : {}),
+          ...(req.disk ? { storage: req.disk } : {}),
+          ...(req.display ? { display: req.display } : {}),
+        }
+      }
+      result.systemRequirements = sr
+    }
+
+    if (result.technicalSpecs && Array.isArray(result.technicalSpecs.specs)) {
+      result.technicalSpecs = {
+        ...result.technicalSpecs,
+        specs: updateRowValue(result.technicalSpecs.specs),
+      }
+    }
+
+    if (result.platform && typeof result.platform === 'object') {
+      result.platform = {
+        ...result.platform,
+        ...(req.os && typeof result.platform.os === 'string' ? { os: req.os } : {}),
+        ...(Array.isArray(result.platform.specs) ? { specs: updateRowValue(result.platform.specs) } : {}),
+        ...(Array.isArray(result.platform.sysReqs) ? { sysReqs: updateRowValue(result.platform.sysReqs) } : {}),
+      }
+    }
+  }
+
+  // 6. Merge Licensing Note if present
+  if (edits.licensingNote) {
+    if (result.licensing && typeof result.licensing === 'object') {
+      result.licensing = {
+        ...result.licensing,
+        note: edits.licensingNote,
+        description: edits.licensingNote,
+      }
+    }
+    if (result.pricing && typeof result.pricing === 'object') {
+      result.pricing = {
+        ...result.pricing,
+        note: edits.licensingNote,
+        disclaimer: edits.licensingNote,
+      }
+    }
+  }
+
+  // 7. Merge FAQs if present
   if (Array.isArray(edits.faqs) && edits.faqs.length > 0 && Array.isArray(result.faqs)) {
     result.faqs = edits.faqs.map((f: any, idx: number) => {
       const orig = result.faqs[idx] || {}

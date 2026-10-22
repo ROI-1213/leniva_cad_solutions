@@ -264,10 +264,7 @@ export const CoronaPage: React.FC = () => {
 
               <div className="space-y-3">
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-[1.12]">
-                  Unmatched Photorealism with{' '}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-amber-600 to-red-600">
-                    Chaos Corona
-                  </span>
+                  {coronaData.hero.heading || 'Unmatched Photorealism with Chaos Corona'}
                 </h1>
                 <p className="text-base sm:text-lg font-medium text-slate-700 leading-relaxed">
                   {coronaData.hero.supportingText}
@@ -378,13 +375,13 @@ export const CoronaPage: React.FC = () => {
           {/* Header */}
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-red-600">
-              Chaos-Published Product Milestones
+              {(coronaData as any).overview?.subtitle || 'Chaos-Published Product Milestones'}
             </span>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
-              Intuitive Rendering. Perfect in Every Detail.
+              {(coronaData as any).overview?.heading || 'Intuitive Rendering. Perfect in Every Detail.'}
             </h2>
             <p className="text-sm text-slate-600 leading-relaxed">
-              Chaos Corona is a dedicated renderer for Autodesk 3ds Max and Cinema 4D, designed to make photorealistic visualization accessible through an intuitive workflow. It combines physically plausible rendering, realistic lighting, artist-focused controls and integrated tools that support architectural visualization from scene creation through final output.
+              {(coronaData as any).overview?.description || 'Chaos Corona is a dedicated renderer for Autodesk 3ds Max and Cinema 4D, designed to make photorealistic visualization accessible through an intuitive workflow. It combines physically plausible rendering, realistic lighting, artist-focused controls and integrated tools that support architectural visualization from scene creation through final output.'}
             </p>
           </div>
 

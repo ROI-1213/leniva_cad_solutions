@@ -305,10 +305,7 @@ export const AresTouchPage: React.FC = () => {
 
               <div className="space-y-3">
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
-                  Professional CAD.<br />
-                  <span className="bg-gradient-to-r from-sky-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent">
-                    Anywhere you work.
-                  </span>
+                  {data.hero.headline || 'Professional CAD. Anywhere you work.'}
                 </h1>
                 <p className="text-xl sm:text-2xl font-medium text-slate-200">
                   {data.hero.subheadline}
@@ -377,7 +374,7 @@ export const AresTouchPage: React.FC = () => {
                   {/* CAD Screen Simulation */}
                   <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-800 bg-[#0d1624]">
                     <img
-                      src="/images/software/sections/aec-construction.jpg"
+                      src={(data.hero as any).image || '/images/software/sections/aec-construction.jpg'}
                       alt="ARES Touch CAD drawing on tablet"
                       className="w-full h-full object-cover opacity-85"
                     />

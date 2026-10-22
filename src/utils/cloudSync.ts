@@ -211,8 +211,26 @@ export async function pushCmsStateToCloud(options?: { isEnquirySubmission?: bool
       const inlineKeys: Record<string, string> = {}
       for (const k of COMPACT_INLINE_KEYS) {
         const val = cleanMergedKeys[k]
-        if (typeof val === 'string' && val.length < 35000) {
-          inlineKeys[k] = val
+        if (typeof val === 'string') {
+          if (val.length < 65000) {
+            inlineKeys[k] = val
+          } else if (k === 'leniva_cad_software_edits') {
+            try {
+              const parsed = JSON.parse(val)
+              const compactCad: Record<string, any> = {}
+              for (const [ck, cv] of Object.entries(parsed || {})) {
+                if ((cv as any)?.is_admin_customized || ck.startsWith('cad_')) {
+                  compactCad[ck] = cv
+                }
+              }
+              const serialized = JSON.stringify(compactCad)
+              if (serialized.length < 65000) {
+                inlineKeys[k] = serialized
+              }
+            } catch {
+              // ignore
+            }
+          }
         }
       }
 

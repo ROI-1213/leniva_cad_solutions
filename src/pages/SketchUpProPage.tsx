@@ -294,7 +294,7 @@ export const SketchUpProPage: React.FC = () => {
           <div className="lg:col-span-6 relative">
             <div className="relative rounded-3xl overflow-hidden border border-slate-200 bg-slate-900 shadow-2xl">
               <img
-                src="/images/software/sketchup-pro.jpg"
+                src={(sketchupProData.hero as any).image || '/images/software/sketchup-pro.jpg'}
                 alt="SketchUp Pro Desktop 3D Architectural Workspace"
                 className="w-full h-auto object-cover opacity-90 hover:opacity-100 transition-opacity"
               />
@@ -359,13 +359,13 @@ export const SketchUpProPage: React.FC = () => {
       <section ref={featuresRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <span className="text-xs font-mono uppercase tracking-widest text-[#005F9E] font-bold">
-            The Professional Difference
+            {(sketchupProData as any).overview?.subtitle || 'The Professional Difference'}
           </span>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
-            Everything you need to turn ideas into professional designs
+            {(sketchupProData as any).overview?.heading || 'Everything you need to turn ideas into professional designs'}
           </h2>
           <p className="text-sm text-slate-600 leading-relaxed">
-            SketchUp Pro combines intuitive 3D modeling, construction documentation, photorealistic visualization, cloud collaboration, and modular extensibility into one seamless professional workflow.
+            {(sketchupProData as any).overview?.description || 'SketchUp Pro combines intuitive 3D modeling, construction documentation, photorealistic visualization, cloud collaboration, and modular extensibility into one seamless professional workflow.'}
           </p>
         </div>
 

@@ -341,21 +341,40 @@ const applyCadEditsToCatalog = (items: ProductItem[]): ProductItem[] => {
         ...item,
         name: edit.productName || item.name,
         brand: edit.brand || item.brand,
-        badge: edit.badge || edit.eyebrow || item.badge,
-        hero_heading: edit.headline || item.hero_heading,
-        hero_subtitle: edit.supportingHeadline || item.hero_subtitle,
+        badge: edit.heroBadge || edit.badge || edit.eyebrow || item.badge,
+        hero_heading: edit.heroHeading || edit.headline || item.hero_heading,
+        hero_subtitle: edit.heroSupportingText || edit.supportingHeadline || item.hero_subtitle,
         tagline: edit.supportingHeadline || edit.headline || item.tagline,
-        short_description: edit.shortDescription || item.short_description,
+        short_description: edit.shortDescription || edit.heroSupportingText || item.short_description,
         description: edit.description || item.description,
         hero_image: edit.heroImage || item.hero_image,
-        images: edit.heroImage ? [edit.heroImage, ...(item.images || []).slice(1)] : item.images,
+        images: edit.heroImage
+          ? [edit.heroImage, ...(edit.secondaryImage ? [edit.secondaryImage] : (item.images || []).slice(1))]
+          : item.images,
         features: Array.isArray(edit.highlights) && edit.highlights.length > 0 ? edit.highlights : item.features,
         key_specs: Array.isArray(edit.specStrip) && edit.specStrip.length > 0 ? edit.specStrip : item.key_specs,
-        overview_heading: edit.overviewHeading || item.overview_heading,
-        overview_description: edit.overviewDescription || item.overview_description,
-        overview_cards: Array.isArray(edit.overviewCards) && edit.overviewCards.length > 0 ? edit.overviewCards : item.overview_cards,
+        overview_heading: edit.overview?.heading || edit.overviewHeading || item.overview_heading,
+        overview_description: edit.overview?.description || edit.overviewDescription || item.overview_description,
+        overview_cards:
+          Array.isArray(edit.overview?.cards) && edit.overview.cards.length > 0
+            ? edit.overview.cards.map((c: any) => ({
+                title: c.title || '',
+                description: c.desc || c.description || '',
+                icon: c.icon || 'Box',
+                image: c.image || edit.heroImage || item.hero_image,
+              }))
+            : Array.isArray(edit.overviewCards) && edit.overviewCards.length > 0
+            ? edit.overviewCards
+            : item.overview_cards,
         system_requirements: Array.isArray(edit.requirements) && edit.requirements.length > 0 ? edit.requirements : item.system_requirements,
-        faqs: Array.isArray(edit.faqs) && edit.faqs.length > 0 ? edit.faqs : item.faqs,
+        faqs:
+          Array.isArray(edit.faqs) && edit.faqs.length > 0
+            ? edit.faqs.map((f: any) => ({
+                question: f.q || f.question || '',
+                answer: f.a || f.answer || '',
+                category: f.category || 'General',
+              }))
+            : item.faqs,
         licensing_plans: Array.isArray(edit.licensingOptions) && edit.licensingOptions.length > 0
           ? edit.licensingOptions.map((o: any) => ({
               name: o.title || o.name || '',

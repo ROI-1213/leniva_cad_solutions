@@ -299,10 +299,7 @@ export const AresKudoPage: React.FC = () => {
               </div>
 
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
-                The Most Advanced Online CAD Software for{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-sky-400">
-                  DWG Viewing & Editing
-                </span>
+                {data.hero.headline || 'The Most Advanced Online CAD Software for DWG Viewing & Editing'}
               </h1>
 
               <p className="text-base sm:text-lg text-slate-300 font-medium leading-relaxed">
@@ -400,6 +397,13 @@ export const AresKudoPage: React.FC = () => {
 
                 {/* Simulated Interactive CAD Canvas */}
                 <div className="relative h-80 sm:h-96 bg-[#0a0f1d] overflow-hidden p-4">
+                  {(data.hero as any).image && (data.hero as any).image !== '/images/ares-kudo/ares-kudo-hero.jpg' && (
+                    <img
+                      src={(data.hero as any).image}
+                      alt={data.hero.headline || 'ARES Kudo'}
+                      className="absolute inset-0 w-full h-full object-cover z-20"
+                    />
+                  )}
                   {/* Blueprint Grid Lines */}
                   <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
                     <defs>

@@ -180,8 +180,7 @@ export default function SketchUpProAdvancedPage() {
 
               <div className="space-y-3">
                 <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight">
-                  SketchUp Pro<br />
-                  <span className="text-cyan-300">Advanced Workflows</span>
+                  {d.hero.title || 'SketchUp Pro Advanced Workflows'}
                 </h1>
                 <p className="text-xl lg:text-2xl font-medium text-white/80">
                   {d.hero.tagline}
@@ -228,7 +227,7 @@ export default function SketchUpProAdvancedPage() {
               {/* Main workspace card */}
               <div className="relative rounded-2xl overflow-hidden bg-white/5 border border-white/20 backdrop-blur-sm p-6 shadow-2xl">
                 <img
-                  src="/images/software/sketchup-advanced.jpg"
+                  src={(d.hero as any).image || '/images/software/sketchup-advanced.jpg'}
                   alt="SketchUp Pro Advanced Workflows — Revit and Point Cloud"
                   className="w-full aspect-video object-cover rounded-xl"
                   loading="eager"
