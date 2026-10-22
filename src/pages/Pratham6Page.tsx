@@ -239,8 +239,8 @@ export const Pratham6Page: React.FC = () => {
           2. STICKY PRODUCT NAVIGATION BAR
          ==================================================== */}
       <div className="w-full bg-white border-b border-slate-200 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 lg:py-0 lg:h-14 flex flex-wrap lg:flex-nowrap items-center justify-between gap-2">
+          <div className="flex items-center space-x-3 shrink-0">
             <span className="text-base font-black text-slate-900 tracking-tight flex items-center gap-1.5">
               <span>Pratham 6.0</span>
               <span className="hidden sm:inline-block text-[10px] font-mono uppercase bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-bold whitespace-nowrap shrink-0">
@@ -250,7 +250,7 @@ export const Pratham6Page: React.FC = () => {
             <span className="text-xs text-slate-400 hidden md:inline font-mono">| Make3D Industrial FDM</span>
           </div>
 
-          <div className="hidden lg:flex items-center space-x-1 text-xs font-semibold text-slate-600">
+          <div className="w-full lg:w-auto order-3 lg:order-2 flex items-center space-x-1 text-xs font-semibold text-slate-600 overflow-x-auto no-scrollbar py-1.5 lg:py-0 border-t lg:border-t-0 border-slate-100 whitespace-nowrap">
             {[
               { id: 'overview', label: 'Overview', ref: overviewRef },
               { id: 'features', label: 'Features', ref: featuresRef },
@@ -1600,9 +1600,9 @@ export const Pratham6Page: React.FC = () => {
               <div className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto">
                 <Check className="w-6 h-6" />
               </div>
-              <h3 className="font-black text-lg text-emerald-950">Quote Request Submitted Successfully!</h3>
+              <h3 className="font-black text-lg text-emerald-950">Thank You for Your Enquiry!</h3>
               <p className="text-xs text-emerald-800 max-w-md mx-auto leading-relaxed">
-                Thank you, {quoteForm.name}. Our technical sales engineer will reach out to you within 24 business hours with detailed quotations, brochure documentation, and configuration options.
+                Our team will contact you shortly.
               </p>
               <button
                 onClick={() => {

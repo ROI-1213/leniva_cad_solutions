@@ -180,8 +180,8 @@ export const CoronaPage: React.FC = () => {
           2. STICKY SUB-NAVIGATION BAR
          ==================================================== */}
       <div className="w-full bg-white border-b border-slate-200 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
-          <div className="flex items-center space-x-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 lg:py-0 lg:h-14 flex flex-wrap lg:flex-nowrap items-center justify-between gap-2">
+          <div className="flex items-center space-x-3 shrink-0">
             <span className="text-sm font-black tracking-tight text-slate-950 uppercase flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
               Chaos Corona
@@ -192,7 +192,7 @@ export const CoronaPage: React.FC = () => {
           </div>
 
           {/* Quick Jump Links */}
-          <div className="hidden lg:flex items-center space-x-1 text-xs font-semibold text-slate-600 overflow-x-auto py-1">
+          <div className="w-full lg:w-auto order-3 lg:order-2 flex items-center space-x-1 text-xs font-semibold text-slate-600 overflow-x-auto no-scrollbar py-1.5 lg:py-1 border-t lg:border-t-0 border-slate-100">
             {[
               { id: 'overview', label: 'Overview', ref: overviewRef },
               { id: 'benefits', label: 'Why Corona', ref: benefitsRef },
@@ -1117,18 +1117,8 @@ export const CoronaPage: React.FC = () => {
             {coronaData.plans.map(plan => (
               <div
                 key={plan.id}
-                className={`rounded-3xl p-7 flex flex-col justify-between transition-all duration-300 relative ${
-                  plan.popular
-                    ? 'bg-white border-2 border-red-600 shadow-xl ring-4 ring-red-500/10'
-                    : 'bg-slate-50/80 border border-slate-200 hover:border-slate-300 shadow-xs'
-                }`}
+                className="rounded-3xl p-7 flex flex-col justify-between transition-all duration-300 relative bg-white border border-slate-200 hover:border-slate-300 shadow-xs"
               >
-                {plan.badge && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 bg-red-600 text-white text-[11px] font-extrabold uppercase tracking-wider rounded-full shadow-md">
-                    {plan.badge}
-                  </div>
-                )}
-
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-xl font-black text-slate-950">{plan.name}</h3>
@@ -1163,11 +1153,7 @@ export const CoronaPage: React.FC = () => {
                       setEnquiryForm(prev => ({ ...prev, planOfInterest: plan.name }))
                       scrollTo(enquiryRef, 'enquiry')
                     }}
-                    className={`w-full py-3 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                      plan.popular
-                        ? 'bg-red-600 hover:bg-red-700 text-white shadow-md'
-                        : 'bg-slate-900 hover:bg-slate-800 text-white'
-                    }`}
+                    className="w-full py-3 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer bg-slate-900 hover:bg-slate-800 text-white shadow-sm"
                   >
                     <span>Request Official Quote</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -1586,9 +1572,9 @@ export const CoronaPage: React.FC = () => {
                 <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/40">
                   <Check className="w-8 h-8" />
                 </div>
-                <h3 className="text-xl font-bold text-white">Enquiry Received Successfully!</h3>
+                <h3 className="text-xl font-bold text-white">Thank You for Your Enquiry!</h3>
                 <p className="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
-                  Thank you for reaching out. Our Chaos visualization specialist will contact you with official quotations, licensing terms, and evaluation guidance.
+                  Our team will contact you shortly.
                 </p>
                 <button
                   onClick={() => setIsSubmitted(false)}

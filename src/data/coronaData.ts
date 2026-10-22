@@ -681,8 +681,7 @@ export const coronaData = {
       positioning: 'The preferred choice for visualization studios, architectural firms, and growing creative teams needing floating licenses.',
       description:
         'Includes everything in Solo plus floating team license flexibility, over 18,500 assets, enhanced realistic materials, and 5x Chaos credits.',
-      badge: 'Most Popular for Studios',
-      popular: true,
+      popular: false,
       licenseType: 'Floating Team License (Shareable Across Studio)',
       billingTerm: 'Annual Subscription',
       indicativePriceInr: 'Contact for Current Regional Quote',
@@ -810,7 +809,7 @@ export const coronaData = {
     },
     {
       id: 'gal-4',
-      title: 'Corporate Headquarters Atrium',
+      title: 'Corporate Office Atrium',
       category: 'commercial',
       categoryLabel: 'Commercial Architecture',
       caption: 'Large-scale commercial atrium with complex reflections, structural steel geometry, and interior foliage.',

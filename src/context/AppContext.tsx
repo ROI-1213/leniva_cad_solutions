@@ -30,7 +30,11 @@ const getStoredSiteSettings = (): SiteSettingsType => {
     if (saved) {
       const parsed = JSON.parse(saved)
       if (parsed && typeof parsed === 'object') {
-        return { ...defaultSiteSettings, ...parsed }
+        const merged = { ...defaultSiteSettings, ...parsed }
+        if (merged.workingHours && merged.workingHours.includes('6:30 PM')) {
+          merged.workingHours = defaultSiteSettings.workingHours
+        }
+        return merged
       }
     }
   } catch {

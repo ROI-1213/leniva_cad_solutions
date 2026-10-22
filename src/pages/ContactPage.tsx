@@ -99,7 +99,7 @@ export const ContactPage: React.FC = () => {
                     <MapPin className="w-4 h-4" />
                   </div>
                   <div>
-                    <strong className="block text-slate-900 font-semibold mb-0.5">Google Address & Headquarters</strong>
+                    <strong className="block text-slate-900 font-semibold mb-0.5">ADDRESS</strong>
                     <p className="text-slate-600 leading-relaxed">{liveSiteSettings.address}</p>
                     <a
                       href={siteConfig.mapUrl}
@@ -118,7 +118,8 @@ export const ContactPage: React.FC = () => {
                   </div>
                   <div>
                     <strong className="block text-slate-900 font-semibold mb-0.5">Operational Hours</strong>
-                    <p className="text-slate-600">{liveSiteSettings.workingHours || 'Monday – Friday: 9:30 AM – 6:00 PM | Saturday: 9:30 AM – 1:30 PM'}</p>
+                    <p className="text-slate-600">Monday – Friday: 9:30 AM – 6:00 PM IST</p>
+                    <p className="text-slate-600">Saturday: 9:30 AM – 1:30 PM IST</p>
                   </div>
                 </div>
               </div>
@@ -168,7 +169,7 @@ export const ContactPage: React.FC = () => {
                 </div>
                 <h3 className="text-2xl font-bold text-slate-950">Enquiry Successfully Submitted</h3>
                 <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
-                  Thank you for reaching out, <strong className="text-slate-900">{formData.fullName}</strong>. Your requirement has been routed to our technical sales and engineering desk. We typically respond within 2-4 business hours.
+                  Thank you for reaching out, <strong className="text-slate-900">{formData.fullName}</strong>. Your requirement has been routed to our technical sales and engineering desk. Our team will contact you shortly.
                 </p>
                 <button
                   onClick={() => setIsSubmitted(false)}

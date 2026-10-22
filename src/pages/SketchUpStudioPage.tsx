@@ -1096,31 +1096,21 @@ export const SketchUpStudioPage: React.FC = () => {
             {sketchUpStudioData.plans.map((plan) => (
               <div
                 key={plan.id}
-                className={`rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 ${
-                  plan.popular
-                    ? 'bg-slate-900 text-white border-2 border-red-500 shadow-2xl relative scale-102 lg:-translate-y-2'
-                    : 'bg-slate-50 text-slate-900 border border-slate-200 hover:border-slate-300'
-                }`}
+                className="rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 bg-white text-slate-900 border border-slate-200 hover:border-slate-300 shadow-sm"
               >
                 <div>
-                  {plan.popular && (
-                    <div className="inline-block bg-red-600 text-white text-[10px] font-extrabold uppercase px-3 py-1 rounded-full tracking-wider mb-4">
-                      Most Comprehensive Plan
-                    </div>
-                  )}
-
-                  <h3 className="text-2xl font-black tracking-tight">{plan.name}</h3>
-                  <div className={`text-xs font-bold mt-1 ${plan.popular ? 'text-red-400' : 'text-red-600'}`}>
+                  <h3 className="text-2xl font-black tracking-tight text-slate-950">{plan.name}</h3>
+                  <div className="text-xs font-bold mt-1 text-red-600">
                     {plan.tagline}
                   </div>
-                  <p className={`text-xs mt-3 leading-relaxed ${plan.popular ? 'text-slate-300' : 'text-slate-600'}`}>
+                  <p className="text-xs mt-3 leading-relaxed text-slate-600">
                     {plan.description}
                   </p>
 
-                  <div className="my-6 p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-white/5 space-y-1">
-                    <div className="text-xs font-semibold text-slate-400">Licensing & Terms:</div>
-                    <div className="text-sm font-bold">Contact Leniva for Official Regional Quote</div>
-                    <div className="text-[11px] text-slate-400">{plan.billing} • {plan.licensingType}</div>
+                  <div className="my-6 p-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 space-y-1">
+                    <div className="text-xs font-semibold text-slate-500">Licensing & Terms:</div>
+                    <div className="text-sm font-bold text-slate-900">Contact Leniva for Official Regional Quote</div>
+                    <div className="text-[11px] text-slate-500">{plan.billing} • {plan.licensingType}</div>
                   </div>
 
                   <div className="space-y-2.5">
@@ -1129,21 +1119,17 @@ export const SketchUpStudioPage: React.FC = () => {
                     </span>
                     {plan.features.map((feat, fidx) => (
                       <div key={fidx} className="flex items-start space-x-2 text-xs">
-                        <Check className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
-                        <span className={plan.popular ? 'text-slate-200' : 'text-slate-700'}>{feat}</span>
+                        <Check className="w-3.5 h-3.5 text-red-600 flex-shrink-0 mt-0.5" />
+                        <span className="text-slate-700">{feat}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="pt-8 mt-6 border-t border-slate-200 dark:border-slate-800 space-y-3">
+                <div className="pt-8 mt-6 border-t border-slate-200 space-y-3">
                   <button
                     onClick={() => openQuoteModal(`${plan.name} (Trimble)`)}
-                    className={`w-full py-3 rounded-xl font-bold text-xs sm:text-sm transition-all text-center ${
-                      plan.popular
-                        ? 'bg-red-600 hover:bg-red-700 text-white shadow-lg'
-                        : 'bg-slate-900 hover:bg-slate-800 text-white'
-                    }`}
+                    className="w-full py-3 rounded-xl font-bold text-xs sm:text-sm transition-all text-center bg-slate-900 hover:bg-slate-800 text-white shadow-sm"
                   >
                     Request Quote for {plan.name}
                   </button>
@@ -1389,9 +1375,9 @@ export const SketchUpStudioPage: React.FC = () => {
                 {formSubmitted ? (
                   <div className="p-8 text-center bg-green-50 rounded-2xl border border-green-200 space-y-3">
                     <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto" />
-                    <h4 className="text-lg font-bold text-slate-900">Enquiry Received!</h4>
+                    <h4 className="text-lg font-bold text-slate-900">Thank You for Your Enquiry!</h4>
                     <p className="text-xs text-slate-600">
-                      Thank you for contacting Leniva CAD Solutions. Our Trimble technical specialist will connect with your commercial quote within 2 business hours.
+                      Our team will contact you shortly.
                     </p>
                   </div>
                 ) : (

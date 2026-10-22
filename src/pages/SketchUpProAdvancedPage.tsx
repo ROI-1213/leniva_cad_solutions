@@ -692,18 +692,18 @@ export default function SketchUpProAdvancedPage() {
 
           {/* Price card */}
           <div className="max-w-lg mx-auto">
-            <div className="rounded-3xl border-2 border-[#003865] bg-white shadow-2xl overflow-hidden">
+            <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
               {/* Header */}
-              <div className="bg-gradient-to-br from-[#001f3f] to-[#003865] px-8 py-8 text-center">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400 text-amber-900 text-xs font-bold mb-4">
+              <div className="bg-slate-50 border-b border-slate-200 px-8 py-8 text-center">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-200 text-slate-700 text-xs font-bold mb-4">
                   <Monitor className="w-3 h-3" />
                   WINDOWS ONLY
                 </div>
-                <h3 className="text-2xl font-bold text-white">Pro Advanced Workflows</h3>
-                <p className="text-white/60 text-sm mt-1">Revit Importer + Scan Essentials included</p>
+                <h3 className="text-2xl font-bold text-slate-900">Pro Advanced Workflows</h3>
+                <p className="text-slate-600 text-sm mt-1">Revit Importer + Scan Essentials included</p>
                 <div className="mt-6 space-y-1">
-                  <div className="text-2xl font-bold text-white">Commercial Subscription</div>
-                  <p className="text-cyan-300 text-sm">Official Trimble Partner Quotation on Request</p>
+                  <div className="text-2xl font-bold text-slate-900">Commercial Subscription</div>
+                  <p className="text-[#003865] font-semibold text-sm">Official Trimble Partner Quotation on Request</p>
                 </div>
               </div>
 
@@ -727,7 +727,7 @@ export default function SketchUpProAdvancedPage() {
                 <div className="pt-4 space-y-3">
                   <Link
                     to="/contact"
-                    className="block w-full py-3.5 rounded-xl bg-[#003865] text-white font-semibold text-sm hover:bg-[#004A8F] transition-colors text-center"
+                    className="block w-full py-3.5 rounded-xl bg-slate-900 text-white font-semibold text-sm hover:bg-slate-800 transition-colors text-center"
                   >
                     Enquire Now
                   </Link>

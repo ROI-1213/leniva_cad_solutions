@@ -238,8 +238,8 @@ export const PrathamX1000Page: React.FC = () => {
           2. STICKY PRODUCT NAVIGATION BAR
          ==================================================== */}
       <div className="w-full bg-white border-b border-slate-200 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 lg:py-0 lg:h-14 flex flex-wrap lg:flex-nowrap items-center justify-between gap-2">
+          <div className="flex items-center space-x-3 shrink-0">
             <span className="text-base font-black text-slate-900 tracking-tight flex items-center gap-1.5">
               <span>Pratham X 1000</span>
               <span className="hidden sm:inline-block text-[10px] font-mono uppercase bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-bold whitespace-nowrap shrink-0">
@@ -249,7 +249,7 @@ export const PrathamX1000Page: React.FC = () => {
             <span className="text-xs text-slate-400 hidden md:inline font-mono">| Make3D Ultra-Large Format</span>
           </div>
 
-          <div className="hidden lg:flex items-center space-x-1 text-xs font-semibold text-slate-600">
+          <div className="w-full lg:w-auto order-3 lg:order-2 flex items-center space-x-1 text-xs font-semibold text-slate-600 overflow-x-auto no-scrollbar py-1.5 lg:py-0 border-t lg:border-t-0 border-slate-100 whitespace-nowrap">
             {[
               { id: 'overview', label: 'Overview', ref: overviewRef },
               { id: 'volume', label: '1m³ Volume', ref: volumeRef },
@@ -1592,9 +1592,9 @@ export const PrathamX1000Page: React.FC = () => {
             {formSuccess ? (
               <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-3">
                 <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
-                <h4 className="text-lg font-bold text-emerald-950">Quote Request Received!</h4>
+                <h4 className="text-lg font-bold text-emerald-950">Thank You for Your Enquiry!</h4>
                 <p className="text-xs text-emerald-800 max-w-md mx-auto">
-                  Thank you for your enquiry on Pratham X 1000. Our industrial additive engineering team will review your specifications and contact you with a formal quotation and technical consultation.
+                  Our team will contact you shortly.
                 </p>
                 <button
                   onClick={() => setFormSuccess(false)}

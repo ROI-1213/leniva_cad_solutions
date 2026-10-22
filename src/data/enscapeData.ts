@@ -600,7 +600,7 @@ export const enscapeData: EnscapeCmsData = {
     },
     {
       id: 'gal-3',
-      title: 'Biophilic Corporate Headquarters Atrium',
+      title: 'Biophilic Corporate Office Atrium',
       category: 'commercial',
       categoryLabel: 'Commercial',
       caption: 'Multi-story commercial office atrium with integrated living green wall, acoustic baffles, and glass elevators.',

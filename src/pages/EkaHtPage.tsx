@@ -83,8 +83,8 @@ export const EkaHtPage: React.FC = () => {
           STICKY PRODUCT SUB-NAV BAR
          ==================================================== */}
       <div className="w-full bg-white border-b border-slate-200 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 lg:py-0 lg:h-14 flex flex-wrap lg:flex-nowrap items-center justify-between gap-2">
+          <div className="flex items-center space-x-3 shrink-0">
             <span className="text-sm font-black text-slate-950 tracking-tight">EKA HT</span>
             <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-mono font-bold uppercase tracking-wider">
               {ekaHtData.platformSize}
@@ -94,7 +94,7 @@ export const EkaHtPage: React.FC = () => {
             </span>
           </div>
 
-          <div className="hidden lg:flex items-center space-x-6 text-xs font-semibold text-slate-600">
+          <div className="w-full lg:w-auto order-3 lg:order-2 flex items-center space-x-4 sm:space-x-6 text-xs font-semibold text-slate-600 overflow-x-auto no-scrollbar py-1.5 lg:py-0 border-t lg:border-t-0 border-slate-100 whitespace-nowrap">
             <button onClick={() => scrollTo(overviewRef)} className="hover:text-amber-700 transition-colors cursor-pointer">
               Overview
             </button>

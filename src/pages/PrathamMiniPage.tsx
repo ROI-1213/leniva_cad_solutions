@@ -126,8 +126,8 @@ export const PrathamMiniPage: React.FC = () => {
           1. STICKY PRODUCT NAVIGATION BAR
          ==================================================== */}
       <div className="w-full bg-white border-b border-slate-200 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-0 md:h-14 flex flex-wrap md:flex-nowrap items-center justify-between gap-2">
+          <div className="flex items-center space-x-3 shrink-0">
             <span className="text-sm font-black text-slate-950 tracking-tight">PRATHAM MINI</span>
             <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-mono font-bold uppercase tracking-wider">
               Compact FDM
@@ -135,7 +135,7 @@ export const PrathamMiniPage: React.FC = () => {
           </div>
 
           {/* Quick jump navigation links */}
-          <div className="hidden md:flex items-center space-x-6 text-xs font-semibold text-slate-600">
+          <div className="w-full md:w-auto order-3 md:order-2 flex items-center space-x-4 sm:space-x-6 text-xs font-semibold text-slate-600 overflow-x-auto no-scrollbar py-1.5 md:py-0 border-t md:border-t-0 border-slate-100 whitespace-nowrap">
             <button onClick={() => scrollTo(overviewRef)} className="hover:text-red-600 transition-colors cursor-pointer">Overview</button>
             <button onClick={() => scrollTo(educationRef)} className="hover:text-red-600 transition-colors cursor-pointer">Education</button>
             <button onClick={() => scrollTo(featuresRef)} className="hover:text-red-600 transition-colors cursor-pointer">Features</button>

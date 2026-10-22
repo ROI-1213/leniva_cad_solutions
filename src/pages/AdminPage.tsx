@@ -6833,7 +6833,7 @@ export default function AdminPage() {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Google Address & Headquarters</label>
+                  <label className="block font-bold text-slate-700 mb-1">ADDRESS</label>
                   <input
                     type="text"
                     value={siteSettings.address || ''}
@@ -6849,7 +6849,7 @@ export default function AdminPage() {
                     type="text"
                     value={siteSettings.workingHours || ''}
                     onChange={e => setSiteSettings({ ...siteSettings, workingHours: e.target.value })}
-                    placeholder="Monday – Friday: 9:30 AM – 6:00 PM | Saturday: 9:30 AM – 1:30 PM"
+                    placeholder="Monday – Friday: 9:30 AM – 6:00 PM IST | Saturday: 9:30 AM – 1:30 PM IST"
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
                   />
                 </div>

@@ -6,7 +6,6 @@ import {
   Printer,
   Layers,
   Box,
-  Scan,
   ArrowRight,
   ChevronRight,
   Sparkles,
@@ -84,24 +83,6 @@ const PRINTER_SECTIONS: HardwareSectionConfig[] = [
       p.technology.toLowerCase().includes('lcd') ||
       ['eka-gt-max', 'eka-f1-16k'].includes(p.id),
   },
-  {
-    id: 'scanners',
-    title: 'Precision 3D Scanners & Reverse Engineering',
-    subtitle: 'High-Speed Handheld & Optical Coordinate Laser Digitizers',
-    techBadge: 'HYBRID BLUE & IR LASER METROLOGY',
-    badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    accentColor: '#059669',
-    icon: Scan,
-    description:
-      'Industrial-grade handheld and hybrid laser 3D scanners capturing millions of measurements per second down to 0.04 mm accuracy. Engineered for reverse engineering, rapid quality inspection, and full-color 3D reality capture.',
-    categoryRoute: '/products/3d-scanners',
-    categoryLabel: 'Explore Scanners Hub',
-    matches: (p: Product) =>
-      p.categorySlug === '3d-scanners' ||
-      p.technology.toLowerCase().includes('scanner') ||
-      p.brand === '3DeVOK' ||
-      p.brand === 'SHINING 3D',
-  },
 ]
 
 export const ProductsPage: React.FC = () => {
@@ -153,26 +134,18 @@ export const ProductsPage: React.FC = () => {
       badgeColor: 'bg-purple-50 text-purple-700 border-purple-200',
       flagships: ['EKA GT MAX (8K)', 'EKA F1 16K (Micro Detail)'],
     },
-    {
-      id: 'scanners',
-      title: 'Precision 3D Scanners',
-      tag: '3DEVOK & EINSTAR',
-      description: 'Handheld & optical coordinate laser digitizers capturing millions of points down to 0.04 mm accuracy.',
-      icon: Scan,
-      route: '/products/3d-scanners',
-      badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      flagships: ['3DeVOK MT (Hybrid Laser)', '3DeVOK MQ (Color 3D)', 'EINSTAR Handheld'],
-    },
   ]
 
   // Filter individual product matching search & section criteria
-  // EXCLUDES all CAD software products
+  // EXCLUDES all CAD software and 3D scanner products (3D Printers only)
   const isProductMatching = (p: Product): boolean => {
-    // Explicitly exclude CAD software
+    // Explicitly exclude CAD software and 3D Scanners
     if (
       p.categorySlug === 'cad-software' ||
+      p.categorySlug === '3d-scanners' ||
       p.technology.toLowerCase().includes('software') ||
-      ['Trimble', 'Graebert', 'Chaos'].includes(p.brand)
+      p.technology.toLowerCase().includes('scanner') ||
+      ['Trimble', 'Graebert', 'Chaos', '3DeVOK', 'SHINING 3D'].includes(p.brand)
     ) {
       return false
     }
@@ -212,13 +185,15 @@ export const ProductsPage: React.FC = () => {
     return () => window.removeEventListener('leniva_products_catalog_updated', handleUpdate)
   }, [])
 
-  // Filter hardware products only (strictly no CAD software)
+  // Filter 3D printer products only (strictly no CAD software or 3D scanners)
   const hardwareProducts = useMemo(() => {
     return allProducts.filter(
       (p) =>
         p.categorySlug !== 'cad-software' &&
+        p.categorySlug !== '3d-scanners' &&
         !p.technology.toLowerCase().includes('software') &&
-        !['Trimble', 'Graebert', 'Chaos'].includes(p.brand)
+        !p.technology.toLowerCase().includes('scanner') &&
+        !['Trimble', 'Graebert', 'Chaos', '3DeVOK', 'SHINING 3D'].includes(p.brand)
     )
   }, [allProducts])
 
@@ -348,7 +323,7 @@ export const ProductsPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {categoryHubs.map((hub) => {
               const Icon = hub.icon
               return (
@@ -439,7 +414,6 @@ export const ProductsPage: React.FC = () => {
                   <option value="fdm">FDM 3D Printers (Pratham Series) (8)</option>
                   <option value="dlp">DLP Resin 3D Printers (EKA Series) (3)</option>
                   <option value="lcd">Industrial LCD 3D Printers (EKA 8K/16K) (2)</option>
-                  <option value="scanners">Precision 3D Scanners (3)</option>
                 </select>
               </div>
 
@@ -516,16 +490,6 @@ export const ProductsPage: React.FC = () => {
                 }`}
               >
                 3. Industrial LCD Printers — 8K/16K (2)
-              </button>
-              <button
-                onClick={() => setSelectedSection('scanners')}
-                className={`px-3.5 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold cursor-pointer ${
-                  selectedSection === 'scanners'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                4. 3D Scanners (3)
               </button>
             </div>
           </div>

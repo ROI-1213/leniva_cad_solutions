@@ -918,8 +918,7 @@ export const aresKudoData = {
       priceEur: { annual: 200, monthly: 35 },
       priceInr: { annual: 18000, monthly: 3200 },
       billingNote: 'Annual or monthly commercial subscription options',
-      popular: true,
-      badge: 'Most Popular',
+      popular: false,
       features: [
         'Full 2D CAD drafting & editing in any browser',
         '300+ CAD drawing, modify, and dimension tools',

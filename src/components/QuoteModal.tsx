@@ -26,6 +26,47 @@ export const QuoteModal: React.FC = () => {
 
   if (!isQuoteModalOpen) return null
 
+  const isDemoRequest = /\bdemo\b|demonstration/i.test(quoteProduct || '')
+  const isConsultationRequest =
+    !isDemoRequest &&
+    /\bconsultation\b|schedule.*engineer|talk to.*expert|technical call/i.test(quoteProduct || '')
+
+  const modalBadge = isDemoRequest
+    ? 'Official Demo Request'
+    : isConsultationRequest
+      ? 'Engineering Consultation'
+      : 'Official Inquiry'
+
+  const modalHeading = isDemoRequest
+    ? 'Request a Product Demonstration'
+    : isConsultationRequest
+      ? 'Schedule an Engineering Consultation'
+      : 'Request an Engineering Quotation'
+
+  const modalIntro = isDemoRequest
+    ? 'Please provide your details below to schedule a live product demonstration with our application engineers.'
+    : isConsultationRequest
+      ? 'Please share your technical requirements below to schedule an engineering consultation with our specialists.'
+      : 'Please provide your project requirements below. Our application engineers review all inquiries to ensure the most cost-effective hardware, software, and service configuration.'
+
+  const submitButtonText = isDemoRequest
+    ? 'Submit Demo Request'
+    : isConsultationRequest
+      ? 'Schedule Consultation'
+      : 'Submit Quote Request'
+
+  const confirmationHeading = isDemoRequest
+    ? 'Thank You for Your Demo Request!'
+    : isConsultationRequest
+      ? 'Thank You for Your Consultation Request!'
+      : 'Thank You for Your Enquiry!'
+
+  const confirmationMessage = isDemoRequest
+    ? 'Our team will contact you shortly to schedule your product demonstration.'
+    : isConsultationRequest
+      ? 'Our engineering team will contact you shortly to schedule your consultation.'
+      : 'Our team will contact you shortly.'
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
@@ -68,8 +109,8 @@ export const QuoteModal: React.FC = () => {
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 bg-slate-900 text-white">
           <div>
-            <span className="text-xs font-semibold tracking-wider uppercase text-red-400">Official Inquiry</span>
-            <h3 className="text-xl font-bold tracking-tight">Request an Engineering Quotation</h3>
+            <span className="text-xs font-semibold tracking-wider uppercase text-red-400">{modalBadge}</span>
+            <h3 className="text-xl font-bold tracking-tight">{modalHeading}</h3>
           </div>
           <button
             onClick={handleResetAndClose}
@@ -85,11 +126,9 @@ export const QuoteModal: React.FC = () => {
             <div className="w-16 h-16 mx-auto bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
               <CheckCircle className="w-10 h-10" />
             </div>
-            <h4 className="text-2xl font-bold text-slate-900">Thank You! Your Enquiry Has Been Received.</h4>
+            <h4 className="text-2xl font-bold text-slate-900">{confirmationHeading}</h4>
             <p className="text-slate-600 max-w-md mx-auto text-sm leading-relaxed">
-              Our technical engineering team has logged your quotation request for{' '}
-              <span className="font-semibold text-slate-800">{formData.productOrService || 'our engineering solutions'}</span>.
-              A solution specialist will contact you shortly with formal quotations, technical datasheets, and delivery timelines.
+              {confirmationMessage}
             </p>
             <div className="pt-4">
               <button
@@ -104,7 +143,7 @@ export const QuoteModal: React.FC = () => {
         ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
             <p className="text-xs text-slate-500">
-              Please provide your project requirements below. Our application engineers review all inquiries to ensure the most cost-effective hardware, software, and service configuration.
+              {modalIntro}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -323,10 +362,10 @@ export const QuoteModal: React.FC = () => {
                   className="inline-flex items-center space-x-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all disabled:opacity-50"
                 >
                   {isSubmitting ? (
-                    <span>Submitting Enquiry...</span>
+                    <span>Submitting...</span>
                   ) : (
                     <>
-                      <span>Submit Request</span>
+                      <span>{submitButtonText}</span>
                       <Send className="w-3.5 h-3.5" />
                     </>
                   )}

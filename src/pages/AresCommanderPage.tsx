@@ -211,8 +211,8 @@ export const AresCommanderPage: React.FC = () => {
           2. STICKY SUB-NAVIGATION
          ==================================================== */}
       <div className="w-full bg-white border-b border-slate-200 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 lg:py-0 lg:h-14 flex flex-wrap lg:flex-nowrap items-center justify-between gap-2">
+          <div className="flex items-center space-x-3 shrink-0">
             <span className="text-sm sm:text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
               <Laptop className="w-4 h-4 text-blue-600" />
               <span>ARES Commander</span>
@@ -222,7 +222,7 @@ export const AresCommanderPage: React.FC = () => {
             </span>
           </div>
 
-          <div className="flex items-center space-x-1 sm:space-x-2 overflow-x-auto no-scrollbar py-2 text-xs font-semibold text-slate-600">
+          <div className="w-full lg:w-auto order-3 lg:order-2 flex items-center space-x-1 sm:space-x-2 overflow-x-auto no-scrollbar py-1.5 lg:py-2 border-t lg:border-t-0 border-slate-100 text-xs font-semibold text-slate-600">
             {[
               { id: 'overview', label: 'Overview', ref: overviewRef },
               { id: 'benefits', label: 'Benefits', ref: benefitsRef },
@@ -1262,18 +1262,8 @@ export const AresCommanderPage: React.FC = () => {
             {data.licensing.cards.map((plan) => (
               <div
                 key={plan.id}
-                className={`rounded-2xl border p-7 space-y-6 flex flex-col justify-between transition-all ${
-                  plan.popular
-                    ? 'border-blue-600 shadow-xl ring-2 ring-blue-600/20 bg-white relative'
-                    : 'border-slate-200 bg-slate-50/70 hover:shadow-lg'
-                }`}
+                className="rounded-2xl border border-slate-200 bg-white p-7 space-y-6 flex flex-col justify-between transition-all shadow-sm hover:shadow-lg"
               >
-                {plan.badge && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-blue-600 text-white text-[10px] font-mono uppercase font-bold tracking-wider shadow-sm">
-                    {plan.badge}
-                  </span>
-                )}
-
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-xl font-black text-slate-950">{plan.category}</h3>
@@ -1312,11 +1302,7 @@ export const AresCommanderPage: React.FC = () => {
                       setEnquiryForm(prev => ({ ...prev, licenseType: plan.category }))
                       scrollTo(enquiryRef, 'enquiry')
                     }}
-                    className={`w-full py-3 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                      plan.popular
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
-                        : 'bg-slate-900 hover:bg-slate-800 text-white'
-                    }`}
+                    className="w-full py-3 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-center gap-2 bg-slate-900 hover:bg-blue-600 text-white"
                   >
                     <span>Request Quotation</span>
                     <ArrowRight className="w-4 h-4" />
@@ -1607,7 +1593,13 @@ export const AresCommanderPage: React.FC = () => {
                 <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
                   <span className="text-[10px] text-slate-400 italic">Graebert CAD Family</span>
                   <Link
-                    to={`/products/${prod.slug}`}
+                    to={
+                      prod.name.toLowerCase().includes('kudo')
+                        ? '/products/ares-kudo'
+                        : prod.name.toLowerCase().includes('touch')
+                          ? '/products/ares-touch'
+                          : `/products/${prod.slug}`
+                    }
                     className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
                   >
                     <span>View Product</span>
@@ -1645,7 +1637,7 @@ export const AresCommanderPage: React.FC = () => {
                 </div>
                 <h3 className="text-xl font-bold text-white">Thank You for Your Enquiry!</h3>
                 <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
-                  Our dedicated Graebert CAD specialist will contact you within 2-4 business hours with an official GST quotation and licensing configuration.
+                  Our team will contact you shortly.
                 </p>
                 <div className="pt-4">
                   <button

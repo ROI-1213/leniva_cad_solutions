@@ -1368,18 +1368,8 @@ export const AresElectricalPage: React.FC = () => {
             {data.licensing.tiers.map((tier) => (
               <div
                 key={tier.id}
-                className={`rounded-2xl border p-8 bg-white flex flex-col justify-between relative transition-all ${
-                  tier.popular
-                    ? 'border-blue-600 shadow-xl ring-2 ring-blue-600/20'
-                    : 'border-slate-200 shadow-sm'
-                }`}
+                className="rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg p-8 bg-white flex flex-col justify-between relative transition-all"
               >
-                {tier.badge && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider shadow">
-                    {tier.badge}
-                  </span>
-                )}
-
                 <div>
                   <div className="text-xs font-bold text-blue-600 uppercase tracking-wider">
                     {tier.term}
@@ -1409,11 +1399,7 @@ export const AresElectricalPage: React.FC = () => {
                 <div className="space-y-2">
                   <button
                     onClick={() => openQuoteModal(`ARES Electrical (${tier.name})`)}
-                    className={`w-full py-3 rounded-lg text-xs font-semibold transition-all ${
-                      tier.popular
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
-                        : 'bg-slate-900 hover:bg-slate-800 text-white'
-                    }`}
+                    className="w-full py-3 rounded-lg text-xs font-semibold transition-all bg-slate-900 hover:bg-blue-600 text-white"
                   >
                     Request a Quote
                   </button>
@@ -1695,9 +1681,9 @@ export const AresElectricalPage: React.FC = () => {
                 <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900">Enquiry Submitted Successfully</h3>
+                <h3 className="text-xl font-bold text-slate-900">Thank You for Your Enquiry!</h3>
                 <p className="text-sm text-slate-600 max-w-md mx-auto">
-                  Thank you for your interest in ARES Electrical. Our CAD technical specialist will contact you within 24 business hours with an official quotation.
+                  Our team will contact you shortly.
                 </p>
                 <button
                   onClick={() => setFormSubmitted(false)}

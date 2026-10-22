@@ -983,8 +983,6 @@ export const aresCommanderData: AresCommanderData = {
       {
         id: 'trinity',
         category: 'ARES Commander with Trinity',
-        badge: 'Most Popular',
-        popular: true,
         termOptions: ['Annual Subscription', '3-Year Commitment'],
         description: 'The complete connected CAD solution for modern design teams, combining full desktop power with cloud browser and mobile access.',
         includedFeatures: [
@@ -1281,14 +1279,14 @@ export const aresCommanderData: AresCommanderData = {
     },
     {
       name: 'ARES Kudo',
-      slug: 'ares-commander',
+      slug: 'ares-kudo',
       category: 'Cloud CAD Browser App',
       desc: 'Full-featured browser CAD solution that enables online DWG drafting, live view-only URL sharing, and cloud storage synchronization.',
       relationship: 'Cloud component of the ARES Trinity ecosystem included with Trinity subscriptions.',
     },
     {
       name: 'ARES Touch',
-      slug: 'ares-commander',
+      slug: 'ares-touch',
       category: 'Mobile CAD for Tablets & Phones',
       desc: 'Mobile DWG drafting application for Android and iOS devices, enabling job-site inspection, markup, and offline drawing revision.',
       relationship: 'Mobile component of the ARES Trinity ecosystem included with Trinity subscriptions.',

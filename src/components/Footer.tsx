@@ -155,7 +155,7 @@ export const Footer: React.FC = () => {
           <div className="flex items-start space-x-3">
             <MapPin className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
             <div>
-              <strong className="text-white block mb-0.5">Google Address & Headquarters</strong>
+              <strong className="text-white block mb-0.5">ADDRESS</strong>
               <p>{liveSiteSettings.address}</p>
               {liveSiteSettings.workingHours && (
                 <p className="text-slate-400 mt-1.5 text-[11px]"><strong className="text-slate-300">Hours:</strong> {liveSiteSettings.workingHours}</p>

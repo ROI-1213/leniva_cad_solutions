@@ -200,8 +200,8 @@ export const AresKudoPage: React.FC = () => {
           1. STICKY SUB-NAVIGATION BAR
          ==================================================== */}
       <div className="w-full bg-white border-b border-slate-200 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 lg:py-0 lg:h-14 flex flex-wrap lg:flex-nowrap items-center justify-between gap-2">
+          <div className="flex items-center space-x-3 shrink-0">
             <span className="text-sm sm:text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
               <Cloud className="w-4 h-4 text-blue-600" />
               <span>ARES Kudo</span>
@@ -212,7 +212,7 @@ export const AresKudoPage: React.FC = () => {
           </div>
 
           {/* Navigation Links */}
-          <div className="flex items-center space-x-1 sm:space-x-2 overflow-x-auto no-scrollbar py-2 text-xs font-semibold text-slate-600">
+          <div className="w-full lg:w-auto order-3 lg:order-2 flex items-center space-x-1 sm:space-x-2 overflow-x-auto no-scrollbar py-1.5 lg:py-2 border-t lg:border-t-0 border-slate-100 text-xs font-semibold text-slate-600">
             {[
               { id: 'overview', label: 'Overview' },
               { id: 'features-300', label: '300+ Features' },
@@ -1498,20 +1498,8 @@ export const AresKudoPage: React.FC = () => {
               return (
                 <div
                   key={plan.id}
-                  className={`rounded-2xl p-6 flex flex-col justify-between transition-all relative ${
-                    plan.popular
-                      ? 'border-2 border-blue-600 bg-white shadow-xl shadow-blue-600/10'
-                      : 'border border-slate-200 bg-white hover:border-slate-300'
-                  }`}
+                  className="rounded-2xl p-6 flex flex-col justify-between transition-all relative border border-slate-200 bg-white hover:border-slate-300 shadow-sm hover:shadow-md"
                 >
-                  {plan.badge && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-0.5 rounded-full shadow-2xs">
-                        {plan.badge}
-                      </span>
-                    </div>
-                  )}
-
                   <div className="space-y-4">
                     <div>
                       <h3 className="text-lg font-bold text-slate-900">{plan.name}</h3>
@@ -1541,11 +1529,7 @@ export const AresKudoPage: React.FC = () => {
                   <div className="pt-6">
                     <button
                       onClick={() => scrollTo('consultation')}
-                      className={`w-full py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
-                        plan.popular
-                          ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
-                          : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
-                      }`}
+                      className="w-full py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer bg-slate-900 hover:bg-blue-600 text-white"
                     >
                       Request Quote
                     </button>
@@ -1737,9 +1721,9 @@ export const AresKudoPage: React.FC = () => {
                 <div className="w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900">Thank You for Your Inquiry!</h3>
+                <h3 className="text-xl font-bold text-slate-900">Thank You for Your Enquiry!</h3>
                 <p className="text-xs text-slate-600 max-w-md mx-auto">
-                  A Leniva CAD Solutions representative will contact you within 2 business hours with your official trial credentials and quotation proposal.
+                  Our team will contact you shortly.
                 </p>
                 <button
                   onClick={() => setFormSubmitted(false)}

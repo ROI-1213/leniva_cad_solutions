@@ -1191,22 +1191,13 @@ export const AresTouchPage: React.FC = () => {
               return (
                 <div
                   key={plan.id}
-                  className={`rounded-3xl p-8 border-2 transition-all flex flex-col justify-between ${
-                    plan.isPopular
-                      ? 'border-red-600 bg-red-50/20 shadow-xl shadow-red-600/5'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
-                  }`}
+                  className="rounded-3xl p-8 border border-slate-200 bg-white hover:border-slate-300 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between"
                 >
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold uppercase tracking-wider text-red-600">
                         {plan.badge}
                       </span>
-                      {plan.isPopular && (
-                        <span className="px-3 py-1 rounded-full bg-red-600 text-white text-[10px] font-extrabold">
-                          ALL-IN-ONE
-                        </span>
-                      )}
                     </div>
 
                     <div>
@@ -1239,11 +1230,7 @@ export const AresTouchPage: React.FC = () => {
                   <div className="pt-8">
                     <button
                       onClick={() => openQuoteModal(`${plan.name} Licensing Enquiry`)}
-                      className={`w-full py-3.5 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer ${
-                        plan.isPopular
-                          ? 'bg-red-600 hover:bg-red-700 text-white shadow-md'
-                          : 'bg-slate-950 hover:bg-slate-800 text-white'
-                      }`}
+                      className="w-full py-3.5 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer bg-slate-950 hover:bg-red-600 text-white"
                     >
                       <span>{plan.ctaText}</span>
                       <ChevronRight className="w-4 h-4" />

@@ -1,10 +1,10 @@
 const RESTFUL_OBJECT_ID = 'ff808181a09d98f701a1436dd2b96f43'
 const RESTFUL_URL = `https://api.restful-api.dev/objects/${RESTFUL_OBJECT_ID}`
-const NTFY_TOPIC = 'leniva_cad_cms_live_v2'
+const NTFY_TOPIC = 'leniva_cad_cms_prod_v3'
 const NTFY_POST_URL = `https://ntfy.sh/${NTFY_TOPIC}`
 const NTFY_POLL_URL = `https://ntfy.sh/${NTFY_TOPIC}/json?poll=1&since=all`
 const BYTEBIN_POST_URL = 'https://bytebin.lucko.me/post'
-const UPDATED_AT_KEY = 'leniva_cms_updated_at'
+const UPDATED_AT_KEY = 'leniva_cms_sync_ts_v3'
 
 export const SYNCED_CMS_KEYS = [
   'leniva_admin_products_catalog',
@@ -22,6 +22,17 @@ export const SYNCED_CMS_KEYS = [
   'filament_product_grey_silver',
 ] as const
 
+const ADMIN_CONTENT_CHECK_KEYS = [
+  'leniva_admin_products_catalog',
+  'leniva_cad_software_edits',
+  'leniva_custom_cad_products',
+  'leniva_home_page_content_v1',
+  'leniva_about_page_content_v1',
+  'leniva_navigation_config',
+  'leniva_admin_blogs_catalog',
+  'leniva_admin_password',
+] as const
+
 const COMPACT_INLINE_KEYS = [
   'leniva_admin_password',
   'leniva_site_settings',
@@ -33,6 +44,8 @@ const COMPACT_INLINE_KEYS = [
 ] as const
 
 const SYNCED_KEY_SET = new Set<string>(SYNCED_CMS_KEYS)
+const explicitlyResetKeys = new Set<string>()
+let lastKnownCloudKeys: Record<string, string> = {}
 
 let rawGetItem: (key: string) => string | null = key =>
   typeof window !== 'undefined' ? window.localStorage.getItem(key) : null
@@ -69,6 +82,11 @@ export function dispatchAllCmsUpdatedEvents() {
   }
 }
 
+function isOnAdminRoute(): boolean {
+  if (typeof window === 'undefined') return false
+  return window.location.pathname.startsWith('/admin')
+}
+
 function installStorageInterceptor() {
   if (typeof window === 'undefined' || isInterceptorInstalled) return
   isInterceptorInstalled = true
@@ -80,18 +98,24 @@ function installStorageInterceptor() {
   window.localStorage.setItem = function (key: string, value: string) {
     rawSetItem(key, value)
     if (!isApplyingRemoteSync && SYNCED_KEY_SET.has(key)) {
-      const now = Date.now()
-      rawSetItem(UPDATED_AT_KEY, String(now))
-      scheduleCloudPush()
+      explicitlyResetKeys.delete(key)
+      if (isOnAdminRoute()) {
+        const now = Date.now()
+        rawSetItem(UPDATED_AT_KEY, String(now))
+        scheduleCloudPush()
+      }
     }
   }
 
   window.localStorage.removeItem = function (key: string) {
     rawRemoveItem(key)
     if (!isApplyingRemoteSync && SYNCED_KEY_SET.has(key)) {
-      const now = Date.now()
-      rawSetItem(UPDATED_AT_KEY, String(now))
-      scheduleCloudPush()
+      explicitlyResetKeys.add(key)
+      if (isOnAdminRoute()) {
+        const now = Date.now()
+        rawSetItem(UPDATED_AT_KEY, String(now))
+        scheduleCloudPush()
+      }
     }
   }
 }
@@ -107,23 +131,35 @@ function scheduleCloudPush() {
 
 export function collectLocalCmsSnapshot(): {
   updatedAt: number
-  keys: Record<string, string | null>
-  hasAnyData: boolean
+  keys: Record<string, string>
+  hasAdminCustomizations: boolean
 } {
-  const keys: Record<string, string | null> = {}
-  let hasAnyData = false
-  for (const k of SYNCED_CMS_KEYS) {
+  const keys: Record<string, string> = { ...lastKnownCloudKeys }
+  let hasAdminCustomizations = false
+
+  for (const k of ADMIN_CONTENT_CHECK_KEYS) {
     const val = rawGetItem(k)
-    keys[k] = val
     if (val !== null && val !== '') {
-      hasAnyData = true
+      hasAdminCustomizations = true
     }
   }
+
+  for (const k of SYNCED_CMS_KEYS) {
+    if (explicitlyResetKeys.has(k)) {
+      keys[k] = '__RESET__'
+    } else {
+      const val = rawGetItem(k)
+      if (val !== null && val !== '') {
+        keys[k] = val
+      }
+    }
+  }
+
   const storedTs = Number(rawGetItem(UPDATED_AT_KEY) || '0')
   return {
     updatedAt: storedTs || Date.now(),
     keys,
-    hasAnyData,
+    hasAdminCustomizations,
   }
 }
 
@@ -141,13 +177,23 @@ export async function pushCmsStateToCloud(): Promise<boolean> {
 
       const { keys } = collectLocalCmsSnapshot()
 
+      // Clean out __RESET__ for Bytebin/Restful storage while keeping it for /api/cms merge
+      const cleanMergedKeys: Record<string, string> = {}
+      for (const [k, v] of Object.entries(keys)) {
+        if (v !== '__RESET__' && typeof v === 'string' && v.length > 0) {
+          cleanMergedKeys[k] = v
+        }
+      }
+      lastKnownCloudKeys = { ...cleanMergedKeys }
+      explicitlyResetKeys.clear()
+
       // 1. Upload full snapshot to Bytebin for unlimited size support
       let bytebinKey: string | null = null
       try {
         const bRes = await fetch(BYTEBIN_POST_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ updatedAt, keys }),
+          body: JSON.stringify({ updatedAt, keys: cleanMergedKeys }),
         })
         if (bRes.ok) {
           const bJson = await bRes.json()
@@ -158,10 +204,10 @@ export async function pushCmsStateToCloud(): Promise<boolean> {
       }
 
       // 2. Build compact inline keys for instant access even without Bytebin
-      const inlineKeys: Record<string, string | null> = {}
+      const inlineKeys: Record<string, string> = {}
       for (const k of COMPACT_INLINE_KEYS) {
-        const val = keys[k]
-        if (val === null || (typeof val === 'string' && val.length < 35000)) {
+        const val = cleanMergedKeys[k]
+        if (typeof val === 'string' && val.length < 35000) {
           inlineKeys[k] = val
         }
       }
@@ -315,9 +361,9 @@ export async function pullCmsStateFromCloud(forceApply = false): Promise<boolean
     const validCandidates = candidates.filter(c => c && typeof c.updatedAt === 'number' && c.updatedAt > 0)
 
     if (validCandidates.length === 0) {
-      // Cloud has not been seeded yet — if this browser already has admin customizations, seed the cloud!
+      // Cloud has not been seeded yet — if this browser has real admin customizations, seed the cloud!
       const localSnap = collectLocalCmsSnapshot()
-      if (localSnap.hasAnyData) {
+      if (localSnap.hasAdminCustomizations) {
         await pushCmsStateToCloud()
       }
       return false
@@ -326,22 +372,36 @@ export async function pullCmsStateFromCloud(forceApply = false): Promise<boolean
     validCandidates.sort((a, b) => b.updatedAt - a.updatedAt)
     const winner = validCandidates[0]
 
-    const localUpdatedAt = Number(rawGetItem(UPDATED_AT_KEY) || '0')
-    if (!forceApply && localUpdatedAt >= winner.updatedAt) {
-      return false
-    }
-
     // Merge inline keys + full Bytebin keys
     let resolvedKeys: Record<string, string | null> = {
       ...(winner.inlineKeys || {}),
       ...(winner.keys || {}),
     }
 
-    // Fetch from Bytebin if winner has bytebinKey and full catalog isn't already in winner.keys
-    if (winner.bytebinKey && (!winner.keys || Object.keys(winner.keys).length < SYNCED_CMS_KEYS.length)) {
+    if (winner.bytebinKey && (!winner.keys || Object.keys(winner.keys).length === 0)) {
       const blobKeys = await fetchBytebinBlob(winner.bytebinKey)
       if (blobKeys) {
         resolvedKeys = { ...resolvedKeys, ...blobKeys }
+      }
+    }
+
+    const cleanCloudKeys: Record<string, string> = {}
+    for (const [k, v] of Object.entries(resolvedKeys)) {
+      if (typeof v === 'string' && v.length > 0 && v !== '__RESET__') {
+        cleanCloudKeys[k] = v
+      }
+    }
+    lastKnownCloudKeys = { ...cleanCloudKeys }
+
+    // Check if this browser has local admin customizations that are missing in the cloud
+    let hasUnpushedLocalKeys = false
+    if (rawGetItem('leniva_admin_auth') === 'true') {
+      for (const k of ADMIN_CONTENT_CHECK_KEYS) {
+        const localVal = rawGetItem(k)
+        if (localVal && !cleanCloudKeys[k]) {
+          hasUnpushedLocalKeys = true
+          break
+        }
       }
     }
 
@@ -349,15 +409,10 @@ export async function pullCmsStateFromCloud(forceApply = false): Promise<boolean
     isApplyingRemoteSync = true
     try {
       for (const k of SYNCED_CMS_KEYS) {
-        if (k in resolvedKeys) {
-          const remoteVal = resolvedKeys[k]
+        if (k in cleanCloudKeys) {
+          const remoteVal = cleanCloudKeys[k]
           const localVal = rawGetItem(k)
-          if (remoteVal === null || remoteVal === undefined) {
-            if (localVal !== null) {
-              rawRemoveItem(k)
-              changedAnyKey = true
-            }
-          } else if (typeof remoteVal === 'string' && localVal !== remoteVal) {
+          if (localVal !== remoteVal) {
             rawSetItem(k, remoteVal)
             changedAnyKey = true
           }
@@ -366,6 +421,10 @@ export async function pullCmsStateFromCloud(forceApply = false): Promise<boolean
       rawSetItem(UPDATED_AT_KEY, String(winner.updatedAt))
     } finally {
       isApplyingRemoteSync = false
+    }
+
+    if (hasUnpushedLocalKeys) {
+      await pushCmsStateToCloud()
     }
 
     if (changedAnyKey || forceApply) {
@@ -387,15 +446,13 @@ export async function initCloudCmsSync(options?: { timeoutMs?: number }): Promis
   if (isInitialized) return
   isInitialized = true
 
-  const timeoutMs = options?.timeoutMs ?? 1500
+  const timeoutMs = options?.timeoutMs ?? 1200
 
-  // Initial pull before or during render (bounded by timeoutMs so UI never hangs)
   await Promise.race([
     pullCmsStateFromCloud(),
     new Promise<void>(resolve => setTimeout(resolve, timeoutMs)),
   ])
 
-  // Keep all browsers & phones in sync automatically when tab gains focus or periodically
   window.addEventListener('focus', () => {
     pullCmsStateFromCloud().catch(() => false)
   })
@@ -410,5 +467,5 @@ export async function initCloudCmsSync(options?: { timeoutMs?: number }): Promis
     if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
       pullCmsStateFromCloud().catch(() => false)
     }
-  }, 10000)
+  }, 8000)
 }

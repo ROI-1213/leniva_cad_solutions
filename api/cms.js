@@ -2,11 +2,11 @@ import fs from 'fs'
 
 const RESTFUL_OBJECT_ID = 'ff808181a09d98f701a1436dd2b96f43'
 const RESTFUL_URL = `https://api.restful-api.dev/objects/${RESTFUL_OBJECT_ID}`
-const NTFY_TOPIC = 'leniva_cad_cms_live_v2'
+const NTFY_TOPIC = 'leniva_cad_cms_prod_v3'
 const NTFY_POST_URL = `https://ntfy.sh/${NTFY_TOPIC}`
 const NTFY_POLL_URL = `https://ntfy.sh/${NTFY_TOPIC}/json?poll=1&since=all`
 const BYTEBIN_POST_URL = 'https://bytebin.lucko.me/post'
-const TMP_CACHE_FILE = '/tmp/leniva_cms_state.json'
+const TMP_CACHE_FILE = '/tmp/leniva_cms_state_v3.json'
 
 let memoryCache = null
 
@@ -95,6 +95,41 @@ async function fetchFromNtfy() {
   }
 }
 
+async function getLatestCloudState() {
+  const [restfulPtr, ntfyPtr] = await Promise.all([
+    fetchFromRestful(),
+    fetchFromNtfy(),
+  ])
+  const cached = readLocalCache()
+
+  const candidates = [restfulPtr, ntfyPtr, cached].filter(
+    c => c && typeof c.updatedAt === 'number' && c.updatedAt > 0
+  )
+
+  if (candidates.length === 0) {
+    return { updatedAt: 0, bytebinKey: null, keys: {} }
+  }
+
+  candidates.sort((a, b) => b.updatedAt - a.updatedAt)
+  const winner = candidates[0]
+
+  let fullKeys = { ...(winner.inlineKeys || winner.keys || {}) }
+  if (winner.bytebinKey) {
+    const blob = await fetchBytebin(winner.bytebinKey)
+    if (blob && blob.keys && typeof blob.keys === 'object') {
+      fullKeys = { ...fullKeys, ...blob.keys }
+    }
+  }
+
+  const finalState = {
+    updatedAt: winner.updatedAt,
+    bytebinKey: winner.bytebinKey || null,
+    keys: fullKeys,
+  }
+  writeLocalCache(finalState)
+  return finalState
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS')
@@ -107,47 +142,12 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      const [restfulPtr, ntfyPtr] = await Promise.all([
-        fetchFromRestful(),
-        fetchFromNtfy(),
-      ])
-      const cached = readLocalCache()
-
-      const candidates = [restfulPtr, ntfyPtr, cached].filter(
-        c => c && typeof c.updatedAt === 'number' && c.updatedAt > 0
-      )
-
-      if (candidates.length === 0) {
-        return res.status(200).json({
-          success: true,
-          updatedAt: 0,
-          keys: {},
-        })
-      }
-
-      candidates.sort((a, b) => b.updatedAt - a.updatedAt)
-      const winner = candidates[0]
-
-      let fullKeys = { ...(winner.inlineKeys || winner.keys || {}) }
-      if (winner.bytebinKey) {
-        const blob = await fetchBytebin(winner.bytebinKey)
-        if (blob && blob.keys && typeof blob.keys === 'object') {
-          fullKeys = { ...fullKeys, ...blob.keys }
-        }
-      }
-
-      const finalState = {
-        updatedAt: winner.updatedAt,
-        bytebinKey: winner.bytebinKey || null,
-        keys: fullKeys,
-      }
-      writeLocalCache(finalState)
-
+      const state = await getLatestCloudState()
       return res.status(200).json({
         success: true,
-        updatedAt: finalState.updatedAt,
-        bytebinKey: finalState.bytebinKey,
-        keys: finalState.keys,
+        updatedAt: state.updatedAt,
+        bytebinKey: state.bytebinKey,
+        keys: state.keys,
       })
     } catch (err) {
       return res.status(200).json({
@@ -163,23 +163,33 @@ export default async function handler(req, res) {
     try {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {}
       const updatedAt = Number(body.updatedAt) || Date.now()
-      const keys = body.keys && typeof body.keys === 'object' ? body.keys : {}
-      let bytebinKey = body.bytebinKey || null
+      const incomingKeys = body.keys && typeof body.keys === 'object' ? body.keys : {}
 
-      if (!bytebinKey) {
-        try {
-          const bRes = await fetch(BYTEBIN_POST_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ updatedAt, keys }),
-          })
-          if (bRes.ok) {
-            const bJson = await bRes.json()
-            bytebinKey = bJson.key || null
-          }
-        } catch {
-          // ignore
+      // Merge with existing cloud keys so partial updates from any device preserve all other sections
+      const existing = await getLatestCloudState().catch(() => ({ keys: {} }))
+      const mergedKeys = { ...(existing.keys || {}) }
+
+      for (const [k, v] of Object.entries(incomingKeys)) {
+        if (v === '__RESET__') {
+          delete mergedKeys[k]
+        } else if (typeof v === 'string' && v.length > 0) {
+          mergedKeys[k] = v
         }
+      }
+
+      let bytebinKey = null
+      try {
+        const bRes = await fetch(BYTEBIN_POST_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ updatedAt, keys: mergedKeys }),
+        })
+        if (bRes.ok) {
+          const bJson = await bRes.json()
+          bytebinKey = bJson.key || null
+        }
+      } catch {
+        bytebinKey = body.bytebinKey || null
       }
 
       const inlineKeys = {}
@@ -193,9 +203,9 @@ export default async function handler(req, res) {
         'leniva_navigation_config',
       ]
       for (const k of compactKeyNames) {
-        if (k in keys) {
-          const val = keys[k]
-          if (val === null || (typeof val === 'string' && val.length < 35000)) {
+        if (k in mergedKeys) {
+          const val = mergedKeys[k]
+          if (typeof val === 'string' && val.length < 35000) {
             inlineKeys[k] = val
           }
         }
@@ -207,7 +217,7 @@ export default async function handler(req, res) {
         inlineKeys,
       }
 
-      writeLocalCache({ updatedAt, bytebinKey, keys })
+      writeLocalCache({ updatedAt, bytebinKey, keys: mergedKeys })
 
       await Promise.allSettled([
         fetch(RESTFUL_URL, {

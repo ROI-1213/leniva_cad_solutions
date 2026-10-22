@@ -807,7 +807,7 @@ export const vrayData: VRayCmsData = {
       items: [
         { title: 'Suburban Villa at Sunset', desc: 'Physically calculated sun low on the horizon casting warm light through floor-to-ceiling glass.', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80' },
         { title: 'Minimalist Penthouse Living Space', desc: 'Natural diffuse indirect lighting showcasing oak parquet, acoustic slatted panels, and linen drapery.', image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80' },
-        { title: 'Biophilic Corporate Headquarters', desc: 'Multi-story glass facade reflecting ambient sky with integrated indoor vertical garden illumination.', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80' },
+        { title: 'Biophilic Corporate Office', desc: 'Multi-story glass facade reflecting ambient sky with integrated indoor vertical garden illumination.', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80' },
       ],
     },
     productDesign: {

@@ -103,7 +103,7 @@ export const DEFAULT_HOME_CONTENT: HomeContentConfig = {
         primaryBtnText: 'Explore 3D Printers',
         primaryBtnLink: '/products',
         secondaryBtnText: 'Request Quote',
-        quoteSubject: 'Next Generation 3D Printing Technology Consultation',
+        quoteSubject: 'Next Generation 3D Printing Technology Quote Request',
       },
       {
         id: 2,
@@ -116,7 +116,7 @@ export const DEFAULT_HOME_CONTENT: HomeContentConfig = {
         primaryBtnText: 'Explore Our Range',
         primaryBtnLink: '/products',
         secondaryBtnText: 'Request a Demo',
-        quoteSubject: 'Industrial Grade 3D Solutions Consultation',
+        quoteSubject: 'Industrial Grade 3D Solutions Demo Request',
       },
       {
         id: 3,
@@ -129,7 +129,7 @@ export const DEFAULT_HOME_CONTENT: HomeContentConfig = {
         primaryBtnText: 'Explore Pratham 3 Rapid',
         primaryBtnLink: '/products/pratham-3-rapid',
         secondaryBtnText: 'Request Quote',
-        quoteSubject: 'Pratham 3 Rapid Professional 3D Printing Solutions Inquiry',
+        quoteSubject: 'Pratham 3 Rapid Professional 3D Printing Solutions Quote Request',
       },
       {
         id: 4,
@@ -142,10 +142,10 @@ export const DEFAULT_HOME_CONTENT: HomeContentConfig = {
         primaryBtnText: 'Explore CAD Software',
         primaryBtnLink: '/products/cad-software',
         secondaryBtnText: 'Request Quote',
-        quoteSubject: 'CAD Software Official Licensing Consultation',
+        quoteSubject: 'CAD Software Official Licensing Quote Request',
       },
     ],
-    headlinePrefix: 'Your Authorized Partner in ',
+    headlinePrefix: 'Your Trusted Partner in ',
     headlineHighlight: 'CAD & 3D Technology',
     description:
       'We are authorized dealers for leading CAD software, including ARES CAD, SketchUp, and Chaos, along with advanced 3D printing and 3D scanning solutions to meet your design and engineering needs.',
@@ -262,10 +262,11 @@ export const DEFAULT_HOME_CONTENT: HomeContentConfig = {
       btnText: 'Explore ARES CAD',
       btnLink: '/products/cad-software',
       slides: [
+        { src: '/images/ares-standard/designed-for-2d-drawing-workflows.jpg', name: 'ARES Standard' },
+        { src: '/images/software/ares-standard.jpg', name: 'ARES Standard 2D CAD' },
         { src: '/images/software/ares-commander.jpg', name: 'ARES Commander' },
         { src: '/images/software/ares-mechanical.jpg', name: 'ARES Mechanical' },
         { src: '/images/software/ares-electrical.jpg', name: 'ARES Electrical' },
-        { src: '/images/software/ares-standard.jpg', name: 'ARES Standard' },
       ],
     },
     sketchup: {
@@ -322,9 +323,21 @@ export function getStoredHomeContent(): HomeContentConfig {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return DEFAULT_HOME_CONTENT
     const parsed = JSON.parse(raw)
+    const mergedHero = { ...DEFAULT_HOME_CONTENT.hero, ...parsed.hero }
+    if (mergedHero.headlinePrefix?.includes('Your Authorized Partner')) {
+      mergedHero.headlinePrefix = 'Your Trusted Partner in '
+    }
+    if (Array.isArray(mergedHero.slides)) {
+      mergedHero.slides = mergedHero.slides.map((s: HeroSlideConfig) => {
+        if (s.id === 4 && (!s.image || s.image.includes('hero-banner-4'))) {
+          return { ...s, image: heroBanner4 }
+        }
+        return s
+      })
+    }
     // Deep merge to ensure all keys exist
     return {
-      hero: { ...DEFAULT_HOME_CONTENT.hero, ...parsed.hero },
+      hero: mergedHero,
       companyIntro: { ...DEFAULT_HOME_CONTENT.companyIntro, ...parsed.companyIntro },
       printers: {
         ...DEFAULT_HOME_CONTENT.printers,

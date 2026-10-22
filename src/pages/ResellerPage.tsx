@@ -91,7 +91,7 @@ export const ResellerPage: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Headquarters City & State *</label>
+                  <label className="block font-semibold text-slate-700 mb-1">City & State *</label>
                   <input type="text" required placeholder="e.g. Ahmedabad, Gujarat" className="w-full p-2.5 border rounded-xl outline-none" />
                 </div>
                 <div>

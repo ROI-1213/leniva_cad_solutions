@@ -174,6 +174,8 @@ export default function App() {
             {/* Dedicated 3D Scanners Category & Product Sub-pages */}
             <Route path="/3d-scanners" element={<ScannersCategoryPage />} />
             <Route path="/products/3d-scanners" element={<ScannersCategoryPage />} />
+            <Route path="/products/scanners" element={<ScannersCategoryPage />} />
+            <Route path="/scanners" element={<ScannersCategoryPage />} />
             <Route path="/3d-scanners/3devok-mq" element={<DevokMQPage />} />
             <Route path="/products/3devok-mq" element={<DevokMQPage />} />
             <Route path="/3d-scanners/3devok-mt" element={<DevokMTPage />} />

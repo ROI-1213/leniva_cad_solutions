@@ -185,7 +185,7 @@ export const EnscapePage: React.FC = () => {
           1. STICKY PRODUCT SUB-NAV BAR (COMPACT & RESPONSIVE)
          ==================================================== */}
       <div className="w-full bg-white border-b border-slate-200 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 lg:py-0 lg:h-14 flex flex-wrap lg:flex-nowrap items-center justify-between gap-2">
           <div className="flex items-center space-x-3 shrink-0">
             <span className="text-sm font-black text-slate-950 tracking-tight">Chaos Enscape</span>
             <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-mono font-bold uppercase tracking-wider whitespace-nowrap shrink-0">
@@ -193,8 +193,8 @@ export const EnscapePage: React.FC = () => {
             </span>
           </div>
 
-          {/* Desktop Navigation Links */}
-          <div className="hidden lg:flex items-center space-x-5 text-xs font-semibold text-slate-600 overflow-x-auto no-scrollbar">
+          {/* Navigation Links */}
+          <div className="w-full lg:w-auto order-3 lg:order-2 flex items-center space-x-4 sm:space-x-5 text-xs font-semibold text-slate-600 overflow-x-auto no-scrollbar py-1.5 lg:py-0 border-t lg:border-t-0 border-slate-100 whitespace-nowrap">
             <button
               onClick={() => scrollTo(overviewRef, 'overview')}
               className={`hover:text-blue-700 transition-colors cursor-pointer ${
@@ -1177,43 +1177,33 @@ export const EnscapePage: React.FC = () => {
           {enscapeData.plans.map(plan => (
             <div
               key={plan.id}
-              className={`p-7 rounded-3xl border flex flex-col justify-between transition-all ${
-                plan.popular
-                  ? 'bg-slate-900 text-white border-blue-500 shadow-xl relative'
-                  : 'bg-white text-slate-900 border-slate-200 shadow-xs'
-              }`}
+              className="p-7 rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-xs flex flex-col justify-between transition-all"
             >
-              {plan.popular && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full shadow-md">
-                  Most Popular for Studios
-                </div>
-              )}
-
               <div className="space-y-5">
                 <div>
-                  <h3 className="text-xl font-black tracking-tight">{plan.name}</h3>
-                  <div className={`text-xs font-semibold mt-0.5 ${plan.popular ? 'text-blue-400' : 'text-blue-600'}`}>
+                  <h3 className="text-xl font-black tracking-tight text-slate-950">{plan.name}</h3>
+                  <div className="text-xs font-semibold mt-0.5 text-blue-600">
                     {plan.tagline}
                   </div>
-                  <p className={`text-xs mt-2 leading-relaxed ${plan.popular ? 'text-slate-300' : 'text-slate-600'}`}>
+                  <p className="text-xs mt-2 leading-relaxed text-slate-600">
                     {plan.description}
                   </p>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-100/10 border border-slate-700/50 space-y-1">
-                  <div className="text-[11px] font-bold">Contact Us for Current Quote</div>
-                  <div className="text-[10px] text-slate-400">
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                  <div className="text-[11px] font-bold text-slate-900">Contact Us for Current Quote</div>
+                  <div className="text-[10px] text-slate-500">
                     Official INR commercial/educational quotes with GST compliance
                   </div>
                 </div>
 
-                <div className="space-y-2 pt-2 border-t border-slate-700/40">
-                  <div className="text-xs font-bold uppercase tracking-wider">Plan Inclusions:</div>
+                <div className="space-y-2 pt-2 border-t border-slate-200">
+                  <div className="text-xs font-bold uppercase tracking-wider text-slate-700">Plan Inclusions:</div>
                   <ul className="space-y-2 text-xs">
                     {plan.features.map((feat, fIdx) => (
                       <li key={fIdx} className="flex items-start space-x-2">
-                        <Check className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${plan.popular ? 'text-blue-400' : 'text-blue-600'}`} />
-                        <span className={plan.popular ? 'text-slate-200' : 'text-slate-600'}>{feat}</span>
+                        <Check className="w-3.5 h-3.5 shrink-0 mt-0.5 text-blue-600" />
+                        <span className="text-slate-600">{feat}</span>
                       </li>
                     ))}
                   </ul>
@@ -1223,11 +1213,7 @@ export const EnscapePage: React.FC = () => {
               <div className="pt-6 space-y-2">
                 <button
                   onClick={() => openQuoteModal(`Chaos ${plan.name}`)}
-                  className={`w-full py-3 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
-                    plan.popular
-                      ? 'bg-blue-600 hover:bg-blue-500 text-white'
-                      : 'bg-slate-900 hover:bg-slate-800 text-white'
-                  }`}
+                  className="w-full py-3 rounded-xl font-bold text-xs shadow-sm transition-all cursor-pointer flex items-center justify-center space-x-1.5 bg-slate-900 hover:bg-slate-800 text-white"
                 >
                   <PhoneCall className="w-3.5 h-3.5" />
                   <span>Enquire About Licensing</span>
@@ -1237,9 +1223,7 @@ export const EnscapePage: React.FC = () => {
                   href={plan.officialUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`block text-center text-[11px] font-semibold hover:underline ${
-                    plan.popular ? 'text-slate-400' : 'text-slate-500'
-                  }`}
+                  className="block text-center text-[11px] font-semibold hover:underline text-slate-500"
                 >
                   Verify Official Terms & Details →
                 </a>
@@ -1428,9 +1412,9 @@ export const EnscapePage: React.FC = () => {
                 <div className="w-14 h-14 mx-auto rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
-                <h4 className="text-xl font-bold text-slate-900">Thank you for your enquiry.</h4>
+                <h4 className="text-xl font-bold text-slate-900">Thank You for Your Enquiry!</h4>
                 <p className="text-sm text-slate-600 max-w-md mx-auto">
-                  Our team has received your request for <strong>{enquiryForm.interestedPlan}</strong>. An engineering consultant will contact you shortly with formal quotation and licensing details.
+                  Our team will contact you shortly.
                 </p>
                 <button
                   type="button"

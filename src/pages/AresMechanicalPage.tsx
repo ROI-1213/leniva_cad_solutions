@@ -1002,11 +1002,6 @@ export const AresMechanicalPage: React.FC = () => {
                   className="bg-slate-800/80 p-6 rounded-2xl border border-slate-700 flex flex-col justify-between space-y-4 hover:border-blue-400 transition-colors"
                 >
                   <div className="space-y-2">
-                    {opt.badge && (
-                      <span className="inline-block bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                        {opt.badge}
-                      </span>
-                    )}
                     <h3 className="text-lg font-bold text-white">{opt.title}</h3>
                     <p className="text-xs text-slate-300 leading-relaxed">{opt.desc}</p>
                   </div>
@@ -1216,9 +1211,9 @@ export const AresMechanicalPage: React.FC = () => {
                 {formSubmitted ? (
                   <div className="p-8 text-center bg-green-50 rounded-2xl border border-green-200 space-y-3">
                     <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto" />
-                    <h4 className="text-lg font-bold text-slate-900">Enquiry Received!</h4>
+                    <h4 className="text-lg font-bold text-slate-900">Thank You for Your Enquiry!</h4>
                     <p className="text-xs text-slate-600">
-                      Thank you for contacting Leniva CAD Solutions. Our mechanical CAD specialist will connect with your commercial quote within 2 business hours.
+                      Our team will contact you shortly.
                     </p>
                   </div>
                 ) : (

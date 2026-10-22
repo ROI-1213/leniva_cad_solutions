@@ -118,25 +118,25 @@ export const Header: React.FC = () => {
       )}
 
       {/* 1. TOP UTILITY STRIP (Light matching user mockup) */}
-      <div className="border-b border-slate-200/70 text-xs text-slate-600 py-1.5 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div className="border-b border-slate-200/70 text-xs text-slate-600 py-1.5 px-3 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 overflow-x-auto no-scrollbar whitespace-nowrap">
           {/* Left contact info */}
-          <div className="flex items-center space-x-5 text-[11px] sm:text-xs">
+          <div className="flex items-center space-x-3 sm:space-x-5 text-[11px] sm:text-xs shrink-0">
             <a
               href={`mailto:${liveSiteSettings.email}`}
-              className="flex items-center space-x-1.5 text-slate-600 hover:text-red-600 transition-colors"
+              className="flex items-center space-x-1.5 text-slate-600 hover:text-red-600 transition-colors shrink-0"
             >
-              <Mail className="w-3.5 h-3.5 text-slate-500" />
+              <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span>{liveSiteSettings.email}</span>
             </a>
             <a
               href={`tel:${liveSiteSettings.phone}`}
-              className="hidden sm:flex items-center space-x-1.5 text-slate-600 hover:text-red-600 transition-colors"
+              className="flex items-center space-x-1.5 text-slate-600 hover:text-red-600 transition-colors shrink-0"
             >
-              <Phone className="w-3.5 h-3.5 text-slate-500" />
+              <Phone className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span>{liveSiteSettings.phone}</span>
             </a>
-            <div className="hidden md:flex items-center space-x-1.5 text-slate-600">
+            <div className="flex items-center space-x-1.5 text-slate-600 shrink-0">
               <span className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-300 flex items-center justify-center shrink-0">
                 <Target className="w-2.5 h-2.5 text-emerald-600" />
               </span>
@@ -145,12 +145,12 @@ export const Header: React.FC = () => {
           </div>
 
           {/* Right Links & Social Icons */}
-          <div className="flex items-center space-x-4 text-[11px] sm:text-xs text-slate-600">
-            <Link to="/warranty" className="hidden lg:flex items-center space-x-1 text-slate-600 hover:text-red-600 transition-colors">
-              <ShieldCheck className="w-3.5 h-3.5 text-slate-500" />
+          <div className="flex items-center space-x-3 sm:space-x-4 text-[11px] sm:text-xs text-slate-600 shrink-0">
+            <Link to="/warranty" className="flex items-center space-x-1 text-slate-600 hover:text-red-600 transition-colors shrink-0">
+              <ShieldCheck className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span>Warranty & Support</span>
             </Link>
-            <div className="flex items-center space-x-2 text-slate-500">
+            <div className="flex items-center space-x-2 text-slate-500 shrink-0">
               <a href={siteConfig.social.linkedin} target="_blank" rel="noopener noreferrer" className="p-0.5 hover:text-[#0077b5] transition-colors" aria-label="LinkedIn">
                 <Linkedin className="w-3.5 h-3.5 text-[#0077b5]" />
               </a>
@@ -698,17 +698,109 @@ export const Header: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* MOBILE & TABLET HORIZONTAL RIBBON BAR (Ensures all ribbon options are viewable & accessible on mobile) */}
+        <div className="lg:hidden max-w-7xl mx-auto mt-1.5 bg-white/95 rounded-xl border border-slate-200/90 px-2 py-1.5 shadow-xs">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar whitespace-nowrap">
+            <Link
+              to="/"
+              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
+                location.pathname === '/' ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              <Home className="w-3.5 h-3.5 shrink-0" />
+              <span>Home</span>
+            </Link>
+            <Link
+              to="/products/cad-software"
+              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
+                location.pathname.startsWith('/products/cad-software') || location.pathname.includes('ares') || location.pathname.includes('sketchup') || location.pathname.includes('enscape') || location.pathname.includes('vray') || location.pathname.includes('corona')
+                  ? 'bg-red-600 text-white'
+                  : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5 shrink-0" />
+              <span>CAD Software</span>
+            </Link>
+            <Link
+              to="/products"
+              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
+                location.pathname === '/products' ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              <Printer className="w-3.5 h-3.5 shrink-0" />
+              <span>3D Printers</span>
+            </Link>
+            <Link
+              to="/products/3d-scanners"
+              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
+                location.pathname.includes('scanner') ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              <Scan className="w-3.5 h-3.5 shrink-0" />
+              <span>3D Scanners</span>
+            </Link>
+            <Link
+              to="/shop"
+              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
+                location.pathname.startsWith('/shop') ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              <ShoppingCart className="w-3.5 h-3.5 shrink-0" />
+              <span>Shop</span>
+            </Link>
+            <Link
+              to="/blog"
+              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
+                location.pathname.startsWith('/blog') ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5 shrink-0" />
+              <span>Blogs</span>
+            </Link>
+            <Link
+              to="/about"
+              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
+                location.pathname === '/about' ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              <User className="w-3.5 h-3.5 shrink-0" />
+              <span>About Us</span>
+            </Link>
+            <Link
+              to="/contact"
+              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
+                location.pathname === '/contact' ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              <PhoneCall className="w-3.5 h-3.5 shrink-0" />
+              <span>Contact</span>
+            </Link>
+            <button
+              onClick={() => openQuoteModal('Product Demo Request')}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-extrabold bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-2xs shrink-0 cursor-pointer"
+            >
+              <span>Request a Demo</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* 3. MOBILE RESPONSIVE DRAWER ACCORDION */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-[115px] bg-slate-950/60 z-50 backdrop-blur-sm">
-          <div className="bg-white h-full max-w-sm w-full shadow-2xl p-4 overflow-y-auto space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Navigation Menu</span>
+        <div
+          className="lg:hidden fixed inset-0 bg-slate-950/60 z-[100] backdrop-blur-sm flex"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
+          <div
+            className="bg-white h-[100dvh] max-w-sm w-[88vw] shadow-2xl p-4 pb-24 overflow-y-auto space-y-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 sticky top-0 bg-white z-10 pt-1">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Navigation Menu</span>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-700"
+                className="p-1.5 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -875,16 +967,22 @@ export const Header: React.FC = () => {
               </div>
 
 
-              <Link to="/blog" className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50">
+              <Link to="/products/3d-scanners" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50">
+                3D Scanners
+              </Link>
+              <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50">
                 Blogs & Technical Articles
               </Link>
-              <Link to="/about" className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50">
+              <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50">
                 About Us
               </Link>
-              <Link to="/contact" className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50">
+              <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50">
                 Contact
               </Link>
-              <Link to="/wishlist" className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50">
+              <Link to="/warranty" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50">
+                Warranty & Support
+              </Link>
+              <Link to="/wishlist" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50">
                 Wishlist ({wishlistCount})
               </Link>
             </div>

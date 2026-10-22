@@ -62,7 +62,7 @@ export const DEFAULT_ABOUT_CONTENT: AboutContentConfig = {
     mottoPrefix: 'Leniva CAD Solutions — ',
     mottoHighlight: 'Trusted Technology. Practical Solutions.',
     primaryBtnText: 'Schedule Engineering Consultation',
-    quoteSubject: 'About Page Consultation',
+    quoteSubject: 'Schedule Engineering Consultation',
     secondaryBtnText: 'Contact Our Offices',
     secondaryBtnLink: '/contact',
   },
@@ -80,7 +80,7 @@ export const DEFAULT_ABOUT_CONTENT: AboutContentConfig = {
     posterAlt: 'Leniva CAD Solutions — Trusted Technology. Practical Solutions.',
     stat1Title: 'Since 1990',
     stat1Subtitle: 'Over 3 decades of technology excellence',
-    stat2Title: 'Bengaluru HQ',
+    stat2Title: 'Bengaluru Office',
     stat2Subtitle: 'Supporting clients across India',
   },
   portfolio: {
@@ -109,7 +109,7 @@ export const DEFAULT_ABOUT_CONTENT: AboutContentConfig = {
       description:
         'High-precision handheld and stationary 3D scanning systems including EinScan and 3DeVOK series for non-contact metrology, quality inspection, and rapid reverse engineering.',
       linkText: 'Explore 3D Scanners →',
-      linkUrl: '/products/scanners',
+      linkUrl: '/products/3d-scanners',
     },
   },
   howWeWork: {
@@ -146,15 +146,27 @@ export function getStoredAboutContent(): AboutContentConfig {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return DEFAULT_ABOUT_CONTENT
     const parsed = JSON.parse(raw)
+    const mergedHeritage = { ...DEFAULT_ABOUT_CONTENT.heritage, ...parsed.heritage }
+    if (mergedHeritage.stat2Title && /hq|headquarters/i.test(mergedHeritage.stat2Title)) {
+      mergedHeritage.stat2Title = 'Bengaluru Office'
+    }
+    const mergedScannerCard = { ...DEFAULT_ABOUT_CONTENT.portfolio.scannerCard, ...parsed.portfolio?.scannerCard }
+    if (!mergedScannerCard.linkUrl || mergedScannerCard.linkUrl === '/products' || mergedScannerCard.linkUrl === '/products/scanners') {
+      mergedScannerCard.linkUrl = '/products/3d-scanners'
+    }
+    const mergedPrinterCard = { ...DEFAULT_ABOUT_CONTENT.portfolio.printerCard, ...parsed.portfolio?.printerCard }
+    if (!mergedPrinterCard.linkUrl) {
+      mergedPrinterCard.linkUrl = '/products'
+    }
     return {
-      hero: { ...DEFAULT_ABOUT_CONTENT.hero, ...parsed.hero },
-      heritage: { ...DEFAULT_ABOUT_CONTENT.heritage, ...parsed.heritage },
+      hero: { ...DEFAULT_ABOUT_CONTENT.hero, ...parsed.hero, quoteSubject: 'Schedule Engineering Consultation' },
+      heritage: mergedHeritage,
       portfolio: {
         ...DEFAULT_ABOUT_CONTENT.portfolio,
         ...parsed.portfolio,
         cadCard: { ...DEFAULT_ABOUT_CONTENT.portfolio.cadCard, ...parsed.portfolio?.cadCard },
-        printerCard: { ...DEFAULT_ABOUT_CONTENT.portfolio.printerCard, ...parsed.portfolio?.printerCard },
-        scannerCard: { ...DEFAULT_ABOUT_CONTENT.portfolio.scannerCard, ...parsed.portfolio?.scannerCard },
+        printerCard: mergedPrinterCard,
+        scannerCard: mergedScannerCard,
       },
       howWeWork: {
         ...DEFAULT_ABOUT_CONTENT.howWeWork,

@@ -287,7 +287,14 @@ export const HomePage: React.FC = () => {
               </Link>
               <div className="flex gap-2.5">
                 <button
-                  onClick={() => openQuoteModal(activeSlide?.quoteSubject || 'Consultation Inquiry')}
+                  onClick={() => {
+                    const btnText = activeSlide?.secondaryBtnText || 'Request Quote'
+                    if (btnText.toLowerCase().includes('demo')) {
+                      openQuoteModal(`Request a Demo — ${activeSlide?.title || '3D Solutions'}`)
+                    } else {
+                      openQuoteModal(`Request Quote — ${activeSlide?.title || 'Engineering Solutions'}`)
+                    }
+                  }}
                   className="flex-1 px-4 py-3 bg-slate-950 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm transition-all text-center cursor-pointer"
                 >
                   {activeSlide?.secondaryBtnText || 'Request Quote'}

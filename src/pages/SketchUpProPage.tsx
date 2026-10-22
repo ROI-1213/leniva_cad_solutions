@@ -152,7 +152,7 @@ export const SketchUpProPage: React.FC = () => {
           2. IN-PAGE PRODUCT NAVIGATION (NON-STICKY TO AVOID OVERLAP)
          ==================================================== */}
       <div className="w-full bg-white border-b border-slate-200 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between overflow-x-auto scrollbar-none">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 lg:py-0 lg:h-14 flex flex-wrap lg:flex-nowrap items-center justify-between gap-2">
           <div className="flex items-center space-x-3 shrink-0 mr-4">
             <div className="w-8 h-8 rounded-lg bg-[#005F9E]/10 flex items-center justify-center text-[#005F9E] font-black text-xs">
               SKP
@@ -165,7 +165,7 @@ export const SketchUpProPage: React.FC = () => {
             </span>
           </div>
 
-          <div className="hidden lg:flex items-center space-x-1 text-xs font-semibold text-slate-600 shrink-0">
+          <div className="w-full lg:w-auto order-3 lg:order-2 flex items-center space-x-1 text-xs font-semibold text-slate-600 overflow-x-auto no-scrollbar py-1.5 lg:py-0 border-t lg:border-t-0 border-slate-100">
             {[
               { id: 'overview', label: 'Overview', ref: overviewRef },
               { id: 'features', label: 'The Power of Pro', ref: featuresRef },
@@ -1080,12 +1080,8 @@ export const SketchUpProPage: React.FC = () => {
 
         {/* Pricing Cards */}
         <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-          {/* SketchUp Pro (Featured) */}
-          <div className="p-8 rounded-3xl bg-white border-2 border-[#005F9E] shadow-xl relative flex flex-col justify-between space-y-6">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#005F9E] text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-xs">
-              MOST POPULAR FOR PROFESSIONALS
-            </div>
-
+          {/* SketchUp Pro */}
+          <div className="p-8 rounded-3xl bg-white border border-slate-200 shadow-sm relative flex flex-col justify-between space-y-6">
             <div className="space-y-4">
               <div>
                 <h3 className="text-xl font-black text-slate-950">SketchUp Pro</h3>
@@ -1129,29 +1125,26 @@ export const SketchUpProPage: React.FC = () => {
             <div className="pt-4 space-y-2">
               <button
                 onClick={() => openQuoteModal('SketchUp Pro Commercial Annual Subscription')}
-                className="w-full py-3.5 rounded-xl bg-[#005F9E] hover:bg-[#004b7e] text-white font-black text-xs transition-colors cursor-pointer shadow-md"
+                className="w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs transition-colors cursor-pointer shadow-sm"
               >
                 Request Commercial Quote
               </button>
             </div>
           </div>
 
-          {/* Need Advanced Studio? */}
-          <div className="p-8 rounded-3xl bg-slate-900 text-white border border-slate-800 shadow-lg flex flex-col justify-between space-y-6">
+          {/* SketchUp Studio */}
+          <div className="p-8 rounded-3xl bg-white text-slate-900 border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
             <div className="space-y-4">
               <div>
-                <div className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-slate-800 px-2.5 py-0.5 rounded text-cyan-400">
-                  ADVANCED BIM &amp; RENDERING SUITE
-                </div>
-                <h3 className="text-xl font-black text-white mt-2">SketchUp Studio</h3>
-                <span className="text-xs text-slate-400 font-semibold">
+                <h3 className="text-xl font-black text-slate-950">SketchUp Studio</h3>
+                <span className="text-xs text-slate-500 font-semibold">
                   For point clouds, Revit import &amp; photoreal V-Ray rendering
                 </span>
               </div>
 
-              <div className="py-3 border-y border-slate-800 space-y-1">
-                <div className="text-2xl font-black text-white">Advanced AEC Suite</div>
-                <div className="text-xs text-cyan-400 font-bold">Comprehensive Annual Subscription</div>
+              <div className="py-3 border-y border-slate-100 space-y-1">
+                <div className="text-2xl font-black text-slate-950">Advanced AEC Suite</div>
+                <div className="text-xs text-blue-700 font-bold">Comprehensive Annual Subscription</div>
                 <span className="text-[10px] text-slate-400 block">
                   Complete BIM reality capture, Revit model conversion &amp; Chaos V-Ray photoreal rendering.
                 </span>
@@ -1168,8 +1161,8 @@ export const SketchUpProPage: React.FC = () => {
                   'Rendered 360° panoramas & animations',
                   'Cloud point cloud streaming via Trimble Connect',
                 ].map((item, idx) => (
-                  <div key={idx} className="flex items-start space-x-2 text-xs text-slate-300">
-                    <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+                  <div key={idx} className="flex items-start space-x-2 text-xs text-slate-700">
+                    <Check className="w-3.5 h-3.5 text-[#005F9E] shrink-0 mt-0.5" />
                     <span>{item}</span>
                   </div>
                 ))}
@@ -1179,7 +1172,7 @@ export const SketchUpProPage: React.FC = () => {
             <div className="pt-4">
               <Link
                 to="/products/sketchup-studio"
-                className="w-full py-3.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition-colors flex items-center justify-center space-x-1"
+                className="w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs transition-colors flex items-center justify-center space-x-1 shadow-sm"
               >
                 <span>Explore SketchUp Studio</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -1210,13 +1203,13 @@ export const SketchUpProPage: React.FC = () => {
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-900">
                 <th className="p-4 sm:p-5 font-black text-sm">Features &amp; Platforms</th>
-                <th className="p-4 sm:p-5 font-bold text-slate-600 text-center w-1/5">
+                <th className="p-4 sm:p-5 font-bold text-slate-800 text-center w-1/5">
                   SketchUp Go
                   <span className="block text-[10px] text-slate-400 font-normal">Web &amp; iPad Edition</span>
                 </th>
-                <th className="p-4 sm:p-5 font-black text-[#005F9E] bg-blue-50/50 text-center w-1/4 border-x-2 border-[#005F9E]">
+                <th className="p-4 sm:p-5 font-bold text-slate-800 text-center w-1/4">
                   SketchUp Pro
-                  <span className="block text-[10px] text-blue-700 font-bold">Recommended for Professionals</span>
+                  <span className="block text-[10px] text-slate-400 font-normal">Desktop, Web &amp; iPad</span>
                 </th>
                 <th className="p-4 sm:p-5 font-bold text-slate-800 text-center w-1/4">
                   SketchUp Studio

@@ -13,7 +13,7 @@ export const siteConfig = {
   mapUrl: 'https://maps.app.goo.gl/mRYmynB2nqdbWift6',
   whatsappNumber: '919844116476',
   whatsappDisplay: '+91 98441 16476',
-  workingHours: 'Mon – Sat: 9:30 AM – 6:30 PM IST',
+  workingHours: 'Monday – Friday: 9:30 AM – 6:00 PM IST | Saturday: 9:30 AM – 1:30 PM IST',
   social: {
     linkedin: 'https://linkedin.com/company/leniva-cad-solutions',
     instagram: 'https://www.instagram.com/leniva_cad_solutions?stkn=d3Jva3RudW9hMGFp',

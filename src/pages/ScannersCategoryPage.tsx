@@ -935,6 +935,71 @@ export const ScannersCategoryPage: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* PRODUCT 3: EINSTAR HANDHELD 3D SCANNER */}
+          <div className="mt-8 bg-[#fafbfc] rounded-3xl border border-slate-200 hover:border-blue-500 hover:shadow-2xl transition-all duration-300 overflow-hidden grid grid-cols-1 lg:grid-cols-12 group">
+            <div className="lg:col-span-5 relative bg-white border-b lg:border-b-0 lg:border-r border-slate-100 p-6 sm:p-8 flex items-center justify-center overflow-hidden">
+              <img
+                src="/images/scanners/einstar-hero.png"
+                alt="EINSTAR Handheld 3D Scanner"
+                className="max-h-60 w-auto object-contain transition-transform duration-500 group-hover:scale-105 drop-shadow-xl"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/images/scanners/3devok-mq.png'
+                }}
+              />
+              <div className="absolute top-4 left-4">
+                <span className="px-3 py-1 bg-blue-600 text-white text-[11px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm">
+                  Handheld Color 3D Digitizer
+                </span>
+              </div>
+            </div>
+            <div className="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-between space-y-5">
+              <div className="space-y-3">
+                <div className="text-xs font-bold text-blue-600 uppercase tracking-wider font-mono">
+                  SHINING 3D • EINSTAR
+                </div>
+                <h3 className="text-2xl sm:text-3xl font-black text-slate-900 group-hover:text-blue-600 transition-colors">
+                  EINSTAR Handheld 3D Scanner
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
+                  Equipped with 3 infrared VCSEL projectors, 2 stereo depth cameras, and 1 RGB color camera, EINSTAR captures clear, high-density point cloud data at up to 14 FPS with 0.1 mm point distance for 3D printing, digital archiving, education, and design workflows.
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2 text-xs">
+                  <div className="bg-white border border-slate-200 p-2.5 rounded-xl">
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Point Distance</span>
+                    <strong className="text-slate-900 font-bold">0.1 mm – 3 mm</strong>
+                  </div>
+                  <div className="bg-white border border-slate-200 p-2.5 rounded-xl">
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Light Source</span>
+                    <strong className="text-slate-900 font-bold">Infrared VCSEL</strong>
+                  </div>
+                  <div className="bg-white border border-slate-200 p-2.5 rounded-xl">
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Scan Speed</span>
+                    <strong className="text-slate-900 font-bold">Up to 14 FPS</strong>
+                  </div>
+                  <div className="bg-white border border-slate-200 p-2.5 rounded-xl">
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Color Camera</span>
+                    <strong className="text-slate-900 font-bold">Full RGB Color</strong>
+                  </div>
+                </div>
+              </div>
+              <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center gap-3">
+                <Link
+                  to="/3d-scanners/einscan"
+                  className="w-full sm:flex-1 py-3 px-5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-1.5 shadow-md group/btn"
+                >
+                  <span>Explore EINSTAR Scanner</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
+                </Link>
+                <button
+                  onClick={() => openQuoteModal('EINSTAR 3D Scanner Demo Request')}
+                  className="w-full sm:flex-1 py-3 px-5 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold rounded-xl border border-slate-300 transition-all text-center cursor-pointer"
+                >
+                  Request a Demo
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

@@ -55,7 +55,7 @@ export const AboutPage: React.FC = () => {
 
             <div className="pt-3 flex flex-wrap items-center gap-3">
               <button
-                onClick={() => openQuoteModal(content.hero.quoteSubject || 'About Page Consultation')}
+                onClick={() => openQuoteModal('Schedule Engineering Consultation')}
                 className="px-6 py-3 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl shadow transition-colors cursor-pointer"
               >
                 {content.hero.primaryBtnText}
