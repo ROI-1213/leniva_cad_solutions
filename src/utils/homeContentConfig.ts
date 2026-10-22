@@ -324,16 +324,38 @@ export function getStoredHomeContent(): HomeContentConfig {
     if (!raw) return DEFAULT_HOME_CONTENT
     const parsed = JSON.parse(raw)
     const mergedHero = { ...DEFAULT_HOME_CONTENT.hero, ...parsed.hero }
-    if (mergedHero.headlinePrefix?.includes('Your Authorized Partner')) {
+    if (!mergedHero.headlinePrefix || mergedHero.headlinePrefix.includes('Authorized')) {
       mergedHero.headlinePrefix = 'Your Trusted Partner in '
     }
     if (Array.isArray(mergedHero.slides)) {
-      mergedHero.slides = mergedHero.slides.map((s: HeroSlideConfig) => {
-        if (s.id === 4 && (!s.image || s.image.includes('hero-banner-4'))) {
-          return { ...s, image: heroBanner4 }
+      mergedHero.slides = mergedHero.slides.map((s: HeroSlideConfig, idx: number) => {
+        if (s.id === 4 || idx === 3) {
+          const isCustomUpload = typeof s.image === 'string' && s.image.startsWith('data:')
+          return {
+            ...DEFAULT_HOME_CONTENT.hero.slides[3],
+            ...s,
+            image: isCustomUpload ? s.image : heroBanner4,
+          }
         }
         return s
       })
+    }
+    const mergedAres = { ...DEFAULT_HOME_CONTENT.cadSoftware.ares, ...parsed.cadSoftware?.ares }
+    if (Array.isArray(mergedAres.slides)) {
+      const has2dDrawing = mergedAres.slides.some(
+        (sl: { src?: string }) =>
+          sl.src === '/images/ares-standard/designed-for-2d-drawing-workflows.jpg' ||
+          sl.src === '/images/software/ares-standard.jpg'
+      )
+      if (!has2dDrawing) {
+        mergedAres.slides = [
+          { src: '/images/ares-standard/designed-for-2d-drawing-workflows.jpg', name: 'ARES Standard' },
+          { src: '/images/software/ares-standard.jpg', name: 'ARES Standard 2D CAD' },
+          ...mergedAres.slides,
+        ]
+      }
+    } else {
+      mergedAres.slides = DEFAULT_HOME_CONTENT.cadSoftware.ares.slides
     }
     // Deep merge to ensure all keys exist
     return {
@@ -349,7 +371,7 @@ export function getStoredHomeContent(): HomeContentConfig {
       cadSoftware: {
         ...DEFAULT_HOME_CONTENT.cadSoftware,
         ...parsed.cadSoftware,
-        ares: { ...DEFAULT_HOME_CONTENT.cadSoftware.ares, ...parsed.cadSoftware?.ares },
+        ares: mergedAres,
         sketchup: { ...DEFAULT_HOME_CONTENT.cadSoftware.sketchup, ...parsed.cadSoftware?.sketchup },
         chaos: { ...DEFAULT_HOME_CONTENT.cadSoftware.chaos, ...parsed.cadSoftware?.chaos },
       },

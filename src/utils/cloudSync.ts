@@ -439,9 +439,105 @@ export async function pullCmsStateFromCloud(forceApply = false): Promise<boolean
 
 let isInitialized = false
 
+function runReleaseLocalStorageMigration(): void {
+  const MIGRATION_KEY = 'leniva_release_migration_2026_10_22_v3'
+  try {
+    if (rawGetItem(MIGRATION_KEY) === '1') return
+
+    // 1. Clean stale home page content overrides so updated hero banner 4, trusted partner text, and ARES Standard 2D slide show up
+    const rawHome = rawGetItem('leniva_home_page_content_v1')
+    if (rawHome) {
+      try {
+        const parsedHome = JSON.parse(rawHome)
+        if (parsedHome && typeof parsedHome === 'object') {
+          if (parsedHome.hero) {
+            if (!parsedHome.hero.headlinePrefix || parsedHome.hero.headlinePrefix.includes('Authorized')) {
+              parsedHome.hero.headlinePrefix = 'Your Trusted Partner in '
+            }
+            if (Array.isArray(parsedHome.hero.slides)) {
+              parsedHome.hero.slides = parsedHome.hero.slides.map((s: any, idx: number) => {
+                if (s?.id === 4 || idx === 3) {
+                  const isDataImg = typeof s?.image === 'string' && s.image.startsWith('data:')
+                  if (!isDataImg) {
+                    const { image, ...rest } = s
+                    return rest
+                  }
+                }
+                return s
+              })
+            }
+          }
+          if (parsedHome.cadSoftware?.ares && Array.isArray(parsedHome.cadSoftware.ares.slides)) {
+            const has2d = parsedHome.cadSoftware.ares.slides.some(
+              (sl: any) =>
+                sl?.src === '/images/ares-standard/designed-for-2d-drawing-workflows.jpg' ||
+                sl?.src === '/images/software/ares-standard.jpg'
+            )
+            if (!has2d) {
+              parsedHome.cadSoftware.ares.slides = [
+                { src: '/images/ares-standard/designed-for-2d-drawing-workflows.jpg', name: 'ARES Standard' },
+                { src: '/images/software/ares-standard.jpg', name: 'ARES Standard 2D CAD' },
+                ...parsedHome.cadSoftware.ares.slides,
+              ]
+            }
+          }
+          rawSetItem('leniva_home_page_content_v1', JSON.stringify(parsedHome))
+        }
+      } catch {
+        rawRemoveItem('leniva_home_page_content_v1')
+      }
+    }
+
+    // 2. Clean stale about page content overrides
+    const rawAbout = rawGetItem('leniva_about_page_content_v1')
+    if (rawAbout) {
+      try {
+        const parsedAbout = JSON.parse(rawAbout)
+        if (parsedAbout && typeof parsedAbout === 'object') {
+          if (parsedAbout.hero) {
+            parsedAbout.hero.quoteSubject = 'Schedule Engineering Consultation'
+          }
+          if (parsedAbout.heritage?.stat2Title && /hq|headquarters/i.test(parsedAbout.heritage.stat2Title)) {
+            parsedAbout.heritage.stat2Title = 'Bengaluru Office'
+          }
+          if (parsedAbout.portfolio?.scannerCard) {
+            parsedAbout.portfolio.scannerCard.linkUrl = '/products/3d-scanners'
+          }
+          if (parsedAbout.portfolio?.printerCard) {
+            parsedAbout.portfolio.printerCard.linkUrl = '/products'
+          }
+          rawSetItem('leniva_about_page_content_v1', JSON.stringify(parsedAbout))
+        }
+      } catch {
+        rawRemoveItem('leniva_about_page_content_v1')
+      }
+    }
+
+    // 3. Clean stale site settings operational hours
+    const rawSettings = rawGetItem('leniva_site_settings')
+    if (rawSettings) {
+      try {
+        const parsedSettings = JSON.parse(rawSettings)
+        if (parsedSettings && typeof parsedSettings === 'object') {
+          parsedSettings.workingHours = 'Monday – Friday: 9:30 AM – 6:00 PM IST | Saturday: 9:30 AM – 1:30 PM IST'
+          rawSetItem('leniva_site_settings', JSON.stringify(parsedSettings))
+        }
+      } catch {
+        rawRemoveItem('leniva_site_settings')
+      }
+    }
+
+    rawSetItem(MIGRATION_KEY, '1')
+    dispatchAllCmsUpdatedEvents()
+  } catch (e) {
+    console.warn('Migration warning:', e)
+  }
+}
+
 export async function initCloudCmsSync(options?: { timeoutMs?: number }): Promise<void> {
   if (typeof window === 'undefined') return
   installStorageInterceptor()
+  runReleaseLocalStorageMigration()
 
   if (isInitialized) return
   isInitialized = true

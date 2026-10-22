@@ -151,11 +151,9 @@ export function getStoredAboutContent(): AboutContentConfig {
       mergedHeritage.stat2Title = 'Bengaluru Office'
     }
     const mergedScannerCard = { ...DEFAULT_ABOUT_CONTENT.portfolio.scannerCard, ...parsed.portfolio?.scannerCard }
-    if (!mergedScannerCard.linkUrl || mergedScannerCard.linkUrl === '/products' || mergedScannerCard.linkUrl === '/products/scanners') {
-      mergedScannerCard.linkUrl = '/products/3d-scanners'
-    }
+    mergedScannerCard.linkUrl = '/products/3d-scanners'
     const mergedPrinterCard = { ...DEFAULT_ABOUT_CONTENT.portfolio.printerCard, ...parsed.portfolio?.printerCard }
-    if (!mergedPrinterCard.linkUrl) {
+    if (!mergedPrinterCard.linkUrl || mergedPrinterCard.linkUrl === '/products/3d-scanners') {
       mergedPrinterCard.linkUrl = '/products'
     }
     return {
