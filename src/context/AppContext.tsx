@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { CartItem, WishlistItem, QuoteFormData } from '../types'
 import { siteConfig } from '../data/siteConfig'
+import { recordCustomerEnquiry } from '../utils/cloudSync'
 
 export interface SiteSettingsType {
   companyName: string
@@ -226,21 +227,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }
 
   const submitQuote = async (data: QuoteFormData): Promise<boolean> => {
-    // Saves quote inquiry to PostgreSQL database via API
     try {
-      const res = await fetch('/api/quotes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      await recordCustomerEnquiry({
+        fullName: data.fullName,
+        company: data.company,
+        email: data.email,
+        phone: data.phone,
+        productOrService: data.productOrService || quoteProduct || 'General Quotation / Demo Enquiry',
+        quantity: data.quantity || '1',
+        application: data.application || 'Immediate',
+        message: data.message,
+        source: 'Quote / Consultation Form',
       })
-      if (res.ok) {
-        return true
-      }
     } catch (e) {
-      console.warn('API quote submit fallback:', e)
+      console.warn('Enquiry cloud sync fallback:', e)
     }
-    console.log('Quote Request Submitted:', data)
-    await new Promise(resolve => setTimeout(resolve, 600))
     return true
   }
 

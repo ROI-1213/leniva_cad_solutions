@@ -31,6 +31,8 @@ const ADMIN_CONTENT_CHECK_KEYS = [
   'leniva_navigation_config',
   'leniva_admin_blogs_catalog',
   'leniva_admin_password',
+  'leniva_admin_quotes',
+  'leniva_admin_contacts',
 ] as const
 
 const COMPACT_INLINE_KEYS = [
@@ -41,6 +43,8 @@ const COMPACT_INLINE_KEYS = [
   'leniva_home_page_content_v1',
   'leniva_about_page_content_v1',
   'leniva_navigation_config',
+  'leniva_admin_quotes',
+  'leniva_admin_contacts',
 ] as const
 
 const SYNCED_KEY_SET = new Set<string>(SYNCED_CMS_KEYS)
@@ -99,7 +103,7 @@ function installStorageInterceptor() {
     rawSetItem(key, value)
     if (!isApplyingRemoteSync && SYNCED_KEY_SET.has(key)) {
       explicitlyResetKeys.delete(key)
-      if (isOnAdminRoute()) {
+      if (isOnAdminRoute() || key === 'leniva_admin_quotes' || key === 'leniva_admin_contacts') {
         const now = Date.now()
         rawSetItem(UPDATED_AT_KEY, String(now))
         scheduleCloudPush()
@@ -163,7 +167,7 @@ export function collectLocalCmsSnapshot(): {
   }
 }
 
-export async function pushCmsStateToCloud(): Promise<boolean> {
+export async function pushCmsStateToCloud(options?: { isEnquirySubmission?: boolean }): Promise<boolean> {
   if (typeof window === 'undefined') return false
   if (pushDebounceTimer) {
     clearTimeout(pushDebounceTimer)
@@ -223,7 +227,12 @@ export async function pushCmsStateToCloud(): Promise<boolean> {
         fetch('/api/cms', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ updatedAt, bytebinKey, keys }),
+          body: JSON.stringify({
+            updatedAt,
+            bytebinKey,
+            keys,
+            isEnquirySubmission: !!options?.isEnquirySubmission,
+          }),
         }),
         fetch(RESTFUL_URL, {
           method: 'PUT',
@@ -245,6 +254,264 @@ export async function pushCmsStateToCloud(): Promise<boolean> {
 
   activePushPromise = doPush()
   return activePushPromise
+}
+
+export interface StoredQuoteRecord {
+  id: number
+  name: string
+  email: string
+  phone: string
+  company: string
+  service_or_product: string
+  quantity: string
+  timeline: string
+  message: string
+  status: string
+  created_at: string
+  notes?: string
+}
+
+export interface StoredContactRecord {
+  id: number
+  name: string
+  email: string
+  phone: string
+  subject: string
+  message: string
+  status: string
+  created_at: string
+  notes?: string
+}
+
+export const DEFAULT_INITIAL_QUOTES: StoredQuoteRecord[] = [
+  {
+    id: 101,
+    name: 'Rajesh Sharma',
+    email: 'r.sharma@tata-advanced.com',
+    phone: '+91 98450 12345',
+    company: 'Tata Advanced Engineering',
+    service_or_product: '3DeVOK MQ High-Accuracy Scanner',
+    quantity: '2 Units',
+    timeline: 'Within 2 Weeks',
+    message: 'Looking for metrology grade scanning of automotive sheet metal dies with inspection reports.',
+    status: 'pending',
+    created_at: '2026-10-20T09:00:00.000Z',
+    notes: 'Requires on-site demo in Bengaluru',
+  },
+  {
+    id: 102,
+    name: 'Pooja Verma',
+    email: 'pooja.verma@titan.co.in',
+    phone: '+91 97123 45678',
+    company: 'Titan Jewellery Division',
+    service_or_product: 'EKA HT DLP 3D Printer',
+    quantity: '1 Unit',
+    timeline: 'Immediate',
+    message: 'Inquiring regarding high-precision wax direct casting resin parameters and machine delivery.',
+    status: 'in_review',
+    created_at: '2026-10-19T14:30:00.000Z',
+    notes: 'Sent DLP sample pack via courier',
+  },
+  {
+    id: 103,
+    name: 'Vikram Patel',
+    email: 'v.patel@bharatforge.com',
+    phone: '+91 99234 56789',
+    company: 'Bharat Forge Ltd',
+    service_or_product: 'Pratham X1000 Industrial FDM',
+    quantity: '1 Unit',
+    timeline: '1 Month',
+    message: 'Need 1-meter single piece printing for carbon-fiber nylon jigs on assembly conveyor.',
+    status: 'contacted',
+    created_at: '2026-10-18T11:15:00.000Z',
+    notes: 'Scheduled video call with technical director',
+  },
+]
+
+export const DEFAULT_INITIAL_CONTACTS: StoredContactRecord[] = [
+  {
+    id: 201,
+    name: 'Dr. Anand Ramanathan',
+    email: 'anand.r@iitb.ac.in',
+    phone: '+91 98190 23456',
+    subject: 'Academic Center of Excellence Quotation',
+    message: 'IIT Bombay design lab seeks quote for 3D scanner suite and CAD onboarding software package.',
+    status: 'unread',
+    created_at: '2026-10-20T10:20:00.000Z',
+  },
+  {
+    id: 202,
+    name: 'Karthik Sundaram',
+    email: 'karthik@precisiondies.in',
+    phone: '+91 94440 98765',
+    subject: 'ARES Mechanical Multi-Seat License Quote',
+    message: 'Requesting volume quotation for 5 perpetual licenses of ARES Mechanical for our Coimbatore drafting cell.',
+    status: 'read',
+    created_at: '2026-10-19T08:45:00.000Z',
+  },
+]
+
+export function getStoredQuotes(): StoredQuoteRecord[] {
+  try {
+    const raw = rawGetItem('leniva_admin_quotes')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) {
+        return parsed
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return DEFAULT_INITIAL_QUOTES
+}
+
+export function saveStoredQuotes(quotes: StoredQuoteRecord[]): void {
+  try {
+    window.localStorage.setItem('leniva_admin_quotes', JSON.stringify(quotes))
+  } catch {
+    // ignore
+  }
+}
+
+export function getStoredContacts(): StoredContactRecord[] {
+  try {
+    const raw = rawGetItem('leniva_admin_contacts')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) {
+        return parsed
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return DEFAULT_INITIAL_CONTACTS
+}
+
+export function saveStoredContacts(contacts: StoredContactRecord[]): void {
+  try {
+    window.localStorage.setItem('leniva_admin_contacts', JSON.stringify(contacts))
+  } catch {
+    // ignore
+  }
+}
+
+let lastEnquirySig = ''
+let lastEnquiryTs = 0
+
+export async function recordCustomerEnquiry(payload: {
+  fullName: string
+  email: string
+  phone?: string
+  company?: string
+  productOrService?: string
+  quantity?: string
+  application?: string
+  timeline?: string
+  subject?: string
+  message?: string
+  source?: string
+}): Promise<boolean> {
+  if (typeof window === 'undefined') return false
+
+  const sig = `${(payload.fullName || '').trim().toLowerCase()}|${(payload.email || '').trim().toLowerCase()}|${(payload.phone || '').trim()}`
+  const nowCheck = Date.now()
+  if (sig && sig !== '||' && sig === lastEnquirySig && nowCheck - lastEnquiryTs < 4000) {
+    return true
+  }
+  lastEnquirySig = sig
+  lastEnquiryTs = nowCheck
+
+  // Pull latest cloud state first so we append to the most up-to-date list
+  try {
+    await Promise.race([
+      pullCmsStateFromCloud(),
+      new Promise(resolve => setTimeout(resolve, 1200)),
+    ])
+  } catch {
+    // ignore
+  }
+
+  const nowIso = new Date().toISOString()
+  const uniqueId = Math.floor(Date.now() / 100) % 100000000
+
+  const newQuote: StoredQuoteRecord = {
+    id: uniqueId,
+    name: (payload.fullName || 'Customer').trim(),
+    email: (payload.email || '').trim(),
+    phone: (payload.phone || '').trim(),
+    company: (payload.company || '').trim(),
+    service_or_product: (payload.productOrService || payload.subject || 'General Enquiry').trim(),
+    quantity: (payload.quantity || '1').trim(),
+    timeline: (payload.timeline || payload.application || 'Immediate').trim(),
+    message: (payload.message || '').trim(),
+    status: 'pending',
+    created_at: nowIso,
+    notes: payload.source ? `Submitted via ${payload.source}` : '',
+  }
+
+  const newContact: StoredContactRecord = {
+    id: uniqueId,
+    name: (payload.fullName || 'Customer').trim(),
+    email: (payload.email || '').trim(),
+    phone: (payload.phone || '').trim(),
+    subject: (
+      payload.subject ||
+      `${payload.productOrService || 'Product / Service Enquiry'}${payload.company ? ` - ${payload.company}` : ''}`
+    ).trim(),
+    message: (
+      payload.message ||
+      `Requirement: ${payload.productOrService || 'General'} | Qty: ${payload.quantity || '1'}${payload.application ? ` | Application: ${payload.application}` : ''}`
+    ).trim(),
+    status: 'unread',
+    created_at: nowIso,
+    notes: payload.company ? `Company: ${payload.company}` : '',
+  }
+
+  const currentQuotes = getStoredQuotes()
+  const updatedQuotes = [newQuote, ...currentQuotes.filter(q => q.id !== uniqueId)]
+  rawSetItem('leniva_admin_quotes', JSON.stringify(updatedQuotes))
+
+  const currentContacts = getStoredContacts()
+  const updatedContacts = [newContact, ...currentContacts.filter(c => c.id !== uniqueId)]
+  rawSetItem('leniva_admin_contacts', JSON.stringify(updatedContacts))
+
+  const now = Date.now()
+  rawSetItem(UPDATED_AT_KEY, String(now))
+
+  // Also attempt legacy PostgreSQL API endpoints in parallel if available
+  fetch('/api/quotes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      fullName: newQuote.name,
+      company: newQuote.company,
+      email: newQuote.email,
+      phone: newQuote.phone,
+      productOrService: newQuote.service_or_product,
+      quantity: newQuote.quantity,
+      application: newQuote.timeline,
+      message: newQuote.message,
+    }),
+  }).catch(() => null)
+
+  fetch('/api/contacts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: newContact.name,
+      email: newContact.email,
+      phone: newContact.phone,
+      subject: newContact.subject,
+      message: newContact.message,
+    }),
+  }).catch(() => null)
+
+  // Push to Cloud CMS immediately
+  await pushCmsStateToCloud({ isEnquirySubmission: true }).catch(() => false)
+  dispatchAllCmsUpdatedEvents()
+  return true
 }
 
 async function fetchBytebinBlob(bytebinKey: string): Promise<Record<string, string | null> | null> {
@@ -534,6 +801,82 @@ function runReleaseLocalStorageMigration(): void {
   }
 }
 
+function installGlobalEnquiryFormListener(): void {
+  if (typeof window === 'undefined') return
+  window.addEventListener(
+    'submit',
+    (e: Event) => {
+      try {
+        if (isOnAdminRoute()) return
+        const form = e.target as HTMLFormElement | null
+        if (!form || form.tagName !== 'FORM') return
+
+        const elements = Array.from(
+          form.querySelectorAll('input, select, textarea')
+        ) as Array<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+        if (elements.length < 2) return
+
+        let fullName = ''
+        let email = ''
+        let phone = ''
+        let company = ''
+        let productOrService = ''
+        let quantity = ''
+        let application = ''
+        let message = ''
+
+        for (const el of elements) {
+          if (el instanceof HTMLInputElement && (el.type === 'submit' || el.type === 'button' || el.type === 'checkbox' || el.type === 'radio' || el.type === 'file')) {
+            continue
+          }
+          const val = (el.value || '').trim()
+          if (!val) continue
+
+          const labelEl = el.closest('div')?.querySelector('label')
+          const descriptor = `${el.name || ''} ${el.id || ''} ${el.getAttribute('placeholder') || ''} ${labelEl?.textContent || ''}`.toLowerCase()
+
+          if (!email && ((el instanceof HTMLInputElement && el.type === 'email') || descriptor.includes('email') || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val))) {
+            email = val
+          } else if (!phone && ((el instanceof HTMLInputElement && el.type === 'tel') || /phone|mobile|whatsapp|contact\s*no|number/.test(descriptor))) {
+            phone = val
+          } else if (!fullName && /name|person|applicant/.test(descriptor) && !/company|product|business|firm/.test(descriptor)) {
+            fullName = val
+          } else if (!company && /company|organization|organisation|institution|firm|studio|business/.test(descriptor)) {
+            company = val
+          } else if (el.tagName === 'TEXTAREA' || /message|requirement|detail|note|comment|cover/.test(descriptor)) {
+            if (!message) message = val
+          } else if (!quantity && /quantity|qty|license|seat|unit/.test(descriptor)) {
+            quantity = val
+          } else if (!productOrService && /product|service|plan|model|position|role|subject|interest|category/.test(descriptor)) {
+            productOrService = val
+          } else if (!application && /application|industry|timeline|area|preference|host|country|city/.test(descriptor)) {
+            application = val
+          }
+        }
+
+        // Ignore forms that don't have at least an email or phone (e.g., search bars or review forms)
+        if (!email && !phone) return
+
+        const pageTitle = (typeof document !== 'undefined' ? document.title.split('|')[0].split('–')[0].trim() : '') || 'Website Enquiry'
+        recordCustomerEnquiry({
+          fullName: fullName || 'Website Visitor',
+          email,
+          phone,
+          company,
+          productOrService: productOrService || pageTitle,
+          quantity: quantity || '1',
+          application: application || 'Immediate',
+          message,
+          source: pageTitle,
+        }).catch(() => false)
+      } catch {
+        // ignore
+      }
+    },
+    true
+  )
+}
+
 export async function initCloudCmsSync(options?: { timeoutMs?: number }): Promise<void> {
   if (typeof window === 'undefined') return
   installStorageInterceptor()
@@ -541,6 +884,7 @@ export async function initCloudCmsSync(options?: { timeoutMs?: number }): Promis
 
   if (isInitialized) return
   isInitialized = true
+  installGlobalEnquiryFormListener()
 
   const timeoutMs = options?.timeoutMs ?? 1200
 

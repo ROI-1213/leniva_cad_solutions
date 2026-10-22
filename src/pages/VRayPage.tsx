@@ -45,7 +45,7 @@ import { vrayData as defaultVRayData, VRayGalleryItem } from '../data/vrayData'
 import { useCadPageData } from '../utils/cadSoftwareConfig'
 
 export const VRayPage: React.FC = () => {
-  const { openQuoteModal } = useApp()
+  const { openQuoteModal, submitQuote } = useApp()
   const { data: vrayData } = useCadPageData('chaos_vray', defaultVRayData)
 
   // Sticky sub-nav active section
@@ -161,7 +161,16 @@ export const VRayPage: React.FC = () => {
 
     setIsSubmitting(true)
     try {
-      await new Promise(resolve => setTimeout(resolve, 800))
+      await submitQuote({
+        fullName: enquiryForm.fullName,
+        company: enquiryForm.company,
+        email: enquiryForm.workEmail,
+        phone: enquiryForm.phone,
+        productOrService: `Chaos V-Ray (${enquiryForm.interestedPlan} - ${enquiryForm.hostApplication})`,
+        quantity: enquiryForm.numberOfLicenses || '1',
+        application: `${enquiryForm.industry} (${enquiryForm.country})`,
+        message: enquiryForm.message,
+      })
       setIsSubmitted(true)
     } catch {
       setFormError('Unable to process enquiry. Please try again or chat with our team on WhatsApp.')

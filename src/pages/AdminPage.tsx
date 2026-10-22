@@ -76,7 +76,14 @@ import {
   getStoredBlogItems,
   saveStoredBlogItems,
 } from '../utils/blogCatalog'
-import { pullCmsStateFromCloud, pushCmsStateToCloud } from '../utils/cloudSync'
+import {
+  pullCmsStateFromCloud,
+  pushCmsStateToCloud,
+  getStoredQuotes,
+  saveStoredQuotes,
+  getStoredContacts,
+  saveStoredContacts,
+} from '../utils/cloudSync'
 import { blogPosts as fallbackBlogs } from '../data/blogs'
 
 interface Stats {
@@ -151,11 +158,11 @@ export default function AdminPage() {
 
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard')
   const [isLoading, setIsLoading] = useState(false)
-  const [stats, setStats] = useState<Stats | null>(null)
+  const [_stats, setStats] = useState<Stats | null>(null)
 
   // Lists
-  const [quotes, setQuotes] = useState<QuoteRequest[]>([])
-  const [contacts, setContacts] = useState<ContactMessage[]>([])
+  const [quotes, setQuotes] = useState<QuoteRequest[]>(getStoredQuotes)
+  const [contacts, setContacts] = useState<ContactMessage[]>(getStoredContacts)
   const [productsList, setProductsList] = useState<ProductItem[]>(getStoredProductsCatalog)
   const [blogsList, setBlogsList] = useState<BlogPostItem[]>(getStoredBlogItems)
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([
@@ -727,82 +734,32 @@ export default function AdminPage() {
         setBlogsList(storedBlogs)
       }
 
-      // Fallback Quotes
+      // Load Quotes from Cloud CMS / localStorage (+ merge any DB rows if present)
+      const storedQuotes = getStoredQuotes()
       if (Array.isArray(quotesVal) && quotesVal.length > 0) {
-        setQuotes(quotesVal)
+        const quoteMap = new Map<number, QuoteRequest>()
+        for (const q of [...storedQuotes, ...quotesVal]) {
+          if (q && q.id != null) quoteMap.set(Number(q.id), q)
+        }
+        const mergedQuotes = Array.from(quoteMap.values()).sort((a, b) => Number(b.id) - Number(a.id))
+        setQuotes(mergedQuotes)
+        saveStoredQuotes(mergedQuotes)
       } else {
-        setQuotes([
-          {
-            id: 101,
-            name: 'Rajesh Sharma',
-            email: 'r.sharma@tata-advanced.com',
-            phone: '+91 98450 12345',
-            company: 'Tata Advanced Engineering',
-            service_or_product: '3DeVOK MQ High-Accuracy Scanner',
-            quantity: '2 Units',
-            timeline: 'Within 2 Weeks',
-            message: 'Looking for metrology grade scanning of automotive sheet metal dies with inspection reports.',
-            status: 'pending',
-            created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-            notes: 'Requires on-site demo in Bengaluru',
-          },
-          {
-            id: 102,
-            name: 'Pooja Verma',
-            email: 'pooja.verma@titan.co.in',
-            phone: '+91 97123 45678',
-            company: 'Titan Jewellery Division',
-            service_or_product: 'EKA HT DLP 3D Printer',
-            quantity: '1 Unit',
-            timeline: 'Immediate',
-            message: 'Inquiring regarding high-precision wax direct casting resin parameters and machine delivery.',
-            status: 'in_review',
-            created_at: new Date(Date.now() - 3600000 * 18).toISOString(),
-            notes: 'Sent DLP sample pack via courier',
-          },
-          {
-            id: 103,
-            name: 'Vikram Patel',
-            email: 'v.patel@bharatforge.com',
-            phone: '+91 99234 56789',
-            company: 'Bharat Forge Ltd',
-            service_or_product: 'Pratham X1000 Industrial FDM',
-            quantity: '1 Unit',
-            timeline: '1 Month',
-            message: 'Need 1-meter single piece printing for carbon-fiber nylon jigs on assembly conveyor.',
-            status: 'contacted',
-            created_at: new Date(Date.now() - 3600000 * 36).toISOString(),
-            notes: 'Scheduled video call with technical director',
-          },
-        ])
+        setQuotes(storedQuotes)
       }
 
-      // Fallback Contacts
+      // Load Contacts from Cloud CMS / localStorage (+ merge any DB rows if present)
+      const storedContacts = getStoredContacts()
       if (Array.isArray(contactsVal) && contactsVal.length > 0) {
-        setContacts(contactsVal)
+        const contactMap = new Map<number, ContactMessage>()
+        for (const c of [...storedContacts, ...contactsVal]) {
+          if (c && c.id != null) contactMap.set(Number(c.id), c)
+        }
+        const mergedContacts = Array.from(contactMap.values()).sort((a, b) => Number(b.id) - Number(a.id))
+        setContacts(mergedContacts)
+        saveStoredContacts(mergedContacts)
       } else {
-        setContacts([
-          {
-            id: 201,
-            name: 'Dr. Anand Ramanathan',
-            email: 'anand.r@iitb.ac.in',
-            phone: '+91 98190 23456',
-            subject: 'Academic Center of Excellence Quotation',
-            message: 'IIT Bombay design lab seeks quote for 3D scanner suite and CAD onboarding software package.',
-            status: 'new',
-            created_at: new Date(Date.now() - 3600000 * 8).toISOString(),
-          },
-          {
-            id: 202,
-            name: 'Karthik Sundaram',
-            email: 'karthik@precisiondies.in',
-            phone: '+91 94440 98765',
-            subject: 'ARES Mechanical Multi-Seat License Quote',
-            message: 'Requesting volume quotation for 5 perpetual licenses of ARES Mechanical for our Coimbatore drafting cell.',
-            status: 'read',
-            created_at: new Date(Date.now() - 3600000 * 28).toISOString(),
-          },
-        ])
+        setContacts(storedContacts)
       }
 
       if (Array.isArray(usersVal) && usersVal.length > 0) {
@@ -865,6 +822,8 @@ export default function AdminPage() {
 
   useEffect(() => {
     const syncLocalAdminStates = () => {
+      setQuotes(getStoredQuotes())
+      setContacts(getStoredContacts())
       setProductsList(getStoredProductsCatalog())
       setBlogsList(getStoredBlogItems())
       setHomeContentData(getStoredHomeContent())
@@ -886,34 +845,28 @@ export default function AdminPage() {
 
   // Quote operations
   const handleUpdateQuoteStatus = async (id: number, newStatus: string, notes?: string) => {
-    try {
-      const res = await fetch(`/api/quotes/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus, notes }),
-      })
-      if (res.ok) {
-        setQuotes(prev => prev.map(q => q.id === id ? { ...q, status: newStatus, notes: notes ?? q.notes } : q))
-        if (selectedQuote && selectedQuote.id === id) {
-          setSelectedQuote(prev => prev ? { ...prev, status: newStatus, notes: notes ?? prev.notes } : null)
-        }
-      }
-    } catch (err) {
-      console.error(err)
+    const updated = quotes.map(q => q.id === id ? { ...q, status: newStatus, notes: notes ?? q.notes } : q)
+    setQuotes(updated)
+    saveStoredQuotes(updated)
+    if (selectedQuote && selectedQuote.id === id) {
+      setSelectedQuote(prev => prev ? { ...prev, status: newStatus, notes: notes ?? prev.notes } : null)
     }
+    fetch(`/api/quotes/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus, notes }),
+    }).catch(() => null)
+    await pushCmsStateToCloud().catch(() => false)
   }
 
   const handleDeleteQuote = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this quote record from PostgreSQL?')) return
-    try {
-      const res = await fetch(`/api/quotes/${id}`, { method: 'DELETE' })
-      if (res.ok) {
-        setQuotes(prev => prev.filter(q => q.id !== id))
-        if (selectedQuote?.id === id) setSelectedQuote(null)
-      }
-    } catch (err) {
-      console.error(err)
-    }
+    if (!confirm('Are you sure you want to delete this quote inquiry?')) return
+    const updated = quotes.filter(q => q.id !== id)
+    setQuotes(updated)
+    saveStoredQuotes(updated)
+    if (selectedQuote?.id === id) setSelectedQuote(null)
+    fetch(`/api/quotes/${id}`, { method: 'DELETE' }).catch(() => null)
+    await pushCmsStateToCloud().catch(() => false)
   }
 
   // Product operations
@@ -1271,34 +1224,28 @@ export default function AdminPage() {
 
   // Contact message operations
   const handleUpdateContactStatus = async (id: number, newStatus: string, notes?: string) => {
-    try {
-      const res = await fetch(`/api/contacts/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus, notes }),
-      })
-      if (res.ok) {
-        setContacts(prev => prev.map(c => c.id === id ? { ...c, status: newStatus, notes: notes ?? (c as any).notes } : c))
-        if (selectedContact && selectedContact.id === id) {
-          setSelectedContact(prev => prev ? { ...prev, status: newStatus } : null)
-        }
-      }
-    } catch (err) {
-      console.error(err)
+    const updated = contacts.map(c => c.id === id ? { ...c, status: newStatus, notes: notes ?? (c as any).notes } : c)
+    setContacts(updated)
+    saveStoredContacts(updated)
+    if (selectedContact && selectedContact.id === id) {
+      setSelectedContact(prev => prev ? { ...prev, status: newStatus, notes: notes ?? (prev as any).notes } : null)
     }
+    fetch(`/api/contacts/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus, notes }),
+    }).catch(() => null)
+    await pushCmsStateToCloud().catch(() => false)
   }
 
   const handleDeleteContact = async (id: number) => {
-    if (!confirm('Delete this contact message from PostgreSQL?')) return
-    try {
-      const res = await fetch(`/api/contacts/${id}`, { method: 'DELETE' })
-      if (res.ok) {
-        setContacts(prev => prev.filter(c => c.id !== id))
-        if (selectedContact?.id === id) setSelectedContact(null)
-      }
-    } catch (err) {
-      console.error(err)
-    }
+    if (!confirm('Are you sure you want to delete this contact inquiry?')) return
+    const updated = contacts.filter(c => c.id !== id)
+    setContacts(updated)
+    saveStoredContacts(updated)
+    if (selectedContact?.id === id) setSelectedContact(null)
+    fetch(`/api/contacts/${id}`, { method: 'DELETE' }).catch(() => null)
+    await pushCmsStateToCloud().catch(() => false)
   }
 
   // ----------------------------------------------------
@@ -1705,51 +1652,139 @@ export default function AdminPage() {
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div
+                  onClick={() => setActiveTab('quotes')}
+                  className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-blue-400 transition-all"
+                >
                   <div>
                     <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Quotes</div>
-                    <div className="text-2xl font-black text-slate-900 mt-1">{stats?.totalQuotes ?? quotes.length}</div>
-                    <div className="text-[10px] text-blue-600 font-semibold mt-1">Customer RFQs</div>
+                    <div className="text-2xl font-black text-slate-900 mt-1">{quotes.length}</div>
+                    <div className="text-[10px] text-blue-600 font-semibold mt-1">Customer RFQs →</div>
                   </div>
                   <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                     <FileText className="w-5 h-5" />
                   </div>
                 </div>
 
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div
+                  onClick={() => setActiveTab('products')}
+                  className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-emerald-400 transition-all"
+                >
                   <div>
                     <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Live Products</div>
-                    <div className="text-2xl font-black text-slate-900 mt-1">{stats?.totalProducts ?? productsList.length}</div>
-                    <div className="text-[10px] text-emerald-600 font-semibold mt-1">Catalog in PostgreSQL</div>
+                    <div className="text-2xl font-black text-slate-900 mt-1">{productsList.length}</div>
+                    <div className="text-[10px] text-emerald-600 font-semibold mt-1">Product Catalog →</div>
                   </div>
                   <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
                     <Package className="w-5 h-5" />
                   </div>
                 </div>
 
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div
+                  onClick={() => setActiveTab('cad_software')}
+                  className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-purple-400 transition-all"
+                >
                   <div>
                     <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">CAD Software</div>
                     <div className="text-2xl font-black text-slate-900 mt-1">{cadProducts.length}</div>
-                    <div className="text-[10px] text-purple-600 font-semibold mt-1">Live Software CMS</div>
+                    <div className="text-[10px] text-purple-600 font-semibold mt-1">Live Software CMS →</div>
                   </div>
                   <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
                     <Shield className="w-5 h-5" />
                   </div>
                 </div>
 
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div
+                  onClick={() => setActiveTab('contacts')}
+                  className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-amber-400 transition-all"
+                >
                   <div>
                     <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Inquiries</div>
-                    <div className="text-2xl font-black text-slate-900 mt-1">{stats?.totalContacts ?? contacts.length}</div>
-                    <div className="text-[10px] text-amber-600 font-semibold mt-1">Contact Messages</div>
+                    <div className="text-2xl font-black text-slate-900 mt-1">{contacts.length}</div>
+                    <div className="text-[10px] text-amber-600 font-semibold mt-1">Contact Messages →</div>
                   </div>
                   <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
                     <MessageSquare className="w-5 h-5" />
                   </div>
                 </div>
               </div>
-          </div>
+
+              {/* Recent Customer Enquiries & Quote Requests Live Feed */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-base font-black text-slate-900">Recent Customer Enquiries & Quote Requests</h3>
+                    <p className="text-xs text-slate-500">Live submissions from Quote Modals, Contact Us, and Product Enquiry forms across all devices</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => setActiveTab('quotes')}
+                      className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      View All Quotes ({quotes.length})
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('contacts')}
+                      className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      View Contact Inquiries ({contacts.length})
+                    </button>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider bg-slate-50/50">
+                        <th className="py-2.5 px-3">Date</th>
+                        <th className="py-2.5 px-3">Client & Company</th>
+                        <th className="py-2.5 px-3">Email & Phone</th>
+                        <th className="py-2.5 px-3">Product / Subject</th>
+                        <th className="py-2.5 px-3">Message</th>
+                        <th className="py-2.5 px-3">Status</th>
+                        <th className="py-2.5 px-3 text-right">Inspect</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {quotes.slice(0, 8).map(q => (
+                        <tr key={q.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="py-2.5 px-3 font-mono text-[11px] text-slate-500 whitespace-nowrap">
+                            {new Date(q.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="py-2.5 px-3">
+                            <div className="font-bold text-slate-900">{q.name}</div>
+                            <div className="text-[11px] text-slate-500">{q.company || 'Individual'}</div>
+                          </td>
+                          <td className="py-2.5 px-3 text-slate-600">
+                            <div>{q.email}</div>
+                            <div className="text-[11px] text-slate-400 font-mono">{q.phone || '—'}</div>
+                          </td>
+                          <td className="py-2.5 px-3 font-semibold text-blue-700">{q.service_or_product}</td>
+                          <td className="py-2.5 px-3 text-slate-600 max-w-xs truncate">{q.message || '—'}</td>
+                          <td className="py-2.5 px-3">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-50 text-blue-700 border border-blue-200">
+                              {q.status}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3 text-right">
+                            <button
+                              onClick={() => {
+                                setSelectedQuote(q)
+                                setQuoteNotesInput(q.notes || '')
+                              }}
+                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
+                              title="Inspect details"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* ====================================================

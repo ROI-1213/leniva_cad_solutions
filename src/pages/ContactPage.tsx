@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { siteConfig } from '../data/siteConfig'
 import { useApp } from '../context/AppContext'
+import { recordCustomerEnquiry } from '../utils/cloudSync'
 
 export const ContactPage: React.FC = () => {
   const { liveSiteSettings } = useApp()
@@ -32,21 +33,19 @@ export const ContactPage: React.FC = () => {
     e.preventDefault()
     setIsSubmitting(true)
     try {
-      await fetch('/api/contacts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.fullName,
-          email: formData.email,
-          phone: formData.phone,
-          subject: `${formData.requirementType || 'General Inquiry'} - ${formData.company}`,
-          message: formData.message,
-        }),
+      await recordCustomerEnquiry({
+        fullName: formData.fullName,
+        company: formData.company,
+        email: formData.email,
+        phone: formData.phone,
+        productOrService: formData.requirementType || 'General Inquiry',
+        subject: `${formData.requirementType || 'General Inquiry'}${formData.company ? ` - ${formData.company}` : ''}`,
+        message: formData.message,
+        source: 'Contact Us Page',
       })
     } catch (err) {
       console.warn('API submission fallback:', err)
     }
-    await new Promise(resolve => setTimeout(resolve, 500))
     setIsSubmitting(false)
     setIsSubmitted(true)
   }

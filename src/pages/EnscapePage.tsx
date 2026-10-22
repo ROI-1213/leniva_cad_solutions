@@ -40,7 +40,7 @@ import { enscapeData as defaultEnscapeData, EnscapeGalleryItem } from '../data/e
 import { useCadPageData } from '../utils/cadSoftwareConfig'
 
 export const EnscapePage: React.FC = () => {
-  const { openQuoteModal } = useApp()
+  const { openQuoteModal, submitQuote } = useApp()
   const { data: enscapeData } = useCadPageData('chaos_enscape', defaultEnscapeData)
 
   // Sticky sub-nav active section
@@ -154,8 +154,16 @@ export const EnscapePage: React.FC = () => {
 
     setIsSubmitting(true)
     try {
-      // Simulate backend call / connect with endpoint
-      await new Promise(resolve => setTimeout(resolve, 800))
+      await submitQuote({
+        fullName: enquiryForm.fullName,
+        company: enquiryForm.company,
+        email: enquiryForm.workEmail,
+        phone: enquiryForm.phone,
+        productOrService: `Chaos Enscape (${enquiryForm.interestedPlan})`,
+        quantity: enquiryForm.numberOfLicenses || '1',
+        application: `${enquiryForm.areaOfWork} (${enquiryForm.country})`,
+        message: enquiryForm.message,
+      })
       setIsSubmitted(true)
     } catch {
       setFormError('Unable to process enquiry. Please try again or chat with our team on WhatsApp.')

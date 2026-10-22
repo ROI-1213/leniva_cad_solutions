@@ -173,6 +173,32 @@ export default async function handler(req, res) {
         if (v === '__RESET__') {
           delete mergedKeys[k]
         } else if (typeof v === 'string' && v.length > 0) {
+          if (
+            body.isEnquirySubmission &&
+            (k === 'leniva_admin_quotes' || k === 'leniva_admin_contacts') &&
+            mergedKeys[k]
+          ) {
+            try {
+              const existingArr = JSON.parse(mergedKeys[k])
+              const incomingArr = JSON.parse(v)
+              if (Array.isArray(existingArr) && Array.isArray(incomingArr)) {
+                const mapById = new Map()
+                for (const item of existingArr) {
+                  if (item && item.id != null) mapById.set(String(item.id), item)
+                }
+                for (const item of incomingArr) {
+                  if (item && item.id != null) mapById.set(String(item.id), item)
+                }
+                const combined = Array.from(mapById.values()).sort(
+                  (a, b) => Number(b.id || 0) - Number(a.id || 0)
+                )
+                mergedKeys[k] = JSON.stringify(combined)
+                continue
+              }
+            } catch {
+              // fallback to direct assignment
+            }
+          }
           mergedKeys[k] = v
         }
       }
@@ -201,6 +227,8 @@ export default async function handler(req, res) {
         'leniva_home_page_content_v1',
         'leniva_about_page_content_v1',
         'leniva_navigation_config',
+        'leniva_admin_quotes',
+        'leniva_admin_contacts',
       ]
       for (const k of compactKeyNames) {
         if (k in mergedKeys) {
