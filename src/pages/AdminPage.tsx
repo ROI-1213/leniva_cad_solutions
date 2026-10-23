@@ -1684,23 +1684,13 @@ export default function AdminPage() {
               {/* LAST NAVIGATION ITEM: CAD Software Edit (Live Visual Frontend Page Editor) */}
               <button
                 onClick={() => setActiveTab('cad_visual_edit')}
-                className={`w-full mt-1 flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
-                  activeTab === 'cad_visual_edit'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-700 hover:bg-slate-100'
-                }`}
+                className="w-full mt-1 flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer text-slate-700 hover:bg-slate-100"
               >
                 <div className="flex items-center space-x-3">
                   <Monitor className="w-4 h-4" />
                   <span>CAD Software Edit</span>
                 </div>
-                <span
-                  className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
-                    activeTab === 'cad_visual_edit'
-                      ? 'bg-blue-800 text-blue-100'
-                      : 'bg-blue-50 text-blue-700 border border-blue-200'
-                  }`}
-                >
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-blue-50 text-blue-700 border border-blue-200">
                   Visual
                 </span>
               </button>
@@ -8974,14 +8964,6 @@ export default function AdminPage() {
               </div>
             )
           })()}
-
-
-          {/* ====================================================
-              TAB: CAD SOFTWARE EDIT (LIVE VISUAL FRONTEND EDITOR)
-             ==================================================== */}
-          {activeTab === 'cad_visual_edit' && (
-            <CadVisualPageEditor onExitToDashboard={() => setActiveTab('dashboard')} />
-          )}
 
 
         </main>
