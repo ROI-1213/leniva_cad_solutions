@@ -41,6 +41,10 @@ import {
 } from 'lucide-react'
 import { ShopAndNavigationEditor } from '../components/admin/ShopAndNavigationEditor'
 import { CadVisualPageEditor } from '../components/admin/CadVisualPageEditor'
+import {
+  resolveVisualProductKeyFromCatalogProduct,
+  VisualEditorCategory,
+} from '../utils/cadVisualEditorStore'
 import { getProductTemplate, ProductTemplateType } from '../utils/productTemplates'
 import {
   CadEnabledSections,
@@ -160,6 +164,10 @@ export default function AdminPage() {
     | 'scanners_visual_edit'
 
   const [activeTab, setActiveTab] = useState<AdminTab>('quotes')
+  const [visualEditorTarget, setVisualEditorTarget] = useState<{
+    category: VisualEditorCategory
+    productKey: string
+  } | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [_stats, setStats] = useState<Stats | null>(null)
 
@@ -1459,9 +1467,21 @@ export default function AdminPage() {
   // ----------------------------------------------------
   // AUTHENTICATED DASHBOARD (FULL CONTROL SUITE)
   // ----------------------------------------------------
+  if (visualEditorTarget) {
+    return (
+      <CadVisualPageEditor
+        key={`${visualEditorTarget.category}_${visualEditorTarget.productKey}`}
+        initialCategory={visualEditorTarget.category}
+        initialProductKey={visualEditorTarget.productKey}
+        onExitToDashboard={() => setVisualEditorTarget(null)}
+      />
+    )
+  }
+
   if (activeTab === 'cad_visual_edit') {
     return (
       <CadVisualPageEditor
+        key="cad_visual_edit"
         initialCategory="cad"
         initialProductKey="ares_commander"
         onExitToDashboard={() => setActiveTab('quotes')}
@@ -1472,6 +1492,7 @@ export default function AdminPage() {
   if (activeTab === 'printers_visual_edit') {
     return (
       <CadVisualPageEditor
+        key="printers_visual_edit"
         initialCategory="printers"
         initialProductKey="pratham_mini"
         onExitToDashboard={() => setActiveTab('quotes')}
@@ -1482,6 +1503,7 @@ export default function AdminPage() {
   if (activeTab === 'scanners_visual_edit') {
     return (
       <CadVisualPageEditor
+        key="scanners_visual_edit"
         initialCategory="scanners"
         initialProductKey="devok_mt"
         onExitToDashboard={() => setActiveTab('quotes')}
@@ -1707,7 +1729,7 @@ export default function AdminPage() {
                   <span>3D Printers & 3D Edit</span>
                 </div>
                 <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  20 Pages
+                  25 Pages
                 </span>
               </button>
 
@@ -4281,6 +4303,64 @@ export default function AdminPage() {
                 </div>
               )}
 
+              {/* Page-Wise Live Visual Editor Quick-Launch Banner */}
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white flex flex-col lg:flex-row lg:items-center justify-between gap-4 border border-slate-800 shadow-sm">
+                <div className="space-y-1">
+                  <div className="inline-flex items-center space-x-1.5 text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-bold">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>100% Full-Screen Page-Wise Live Visual Editor</span>
+                  </div>
+                  <h4 className="text-sm font-black text-white">
+                    Click &ldquo;Edit Page (Live Visual)&rdquo; on any product below to open its exact live website page at 100% full width
+                  </h4>
+                  <p className="text-[11px] text-slate-300">
+                    Works identically across CAD Software, 3D Printers (FDM, DLP, Industrial LCD), 3D Filaments, and 3D Scanners — click any heading, text, spec cell, button, image, or PDF brochure on the page to edit &amp; publish live.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setVisualEditorTarget({
+                        category: 'printers',
+                        productKey: 'pratham_mini',
+                      })
+                    }
+                    className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold shadow-sm cursor-pointer transition-all"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    <span>3D Printers &amp; 3D Edit (25 Pages)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setVisualEditorTarget({
+                        category: 'scanners',
+                        productKey: 'devok_mt',
+                      })
+                    }
+                    className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-extrabold shadow-sm cursor-pointer transition-all"
+                  >
+                    <Scan className="w-3.5 h-3.5" />
+                    <span>3D Scanners Edit (4 Pages)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setVisualEditorTarget({
+                        category: 'cad',
+                        productKey: 'ares_commander',
+                      })
+                    }
+                    className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-extrabold shadow-sm cursor-pointer transition-all"
+                  >
+                    <Monitor className="w-3.5 h-3.5" />
+                    <span>CAD Software Edit (14 Pages)</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Products Catalog Table */}
               <div className="overflow-x-auto border border-slate-200 rounded-2xl">
                 <table className="w-full text-left text-xs">
@@ -4295,11 +4375,22 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {filteredProducts.map(p => (
+                    {filteredProducts.map(p => {
+                      const visualPageTarget = resolveVisualProductKeyFromCatalogProduct(p.slug || p.id)
+                      return (
                       <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
                         <td className="py-3 px-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-11 h-11 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                          <div
+                            onClick={() =>
+                              setVisualEditorTarget({
+                                category: visualPageTarget.editorGroup,
+                                productKey: visualPageTarget.key,
+                              })
+                            }
+                            className="flex items-center space-x-3 cursor-pointer group"
+                            title="Click to open 100% Full-Screen Page-Wise Live Visual Editor"
+                          >
+                            <div className="w-11 h-11 rounded-xl bg-slate-100 border border-slate-200 group-hover:border-blue-400 overflow-hidden flex items-center justify-center shrink-0 transition-colors">
                               {p.hero_image ? (
                                 <img src={p.hero_image} alt="" className="w-full h-full object-contain p-1" />
                               ) : (
@@ -4307,10 +4398,13 @@ export default function AdminPage() {
                               )}
                             </div>
                             <div>
-                              <div className="font-bold text-slate-900 text-sm hover:text-blue-600 transition-colors">
-                                {p.name}
+                              <div className="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors flex items-center gap-1.5">
+                                <span>{p.name}</span>
+                                <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-mono uppercase">
+                                  Live Visual
+                                </span>
                               </div>
-                              <div className="text-[11px] text-slate-400 font-mono">/products/{p.slug}</div>
+                              <div className="text-[11px] text-slate-400 font-mono">{visualPageTarget.route}</div>
                               {p.tagline && (
                                 <div className="text-[11px] text-slate-500 line-clamp-1 max-w-xs">{p.tagline}</div>
                               )}
@@ -4362,18 +4456,31 @@ export default function AdminPage() {
 
                         <td className="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
                           <button
+                            onClick={() =>
+                              setVisualEditorTarget({
+                                category: visualPageTarget.editorGroup,
+                                productKey: visualPageTarget.key,
+                              })
+                            }
+                            className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-extrabold transition-colors cursor-pointer shadow-xs"
+                            title="Open 100% Full-Screen Page-Wise Live Visual Editor (Same-to-Same Live Page)"
+                          >
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>Edit Page (Live Visual)</span>
+                          </button>
+                          <button
                             onClick={() => {
                               setEditingProduct({ ...p })
                               setActiveEditTab('overview')
                             }}
-                            className="inline-flex items-center space-x-1 px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-xs"
-                            title="Edit full product sections"
+                            className="inline-flex items-center space-x-1 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                            title="Edit product catalog form fields"
                           >
                             <Edit className="w-3.5 h-3.5" />
-                            <span>Edit Full Sections</span>
+                            <span>Form</span>
                           </button>
                           <a
-                            href={p.category_slug === 'filaments' ? '/shop?category=filaments' : `/products/${p.slug}`}
+                            href={visualPageTarget.route}
                             target="_blank"
                             rel="noreferrer"
                             className="inline-flex items-center p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
@@ -4390,7 +4497,7 @@ export default function AdminPage() {
                           </button>
                         </td>
                       </tr>
-                    ))}
+                    )})}
                   </tbody>
                 </table>
               </div>

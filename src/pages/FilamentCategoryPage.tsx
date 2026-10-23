@@ -141,9 +141,9 @@ const FilamentCard: React.FC<{ product: FilamentProduct }> = ({ product }) => {
 }
 
 // ─── FilamentDetailPage (for individual product by slug) ─────────────────────
-export const FilamentDetailPage: React.FC = () => {
+export const FilamentDetailPage: React.FC<{ forcedSlug?: string }> = ({ forcedSlug }) => {
   const pathParts = window.location.pathname.split('/').filter(Boolean)
-  const slug = pathParts[pathParts.length - 1]
+  const slug = forcedSlug || pathParts[pathParts.length - 1]
 
   if (slug === 'pla-white-1kg-175mm' || slug === 'pla-3d-printer-filament-white' || slug === 'pla-white') {
     return <WhitePlaDetailPage />

@@ -672,12 +672,12 @@ export const VISUAL_PAGE_CATALOG: VisualPageCatalogItem[] = [
   },
   {
     key: 'filament_white_pla',
-    label: 'PLA+ 3D Filament — White',
+    label: 'PLA 3D Filament — White',
     brand: 'Make3D',
-    category: '1.75mm Engineering PLA+ Filament (White)',
+    category: '1.75mm Engineering PLA Filament (White)',
     editorGroup: 'printers',
     route: '/product/pla-3d-printer-filament-white',
-    routeAliases: ['/products/filaments/white-pla'],
+    routeAliases: ['/products/filaments/white-pla', '/shop/filaments/pla-white-1kg-175mm', '/3d-printer-filament/pla-white-1kg-175mm', '/products/pla-white-1kg-175mm'],
     heroImage: '/images/filaments/white-pla.png',
   },
   {
@@ -687,7 +687,7 @@ export const VISUAL_PAGE_CATALOG: VisualPageCatalogItem[] = [
     category: '1.75mm Engineering PLA+ Filament (Grey Silver)',
     editorGroup: 'printers',
     route: '/product/pla-plus-3d-printer-filament-grey-silver',
-    routeAliases: ['/product/plaplus-grey-silver-1kg-175mm', '/products/filaments/grey-silver-pla'],
+    routeAliases: ['/product/plaplus-grey-silver-1kg-175mm', '/products/filaments/grey-silver-pla', '/shop/filaments/plaplus-grey-silver-1kg-175mm', '/3d-printer-filament/plaplus-grey-silver-1kg-175mm', '/products/plaplus-grey-silver-1kg-175mm'],
     heroImage: '/images/filaments/grey-silver-pla.png',
   },
   {
@@ -697,8 +697,58 @@ export const VISUAL_PAGE_CATALOG: VisualPageCatalogItem[] = [
     category: '1.75mm Engineering PLA+ Filament (Gold)',
     editorGroup: 'printers',
     route: '/product/pla-plus-3d-printer-filament-gold',
-    routeAliases: ['/product/plaplus-gold-1kg-175mm', '/products/filaments/gold-pla'],
+    routeAliases: ['/product/plaplus-gold-1kg-175mm', '/products/filaments/gold-pla', '/shop/filaments/plaplus-gold-1kg-175mm', '/3d-printer-filament/plaplus-gold-1kg-175mm', '/products/plaplus-gold-1kg-175mm'],
     heroImage: '/images/filaments/gold-pla.png',
+  },
+  {
+    key: 'filament_orange_pla',
+    label: 'PLA+ 3D Filament — Orange',
+    brand: 'Make3D',
+    category: '1.75mm Engineering PLA+ Filament (Orange)',
+    editorGroup: 'printers',
+    route: '/shop/filaments/plaplus-orange-1kg-175mm',
+    routeAliases: ['/3d-printer-filament/plaplus-orange-1kg-175mm', '/products/plaplus-orange-1kg-175mm'],
+    heroImage: '/images/filaments/white-pla.png',
+  },
+  {
+    key: 'filament_yellow_pla',
+    label: 'PLA+ 3D Filament — Yellow',
+    brand: 'Make3D',
+    category: '1.75mm Engineering PLA+ Filament (Yellow)',
+    editorGroup: 'printers',
+    route: '/shop/filaments/plaplus-yellow-1kg-175mm',
+    routeAliases: ['/3d-printer-filament/plaplus-yellow-1kg-175mm', '/products/plaplus-yellow-1kg-175mm'],
+    heroImage: '/images/filaments/white-pla.png',
+  },
+  {
+    key: 'filament_blue_pla',
+    label: 'PLA+ 3D Filament — Blue',
+    brand: 'Make3D',
+    category: '1.75mm Engineering PLA+ Filament (Blue)',
+    editorGroup: 'printers',
+    route: '/shop/filaments/plaplus-blue-1kg-175mm',
+    routeAliases: ['/3d-printer-filament/plaplus-blue-1kg-175mm', '/products/plaplus-blue-1kg-175mm'],
+    heroImage: '/images/filaments/white-pla.png',
+  },
+  {
+    key: 'filament_black_pla',
+    label: 'PLA+ 3D Filament — Black',
+    brand: 'Make3D',
+    category: '1.75mm Engineering PLA+ Filament (Black)',
+    editorGroup: 'printers',
+    route: '/shop/filaments/plaplus-black-1kg-175mm',
+    routeAliases: ['/3d-printer-filament/plaplus-black-1kg-175mm', '/products/plaplus-black-1kg-175mm'],
+    heroImage: '/images/filaments/white-pla.png',
+  },
+  {
+    key: 'filament_red_pla',
+    label: 'PLA+ 3D Filament — Red',
+    brand: 'Make3D',
+    category: '1.75mm Engineering PLA+ Filament (Red)',
+    editorGroup: 'printers',
+    route: '/shop/filaments/plaplus-red-1kg-175mm',
+    routeAliases: ['/3d-printer-filament/plaplus-red-1kg-175mm', '/products/plaplus-red-1kg-175mm'],
+    heroImage: '/images/filaments/white-pla.png',
   },
   {
     key: 'filaments_category',
@@ -769,6 +819,35 @@ export function resolveVisualProductKeyFromPath(pathname: string): string | null
     }
   }
   return null
+}
+
+export function resolveVisualProductKeyFromCatalogProduct(slugOrId: string): VisualPageCatalogItem {
+  const s = (slugOrId || '').trim().toLowerCase()
+  const directByRoute =
+    resolveVisualProductKeyFromPath(`/products/${s}`) ||
+    resolveVisualProductKeyFromPath(`/product/${s}`) ||
+    resolveVisualProductKeyFromPath(`/shop/filaments/${s}`) ||
+    resolveVisualProductKeyFromPath(`/${s}`)
+
+  if (directByRoute) {
+    const found = VISUAL_PAGE_CATALOG.find(i => i.key === directByRoute)
+    if (found) return found
+  }
+
+  const normalizedKey = s.replace(/-/g, '_')
+  const byKey = VISUAL_PAGE_CATALOG.find(i => i.key === normalizedKey || i.key === s)
+  if (byKey) return byKey
+
+  if (s.includes('white')) return VISUAL_PAGE_CATALOG.find(i => i.key === 'filament_white_pla')!
+  if (s.includes('grey') || s.includes('silver')) return VISUAL_PAGE_CATALOG.find(i => i.key === 'filament_grey_silver_pla')!
+  if (s.includes('gold')) return VISUAL_PAGE_CATALOG.find(i => i.key === 'filament_gold_pla')!
+  if (s.includes('orange')) return VISUAL_PAGE_CATALOG.find(i => i.key === 'filament_orange_pla')!
+  if (s.includes('yellow')) return VISUAL_PAGE_CATALOG.find(i => i.key === 'filament_yellow_pla')!
+  if (s.includes('blue')) return VISUAL_PAGE_CATALOG.find(i => i.key === 'filament_blue_pla')!
+  if (s.includes('black')) return VISUAL_PAGE_CATALOG.find(i => i.key === 'filament_black_pla')!
+  if (s.includes('red')) return VISUAL_PAGE_CATALOG.find(i => i.key === 'filament_red_pla')!
+
+  return VISUAL_PAGE_CATALOG[0]
 }
 
 export const DEFAULT_ARES_COMMANDER_PDFS: CadPdfResource[] = [

@@ -92,7 +92,7 @@ import EkaGtMaxPage from '../../pages/EkaGtMaxPage'
 import EkaF116kPage from '../../pages/EkaF116kPage'
 import DlpCategoryPage from '../../pages/DlpCategoryPage'
 import IndustrialLcdCategoryPage from '../../pages/IndustrialLcdCategoryPage'
-import FilamentCategoryPage from '../../pages/FilamentCategoryPage'
+import FilamentCategoryPage, { FilamentDetailPage } from '../../pages/FilamentCategoryPage'
 import WhitePlaDetailPage from '../../pages/WhitePlaDetailPage'
 import GreySilverPlaPage from '../../pages/GreySilverPlaPage'
 import GoldPlaPage from '../../pages/GoldPlaPage'
@@ -192,6 +192,16 @@ function renderRealProductPage(productKey: string) {
       return <GreySilverPlaPage />
     case 'filament_gold_pla':
       return <GoldPlaPage />
+    case 'filament_orange_pla':
+      return <FilamentDetailPage forcedSlug="plaplus-orange-1kg-175mm" />
+    case 'filament_yellow_pla':
+      return <FilamentDetailPage forcedSlug="plaplus-yellow-1kg-175mm" />
+    case 'filament_blue_pla':
+      return <FilamentDetailPage forcedSlug="plaplus-blue-1kg-175mm" />
+    case 'filament_black_pla':
+      return <FilamentDetailPage forcedSlug="plaplus-black-1kg-175mm" />
+    case 'filament_red_pla':
+      return <FilamentDetailPage forcedSlug="plaplus-red-1kg-175mm" />
     case 'filaments_category':
       return <FilamentCategoryPage />
 
@@ -1195,12 +1205,13 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
               if (hasUnsavedChanges && !window.confirm('You have unsaved changes. Open product list without saving?')) {
                 return
               }
+              setCategoryFilter('all')
               setViewMode('list')
             }}
             className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
           >
             <LayoutGrid className="w-3.5 h-3.5 text-blue-400" />
-            <span className="hidden sm:inline">All Pages</span>
+            <span className="hidden sm:inline">All Pages ({categoryCounts.all})</span>
           </button>
 
           {/* Category Filter Dropdown */}
@@ -1220,13 +1231,13 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
             }}
             className="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-blue-300 text-xs font-extrabold focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
+            <option value="all">All Categories ({categoryCounts.all})</option>
             <option value="cad">CAD Software ({categoryCounts.cad})</option>
             <option value="printers">3D Printers & Filaments ({categoryCounts.printers})</option>
             <option value="scanners">3D Scanners ({categoryCounts.scanners})</option>
-            <option value="all">All Categories ({categoryCounts.all})</option>
           </select>
 
-          {/* Page Selector Dropdown */}
+          {/* Page Selector Dropdown — Grouped by Category so ALL 43 pages are always visible */}
           <select
             value={activeProductKey}
             onChange={e => {
@@ -1237,11 +1248,42 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
             }}
             className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs font-bold max-w-[240px] sm:max-w-[300px] focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {categoryProducts.map(p => (
-              <option key={p.key} value={p.key}>
-                {p.label} ({p.brand})
-              </option>
-            ))}
+            {(categoryFilter === 'all' || categoryFilter === 'cad') && (
+              <optgroup label={`💻 CAD Software Pages (${categoryCounts.cad})`}>
+                {VISUAL_PAGE_CATALOG.filter(p => p.editorGroup === 'cad').map(p => (
+                  <option key={p.key} value={p.key}>
+                    {p.label} ({p.brand})
+                  </option>
+                ))}
+              </optgroup>
+            )}
+            {(categoryFilter === 'all' || categoryFilter === 'printers') && (
+              <optgroup label={`🖨️ 3D Printers & Filaments (${categoryCounts.printers})`}>
+                {VISUAL_PAGE_CATALOG.filter(p => p.editorGroup === 'printers').map(p => (
+                  <option key={p.key} value={p.key}>
+                    {p.label} ({p.brand})
+                  </option>
+                ))}
+              </optgroup>
+            )}
+            {(categoryFilter === 'all' || categoryFilter === 'scanners') && (
+              <optgroup label={`📷 3D Scanners (${categoryCounts.scanners})`}>
+                {VISUAL_PAGE_CATALOG.filter(p => p.editorGroup === 'scanners').map(p => (
+                  <option key={p.key} value={p.key}>
+                    {p.label} ({p.brand})
+                  </option>
+                ))}
+              </optgroup>
+            )}
+            {categoryFilter !== 'all' && (
+              <optgroup label="── Other Categories ──">
+                {VISUAL_PAGE_CATALOG.filter(p => p.editorGroup !== categoryFilter).map(p => (
+                  <option key={p.key} value={p.key}>
+                    [{p.editorGroup === 'cad' ? 'CAD' : p.editorGroup === 'printers' ? '3D Printer' : 'Scanner'}] {p.label}
+                  </option>
+                ))}
+              </optgroup>
+            )}
           </select>
 
           {hasUnsavedChanges ? (
