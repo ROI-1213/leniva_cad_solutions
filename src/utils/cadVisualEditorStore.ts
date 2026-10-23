@@ -911,6 +911,9 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
   const sectionNodes = Array.from(root.querySelectorAll<HTMLElement>('[data-cad-section]'))
   const hiddenMap = payload.hiddenSections || {}
   const orderList = Array.isArray(payload.sectionOrder) ? payload.sectionOrder : []
+  const defaultOrder = ARES_COMMANDER_SECTIONS.map(s => s.id)
+  const isCustomOrder =
+    orderList.length > 0 && orderList.some((id, idx) => id !== defaultOrder[idx])
 
   for (const sec of sectionNodes) {
     const secId = sec.getAttribute('data-cad-section') || ''
@@ -919,13 +922,17 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
     } else {
       sec.style.display = ''
     }
-    if (orderList.length > 0) {
+    sec.style.width = '100%'
+    if (isCustomOrder) {
       const orderIdx = orderList.indexOf(secId)
       if (orderIdx !== -1 && sec.parentElement) {
         sec.parentElement.style.display = 'flex'
         sec.parentElement.style.flexDirection = 'column'
+        sec.parentElement.style.width = '100%'
         sec.style.order = String(orderIdx + 1)
       }
+    } else {
+      sec.style.order = ''
     }
   }
 

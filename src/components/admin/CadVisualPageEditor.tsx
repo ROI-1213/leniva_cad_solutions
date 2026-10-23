@@ -27,12 +27,9 @@ import {
   X,
   History,
   Type,
-  Maximize2,
-  Minimize2,
-  PanelRightClose,
-  PanelRightOpen,
   FileCheck,
   RefreshCw,
+  LayoutGrid,
 } from 'lucide-react'
 import { DEFAULT_CAD_PRODUCTS, CadProductItem } from '../../utils/cadSoftwareConfig'
 import { aresCommanderData } from '../../data/aresCommanderData'
@@ -126,24 +123,31 @@ function renderRealCadProductPage(productKey: string) {
   }
 }
 
-export const CadVisualPageEditor: React.FC = () => {
-  const [viewMode, setViewMode] = useState<'list' | 'editor'>('list')
+export interface CadVisualPageEditorProps {
+  onExitToDashboard?: () => void
+}
+
+export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExitToDashboard }) => {
+  // Open directly in full-page visual editor mode for ARES Commander so it displays the complete live page immediately
+  const [viewMode, setViewMode] = useState<'list' | 'editor'>('editor')
   const [activeProductKey, setActiveProductKey] = useState<string>('ares_commander')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [showAuditModal, setShowAuditModal] = useState<boolean>(false)
 
-  // Editor state
+  // Editor state — full-width desktop by default, inspector closed until clicked so the page is 100% identical to live frontend
   const [viewport, setViewport] = useState<ViewportMode>('desktop')
   const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false)
-  const [showHeaderFooter, setShowHeaderFooter] = useState<boolean>(false)
-  const [isFullScreen, setIsFullScreen] = useState<boolean>(false)
-  const [inspectorOpen, setInspectorOpen] = useState<boolean>(true)
-  const [inspectorTab, setInspectorTab] = useState<InspectorTab>('sections')
+  const [showHeaderFooter, setShowHeaderFooter] = useState<boolean>(true)
+  const [inspectorOpen, setInspectorOpen] = useState<boolean>(false)
+  const [inspectorTab, setInspectorTab] = useState<InspectorTab>('element')
 
-  // Working payload + Undo/Redo history stack
-  const [payload, setPayload] = useState<CadVisualPagePayload>(() => getWorkingVisualPayload('ares_commander').payload)
-  const [history, setHistory] = useState<CadVisualPagePayload[]>([])
-  const [historyIndex, setHistoryIndex] = useState<number>(-1)
+  // Initial working payload
+  const initialWorking = useMemo(() => getWorkingVisualPayload('ares_commander'), [])
+  const [payload, setPayload] = useState<CadVisualPagePayload>(() => initialWorking.payload)
+  const [history, setHistory] = useState<CadVisualPagePayload[]>(() => [
+    structuredCloneSafe(initialWorking.payload),
+  ])
+  const [historyIndex, setHistoryIndex] = useState<number>(0)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false)
   const [statusMeta, setStatusMeta] = useState<{
     hasDraft: boolean
@@ -151,10 +155,10 @@ export const CadVisualPageEditor: React.FC = () => {
     lastSavedAt: string | null
     lastPublishedAt: string | null
   }>({
-    hasDraft: false,
-    isPublished: false,
-    lastSavedAt: null,
-    lastPublishedAt: null,
+    hasDraft: initialWorking.hasDraft,
+    isPublished: initialWorking.isPublished,
+    lastSavedAt: initialWorking.lastSavedAt,
+    lastPublishedAt: initialWorking.lastPublishedAt,
   })
 
   // Selection & notifications
@@ -245,7 +249,11 @@ export const CadVisualPageEditor: React.FC = () => {
     if (viewMode !== 'editor') return
     const onKeyDown = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName?.toLowerCase()
-      const isInput = tag === 'input' || tag === 'textarea' || tag === 'select'
+      const isInput =
+        tag === 'input' ||
+        tag === 'textarea' ||
+        tag === 'select' ||
+        (e.target as HTMLElement)?.isContentEditable
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey && !isInput) {
         e.preventDefault()
         handleUndo()
@@ -286,7 +294,7 @@ export const CadVisualPageEditor: React.FC = () => {
     applyCadVisualOverridesToRoot(canvasRef.current, payload)
   }, [viewMode, payload, viewport, showHeaderFooter])
 
-  //Merged data for structured inspector fields
+  // Merged data for structured inspector fields
   const mergedAresData = useMemo(() => {
     return deepMergeData(aresCommanderData, payload.dataOverrides || {})
   }, [payload.dataOverrides])
@@ -375,7 +383,16 @@ export const CadVisualPageEditor: React.FC = () => {
     const target = e.target as HTMLElement
     if (!target || !root.contains(target)) return
 
-    // Allow interactive switcher buttons (like 2D vs 3D tab or FAQ category filter) to still switch tabs when clicked!
+    // Ignore clicks inside the site Header / Footer navigation links if user is clicking around, or prevent navigation away from /admin
+    const inHeaderOrFooter = target.closest('header') || target.closest('footer')
+    if (inHeaderOrFooter) {
+      const linkNode = target.closest('a')
+      if (linkNode) {
+        e.preventDefault()
+      }
+      return
+    }
+
     const closestSection = target.closest<HTMLElement>('[data-cad-section]')
     const sectionId = closestSection?.getAttribute('data-cad-section') || undefined
 
@@ -408,7 +425,6 @@ export const CadVisualPageEditor: React.FC = () => {
     } else {
       const childImg = target.querySelector('img')
       if (childImg && (target.tagName === 'DIV' || target.tagName === 'SPAN') && target.clientHeight > 30) {
-        // Check if target is an overlay gradient directly over an image
         imgEl = childImg
       }
     }
@@ -507,7 +523,7 @@ export const CadVisualPageEditor: React.FC = () => {
       })
 
       updatePayload(prev => {
-        let next = { ...prev }
+        const next = { ...prev }
         if (options.dataPath) {
           next.dataOverrides = setByPath(next.dataOverrides || {}, options.dataPath, res.url)
         }
@@ -640,10 +656,10 @@ export const CadVisualPageEditor: React.FC = () => {
                 <span>Live Visual CAD Page Editor</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-                CAD Software Edit — Visual Frontend Page Studio
+                CAD Software Edit — Full-Page Live Visual Editor
               </h2>
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                View the complete live product page exactly as it appears on the public website, click any heading, paragraph, button, table cell, image, or PDF document to edit directly inside the page, upload replacement images & PDFs to persistent cloud storage, save drafts, and publish live to Vercel immediately.
+                Open the complete live product page at 100% full width exactly as it appears on the public website, click any heading, paragraph, button, table cell, image, or PDF document to edit directly on the page, upload replacement images & PDFs to persistent cloud storage, save drafts, and publish live to Vercel immediately.
               </p>
             </div>
 
@@ -653,14 +669,14 @@ export const CadVisualPageEditor: React.FC = () => {
                 className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold flex items-center gap-2 cursor-pointer transition-all"
               >
                 <FileCheck className="w-4 h-4 text-emerald-400" />
-                <span>View 20-Section Page Audit Checklist</span>
+                <span>20-Section Audit Checklist</span>
               </button>
               <button
                 onClick={() => loadProductIntoEditor('ares_commander')}
                 className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-extrabold flex items-center gap-2 shadow-lg cursor-pointer transition-all"
               >
                 <Sparkles className="w-4 h-4" />
-                <span>Edit ARES Commander Page</span>
+                <span>Edit ARES Commander Full Page</span>
               </button>
             </div>
           </div>
@@ -702,14 +718,6 @@ export const CadVisualPageEditor: React.FC = () => {
                 <p className="text-xs text-slate-600">
                   20 Live Sections • 11 Editable Image Slots • 4 Downloadable PDF Brochures & Datasheets • Full Inline Text, Table, FAQ & Section Reordering
                 </p>
-                <div className="flex flex-wrap items-center gap-4 text-[11px] text-slate-500 pt-1">
-                  {aresInfo.lastSavedAt && (
-                    <span>Last Draft Saved: {new Date(aresInfo.lastSavedAt).toLocaleString()}</span>
-                  )}
-                  {aresInfo.lastPublishedAt && (
-                    <span>Last Published: {new Date(aresInfo.lastPublishedAt).toLocaleString()}</span>
-                  )}
-                </div>
               </div>
             </div>
 
@@ -728,7 +736,7 @@ export const CadVisualPageEditor: React.FC = () => {
                 className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-extrabold flex items-center gap-2 shadow-sm cursor-pointer transition-all"
               >
                 <Layers className="w-4 h-4" />
-                <span>Edit Page</span>
+                <span>Edit Full Page</span>
               </button>
             </div>
           </div>
@@ -742,7 +750,7 @@ export const CadVisualPageEditor: React.FC = () => {
                 All CAD Software Product Pages ({filteredProducts.length})
               </h3>
               <p className="text-xs text-slate-500">
-                Select any CAD software product below and click "Edit Page" to open its live visual editor.
+                Select any CAD software product below and click "Edit Page" to open its full-screen live visual editor.
               </p>
             </div>
             <div className="relative w-full sm:w-72">
@@ -853,40 +861,6 @@ export const CadVisualPageEditor: React.FC = () => {
                     ))}
                   </div>
                 </div>
-
-                <div>
-                  <h4 className="font-bold text-slate-900 uppercase tracking-wider mb-3">
-                    Audited Image Slots ({ARES_COMMANDER_IMAGE_SLOTS.length} / {ARES_COMMANDER_IMAGE_SLOTS.length} Upload & Replace Ready)
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {ARES_COMMANDER_IMAGE_SLOTS.map(slot => (
-                      <div key={slot.id} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3">
-                        <img src={slot.defaultSrc} alt={slot.defaultAlt} className="w-12 h-9 object-cover rounded bg-slate-200 shrink-0" />
-                        <div className="min-w-0">
-                          <div className="font-bold text-slate-900 truncate">{slot.label}</div>
-                          <div className="text-[10px] font-mono text-slate-500 truncate">{slot.defaultSrc}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-bold text-slate-900 uppercase tracking-wider mb-3">
-                    Audited PDF & Downloadable Resources ({DEFAULT_ARES_COMMANDER_PDFS.length} Pre-Configured + Unlimited Custom PDFs)
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {DEFAULT_ARES_COMMANDER_PDFS.map(pdf => (
-                      <div key={pdf.id} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2.5">
-                        <FileText className="w-4 h-4 text-red-600 shrink-0" />
-                        <div className="min-w-0">
-                          <div className="font-bold text-slate-900 truncate">{pdf.title}</div>
-                          <div className="text-[10px] font-mono text-slate-500 truncate">{pdf.fileName} ({pdf.fileSize})</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
               <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
                 <button
@@ -907,7 +881,9 @@ export const CadVisualPageEditor: React.FC = () => {
   }
 
   // ============================================================================
-  // VIEW 2: LIVE VISUAL PAGE EDITOR WORKSPACE
+  // VIEW 2: FULL-SCREEN 100% WIDTH LIVE VISUAL PAGE EDITOR
+  // Renders fixed inset-0 w-screen h-screen so the product page inside Admin
+  // has the EXACT same full viewport width and layout as /products/ares-commander!
   // ============================================================================
   const orderedSections = (
     Array.isArray(payload.sectionOrder) && payload.sectionOrder.length > 0
@@ -917,7 +893,6 @@ export const CadVisualPageEditor: React.FC = () => {
     .map(id => ARES_COMMANDER_SECTIONS.find(s => s.id === id))
     .filter((s): s is NonNullable<typeof s> => Boolean(s))
 
-  // Add any newly defined sections that weren't in stored sectionOrder
   for (const sec of ARES_COMMANDER_SECTIONS) {
     if (!orderedSections.some(s => s.id === sec.id)) {
       orderedSections.push(sec)
@@ -927,31 +902,40 @@ export const CadVisualPageEditor: React.FC = () => {
   const revisions = getVisualRevisions(activeProductKey)
 
   return (
-    <div
-      className={`${
-        isFullScreen
-          ? 'fixed inset-0 z-50 bg-slate-900 flex flex-col'
-          : 'bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col min-h-[88vh]'
-      }`}
-    >
+    <div className="fixed inset-0 z-50 w-screen h-screen bg-white flex flex-col overflow-hidden">
       {/* ====================================================================
-          STICKY TOP VISUAL EDITOR TOOLBAR
-          Back to Products | Desktop | Tablet | Mobile | Undo | Redo | Save Draft | Preview | Publish Changes
+          STICKY TOP VISUAL EDITOR BAR (Compact, Full-Width)
+          Back to Admin | All Products | Product Select | Desktop/Tablet/Mobile | Sections / Images / PDFs / SEO | Undo/Redo | Save Draft | Preview | Publish Changes
          ==================================================================== */}
-      <div className="bg-slate-950 border-b border-slate-800 px-3 sm:px-5 py-2.5 flex flex-wrap items-center justify-between gap-2 text-white z-30">
-        {/* Left: Back to Products + Product Switcher + Status */}
-        <div className="flex items-center gap-2 sm:gap-3">
+      <div className="bg-slate-950 border-b border-slate-800 px-3 sm:px-5 py-2 flex flex-wrap items-center justify-between gap-2 text-white z-40 shrink-0">
+        {/* Left: Back to Admin + All CAD Pages + Product Switcher + Status */}
+        <div className="flex items-center gap-2">
+          {onExitToDashboard && (
+            <button
+              onClick={() => {
+                if (hasUnsavedChanges && !window.confirm('You have unsaved changes. Exit visual editor without saving?')) {
+                  return
+                }
+                onExitToDashboard()
+              }}
+              className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Admin</span>
+            </button>
+          )}
+
           <button
             onClick={() => {
-              if (hasUnsavedChanges && !window.confirm('You have unsaved changes. Return to product list without saving?')) {
+              if (hasUnsavedChanges && !window.confirm('You have unsaved changes. Open product list without saving?')) {
                 return
               }
               setViewMode('list')
             }}
-            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+            className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Products</span>
+            <LayoutGrid className="w-3.5 h-3.5 text-blue-400" />
+            <span className="hidden sm:inline">All Products</span>
           </button>
 
           <select
@@ -974,7 +958,7 @@ export const CadVisualPageEditor: React.FC = () => {
           {hasUnsavedChanges ? (
             <span className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[11px] font-mono font-bold">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-              <span>Unsaved Changes</span>
+              <span>Unsaved</span>
             </span>
           ) : statusMeta.hasDraft ? (
             <span className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-300 text-[11px] font-mono font-bold">
@@ -983,69 +967,145 @@ export const CadVisualPageEditor: React.FC = () => {
           ) : (
             <span className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[11px] font-mono font-bold">
               <CheckCircle2 className="w-3 h-3" />
-              <span>Live Synced</span>
+              <span>Live</span>
             </span>
           )}
         </div>
 
-        {/* Center: Viewport Switcher (Desktop | Tablet | Mobile) + Undo / Redo */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center bg-slate-900 p-1 rounded-lg border border-slate-800">
+        {/* Center: Quick Drawer Toggles (Sections | Images | PDFs | SEO) + Viewport + Undo/Redo */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center bg-slate-900 p-1 rounded-lg border border-slate-800 gap-0.5">
+            <button
+              onClick={() => {
+                if (inspectorOpen && inspectorTab === 'sections') {
+                  setInspectorOpen(false)
+                } else {
+                  setInspectorTab('sections')
+                  setInspectorOpen(true)
+                }
+              }}
+              className={`px-2.5 py-1 rounded-md text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors ${
+                inspectorOpen && inspectorTab === 'sections'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>Sections</span>
+            </button>
+
+            <button
+              onClick={() => {
+                if (inspectorOpen && inspectorTab === 'images') {
+                  setInspectorOpen(false)
+                } else {
+                  setInspectorTab('images')
+                  setInspectorOpen(true)
+                }
+              }}
+              className={`px-2.5 py-1 rounded-md text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors ${
+                inspectorOpen && inspectorTab === 'images'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <ImageIcon className="w-3.5 h-3.5" />
+              <span>Images</span>
+            </button>
+
+            <button
+              onClick={() => {
+                if (inspectorOpen && inspectorTab === 'pdfs') {
+                  setInspectorOpen(false)
+                } else {
+                  setInspectorTab('pdfs')
+                  setInspectorOpen(true)
+                }
+              }}
+              className={`px-2.5 py-1 rounded-md text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors ${
+                inspectorOpen && inspectorTab === 'pdfs'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>PDFs</span>
+            </button>
+
+            <button
+              onClick={() => {
+                if (inspectorOpen && inspectorTab === 'seo') {
+                  setInspectorOpen(false)
+                } else {
+                  setInspectorTab('seo')
+                  setInspectorOpen(true)
+                }
+              }}
+              className={`px-2.5 py-1 rounded-md text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors ${
+                inspectorOpen && inspectorTab === 'seo'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <History className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">SEO & History</span>
+            </button>
+          </div>
+
+          {/* Viewport Switcher */}
+          <div className="hidden md:flex items-center bg-slate-900 p-1 rounded-lg border border-slate-800">
             <button
               onClick={() => setViewport('desktop')}
-              title="Desktop View (100%)"
-              className={`px-2.5 py-1 rounded-md text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors ${
+              title="Full Desktop View (100%)"
+              className={`px-2 py-1 rounded-md text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors ${
                 viewport === 'desktop' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
               }`}
             >
               <Monitor className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Desktop</span>
+              <span className="hidden lg:inline">Desktop</span>
             </button>
             <button
               onClick={() => setViewport('tablet')}
-              title="Tablet View (768px)"
-              className={`px-2.5 py-1 rounded-md text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors ${
+              title="Tablet View"
+              className={`px-2 py-1 rounded-md text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors ${
                 viewport === 'tablet' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
               }`}
             >
               <Tablet className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Tablet</span>
             </button>
             <button
               onClick={() => setViewport('mobile')}
-              title="Mobile View (390px)"
-              className={`px-2.5 py-1 rounded-md text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors ${
+              title="Mobile View"
+              className={`px-2 py-1 rounded-md text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors ${
                 viewport === 'mobile' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
               }`}
             >
               <Smartphone className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Mobile</span>
             </button>
           </div>
 
+          {/* Undo / Redo */}
           <div className="flex items-center bg-slate-900 p-1 rounded-lg border border-slate-800">
             <button
               onClick={handleUndo}
               disabled={historyIndex <= 0}
               title="Undo (Ctrl+Z)"
-              className="px-2 py-1 rounded-md text-xs font-bold text-slate-300 hover:text-white disabled:opacity-35 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1"
+              className="px-2 py-1 rounded-md text-xs font-bold text-slate-300 hover:text-white disabled:opacity-35 cursor-pointer disabled:cursor-not-allowed"
             >
               <Undo2 className="w-3.5 h-3.5" />
-              <span className="hidden lg:inline">Undo</span>
             </button>
             <button
               onClick={handleRedo}
               disabled={historyIndex >= history.length - 1}
               title="Redo (Ctrl+Y)"
-              className="px-2 py-1 rounded-md text-xs font-bold text-slate-300 hover:text-white disabled:opacity-35 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1"
+              className="px-2 py-1 rounded-md text-xs font-bold text-slate-300 hover:text-white disabled:opacity-35 cursor-pointer disabled:cursor-not-allowed"
             >
               <Redo2 className="w-3.5 h-3.5" />
-              <span className="hidden lg:inline">Redo</span>
             </button>
           </div>
         </div>
 
-        {/* Right: Save Draft | Preview | Publish Changes | Expand */}
+        {/* Right: Save Draft | Preview | Publish Changes | Live Link */}
         <div className="flex items-center gap-2">
           <button
             onClick={handleSaveDraft}
@@ -1056,7 +1116,13 @@ export const CadVisualPageEditor: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setIsPreviewMode(prev => !prev)}
+            onClick={() => {
+              setIsPreviewMode(prev => {
+                const next = !prev
+                if (next) setInspectorOpen(false)
+                return next
+              })
+            }}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors border ${
               isPreviewMode
                 ? 'bg-amber-500 text-slate-950 border-amber-400'
@@ -1076,28 +1142,22 @@ export const CadVisualPageEditor: React.FC = () => {
             <span>{isPublishing ? 'Publishing...' : 'Publish Changes'}</span>
           </button>
 
-          <button
-            onClick={() => setInspectorOpen(prev => !prev)}
-            title={inspectorOpen ? 'Hide Inspector Sidebar' : 'Show Inspector Sidebar'}
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer"
+          <a
+            href={activeProductMeta.route}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={`Open live ${activeProductMeta.route} in new tab`}
+            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white"
           >
-            {inspectorOpen ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
-          </button>
-
-          <button
-            onClick={() => setIsFullScreen(prev => !prev)}
-            title={isFullScreen ? 'Exit Fullscreen' : 'Fullscreen Workspace'}
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer"
-          >
-            {isFullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-          </button>
+            <ExternalLink className="w-4 h-4" />
+          </a>
         </div>
       </div>
 
       {/* Toast Notification Banner */}
       {toast && (
         <div
-          className={`px-4 py-2 text-xs font-bold flex items-center justify-between gap-3 ${
+          className={`px-4 py-2 text-xs font-bold flex items-center justify-between gap-3 z-40 shrink-0 ${
             toast.type === 'success'
               ? 'bg-emerald-600 text-white'
               : toast.type === 'error'
@@ -1121,7 +1181,7 @@ export const CadVisualPageEditor: React.FC = () => {
 
       {/* Upload Progress Bar */}
       {uploadState?.active && (
-        <div className="bg-blue-950 border-b border-blue-800 px-4 py-2 text-xs text-blue-200 flex items-center gap-3">
+        <div className="bg-blue-950 border-b border-blue-800 px-4 py-2 text-xs text-blue-200 flex items-center gap-3 z-40 shrink-0">
           <RefreshCw className="w-3.5 h-3.5 animate-spin text-blue-400 shrink-0" />
           <span className="font-bold">{uploadState.statusText}</span>
           <div className="flex-1 max-w-xs h-2 bg-slate-800 rounded-full overflow-hidden">
@@ -1134,111 +1194,104 @@ export const CadVisualPageEditor: React.FC = () => {
         </div>
       )}
 
-      {/* Helper Sub-Bar when in Edit Mode */}
-      {!isPreviewMode && (
-        <div className="bg-slate-900 border-b border-slate-800 px-4 py-1.5 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5 text-blue-400 font-semibold">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Click any Heading, Text, Button, Table Cell, Image, or PDF on the live page below to edit it directly!</span>
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <label className="inline-flex items-center gap-1.5 cursor-pointer text-slate-300">
-              <input
-                type="checkbox"
-                checked={showHeaderFooter}
-                onChange={e => setShowHeaderFooter(e.target.checked)}
-                className="rounded border-slate-600"
-              />
-              <span>Show Site Header & Footer</span>
-            </label>
-            <a
-              href={activeProductMeta.route}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-400 hover:underline flex items-center gap-1 font-semibold"
-            >
-              <span>Open Live URL ({activeProductMeta.route})</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-        </div>
-      )}
-
       {/* ====================================================================
-          MAIN SPLIT WORKSPACE: LIVE FRONTEND PAGE CANVAS (LEFT) + INSPECTOR (RIGHT)
+          FULL-WIDTH 100% LIVE PRODUCT PAGE CANVAS
+          Never squeezed by sidebars — renders edge-to-edge same-to-same as live website!
          ==================================================================== */}
-      <div className="flex-1 flex overflow-hidden bg-slate-800/70">
-        {/* LEFT/CENTER: Live Product Page Canvas */}
-        <div className="flex-1 overflow-y-auto p-2 sm:p-4 flex justify-center items-start">
-          <div
-            style={{
-              width:
-                viewport === 'mobile'
-                  ? '390px'
-                  : viewport === 'tablet'
-                    ? '768px'
-                    : '100%',
-              transition: 'width 0.25s ease',
-            }}
-            className={`bg-white shadow-2xl rounded-xl overflow-hidden border ${
-              viewport !== 'desktop' ? 'border-slate-600 my-2' : 'border-slate-300'
-            }`}
-          >
-            {/* Visual Editor CSS Outlines when not in preview mode */}
-            {!isPreviewMode && (
-              <style>{`
-                [data-cad-editor-canvas] [data-cad-path]:hover,
-                [data-cad-editor-canvas] img:hover,
-                [data-cad-editor-canvas] a:hover,
-                [data-cad-editor-canvas] h1:hover,
-                [data-cad-editor-canvas] h2:hover,
-                [data-cad-editor-canvas] h3:hover,
-                [data-cad-editor-canvas] p:hover,
-                [data-cad-editor-canvas] td:hover {
-                  outline: 2px dashed #2563eb !important;
-                  outline-offset: 2px !important;
-                  cursor: pointer !important;
-                }
-                [data-cad-editor-canvas] [data-cad-section] {
-                  position: relative;
-                }
-              `}</style>
-            )}
+      <div className="flex-1 w-full overflow-y-auto overflow-x-hidden bg-white relative">
+        <div
+          style={{
+            width: '100%',
+            maxWidth:
+              viewport === 'mobile'
+                ? '430px'
+                : viewport === 'tablet'
+                  ? '820px'
+                  : '100%',
+            margin: viewport === 'desktop' ? '0' : '0 auto',
+          }}
+          className="w-full min-h-full bg-white"
+        >
+          {/* Visual Editor CSS Hover Highlights when not in preview mode */}
+          {!isPreviewMode && (
+            <style>{`
+              [data-cad-editor-canvas] [data-cad-path]:hover,
+              [data-cad-editor-canvas] img:hover,
+              [data-cad-editor-canvas] a:hover,
+              [data-cad-editor-canvas] h1:hover,
+              [data-cad-editor-canvas] h2:hover,
+              [data-cad-editor-canvas] h3:hover,
+              [data-cad-editor-canvas] p:hover,
+              [data-cad-editor-canvas] td:hover {
+                outline: 2px dashed #2563eb !important;
+                outline-offset: 2px !important;
+                cursor: pointer !important;
+              }
+            `}</style>
+          )}
 
-            <CadVisualEditorContext.Provider
-              value={{
-                isEditorMode: true,
-                isPreviewMode,
-                productKey: activeProductKey,
-                payload,
-                selectedElementKey: selectedElement?.key || null,
-                selectedSectionId: expandedSectionId,
-              }}
+          <CadVisualEditorContext.Provider
+            value={{
+              isEditorMode: true,
+              isPreviewMode,
+              productKey: activeProductKey,
+              payload,
+              selectedElementKey: selectedElement?.key || null,
+              selectedSectionId: expandedSectionId,
+            }}
+          >
+            <div
+              ref={canvasRef}
+              data-cad-editor-canvas="true"
+              onClickCapture={handleCanvasClickCapture}
+              className="w-full"
             >
-              <div
-                ref={canvasRef}
-                data-cad-editor-canvas="true"
-                onClickCapture={handleCanvasClickCapture}
-                className="relative"
-              >
-                {showHeaderFooter && <Header />}
-                {renderRealCadProductPage(activeProductKey)}
-                {showHeaderFooter && <Footer />}
-              </div>
-            </CadVisualEditorContext.Provider>
-          </div>
+              {showHeaderFooter && <Header />}
+              {renderRealCadProductPage(activeProductKey)}
+              {showHeaderFooter && <Footer />}
+            </div>
+          </CadVisualEditorContext.Provider>
         </div>
 
-        {/* RIGHT: Collapsible Multi-Tab Inspector Panel */}
+        {/* ==================================================================
+            FLOATING SLIDE-OVER INSPECTOR DRAWER (Does NOT squeeze the page!)
+            Opens when clicking any element on the page or clicking Sections / Images / PDFs / SEO
+           ================================================================== */}
         {inspectorOpen && !isPreviewMode && (
-          <div className="w-full sm:w-96 lg:w-[430px] bg-white border-l border-slate-200 flex flex-col h-full shrink-0 shadow-xl z-20">
+          <div className="fixed top-14 right-3 bottom-3 w-[94vw] sm:w-[420px] bg-white rounded-2xl border border-slate-300 flex flex-col shadow-2xl z-50 overflow-hidden">
+            {/* Drawer Header */}
+            <div className="bg-slate-900 text-white px-4 py-2.5 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-blue-400" />
+                <span className="text-xs font-extrabold tracking-wide">
+                  Live Page Inspector ({activeProductMeta.label})
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="inline-flex items-center gap-1 text-[10px] text-slate-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showHeaderFooter}
+                    onChange={e => setShowHeaderFooter(e.target.checked)}
+                    className="rounded border-slate-600"
+                  />
+                  <span>Header/Footer</span>
+                </label>
+                <button
+                  onClick={() => setInspectorOpen(false)}
+                  title="Close Inspector Drawer"
+                  className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
             {/* Inspector Navigation Tabs */}
-            <div className="grid grid-cols-5 border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-600">
+            <div className="grid grid-cols-5 border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-600 shrink-0">
               <button
                 onClick={() => setInspectorTab('element')}
-                className={`py-2.5 px-1 flex flex-col items-center gap-1 border-b-2 cursor-pointer transition-colors ${
+                className={`py-2 px-1 flex flex-col items-center gap-1 border-b-2 cursor-pointer transition-colors ${
                   inspectorTab === 'element'
                     ? 'border-blue-600 text-blue-600 bg-white'
                     : 'border-transparent hover:text-slate-900'
@@ -1249,7 +1302,7 @@ export const CadVisualPageEditor: React.FC = () => {
               </button>
               <button
                 onClick={() => setInspectorTab('sections')}
-                className={`py-2.5 px-1 flex flex-col items-center gap-1 border-b-2 cursor-pointer transition-colors ${
+                className={`py-2 px-1 flex flex-col items-center gap-1 border-b-2 cursor-pointer transition-colors ${
                   inspectorTab === 'sections'
                     ? 'border-blue-600 text-blue-600 bg-white'
                     : 'border-transparent hover:text-slate-900'
@@ -1260,7 +1313,7 @@ export const CadVisualPageEditor: React.FC = () => {
               </button>
               <button
                 onClick={() => setInspectorTab('images')}
-                className={`py-2.5 px-1 flex flex-col items-center gap-1 border-b-2 cursor-pointer transition-colors ${
+                className={`py-2 px-1 flex flex-col items-center gap-1 border-b-2 cursor-pointer transition-colors ${
                   inspectorTab === 'images'
                     ? 'border-blue-600 text-blue-600 bg-white'
                     : 'border-transparent hover:text-slate-900'
@@ -1271,7 +1324,7 @@ export const CadVisualPageEditor: React.FC = () => {
               </button>
               <button
                 onClick={() => setInspectorTab('pdfs')}
-                className={`py-2.5 px-1 flex flex-col items-center gap-1 border-b-2 cursor-pointer transition-colors ${
+                className={`py-2 px-1 flex flex-col items-center gap-1 border-b-2 cursor-pointer transition-colors ${
                   inspectorTab === 'pdfs'
                     ? 'border-blue-600 text-blue-600 bg-white'
                     : 'border-transparent hover:text-slate-900'
@@ -1282,7 +1335,7 @@ export const CadVisualPageEditor: React.FC = () => {
               </button>
               <button
                 onClick={() => setInspectorTab('seo')}
-                className={`py-2.5 px-1 flex flex-col items-center gap-1 border-b-2 cursor-pointer transition-colors ${
+                className={`py-2 px-1 flex flex-col items-center gap-1 border-b-2 cursor-pointer transition-colors ${
                   inspectorTab === 'seo'
                     ? 'border-blue-600 text-blue-600 bg-white'
                     : 'border-transparent hover:text-slate-900'
@@ -1305,7 +1358,7 @@ export const CadVisualPageEditor: React.FC = () => {
                       <Type className="w-7 h-7 text-blue-600 mx-auto" />
                       <h4 className="font-bold text-slate-900 text-sm">Click Any Element on the Page</h4>
                       <p className="text-xs text-slate-500 leading-relaxed">
-                        Click any heading, paragraph, badge, feature bullet, table cell, button, link, image, or PDF card on the live product page to edit it directly here.
+                        Click any heading, paragraph, badge, feature bullet, table cell, button, link, image, or PDF card on the live product page behind this drawer to edit it directly.
                       </p>
                     </div>
                   ) : (
@@ -1328,9 +1381,7 @@ export const CadVisualPageEditor: React.FC = () => {
                       {/* TEXT / HEADING / TABLE CELL EDITOR */}
                       {selectedElement.kind === 'text' && (
                         <div className="space-y-3">
-                          <label className="block font-bold text-slate-800">
-                            Content Text
-                          </label>
+                          <label className="block font-bold text-slate-800">Content Text</label>
                           <textarea
                             rows={5}
                             value={
@@ -1352,9 +1403,7 @@ export const CadVisualPageEditor: React.FC = () => {
                             className="w-full p-3 rounded-xl border border-slate-300 text-slate-900 text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                           <div className="flex items-center justify-between pt-1">
-                            <span className="text-[11px] text-slate-400">
-                              Updates preview immediately
-                            </span>
+                            <span className="text-[11px] text-slate-400">Updates page live as you type</span>
                             <button
                               onClick={() => {
                                 if (selectedElement.dataPath) {
@@ -1592,13 +1641,6 @@ export const CadVisualPageEditor: React.FC = () => {
                             </div>
                           </div>
 
-                          {payload.elementOverrides?.[selectedElement.key]?.dimensions && (
-                            <div className="text-[11px] font-mono text-slate-500">
-                              Dimensions: {payload.elementOverrides?.[selectedElement.key]?.dimensions} • File:{' '}
-                              {payload.elementOverrides?.[selectedElement.key]?.fileName}
-                            </div>
-                          )}
-
                           <button
                             onClick={() => {
                               const slot = ARES_COMMANDER_IMAGE_SLOTS.find(
@@ -1639,13 +1681,11 @@ export const CadVisualPageEditor: React.FC = () => {
                  ============================================================== */}
               {inspectorTab === 'sections' && (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-bold text-slate-900 text-sm">Page Sections ({orderedSections.length})</h4>
-                      <p className="text-[11px] text-slate-500">
-                        Show/hide, reorder, jump to, or edit every field in any section.
-                      </p>
-                    </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm">Page Sections ({orderedSections.length})</h4>
+                    <p className="text-[11px] text-slate-500">
+                      Show/hide, reorder, jump to, or edit every field in any section.
+                    </p>
                   </div>
 
                   <div className="space-y-2">
@@ -1711,7 +1751,6 @@ export const CadVisualPageEditor: React.FC = () => {
                             </div>
                           </div>
 
-                          {/* Deep Section Structured Fields when Expanded */}
                           {isExpanded && activeProductKey === 'ares_commander' && (
                             <div className="p-3 border-t border-slate-200 bg-white space-y-3 rounded-b-xl">
                               {sec.id === 'hero' && (
@@ -1854,47 +1893,6 @@ export const CadVisualPageEditor: React.FC = () => {
                                 </div>
                               )}
 
-                              {sec.id === 'drafting_3d' && (
-                                <div className="space-y-2.5">
-                                  <div>
-                                    <label className="block font-bold text-slate-700 mb-1">2D Drafting Heading</label>
-                                    <input
-                                      type="text"
-                                      value={mergedAresData.drafting2D.heading}
-                                      onChange={e => setDataPathValue('drafting2D.heading', e.target.value)}
-                                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block font-bold text-slate-700 mb-1">2D Drafting Description</label>
-                                    <textarea
-                                      rows={2}
-                                      value={mergedAresData.drafting2D.description}
-                                      onChange={e => setDataPathValue('drafting2D.description', e.target.value)}
-                                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block font-bold text-slate-700 mb-1">3D Modelling Heading</label>
-                                    <input
-                                      type="text"
-                                      value={mergedAresData.modelling3D.heading}
-                                      onChange={e => setDataPathValue('modelling3D.heading', e.target.value)}
-                                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block font-bold text-slate-700 mb-1">3D Modelling Description</label>
-                                    <textarea
-                                      rows={2}
-                                      value={mergedAresData.modelling3D.description}
-                                      onChange={e => setDataPathValue('modelling3D.description', e.target.value)}
-                                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300"
-                                    />
-                                  </div>
-                                </div>
-                              )}
-
                               {sec.id === 'licensing' && (
                                 <div className="space-y-2.5">
                                   <div>
@@ -1964,8 +1962,8 @@ export const CadVisualPageEditor: React.FC = () => {
                                 </div>
                               )}
 
-                              <div className="pt-1 flex items-center justify-between text-[11px] text-slate-500">
-                                <span>Tip: Click any text or image inside this section on the canvas to edit directly.</span>
+                              <div className="pt-1 text-[11px] text-slate-500">
+                                Tip: Click any text or image inside this section on the page to edit directly.
                               </div>
                             </div>
                           )}
@@ -1986,7 +1984,7 @@ export const CadVisualPageEditor: React.FC = () => {
                       Page Images ({ARES_COMMANDER_IMAGE_SLOTS.length} Audited Slots)
                     </h4>
                     <p className="text-[11px] text-slate-500">
-                      Upload or replace any image from your computer. All uploads are stored in persistent cloud storage (never temporary blob URLs).
+                      Upload or replace any image from your computer. All uploads are stored in persistent cloud storage.
                     </p>
                   </div>
 

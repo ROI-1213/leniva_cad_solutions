@@ -8975,7 +8975,9 @@ export default function AdminPage() {
           {/* ====================================================
               TAB: CAD SOFTWARE EDIT (LIVE VISUAL FRONTEND EDITOR)
              ==================================================== */}
-          {activeTab === 'cad_visual_edit' && <CadVisualPageEditor />}
+          {activeTab === 'cad_visual_edit' && (
+            <CadVisualPageEditor onExitToDashboard={() => setActiveTab('dashboard')} />
+          )}
 
 
         </main>
