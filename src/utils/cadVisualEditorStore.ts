@@ -1425,7 +1425,12 @@ export function stampDeterministicCadKeys(root: HTMLElement) {
   const sections = Array.from(root.querySelectorAll<HTMLElement>('section'))
   sections.forEach((sec, idx) => {
     if (!sec.hasAttribute('data-cad-section')) {
-      sec.setAttribute('data-cad-section', `auto_sec_${idx}`)
+      const heading = sec.querySelector('h1, h2, h3, h4')?.textContent?.trim()
+      const slug = heading
+        ? heading.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 36)
+        : ''
+      const secId = slug ? `sec_${slug}` : `auto_sec_${idx}`
+      sec.setAttribute('data-cad-section', secId)
     }
   })
 }
@@ -1580,16 +1585,23 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
   const isCustomOrder =
     orderList.length > 0 && orderList.some((id, idx) => currentSecIds[idx] && id !== currentSecIds[idx])
 
-  for (const sec of sectionNodes) {
+  for (let idx = 0; idx < sectionNodes.length; idx++) {
+    const sec = sectionNodes[idx]
     const secId = sec.getAttribute('data-cad-section') || ''
-    if (hiddenMap[secId]) {
-      sec.style.display = 'none'
+    const fallbackOldId = `auto_sec_${idx}`
+    const isHidden = Boolean(hiddenMap[secId] || hiddenMap[fallbackOldId])
+
+    if (isHidden) {
+      sec.style.setProperty('display', 'none', 'important')
+      sec.setAttribute('data-cad-section-hidden', 'true')
     } else {
-      sec.style.display = ''
+      sec.style.removeProperty('display')
+      sec.removeAttribute('data-cad-section-hidden')
     }
     sec.style.width = '100%'
+
     if (isCustomOrder) {
-      const orderIdx = orderList.indexOf(secId)
+      const orderIdx = orderList.indexOf(secId) !== -1 ? orderList.indexOf(secId) : orderList.indexOf(fallbackOldId)
       if (orderIdx !== -1 && sec.parentElement) {
         sec.parentElement.style.display = 'flex'
         sec.parentElement.style.flexDirection = 'column'

@@ -30,6 +30,7 @@ import {
   FileCheck,
   RefreshCw,
   LayoutGrid,
+  Power,
 } from 'lucide-react'
 import { aresCommanderData } from '../../data/aresCommanderData'
 import {
@@ -244,6 +245,8 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
   const [activeProductKey, setActiveProductKey] = useState<string>(resolvedStartKey)
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [showAuditModal, setShowAuditModal] = useState<boolean>(false)
+  const [showSectionVisibilityModal, setShowSectionVisibilityModal] = useState<boolean>(false)
+  const [sectionSearchQuery, setSectionSearchQuery] = useState<string>('')
 
   // Editor state — full-width desktop by default, inspector closed until clicked so the page is 100% identical to live frontend
   const [viewport, setViewport] = useState<ViewportMode>('desktop')
@@ -822,13 +825,49 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
 
   // Toggle section visibility
   const toggleSectionVisibility = (sectionId: string) => {
+    updatePayload(prev => {
+      const willBeHidden = !prev.hiddenSections?.[sectionId]
+      return {
+        ...prev,
+        hiddenSections: {
+          ...(prev.hiddenSections || {}),
+          [sectionId]: willBeHidden,
+        },
+      }
+    })
+  }
+
+  // Bulk: Enable all sections on page
+  const enableAllSections = () => {
     updatePayload(prev => ({
       ...prev,
-      hiddenSections: {
-        ...(prev.hiddenSections || {}),
-        [sectionId]: !prev.hiddenSections?.[sectionId],
-      },
+      hiddenSections: {},
     }))
+    showToast('success', 'All sections enabled and visible!')
+  }
+
+  // Bulk: Disable all secondary sections (keep primary hero)
+  const disableAllExceptHero = (allSecs: CadSectionDefinition[]) => {
+    const hiddenMap: Record<string, boolean> = {}
+    allSecs.forEach((s, idx) => {
+      if (idx !== 0 && s.id !== 'hero' && s.id !== 'sec_hero') {
+        hiddenMap[s.id] = true
+      }
+    })
+    updatePayload(prev => ({
+      ...prev,
+      hiddenSections: hiddenMap,
+    }))
+    showToast('info', 'Disabled secondary sections (Hero kept visible).')
+  }
+
+  // Reset section visibility to default
+  const resetSectionVisibility = () => {
+    updatePayload(prev => ({
+      ...prev,
+      hiddenSections: {},
+    }))
+    showToast('info', 'Reset section visibility to default.')
   }
 
   // Scroll to section inside the canvas
@@ -1067,7 +1106,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                     </div>
                   </div>
 
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
                     <a
                       href={prod.route}
                       target="_blank"
@@ -1075,15 +1114,28 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                       className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1 transition-colors"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
-                      <span>Live Page</span>
+                      <span className="hidden sm:inline">Live Page</span>
                     </a>
-                    <button
-                      onClick={() => loadProductIntoEditor(prod.key)}
-                      className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
-                    >
-                      <span>Edit Full Page</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => {
+                          loadProductIntoEditor(prod.key)
+                          setShowSectionVisibilityModal(true)
+                        }}
+                        className="px-3 py-2 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors border border-indigo-200"
+                        title={`Enable or disable sections for ${prod.label}`}
+                      >
+                        <Power className="w-3.5 h-3.5 text-indigo-600" />
+                        <span>Sections (ON/OFF)</span>
+                      </button>
+                      <button
+                        onClick={() => loadProductIntoEditor(prod.key)}
+                        className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs"
+                      >
+                        <span>Edit Page</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               )
@@ -1305,6 +1357,20 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
 
         {/* Center: Quick Drawer Toggles (Sections | Images | PDFs | SEO) + Viewport + Undo/Redo */}
         <div className="flex items-center gap-1.5 flex-wrap">
+          {/* Prominent Enable / Disable Sections Control */}
+          <button
+            onClick={() => setShowSectionVisibilityModal(true)}
+            className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all border border-indigo-400/40"
+            title="Manage which sections are visible or disabled on this page"
+          >
+            <Power className="w-3.5 h-3.5 text-emerald-300" />
+            <span className="hidden sm:inline">Sections ON/OFF</span>
+            <span className="sm:hidden">Sections</span>
+            <span className="px-1.5 py-0.2 rounded-full bg-indigo-900/80 text-[10px] font-mono text-indigo-100 font-bold border border-indigo-700">
+              {orderedSections.filter(s => !payload.hiddenSections?.[s.id]).length}/{orderedSections.length}
+            </span>
+          </button>
+
           <div className="flex items-center bg-slate-900 p-1 rounded-lg border border-slate-800 gap-0.5">
             <button
               onClick={() => {
@@ -2002,24 +2068,60 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                  ============================================================== */}
               {inspectorTab === 'sections' && (
                 <div className="space-y-3">
-                  <div>
-                    <h4 className="font-bold text-slate-900 text-sm">Page Sections ({orderedSections.length})</h4>
-                    <p className="text-[11px] text-slate-500">
-                      Show/hide, reorder, jump to, or edit every field in any section.
-                    </p>
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm">Page Sections ({orderedSections.length})</h4>
+                      <p className="text-[11px] text-slate-500">
+                        Enable/disable, reorder, or jump to any section.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowSectionVisibilityModal(true)}
+                      className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold flex items-center gap-1 shadow-2xs cursor-pointer"
+                    >
+                      <Power className="w-3 h-3" />
+                      <span>Manager</span>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] bg-slate-50 p-2 rounded-xl border border-slate-200">
+                    <span className="font-bold text-slate-700">
+                      {orderedSections.filter(s => !payload.hiddenSections?.[s.id]).length} of {orderedSections.length} Live
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={enableAllSections}
+                        className="text-emerald-700 hover:underline font-bold cursor-pointer"
+                      >
+                        Enable All
+                      </button>
+                      <span>•</span>
+                      <button
+                        type="button"
+                        onClick={() => disableAllExceptHero(orderedSections)}
+                        className="text-slate-600 hover:underline font-semibold cursor-pointer"
+                      >
+                        Hero Only
+                      </button>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
                     {orderedSections.map((sec, idx) => {
                       const isHidden = Boolean(payload.hiddenSections?.[sec.id])
                       const isExpanded = expandedSectionId === sec.id
+                      const isLive = !isHidden
                       return (
                         <div
                           key={sec.id}
                           className={`rounded-xl border transition-all ${
                             isExpanded
                               ? 'border-blue-500 bg-blue-50/20 shadow-xs'
-                              : 'border-slate-200 bg-white'
+                              : isLive
+                                ? 'border-slate-200 bg-white'
+                                : 'border-rose-200 bg-rose-50/30'
                           }`}
                         >
                           <div className="p-3 flex items-center justify-between gap-2">
@@ -2032,16 +2134,16 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                             >
                               <div className="flex items-center gap-1.5">
                                 <span className="font-bold text-slate-900 truncate">{sec.shortLabel}</span>
-                                {isHidden && (
-                                  <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[9px] font-mono font-bold">
-                                    HIDDEN
-                                  </span>
-                                )}
+                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold ${
+                                  isLive ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                                }`}>
+                                  {isLive ? 'LIVE' : 'DISABLED'}
+                                </span>
                               </div>
                               <div className="text-[10px] text-slate-500 truncate">{sec.label}</div>
                             </button>
 
-                            <div className="flex items-center gap-1 shrink-0">
+                            <div className="flex items-center gap-1.5 shrink-0">
                               <button
                                 onClick={() => moveSectionOrder(sec.id, 'up')}
                                 disabled={idx === 0}
@@ -2059,15 +2161,20 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                                 <ChevronDown className="w-3.5 h-3.5" />
                               </button>
                               <button
+                                type="button"
                                 onClick={() => toggleSectionVisibility(sec.id)}
-                                title={isHidden ? 'Show Section' : 'Hide Section'}
-                                className={`p-1 rounded cursor-pointer ${
-                                  isHidden
-                                    ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                                    : 'hover:bg-slate-100 text-slate-600'
+                                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                                  isLive ? 'bg-emerald-600' : 'bg-slate-300'
                                 }`}
+                                role="switch"
+                                aria-checked={isLive}
+                                title={isLive ? `Click to disable ${sec.shortLabel}` : `Click to enable ${sec.shortLabel}`}
                               >
-                                {isHidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                <span
+                                  className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-xs ${
+                                    isLive ? 'translate-x-4.5' : 'translate-x-0.5'
+                                  }`}
+                                />
                               </button>
                             </div>
                           </div>
@@ -2980,6 +3087,235 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                 title={previewPdfModal.title}
                 className="w-full h-full border-0"
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==============================================================
+          MODAL: DEDICATED SECTION VISIBILITY & ENABLE/DISABLE MANAGER
+          Allows Admin to enable or disable specific sections of CAD softwares,
+          3D printers, and 3D scanners with live real-time preview & publishing!
+         ============================================================== */}
+      {showSectionVisibilityModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6">
+          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 bg-slate-950 text-white flex items-center justify-between gap-4 border-b border-slate-800">
+              <div className="flex items-center space-x-3.5 min-w-0">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-600/30 border border-indigo-500/40 text-indigo-400 flex items-center justify-center shrink-0 shadow-inner">
+                  <Power className="w-5 h-5 text-indigo-300" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-base sm:text-lg font-black text-white truncate">
+                      Manage Page Sections Visibility
+                    </h3>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                      {activeProductMeta.category}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 truncate mt-0.5">
+                    {activeProductMeta.label} ({activeProductMeta.route}) • Enable or disable specific sections on this page.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowSectionVisibilityModal(false)}
+                className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0"
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Quick Actions & Search Toolbar */}
+            <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+              {/* Status summary pill */}
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-bold text-slate-700">Section Status:</span>
+                <span className="px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800">
+                  {orderedSections.filter(s => !payload.hiddenSections?.[s.id]).length} Enabled (Live)
+                </span>
+                {orderedSections.filter(s => payload.hiddenSections?.[s.id]).length > 0 && (
+                  <span className="px-2.5 py-1 rounded-full text-xs font-extrabold bg-rose-100 text-rose-800">
+                    {orderedSections.filter(s => payload.hiddenSections?.[s.id]).length} Disabled (Hidden)
+                  </span>
+                )}
+              </div>
+
+              {/* Quick Action Buttons */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={enableAllSections}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-2xs"
+                >
+                  Enable All Sections
+                </button>
+                <button
+                  type="button"
+                  onClick={() => disableAllExceptHero(orderedSections)}
+                  className="px-3 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Keep Only Hero
+                </button>
+                <button
+                  type="button"
+                  onClick={resetSectionVisibility}
+                  className="px-3 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+
+            {/* Section Search Filter */}
+            <div className="px-5 pt-3 pb-1 bg-white">
+              <div className="relative">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={sectionSearchQuery}
+                  onChange={e => setSectionSearchQuery(e.target.value)}
+                  placeholder="Filter sections by title or keywords..."
+                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+
+            {/* Scrollable Sections List */}
+            <div className="p-5 overflow-y-auto flex-1 space-y-3 bg-white">
+              {orderedSections
+                .filter(sec => {
+                  if (!sectionSearchQuery.trim()) return true
+                  const q = sectionSearchQuery.toLowerCase()
+                  return (
+                    sec.label.toLowerCase().includes(q) ||
+                    sec.shortLabel.toLowerCase().includes(q) ||
+                    sec.description.toLowerCase().includes(q)
+                  )
+                })
+                .map((sec, idx) => {
+                  const isHidden = Boolean(payload.hiddenSections?.[sec.id])
+                  const isLive = !isHidden
+                  return (
+                    <div
+                      key={sec.id}
+                      className={`p-4 rounded-2xl border transition-all ${
+                        isLive
+                          ? 'border-slate-200 bg-white hover:border-indigo-300 hover:shadow-xs'
+                          : 'border-rose-200 bg-rose-50/40'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        {/* Section info */}
+                        <div className="flex items-start space-x-3.5 min-w-0">
+                          <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-mono font-black shrink-0 ${
+                            isLive ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-rose-100 text-rose-700 border border-rose-200'
+                          }`}>
+                            {String(idx + 1).padStart(2, '0')}
+                          </span>
+
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="font-extrabold text-sm text-slate-900 truncate">
+                                {sec.shortLabel || sec.label}
+                              </h4>
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                                isLive ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                              }`}>
+                                {isLive ? '● Live on Website' : '○ Hidden / Disabled'}
+                              </span>
+                            </div>
+
+                            <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                              {sec.description || 'Full page content section.'}
+                            </p>
+                            <p className="text-[10px] font-mono text-slate-400 mt-0.5 truncate">
+                              ID: {sec.id}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Interactive Toggle Switch */}
+                        <div className="flex items-center space-x-3 shrink-0">
+                          <span className="text-xs font-bold text-slate-600 hidden sm:inline">
+                            {isLive ? 'Enabled' : 'Disabled'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => toggleSectionVisibility(sec.id)}
+                            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+                              isLive ? 'bg-emerald-600' : 'bg-slate-300'
+                            }`}
+                            role="switch"
+                            aria-checked={isLive}
+                            title={isLive ? `Click to disable ${sec.shortLabel}` : `Click to enable ${sec.shortLabel}`}
+                          >
+                            <span
+                              className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${
+                                isLive ? 'translate-x-6' : 'translate-x-1'
+                              }`}
+                            />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Helper notice if disabled */}
+                      {!isLive && (
+                        <div className="mt-3 pt-2.5 border-t border-rose-200/70 flex items-center justify-between text-xs text-rose-700">
+                          <span className="flex items-center space-x-1.5 font-medium">
+                            <EyeOff className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                            <span>This section is currently <strong>DISABLED</strong>. Visitors cannot see this section on the live page.</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => toggleSectionVisibility(sec.id)}
+                            className="font-bold underline hover:text-rose-900 cursor-pointer ml-2 shrink-0"
+                          >
+                            Enable Now
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+            </div>
+
+            {/* Modal Footer with Save / Publish Actions */}
+            <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+              <div className="text-xs text-slate-500">
+                Changes apply instantly in the live editor. Click <strong>"Publish Changes"</strong> to push them live to website visitors.
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleSaveDraft}
+                  className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Save Draft</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePublishChanges}
+                  disabled={isPublishing}
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>{isPublishing ? 'Publishing...' : 'Publish to Live Site'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowSectionVisibilityModal(false)}
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-bold cursor-pointer"
+                >
+                  Done
+                </button>
+              </div>
             </div>
           </div>
         </div>
