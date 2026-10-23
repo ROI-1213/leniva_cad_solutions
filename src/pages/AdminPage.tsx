@@ -158,7 +158,7 @@ export default function AdminPage() {
     | 'users'
     | 'cad_visual_edit'
 
-  const [activeTab, setActiveTab] = useState<AdminTab>('dashboard')
+  const [activeTab, setActiveTab] = useState<AdminTab>('quotes')
   const [isLoading, setIsLoading] = useState(false)
   const [_stats, setStats] = useState<Stats | null>(null)
 
@@ -1459,7 +1459,7 @@ export default function AdminPage() {
   // AUTHENTICATED DASHBOARD (FULL CONTROL SUITE)
   // ----------------------------------------------------
   if (activeTab === 'cad_visual_edit') {
-    return <CadVisualPageEditor onExitToDashboard={() => setActiveTab('dashboard')} />
+    return <CadVisualPageEditor onExitToDashboard={() => setActiveTab('quotes')} />
   }
 
   return (
@@ -1515,16 +1515,6 @@ export default function AdminPage() {
         {/* Master Sidebar Navigation */}
         <aside className="w-full md:w-64 shrink-0 space-y-3">
           <nav className="bg-white rounded-2xl p-2 border border-slate-200 shadow-sm space-y-1">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
-                activeTab === 'dashboard' ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <Database className="w-4 h-4" />
-              <span>Overview & Diagnostics</span>
-            </button>
-
             <button
               onClick={() => setActiveTab('quotes')}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
@@ -1666,25 +1656,10 @@ export default function AdminPage() {
 
             <div className="pt-2 border-t border-slate-100 mt-1">
               <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 px-3.5 pb-1.5">CAD Software</p>
-              <button
-                onClick={() => setActiveTab('cad_software')}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
-                  activeTab === 'cad_software' ? 'bg-indigo-600 text-white' : 'text-slate-700 hover:bg-slate-100'
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <Shield className="w-4 h-4" />
-                  <span>CAD Software Editor</span>
-                </div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
-                  activeTab === 'cad_software' ? 'bg-indigo-800 text-indigo-100' : 'bg-slate-200 text-slate-700'
-                }`}>{cadProducts.length}</span>
-              </button>
-
               {/* LAST NAVIGATION ITEM: CAD Software Edit (Live Visual Frontend Page Editor) */}
               <button
                 onClick={() => setActiveTab('cad_visual_edit')}
-                className="w-full mt-1 flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer text-slate-700 hover:bg-slate-100"
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer text-slate-700 hover:bg-slate-100"
               >
                 <div className="flex items-center space-x-3">
                   <Monitor className="w-4 h-4" />
