@@ -645,7 +645,19 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
   if (viewMode === 'list') {
     const aresInfo = getWorkingVisualPayload('ares_commander')
     return (
-      <div className="space-y-8">
+      <div className="min-h-screen bg-slate-100 p-4 sm:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {onExitToDashboard && (
+          <div>
+            <button
+              onClick={onExitToDashboard}
+              className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold inline-flex items-center gap-2 cursor-pointer shadow-sm"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to Admin Dashboard</span>
+            </button>
+          </div>
+        )}
         {/* Top Banner */}
         <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 rounded-2xl p-6 sm:p-8 text-white shadow-xl border border-slate-800">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -875,6 +887,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
             </div>
           </div>
         )}
+      </div>
       </div>
     )
   }

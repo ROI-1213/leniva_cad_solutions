@@ -1458,6 +1458,10 @@ export default function AdminPage() {
   // ----------------------------------------------------
   // AUTHENTICATED DASHBOARD (FULL CONTROL SUITE)
   // ----------------------------------------------------
+  if (activeTab === 'cad_visual_edit') {
+    return <CadVisualPageEditor onExitToDashboard={() => setActiveTab('dashboard')} />
+  }
+
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-inter overflow-x-hidden w-full">
       {/* Top Admin Navbar */}
