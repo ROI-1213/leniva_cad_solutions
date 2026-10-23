@@ -3,6 +3,14 @@ import heroBanner2 from '../assets/hero/hero-banner-2.png'
 import heroBanner3 from '../assets/hero/hero-banner-3.png'
 import heroBanner4 from '../assets/hero/hero-banner-4.png'
 
+export const DEFAULT_HERO_BANNERS: string[] = [heroBanner1, heroBanner2, heroBanner3, heroBanner4]
+export const FALLBACK_PUBLIC_HERO_BANNERS: string[] = [
+  '/hero-banner-1.png',
+  '/hero-banner-2.png',
+  '/hero-banner-3.png',
+  '/hero-banner-4.png',
+]
+
 export interface HeroSlideConfig {
   id: number
   image: string
@@ -327,18 +335,36 @@ export function getStoredHomeContent(): HomeContentConfig {
     if (!mergedHero.headlinePrefix || mergedHero.headlinePrefix.includes('Authorized')) {
       mergedHero.headlinePrefix = 'Your Trusted Partner in '
     }
-    if (Array.isArray(mergedHero.slides)) {
+    if (Array.isArray(mergedHero.slides) && mergedHero.slides.length > 0) {
       mergedHero.slides = mergedHero.slides.map((s: HeroSlideConfig, idx: number) => {
-        if (s.id === 4 || idx === 3) {
-          const isCustomUpload = typeof s.image === 'string' && s.image.startsWith('data:')
-          return {
-            ...DEFAULT_HOME_CONTENT.hero.slides[3],
-            ...s,
-            image: isCustomUpload ? s.image : heroBanner4,
-          }
+        const defaultSlide = DEFAULT_HOME_CONTENT.hero.slides[idx] || DEFAULT_HOME_CONTENT.hero.slides[0]
+        const fallbackBanner = DEFAULT_HERO_BANNERS[idx % DEFAULT_HERO_BANNERS.length] || heroBanner1
+        const publicFallback = FALLBACK_PUBLIC_HERO_BANNERS[idx % FALLBACK_PUBLIC_HERO_BANNERS.length] || '/hero-banner-1.png'
+
+        const isDataUrl = typeof s.image === 'string' && (s.image.startsWith('data:') || s.image.startsWith('blob:'))
+        const isExternalUrl = typeof s.image === 'string' && (s.image.startsWith('http://') || s.image.startsWith('https://')) && !s.image.includes('localhost:5173/assets/')
+        const isPublicStatic = typeof s.image === 'string' && (s.image.startsWith('/images/') || s.image.startsWith('/hero-banner-'))
+        
+        // Detect stale Vite bundle hashes like "/assets/hero-banner-2-oJYBHMd8.png" or dev asset paths that break across environments
+        const isStaleAssetHash = typeof s.image === 'string' && (s.image.includes('/assets/hero-banner-') || s.image.includes('/src/assets/hero/'))
+
+        let resolvedImage = fallbackBanner
+        if (isDataUrl || isExternalUrl || isPublicStatic) {
+          resolvedImage = s.image
+        } else if (!isStaleAssetHash && typeof s.image === 'string' && s.image.trim() !== '') {
+          resolvedImage = s.image
+        } else {
+          resolvedImage = fallbackBanner || publicFallback
         }
-        return s
+
+        return {
+          ...defaultSlide,
+          ...s,
+          image: resolvedImage,
+        }
       })
+    } else {
+      mergedHero.slides = DEFAULT_HOME_CONTENT.hero.slides
     }
     const mergedAres = { ...DEFAULT_HOME_CONTENT.cadSoftware.ares, ...parsed.cadSoftware?.ares }
     if (Array.isArray(mergedAres.slides)) {
@@ -385,7 +411,24 @@ export function getStoredHomeContent(): HomeContentConfig {
 export function saveStoredHomeContent(content: HomeContentConfig): void {
   if (typeof window === 'undefined') return
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(content))
+    // Sanitize any transient build hashes before writing to persistent storage
+    const sanitized = { ...content }
+    if (sanitized.hero && Array.isArray(sanitized.hero.slides)) {
+      sanitized.hero = {
+        ...sanitized.hero,
+        slides: sanitized.hero.slides.map((s, idx) => {
+          const isStaleHash = typeof s.image === 'string' && (s.image.includes('/assets/hero-banner-') || s.image.includes('/src/assets/hero/'))
+          if (isStaleHash) {
+            return {
+              ...s,
+              image: FALLBACK_PUBLIC_HERO_BANNERS[idx % FALLBACK_PUBLIC_HERO_BANNERS.length] || '/hero-banner-1.png',
+            }
+          }
+          return s
+        }),
+      }
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized))
     window.dispatchEvent(new Event('leniva_home_content_updated'))
   } catch (e) {
     console.error('Failed to save home content to localStorage', e)

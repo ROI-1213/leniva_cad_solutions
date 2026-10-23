@@ -68,6 +68,8 @@ import {
   getStoredHomeContent,
   saveStoredHomeContent,
   resetStoredHomeContent,
+  DEFAULT_HERO_BANNERS,
+  FALLBACK_PUBLIC_HERO_BANNERS,
 } from '../utils/homeContentConfig'
 import {
   AboutContentConfig,
@@ -4910,7 +4912,7 @@ export default function AdminPage() {
                             const newId = Date.now()
                             const newSlide = {
                               id: newId,
-                              image: '/images/hero/hero-banner-1.png',
+                              image: '/hero-banner-1.png',
                               alt: 'New Hero Banner',
                               title: 'New Additive Manufacturing Solution',
                               subtitle: 'Empowering Next Generation Production',
@@ -4987,13 +4989,54 @@ export default function AdminPage() {
                               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 px-1">Banner Image Preview</p>
                               <div className="aspect-[1024/341] rounded-lg overflow-hidden bg-slate-100 flex items-center justify-center border border-slate-100">
                                 <img
-                                  src={currentHeroSlide.image}
+                                  src={currentHeroSlide.image || DEFAULT_HERO_BANNERS[activeHeroSlideIdx % DEFAULT_HERO_BANNERS.length] || FALLBACK_PUBLIC_HERO_BANNERS[activeHeroSlideIdx % FALLBACK_PUBLIC_HERO_BANNERS.length]}
                                   alt={currentHeroSlide.alt}
                                   className="w-full h-full object-cover"
                                   onError={(e) => {
-                                    (e.target as HTMLImageElement).src = 'https://placehold.co/1024x341?text=Preview+Image'
+                                    const target = e.currentTarget
+                                    const fallback = FALLBACK_PUBLIC_HERO_BANNERS[activeHeroSlideIdx % FALLBACK_PUBLIC_HERO_BANNERS.length] || '/hero-banner-1.png'
+                                    if (target.src !== fallback) {
+                                      target.src = fallback
+                                    }
                                   }}
                                 />
+                              </div>
+                              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                                <label className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded-lg cursor-pointer border border-slate-300">
+                                  Upload Image
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0]
+                                      if (file) {
+                                        const reader = new FileReader()
+                                        reader.onload = (re) => {
+                                          const result = re.target?.result as string
+                                          if (result) {
+                                            const updated = [...homeContentData.hero.slides]
+                                            updated[activeHeroSlideIdx] = { ...currentHeroSlide, image: result }
+                                            setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
+                                          }
+                                        }
+                                        reader.readAsDataURL(file)
+                                      }
+                                    }}
+                                  />
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const fallback = FALLBACK_PUBLIC_HERO_BANNERS[activeHeroSlideIdx % FALLBACK_PUBLIC_HERO_BANNERS.length] || '/hero-banner-1.png'
+                                    const updated = [...homeContentData.hero.slides]
+                                    updated[activeHeroSlideIdx] = { ...currentHeroSlide, image: fallback }
+                                    setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
+                                  }}
+                                  className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded-lg border border-slate-300 cursor-pointer"
+                                >
+                                  Default Banner
+                                </button>
                               </div>
                             </div>
 

@@ -10,7 +10,12 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
-import { getStoredHomeContent, HomeContentConfig } from '../utils/homeContentConfig'
+import {
+  getStoredHomeContent,
+  HomeContentConfig,
+  DEFAULT_HERO_BANNERS,
+  FALLBACK_PUBLIC_HERO_BANNERS,
+} from '../utils/homeContentConfig'
 
 interface ProductSlideItem {
   src: string
@@ -235,12 +240,21 @@ export const HomePage: React.FC = () => {
                     }`}
                   >
                     <img
-                      src={slide.image}
-                      alt={slide.alt}
+                      src={slide.image || DEFAULT_HERO_BANNERS[index % DEFAULT_HERO_BANNERS.length] || FALLBACK_PUBLIC_HERO_BANNERS[index % FALLBACK_PUBLIC_HERO_BANNERS.length]}
+                      alt={slide.alt || slide.title || 'Leniva CAD Solutions'}
                       className="w-full h-full object-cover bg-white select-none"
-                      loading="eager"
-                      fetchPriority="high"
+                      loading={index === 0 ? 'eager' : 'lazy'}
                       decoding="sync"
+                      onError={(e) => {
+                        const target = e.currentTarget
+                        const importedFallback = DEFAULT_HERO_BANNERS[index % DEFAULT_HERO_BANNERS.length]
+                        const publicFallback = FALLBACK_PUBLIC_HERO_BANNERS[index % FALLBACK_PUBLIC_HERO_BANNERS.length] || '/hero-banner-1.png'
+                        if (target.src !== importedFallback && !target.src.endsWith(importedFallback)) {
+                          target.src = importedFallback
+                        } else if (!target.src.endsWith(publicFallback)) {
+                          target.src = publicFallback
+                        }
+                      }}
                       style={{
                         imageRendering: '-webkit-optimize-contrast',
                         WebkitBackfaceVisibility: 'hidden',

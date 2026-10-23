@@ -744,13 +744,16 @@ function runReleaseLocalStorageMigration(): void {
               parsedHome.hero.headlinePrefix = 'Your Trusted Partner in '
             }
             if (Array.isArray(parsedHome.hero.slides)) {
-              parsedHome.hero.slides = parsedHome.hero.slides.map((s: any, idx: number) => {
-                if (s?.id === 4 || idx === 3) {
-                  const isDataImg = typeof s?.image === 'string' && s.image.startsWith('data:')
-                  if (!isDataImg) {
-                    const { image, ...rest } = s
-                    return rest
-                  }
+              parsedHome.hero.slides = parsedHome.hero.slides.map((s: any) => {
+                const isDataImg = typeof s?.image === 'string' && (s.image.startsWith('data:') || s.image.startsWith('blob:'))
+                const isCustomLocal = typeof s?.image === 'string' && s.image.startsWith('/images/')
+                const isExternal = typeof s?.image === 'string' && (s.image.startsWith('http://') || s.image.startsWith('https://')) && !s.image.includes('localhost')
+                const isStaleHash = typeof s?.image === 'string' && (s.image.includes('/assets/hero-banner-') || s.image.includes('/src/assets/hero/'))
+                
+                // If it's a stale bundle hash or invalid path, clean it so the fresh imported asset is loaded
+                if (isStaleHash || (!isDataImg && !isCustomLocal && !isExternal)) {
+                  const { image, ...rest } = s || {}
+                  return rest
                 }
                 return s
               })
