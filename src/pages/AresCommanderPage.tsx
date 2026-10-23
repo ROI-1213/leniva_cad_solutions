@@ -42,10 +42,25 @@ import {
 import { useApp } from '../context/AppContext'
 import { aresCommanderData, AresCommanderFaq } from '../data/aresCommanderData'
 import { useCadPageData } from '../utils/cadSoftwareConfig'
+import {
+  useApplyCadVisualDomOverrides,
+  DEFAULT_ARES_COMMANDER_PDFS,
+  CadPdfResource,
+} from '../utils/cadVisualEditorStore'
+import { FileText } from 'lucide-react'
 
 export const AresCommanderPage: React.FC = () => {
   const { submitQuote } = useApp()
-  const { data } = useCadPageData('ares_commander', aresCommanderData)
+  const { data, isEditorMode } = useCadPageData('ares_commander', aresCommanderData)
+  const pageRootRef = useRef<HTMLDivElement>(null)
+  useApplyCadVisualDomOverrides(pageRootRef, 'ares_commander')
+
+  const pdfResources: CadPdfResource[] =
+    Array.isArray((data as any).pdfResources) && (data as any).pdfResources.length > 0
+      ? (data as any).pdfResources
+      : DEFAULT_ARES_COMMANDER_PDFS
+  const visiblePdfs = pdfResources.filter(p => p.visible !== false)
+  const primaryBrochurePdf = visiblePdfs[0] || null
 
   // Navigation & Interactive Tabs
   const [activeNav, setActiveNav] = useState<string>('overview')
@@ -191,7 +206,7 @@ export const AresCommanderPage: React.FC = () => {
   })
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-600/20 selection:text-blue-900">
+    <div ref={pageRootRef} className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-600/20 selection:text-blue-900 flex flex-col">
       {/* ====================================================
           1. BREADCRUMBS
          ==================================================== */}
@@ -275,33 +290,33 @@ export const AresCommanderPage: React.FC = () => {
       {/* ====================================================
           3. HERO SECTION
          ==================================================== */}
-      <section className="relative bg-gradient-to-b from-white via-slate-50 to-white pt-8 pb-16 overflow-hidden border-b border-slate-200">
+      <section data-cad-section="hero" className="relative bg-gradient-to-b from-white via-slate-50 to-white pt-8 pb-16 overflow-hidden border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             {/* Left Content Column */}
             <div className="lg:col-span-6 space-y-6">
               <div className="flex flex-wrap items-center gap-2.5">
                 <div className="h-8 px-2.5 py-1 rounded-lg bg-white border border-slate-200 shadow-2xs flex items-center justify-center">
-                  <img src="/images/brands/grabert.png" alt="Graebert" className="h-full w-auto max-w-[85px] object-contain" />
+                  <img data-cad-path="hero.brandLogo1" src={(data.hero as any).brandLogo1 || '/images/brands/grabert.png'} alt="Graebert" className="h-full w-auto max-w-[85px] object-contain" />
                 </div>
                 <div className="h-8 px-2.5 py-1 rounded-lg bg-white border border-slate-200 shadow-2xs flex items-center justify-center">
-                  <img src="/images/brands/ares-cad.png" alt="ARES CAD" className="h-full w-auto max-w-[85px] object-contain" />
+                  <img data-cad-path="hero.brandLogo2" src={(data.hero as any).brandLogo2 || '/images/brands/ares-cad.png'} alt="ARES CAD" className="h-full w-auto max-w-[85px] object-contain" />
                 </div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold tracking-wide">
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>{data.hero.eyebrow}</span>
+                  <span data-cad-path="hero.eyebrow">{data.hero.eyebrow}</span>
                 </div>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-[1.12]">
+              <h1 data-cad-path="hero.headline" className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-[1.12]">
                 {data.hero.headline}
               </h1>
 
-              <p className="text-base sm:text-lg font-medium text-slate-700 leading-relaxed">
+              <p data-cad-path="hero.supportingText" className="text-base sm:text-lg font-medium text-slate-700 leading-relaxed">
                 {data.hero.supportingText}
               </p>
 
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              <p data-cad-path="hero.shortDescription" className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                 {data.hero.shortDescription}
               </p>
 
@@ -313,7 +328,7 @@ export const AresCommanderPage: React.FC = () => {
                     className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-800 text-xs font-semibold shadow-2xs"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
-                    <span>{lbl}</span>
+                    <span data-cad-path={`hero.featureLabels.${idx}`}>{lbl}</span>
                   </span>
                 ))}
               </div>
@@ -321,33 +336,49 @@ export const AresCommanderPage: React.FC = () => {
               {/* CTAs */}
               <div className="pt-3 flex flex-wrap items-center gap-3">
                 <a
-                  href={data.hero.trialNote ? data.identity.downloadUrl : '#'}
+                  data-cad-key="hero-trial-cta"
+                  data-cad-path="identity.downloadUrl"
+                  href={data.identity.downloadUrl || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
                 >
                   <Download className="w-4 h-4" />
-                  <span>Start 30-Day Free Trial</span>
+                  <span data-cad-btn-text data-cad-path="hero.trialCtaLabel">{(data.hero as any).trialCtaLabel || 'Start 30-Day Free Trial'}</span>
                 </a>
                 <button
                   onClick={() => scrollTo(enquiryRef, 'enquiry')}
                   className="px-6 py-3 rounded-xl bg-white border border-slate-300 hover:border-slate-400 text-slate-800 hover:bg-slate-50 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-2xs transition-all cursor-pointer"
                 >
                   <Send className="w-4 h-4 text-blue-600" />
-                  <span>Request Quote</span>
+                  <span data-cad-path="hero.quoteCtaLabel">{(data.hero as any).quoteCtaLabel || 'Request Quote'}</span>
                 </button>
+                {primaryBrochurePdf && (
+                  <a
+                    data-cad-key={`pdf:${primaryBrochurePdf.id}`}
+                    data-cad-pdf-id={primaryBrochurePdf.id}
+                    href={primaryBrochurePdf.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download={primaryBrochurePdf.behavior === 'download' ? primaryBrochurePdf.fileName : undefined}
+                    className="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 font-bold text-xs sm:text-sm flex items-center gap-2 transition-all"
+                  >
+                    <FileText className="w-4 h-4 text-blue-600" />
+                    <span data-cad-btn-text>{primaryBrochurePdf.buttonLabel}</span>
+                  </a>
+                )}
                 <button
                   onClick={() => scrollTo(draftingRef, '2d-drafting')}
                   className="px-4 py-3 rounded-xl text-slate-600 hover:text-blue-600 font-bold text-xs sm:text-sm flex items-center gap-1 transition-colors cursor-pointer"
                 >
-                  <span>Explore Features</span>
+                  <span data-cad-path="hero.exploreCtaLabel">{(data.hero as any).exploreCtaLabel || 'Explore Features'}</span>
                   <ChevronDown className="w-4 h-4" />
                 </button>
               </div>
 
               <div className="flex items-center gap-2 text-xs text-slate-500 font-medium pt-1">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>{data.hero.trialNote}</span>
+                <span data-cad-path="hero.trialNote">{data.hero.trialNote}</span>
               </div>
             </div>
 
@@ -356,8 +387,9 @@ export const AresCommanderPage: React.FC = () => {
               <div className="relative rounded-2xl overflow-hidden border border-slate-200/90 shadow-xl bg-slate-900 group">
                 <div className="relative aspect-16/10 w-full overflow-hidden">
                   <img
+                    data-cad-path="hero.image"
                     src={data.hero.image}
-                    alt="ARES Commander - Dual 2D drafting and 3D solid modeling CAD workstation"
+                    alt={(data.hero as any).imageAlt || 'ARES Commander - Dual 2D drafting and 3D solid modeling CAD workstation'}
                     className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
@@ -366,20 +398,20 @@ export const AresCommanderPage: React.FC = () => {
                   <div className="absolute top-4 left-4 flex flex-col gap-2">
                     <span className="px-3 py-1 rounded-full bg-slate-900/90 backdrop-blur-md border border-slate-700 text-white text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-md">
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                      <span>Native DWG 2018–R12</span>
+                      <span data-cad-path="hero.floatingBadge1">{(data.hero as any).floatingBadge1 || 'Native DWG 2018–R12'}</span>
                     </span>
                     <span className="px-3 py-1 rounded-full bg-blue-600/90 backdrop-blur-md text-white text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-md">
                       <LayersIcon className="w-3 h-3" />
-                      <span>2D Drafting + 3D Solids</span>
+                      <span data-cad-path="hero.floatingBadge2">{(data.hero as any).floatingBadge2 || '2D Drafting + 3D Solids'}</span>
                     </span>
                   </div>
 
                   <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-blue-400 font-bold">
-                      Cross-Platform Workstation
+                    <span data-cad-path="hero.captionEyebrow" className="text-[10px] font-mono uppercase tracking-wider text-blue-400 font-bold">
+                      {(data.hero as any).captionEyebrow || 'Cross-Platform Workstation'}
                     </span>
-                    <h3 className="text-sm sm:text-base font-bold text-white leading-snug drop-shadow-sm">
-                      ARES Commander on Desktop with Trinity Cloud & Mobile
+                    <h3 data-cad-path="hero.captionTitle" className="text-sm sm:text-base font-bold text-white leading-snug drop-shadow-sm">
+                      {(data.hero as any).captionTitle || 'ARES Commander on Desktop with Trinity Cloud & Mobile'}
                     </h3>
                   </div>
                 </div>
@@ -389,10 +421,10 @@ export const AresCommanderPage: React.FC = () => {
               <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                 {data.hero.strip.map((st, idx) => (
                   <div key={idx} className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
-                    <div className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold">
+                    <div data-cad-path={`hero.strip.${idx}.label`} className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold">
                       {st.label}
                     </div>
-                    <div className="text-xs font-extrabold text-slate-900 mt-0.5 truncate">
+                    <div data-cad-path={`hero.strip.${idx}.value`} className="text-xs font-extrabold text-slate-900 mt-0.5 truncate">
                       {st.value}
                     </div>
                   </div>
@@ -406,16 +438,16 @@ export const AresCommanderPage: React.FC = () => {
       {/* ====================================================
           4. PRODUCT OVERVIEW
          ==================================================== */}
-      <section ref={overviewRef} className="py-20 bg-white border-b border-slate-200">
+      <section ref={overviewRef} data-cad-section="overview" className="py-20 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="max-w-3xl space-y-3">
             <div className="text-xs font-mono uppercase tracking-widest text-blue-600 font-bold">
               Product Overview
             </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
+            <h2 data-cad-path="overview.heading" className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
               {data.overview.heading}
             </h2>
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+            <p data-cad-path="overview.description" className="text-sm sm:text-base text-slate-600 leading-relaxed">
               {data.overview.description}
             </p>
           </div>
@@ -436,14 +468,14 @@ export const AresCommanderPage: React.FC = () => {
                     {idx === 5 && <Share2 className="w-6 h-6" />}
                   </div>
                   <div>
-                    <span className="text-[11px] font-mono text-blue-600 uppercase tracking-wider font-bold">
+                    <span data-cad-path={`overview.cards.${idx}.subtitle`} className="text-[11px] font-mono text-blue-600 uppercase tracking-wider font-bold">
                       {card.subtitle}
                     </span>
-                    <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                    <h3 data-cad-path={`overview.cards.${idx}.title`} className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
                       {card.title}
                     </h3>
                   </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">
+                  <p data-cad-path={`overview.cards.${idx}.description`} className="text-xs text-slate-600 leading-relaxed">
                     {card.description}
                   </p>
                 </div>
@@ -452,7 +484,7 @@ export const AresCommanderPage: React.FC = () => {
                   {card.bullets.map((b, bIdx) => (
                     <div key={bIdx} className="flex items-center gap-2 text-xs text-slate-700">
                       <Check className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                      <span>{b}</span>
+                      <span data-cad-path={`overview.cards.${idx}.bullets.${bIdx}`}>{b}</span>
                     </div>
                   ))}
                 </div>
@@ -465,16 +497,16 @@ export const AresCommanderPage: React.FC = () => {
       {/* ====================================================
           5. WHY ARES COMMANDER (8 BENEFIT CARDS)
          ==================================================== */}
-      <section ref={benefitsRef} className="py-20 bg-slate-50 border-b border-slate-200">
+      <section ref={benefitsRef} data-cad-section="benefits" className="py-20 bg-slate-50 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="max-w-3xl space-y-3">
             <div className="text-xs font-mono uppercase tracking-widest text-blue-600 font-bold">
               Core Advantages
             </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
+            <h2 data-cad-path="benefits.heading" className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
               {data.benefits.heading}
             </h2>
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+            <p data-cad-path="benefits.description" className="text-sm sm:text-base text-slate-600 leading-relaxed">
               {data.benefits.description}
             </p>
           </div>
@@ -494,14 +526,14 @@ export const AresCommanderPage: React.FC = () => {
                       <CheckCircle2 className="w-4 h-4" />
                     </div>
                   </div>
-                  <h3 className="font-extrabold text-slate-900 text-base group-hover:text-blue-600 transition-colors">
+                  <h3 data-cad-path={`benefits.items.${idx}.title`} className="font-extrabold text-slate-900 text-base group-hover:text-blue-600 transition-colors">
                     {item.title}
                   </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                  <p data-cad-path={`benefits.items.${idx}.desc`} className="text-xs text-slate-600 leading-relaxed font-medium">
                     {item.desc}
                   </p>
                 </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed pt-2 border-t border-slate-100 italic">
+                <p data-cad-path={`benefits.items.${idx}.detail`} className="text-[11px] text-slate-400 leading-relaxed pt-2 border-t border-slate-100 italic">
                   {item.detail}
                 </p>
               </div>
@@ -513,7 +545,7 @@ export const AresCommanderPage: React.FC = () => {
       {/* ====================================================
           6. CORE 2D DRAFTING & 7. 3D CAD MODELLING (INTERACTIVE)
          ==================================================== */}
-      <section ref={draftingRef} className="py-20 bg-white border-b border-slate-200">
+      <section ref={draftingRef} data-cad-section="drafting_3d" className="py-20 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           {/* Section Header */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -564,10 +596,10 @@ export const AresCommanderPage: React.FC = () => {
                   <span className="text-xs font-mono uppercase tracking-wider text-blue-600 font-bold">
                     Sub-Millimeter Precision
                   </span>
-                  <h3 className="text-2xl font-bold text-slate-900">
+                  <h3 data-cad-path="drafting2D.heading" className="text-2xl font-bold text-slate-900">
                     {data.drafting2D.heading}
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  <p data-cad-path="drafting2D.description" className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                     {data.drafting2D.description}
                   </p>
                 </div>
@@ -576,12 +608,12 @@ export const AresCommanderPage: React.FC = () => {
                   {data.drafting2D.features.slice(0, 10).map((feat, idx) => (
                     <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100">
                       <Check className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                      <span>{feat}</span>
+                      <span data-cad-path={`drafting2D.features.${idx}`}>{feat}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-100 text-xs text-blue-900 leading-relaxed font-medium">
+                <div data-cad-path="drafting2D.featureDescription" className="p-4 rounded-xl bg-blue-50/70 border border-blue-100 text-xs text-blue-900 leading-relaxed font-medium">
                   {data.drafting2D.featureDescription}
                 </div>
               </div>
@@ -590,6 +622,7 @@ export const AresCommanderPage: React.FC = () => {
                 <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-slate-900 group">
                   <div className="aspect-16/10 overflow-hidden">
                     <img
+                      data-cad-path="drafting2D.image"
                       src={data.drafting2D.image}
                       alt="2D architectural floor plan drafting in ARES Commander"
                       className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700"
@@ -614,10 +647,10 @@ export const AresCommanderPage: React.FC = () => {
                   <span className="text-xs font-mono uppercase tracking-wider text-blue-600 font-bold">
                     Parametric Solid Geometry
                   </span>
-                  <h3 className="text-2xl font-bold text-slate-900">
+                  <h3 data-cad-path="modelling3D.heading" className="text-2xl font-bold text-slate-900">
                     {data.modelling3D.heading}
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  <p data-cad-path="modelling3D.description" className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                     {data.modelling3D.description}
                   </p>
                 </div>
@@ -630,7 +663,7 @@ export const AresCommanderPage: React.FC = () => {
                     {data.modelling3D.features.slice(0, 8).map((feat, idx) => (
                       <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100">
                         <Box className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                        <span>{feat}</span>
+                        <span data-cad-path={`modelling3D.features.${idx}`}>{feat}</span>
                       </div>
                     ))}
                   </div>
@@ -642,7 +675,7 @@ export const AresCommanderPage: React.FC = () => {
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {data.modelling3D.useCases.map((uc, idx) => (
-                      <span key={idx} className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">
+                      <span key={idx} data-cad-path={`modelling3D.useCases.${idx}`} className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">
                         {uc}
                       </span>
                     ))}
@@ -654,6 +687,7 @@ export const AresCommanderPage: React.FC = () => {
                 <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-slate-900 group">
                   <div className="aspect-16/10 overflow-hidden">
                     <img
+                      data-cad-path="modelling3D.image"
                       src={data.modelling3D.image}
                       alt="3D solid mechanical CAD modeling in ARES Commander"
                       className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700"
@@ -678,16 +712,16 @@ export const AresCommanderPage: React.FC = () => {
       {/* ====================================================
           8. NATIVE DWG COMPATIBILITY & WORKFLOW
          ==================================================== */}
-      <section className="py-20 bg-slate-900 text-white border-b border-slate-800">
+      <section data-cad-section="native_dwg" className="py-20 bg-slate-900 text-white border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="max-w-3xl space-y-3">
             <div className="text-xs font-mono uppercase tracking-widest text-blue-400 font-bold">
               Universal CAD Standard
             </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
+            <h2 data-cad-path="nativeDwg.heading" className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
               {data.nativeDwg.heading}
             </h2>
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+            <p data-cad-path="nativeDwg.description" className="text-sm sm:text-base text-slate-300 leading-relaxed">
               {data.nativeDwg.description}
             </p>
           </div>
@@ -702,10 +736,10 @@ export const AresCommanderPage: React.FC = () => {
                 <div className="text-2xl font-mono font-black text-blue-400">
                   {st.step}
                 </div>
-                <h3 className="text-base font-bold text-white">
+                <h3 data-cad-path={`nativeDwg.workflowSteps.${idx}.title`} className="text-base font-bold text-white">
                   {st.title}
                 </h3>
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <p data-cad-path={`nativeDwg.workflowSteps.${idx}.desc`} className="text-xs text-slate-300 leading-relaxed">
                   {st.desc}
                 </p>
               </div>
@@ -721,11 +755,11 @@ export const AresCommanderPage: React.FC = () => {
               {data.nativeDwg.featurePoints.map((pt, idx) => (
                 <div key={idx} className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>{pt}</span>
+                  <span data-cad-path={`nativeDwg.featurePoints.${idx}`}>{pt}</span>
                 </div>
               ))}
             </div>
-            <p className="text-[11px] text-slate-400 italic pt-2 border-t border-slate-700/60">
+            <p data-cad-path="nativeDwg.contentNote" className="text-[11px] text-slate-400 italic pt-2 border-t border-slate-700/60">
               {data.nativeDwg.contentNote}
             </p>
           </div>
@@ -735,22 +769,22 @@ export const AresCommanderPage: React.FC = () => {
       {/* ====================================================
           10. SMART PRODUCTIVITY TOOLS
          ==================================================== */}
-      <section ref={productivityRef} className="py-20 bg-white border-b border-slate-200">
+      <section ref={productivityRef} data-cad-section="productivity" className="py-20 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="max-w-3xl space-y-3">
             <div className="text-xs font-mono uppercase tracking-widest text-blue-600 font-bold">
               Drafting Velocity
             </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
+            <h2 data-cad-path="productivityTools.heading" className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
               {data.productivityTools.heading}
             </h2>
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+            <p data-cad-path="productivityTools.description" className="text-sm sm:text-base text-slate-600 leading-relaxed">
               {data.productivityTools.description}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data.productivityTools.tools.map((tool) => (
+            {data.productivityTools.tools.map((tool, tIdx) => (
               <div
                 key={tool.id}
                 className="bg-slate-50 rounded-2xl border border-slate-200/90 p-6 space-y-4 hover:shadow-lg hover:border-blue-300 transition-all group flex flex-col justify-between"
@@ -765,16 +799,16 @@ export const AresCommanderPage: React.FC = () => {
                       {tool.id === 'drawing-compare' && <GitCompare className="w-5 h-5" />}
                       {tool.id === 'dynamic-blocks' && <Component className="w-5 h-5" />}
                     </div>
-                    <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold">
+                    <span data-cad-path={`productivityTools.tools.${tIdx}.tag`} className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold">
                       {tool.tag}
                     </span>
                   </div>
 
-                  <h3 className="text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                  <h3 data-cad-path={`productivityTools.tools.${tIdx}.name`} className="text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
                     {tool.name}
                   </h3>
 
-                  <p className="text-xs text-slate-600 leading-relaxed">
+                  <p data-cad-path={`productivityTools.tools.${tIdx}.description`} className="text-xs text-slate-600 leading-relaxed">
                     {tool.description}
                   </p>
                 </div>
@@ -783,7 +817,7 @@ export const AresCommanderPage: React.FC = () => {
                   {tool.highlights.map((hl, hlIdx) => (
                     <div key={hlIdx} className="flex items-center gap-2 text-xs text-slate-700">
                       <Check className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                      <span>{hl}</span>
+                      <span data-cad-path={`productivityTools.tools.${tIdx}.highlights.${hlIdx}`}>{hl}</span>
                     </div>
                   ))}
                 </div>
@@ -796,7 +830,7 @@ export const AresCommanderPage: React.FC = () => {
       {/* ====================================================
           12. BIM-TO-CAD DOCUMENTATION
          ==================================================== */}
-      <section ref={bimRef} className="py-20 bg-slate-50 border-b border-slate-200">
+      <section ref={bimRef} data-cad-section="bim_to_cad" className="py-20 bg-slate-50 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             <div className="lg:col-span-6 space-y-6">
@@ -804,13 +838,13 @@ export const AresCommanderPage: React.FC = () => {
                 <div className="text-xs font-mono uppercase tracking-widest text-blue-600 font-bold">
                   BIM Interoperability
                 </div>
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
+                <h2 data-cad-path="bimToCad.heading" className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
                   {data.bimToCad.heading}
                 </h2>
-                <p className="text-sm text-slate-600 leading-relaxed">
+                <p data-cad-path="bimToCad.description" className="text-sm text-slate-600 leading-relaxed">
                   {data.bimToCad.description}
                 </p>
-                <p className="text-xs text-slate-500 leading-relaxed">
+                <p data-cad-path="bimToCad.supportingDescription" className="text-xs text-slate-500 leading-relaxed">
                   {data.bimToCad.supportingDescription}
                 </p>
               </div>
@@ -825,9 +859,9 @@ export const AresCommanderPage: React.FC = () => {
                       {idx === 2 && <Scissors className="w-4 h-4 text-blue-600" />}
                       {idx === 3 && <Table className="w-4 h-4 text-blue-600" />}
                       {idx === 4 && <RefreshCw className="w-4 h-4 text-blue-600" />}
-                      <span>{cap.title}</span>
+                      <span data-cad-path={`bimToCad.capabilities.${idx}.title`}>{cap.title}</span>
                     </div>
-                    <p className="text-xs text-slate-600 leading-relaxed pl-6">
+                    <p data-cad-path={`bimToCad.capabilities.${idx}.desc`} className="text-xs text-slate-600 leading-relaxed pl-6">
                       {cap.desc}
                     </p>
                   </div>
@@ -839,6 +873,7 @@ export const AresCommanderPage: React.FC = () => {
               <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-slate-900 group">
                 <div className="aspect-16/10 overflow-hidden">
                   <img
+                    data-cad-path="bimToCad.image"
                     src={data.bimToCad.image}
                     alt="BIM-to-CAD documentation drawing in ARES Commander"
                     className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700"
@@ -861,15 +896,15 @@ export const AresCommanderPage: React.FC = () => {
                   BIM-to-CAD Workflow in 4 Steps:
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  {data.bimToCad.workflowSteps.map((ws) => (
+                  {data.bimToCad.workflowSteps.map((ws, wsIdx) => (
                     <div key={ws.step} className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
                       <div className="font-bold text-blue-600 flex items-center gap-1.5">
                         <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-mono">
                           {ws.step}
                         </span>
-                        <span>{ws.title}</span>
+                        <span data-cad-path={`bimToCad.workflowSteps.${wsIdx}.title`}>{ws.title}</span>
                       </div>
-                      <p className="text-slate-600 text-[11px] leading-relaxed pl-5.5">
+                      <p data-cad-path={`bimToCad.workflowSteps.${wsIdx}.desc`} className="text-slate-600 text-[11px] leading-relaxed pl-5.5">
                         {ws.desc}
                       </p>
                     </div>
@@ -884,16 +919,16 @@ export const AresCommanderPage: React.FC = () => {
       {/* ====================================================
           13. ARES TRINITY ECOSYSTEM
          ==================================================== */}
-      <section ref={trinityRef} className="py-20 bg-white border-b border-slate-200">
+      <section ref={trinityRef} data-cad-section="trinity" className="py-20 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="max-w-3xl space-y-3">
             <div className="text-xs font-mono uppercase tracking-widest text-blue-600 font-bold">
               Connected CAD
             </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
+            <h2 data-cad-path="aresTrinity.heading" className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
               {data.aresTrinity.heading}
             </h2>
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+            <p data-cad-path="aresTrinity.description" className="text-sm sm:text-base text-slate-600 leading-relaxed">
               {data.aresTrinity.description}
             </p>
           </div>
@@ -903,6 +938,7 @@ export const AresCommanderPage: React.FC = () => {
             <div className="relative rounded-2xl overflow-hidden border border-slate-200/90 shadow-xl bg-slate-900 group">
               <div className="relative aspect-16/9 sm:aspect-21/9 w-full overflow-hidden bg-slate-950">
                 <img
+                  data-cad-path="aresTrinity.image"
                   src={data.aresTrinity.image}
                   alt="ARES Trinity - Connected CAD Across Desktop, Cloud, and Mobile"
                   className="w-full h-full object-cover object-center group-hover:scale-102 transition-transform duration-700"
@@ -935,14 +971,14 @@ export const AresCommanderPage: React.FC = () => {
                     {idx === 2 && <Smartphone className="w-6 h-6" />}
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900">
+                    <h3 data-cad-path={`aresTrinity.components.${idx}.name`} className="text-lg font-bold text-slate-900">
                       {comp.name}
                     </h3>
-                    <span className="text-[11px] font-mono text-blue-600 font-bold">
+                    <span data-cad-path={`aresTrinity.components.${idx}.platformRole`} className="text-[11px] font-mono text-blue-600 font-bold">
                       {comp.platformRole}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">
+                  <p data-cad-path={`aresTrinity.components.${idx}.description`} className="text-xs text-slate-600 leading-relaxed">
                     {comp.description}
                   </p>
                 </div>
@@ -951,7 +987,7 @@ export const AresCommanderPage: React.FC = () => {
                   {comp.features.map((f, fIdx) => (
                     <div key={fIdx} className="flex items-center gap-2 text-xs text-slate-700">
                       <Check className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                      <span>{f}</span>
+                      <span data-cad-path={`aresTrinity.components.${idx}.features.${fIdx}`}>{f}</span>
                     </div>
                   ))}
                 </div>
@@ -970,8 +1006,8 @@ export const AresCommanderPage: React.FC = () => {
                   <div key={idx} className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center gap-2.5">
                     <Cloud className="w-4 h-4 text-blue-600 shrink-0" />
                     <div>
-                      <div className="font-bold text-xs text-slate-900">{cs.name}</div>
-                      <div className="text-[10px] text-slate-500">{cs.type}</div>
+                      <div data-cad-path={`aresTrinity.cloudStorageProviders.${idx}.name`} className="font-bold text-xs text-slate-900">{cs.name}</div>
+                      <div data-cad-path={`aresTrinity.cloudStorageProviders.${idx}.type`} className="text-[10px] text-slate-500">{cs.type}</div>
                     </div>
                   </div>
                 ))}
@@ -986,10 +1022,10 @@ export const AresCommanderPage: React.FC = () => {
                 <span className="text-[10px] font-mono uppercase tracking-widest text-blue-200 font-bold block">
                   ARES Kudo Feature
                 </span>
-                <h3 className="text-lg font-bold text-white">
+                <h3 data-cad-path="aresTrinity.viewOnlySharing.headline" className="text-lg font-bold text-white">
                   {data.aresTrinity.viewOnlySharing.headline}
                 </h3>
-                <p className="text-xs text-blue-100 leading-relaxed">
+                <p data-cad-path="aresTrinity.viewOnlySharing.description" className="text-xs text-blue-100 leading-relaxed">
                   {data.aresTrinity.viewOnlySharing.description}
                 </p>
               </div>
@@ -1013,16 +1049,16 @@ export const AresCommanderPage: React.FC = () => {
       {/* ====================================================
           19. SUPPORTED INDUSTRIES & USE CASES
          ==================================================== */}
-      <section ref={industriesRef} className="py-20 bg-white border-b border-slate-200">
+      <section ref={industriesRef} data-cad-section="industries" className="py-20 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="max-w-3xl space-y-3">
             <div className="text-xs font-mono uppercase tracking-widest text-blue-600 font-bold">
               Industries & Workflows
             </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
+            <h2 data-cad-path="industries.heading" className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
               {data.industries.heading}
             </h2>
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+            <p data-cad-path="industries.description" className="text-sm sm:text-base text-slate-600 leading-relaxed">
               {data.industries.description}
             </p>
           </div>
@@ -1041,20 +1077,21 @@ export const AresCommanderPage: React.FC = () => {
                 <div className="space-y-2">
                   <div className="relative aspect-16/9 rounded-xl overflow-hidden bg-slate-200 mb-2">
                     <img
+                      data-cad-path={`industries.items.${idx}.image`}
                       src={ind.image}
                       alt={ind.title}
                       className="w-full h-full object-cover"
                       loading="lazy"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
-                    <span className="absolute bottom-2 left-2 text-[10px] font-bold text-white font-mono">
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent pointer-events-none" />
+                    <span data-cad-path={`industries.items.${idx}.subtitle`} className="absolute bottom-2 left-2 text-[10px] font-bold text-white font-mono">
                       {ind.subtitle}
                     </span>
                   </div>
-                  <h3 className="font-bold text-slate-900 text-sm">
+                  <h3 data-cad-path={`industries.items.${idx}.title`} className="font-bold text-slate-900 text-sm">
                     {ind.title}
                   </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
+                  <p data-cad-path={`industries.items.${idx}.description`} className="text-xs text-slate-600 leading-relaxed">
                     {ind.description}
                   </p>
                 </div>
@@ -1065,7 +1102,7 @@ export const AresCommanderPage: React.FC = () => {
                   </span>
                   <div className="flex flex-wrap gap-1">
                     {ind.deliverables.map((d, dIdx) => (
-                      <span key={dIdx} className="text-[10px] px-2 py-0.5 rounded bg-slate-200 text-slate-700">
+                      <span key={dIdx} data-cad-path={`industries.items.${idx}.deliverables.${dIdx}`} className="text-[10px] px-2 py-0.5 rounded bg-slate-200 text-slate-700">
                         {d}
                       </span>
                     ))}
@@ -1080,16 +1117,16 @@ export const AresCommanderPage: React.FC = () => {
       {/* ====================================================
           20. CROSS-PLATFORM DESKTOP & WORK OFFLINE
          ==================================================== */}
-      <section className="py-20 bg-slate-50 border-b border-slate-200">
+      <section data-cad-section="cross_platform" className="py-20 bg-slate-50 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="max-w-3xl space-y-3">
             <div className="text-xs font-mono uppercase tracking-widest text-blue-600 font-bold">
               Operating System Freedom
             </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
+            <h2 data-cad-path="crossPlatform.heading" className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
               {data.crossPlatform.heading}
             </h2>
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+            <p data-cad-path="crossPlatform.description" className="text-sm sm:text-base text-slate-600 leading-relaxed">
               {data.crossPlatform.description}
             </p>
           </div>
@@ -1106,10 +1143,10 @@ export const AresCommanderPage: React.FC = () => {
                   {idx === 2 && <Terminal className="w-6 h-6" />}
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">{os.os}</h3>
-                  <span className="text-xs font-mono text-blue-600 font-bold">{os.arch}</span>
+                  <h3 data-cad-path={`crossPlatform.osDetails.${idx}.os`} className="text-lg font-bold text-slate-900">{os.os}</h3>
+                  <span data-cad-path={`crossPlatform.osDetails.${idx}.arch`} className="text-xs font-mono text-blue-600 font-bold">{os.arch}</span>
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                <p data-cad-path={`crossPlatform.osDetails.${idx}.versions`} className="text-xs text-slate-600 leading-relaxed font-medium">
                   {os.versions}
                 </p>
               </div>
@@ -1120,16 +1157,16 @@ export const AresCommanderPage: React.FC = () => {
           <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-3">
             <div className="flex items-center gap-2 text-slate-900 font-bold text-base">
               <ShieldCheck className="w-5 h-5 text-emerald-600" />
-              <span>{data.workOffline.heading}</span>
+              <span data-cad-path="workOffline.heading">{data.workOffline.heading}</span>
             </div>
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            <p data-cad-path="workOffline.description" className="text-xs sm:text-sm text-slate-600 leading-relaxed">
               {data.workOffline.description}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-2 text-xs text-slate-700">
               {data.workOffline.featurePoints.map((pt, idx) => (
                 <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-slate-50">
                   <Check className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                  <span>{pt}</span>
+                  <span data-cad-path={`workOffline.featurePoints.${idx}`}>{pt}</span>
                 </div>
               ))}
             </div>
@@ -1140,16 +1177,16 @@ export const AresCommanderPage: React.FC = () => {
       {/* ====================================================
           28. ARES COMMANDER VS ARES STANDARD COMPARISON
          ==================================================== */}
-      <section ref={comparisonRef} className="py-20 bg-white border-b border-slate-200">
+      <section ref={comparisonRef} data-cad-section="comparison" className="py-20 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="max-w-3xl space-y-3">
             <div className="text-xs font-mono uppercase tracking-widest text-blue-600 font-bold">
               CAD Edition Comparison
             </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
+            <h2 data-cad-path="comparisonCommanderVsStandard.heading" className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
               {data.comparisonCommanderVsStandard.heading}
             </h2>
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+            <p data-cad-path="comparisonCommanderVsStandard.description" className="text-sm sm:text-base text-slate-600 leading-relaxed">
               {data.comparisonCommanderVsStandard.description}
             </p>
           </div>
@@ -1171,13 +1208,13 @@ export const AresCommanderPage: React.FC = () => {
                     key={idx}
                     className={row.highlight ? 'bg-blue-50/30' : 'hover:bg-slate-50/70'}
                   >
-                    <td className="py-3.5 px-6 font-bold text-slate-900">
+                    <td data-cad-path={`comparisonCommanderVsStandard.rows.${idx}.capability`} className="py-3.5 px-6 font-bold text-slate-900">
                       {row.capability}
                     </td>
-                    <td className="py-3.5 px-6 font-semibold text-blue-900 bg-blue-50/50 border-x border-blue-100">
+                    <td data-cad-path={`comparisonCommanderVsStandard.rows.${idx}.aresCommander`} className="py-3.5 px-6 font-semibold text-blue-900 bg-blue-50/50 border-x border-blue-100">
                       {row.aresCommander}
                     </td>
-                    <td className="py-3.5 px-6 text-slate-600">
+                    <td data-cad-path={`comparisonCommanderVsStandard.rows.${idx}.aresStandard`} className="py-3.5 px-6 text-slate-600">
                       {row.aresStandard}
                     </td>
                   </tr>
@@ -1191,13 +1228,13 @@ export const AresCommanderPage: React.FC = () => {
       {/* ====================================================
           30. TECHNICAL SPECIFICATIONS TABLE
          ==================================================== */}
-      <section ref={specsRef} className="py-20 bg-slate-50 border-b border-slate-200">
+      <section ref={specsRef} data-cad-section="technical_specs" className="py-20 bg-slate-50 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="max-w-3xl space-y-3">
             <div className="text-xs font-mono uppercase tracking-widest text-blue-600 font-bold">
               Engineering Specs
             </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
+            <h2 data-cad-path="technicalSpecs.heading" className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
               {data.technicalSpecs.heading}
             </h2>
             <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
@@ -1217,9 +1254,9 @@ export const AresCommanderPage: React.FC = () => {
               <tbody className="divide-y divide-slate-100">
                 {data.technicalSpecs.specs.map((sp, idx) => (
                   <tr key={idx} className="hover:bg-slate-50/70">
-                    <td className="py-3.5 px-6 font-bold text-slate-900">{sp.category}</td>
-                    <td className="py-3.5 px-6 font-medium text-slate-800">{sp.specification}</td>
-                    <td className="py-3.5 px-6 text-slate-500 text-[11px]">{sp.notes}</td>
+                    <td data-cad-path={`technicalSpecs.specs.${idx}.category`} className="py-3.5 px-6 font-bold text-slate-900">{sp.category}</td>
+                    <td data-cad-path={`technicalSpecs.specs.${idx}.specification`} className="py-3.5 px-6 font-medium text-slate-800">{sp.specification}</td>
+                    <td data-cad-path={`technicalSpecs.specs.${idx}.notes`} className="py-3.5 px-6 text-slate-500 text-[11px]">{sp.notes}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1229,12 +1266,13 @@ export const AresCommanderPage: React.FC = () => {
           <div className="flex items-center justify-between text-xs text-slate-500 pt-2">
             <span>Verified against Graebert 2026 Official Documentation</span>
             <a
+              data-cad-path="technicalSpecs.systemRequirementsUrl"
               href={data.technicalSpecs.systemRequirementsUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 font-bold hover:underline flex items-center gap-1"
             >
-              <span>Check Official System Requirements</span>
+              <span data-cad-btn-text>Check Official System Requirements</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
@@ -1244,39 +1282,39 @@ export const AresCommanderPage: React.FC = () => {
       {/* ====================================================
           22. FLEXIBLE LICENSING CARDS
          ==================================================== */}
-      <section ref={licensingRef} className="py-20 bg-white border-b border-slate-200">
+      <section ref={licensingRef} data-cad-section="licensing" className="py-20 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="max-w-3xl space-y-3">
             <div className="text-xs font-mono uppercase tracking-widest text-blue-600 font-bold">
               Commercial Plans
             </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
+            <h2 data-cad-path="licensing.heading" className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
               {data.licensing.heading}
             </h2>
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+            <p data-cad-path="licensing.description" className="text-sm sm:text-base text-slate-600 leading-relaxed">
               {data.licensing.description}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {data.licensing.cards.map((plan) => (
+            {data.licensing.cards.map((plan, pIdx) => (
               <div
                 key={plan.id}
                 className="rounded-2xl border border-slate-200 bg-white p-7 space-y-6 flex flex-col justify-between transition-all shadow-sm hover:shadow-lg"
               >
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-xl font-black text-slate-950">{plan.category}</h3>
+                    <h3 data-cad-path={`licensing.cards.${pIdx}.category`} className="text-xl font-black text-slate-950">{plan.category}</h3>
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {plan.termOptions.map((term, tIdx) => (
-                        <span key={tIdx} className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold">
+                        <span key={tIdx} data-cad-path={`licensing.cards.${pIdx}.termOptions.${tIdx}`} className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold">
                           {term}
                         </span>
                       ))}
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-600 leading-relaxed">
+                  <p data-cad-path={`licensing.cards.${pIdx}.description`} className="text-xs text-slate-600 leading-relaxed">
                     {plan.description}
                   </p>
 
@@ -1287,14 +1325,14 @@ export const AresCommanderPage: React.FC = () => {
                     {plan.includedFeatures.map((f, fIdx) => (
                       <div key={fIdx} className="flex items-start gap-2 text-xs text-slate-700">
                         <Check className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
-                        <span>{f}</span>
+                        <span data-cad-path={`licensing.cards.${pIdx}.includedFeatures.${fIdx}`}>{f}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <div className="space-y-3 pt-4 border-t border-slate-200">
-                  <div className="text-[11px] text-slate-500 font-mono italic">
+                  <div data-cad-path={`licensing.cards.${pIdx}.indicativePriceNote`} className="text-[11px] text-slate-500 font-mono italic">
                     {plan.indicativePriceNote}
                   </div>
                   <button
@@ -1315,9 +1353,10 @@ export const AresCommanderPage: React.FC = () => {
           <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2 font-medium">
               <Info className="w-4 h-4 text-amber-600 shrink-0" />
-              <span>{data.licensing.pricingAccuracyRules}</span>
+              <span data-cad-path="licensing.pricingAccuracyRules">{data.licensing.pricingAccuracyRules}</span>
             </div>
             <a
+              data-cad-path="licensing.pricingConfiguratorUrl"
               href={data.licensing.pricingConfiguratorUrl}
               target="_blank"
               rel="noopener noreferrer"
@@ -1332,24 +1371,24 @@ export const AresCommanderPage: React.FC = () => {
       {/* ====================================================
           23. FREE TRIAL & DOWNLOAD
          ==================================================== */}
-      <section ref={trialRef} className="py-16 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+      <section ref={trialRef} data-cad-section="free_trial" className="py-16 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-8 space-y-3">
-              <span className="text-xs font-mono uppercase tracking-widest text-blue-200 font-bold block">
+              <span data-cad-path="freeTrial.duration" className="text-xs font-mono uppercase tracking-widest text-blue-200 font-bold block">
                 {data.freeTrial.duration}
               </span>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
+              <h2 data-cad-path="freeTrial.heading" className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
                 {data.freeTrial.heading}
               </h2>
-              <p className="text-sm text-blue-100 leading-relaxed max-w-2xl">
+              <p data-cad-path="freeTrial.description" className="text-sm text-blue-100 leading-relaxed max-w-2xl">
                 {data.freeTrial.description}
               </p>
               <div className="flex flex-wrap gap-2 pt-2">
                 {data.freeTrial.highlights.map((h, idx) => (
                   <span key={idx} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-xs font-medium">
                     <Check className="w-3.5 h-3.5 text-blue-200" />
-                    <span>{h}</span>
+                    <span data-cad-path={`freeTrial.highlights.${idx}`}>{h}</span>
                   </span>
                 ))}
               </div>
@@ -1357,15 +1396,17 @@ export const AresCommanderPage: React.FC = () => {
 
             <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3 justify-center">
               <a
+                data-cad-key="trial-banner-cta"
+                data-cad-path="freeTrial.downloadUrl"
                 href={data.freeTrial.downloadUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-6 py-3.5 rounded-xl bg-white hover:bg-blue-50 text-blue-700 font-extrabold text-sm text-center shadow-lg transition-all flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
-                <span>Start Free 30-Day Trial</span>
+                <span data-cad-btn-text>Start Free 30-Day Trial</span>
               </a>
-              <p className="text-[10px] text-blue-200 text-center italic">
+              <p data-cad-path="freeTrial.termsNote" className="text-[10px] text-blue-200 text-center italic">
                 {data.freeTrial.termsNote}
               </p>
             </div>
@@ -1374,18 +1415,93 @@ export const AresCommanderPage: React.FC = () => {
       </section>
 
       {/* ====================================================
+          23B. PDF BROCHURES, DATASHEETS & TECHNICAL DOWNLOADS
+         ==================================================== */}
+      {(visiblePdfs.length > 0 || isEditorMode) && (
+        <section data-cad-section="pdf_downloads" className="py-16 bg-white border-b border-slate-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+              <div className="max-w-3xl space-y-2">
+                <div className="text-xs font-mono uppercase tracking-widest text-blue-600 font-bold">
+                  Brochures, Datasheets & Guides
+                </div>
+                <h2 data-cad-path="pdfDownloads.heading" className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+                  {(data as any).pdfDownloads?.heading || 'Download ARES Commander PDF Brochures & Datasheets'}
+                </h2>
+                <p data-cad-path="pdfDownloads.description" className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  {(data as any).pdfDownloads?.description || 'Access official PDF product brochures, hardware system requirement datasheets, BIM-to-CAD automation guides, and enterprise licensing briefs.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {visiblePdfs.map((pdfDoc) => (
+                <div
+                  key={pdfDoc.id}
+                  data-cad-pdf-id={pdfDoc.id}
+                  className="bg-slate-50 rounded-2xl border border-slate-200/90 p-5 flex flex-col justify-between gap-4 hover:shadow-md hover:border-blue-300 transition-all"
+                >
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 text-red-600 flex items-center justify-center font-bold">
+                        <FileText className="w-5 h-5" />
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-bold">
+                          {pdfDoc.badge || 'PDF'}
+                        </span>
+                        {pdfDoc.fileSize && (
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-200 text-slate-700 font-semibold">
+                            {pdfDoc.fileSize}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <h3 className="font-bold text-slate-900 text-sm leading-snug">
+                      {pdfDoc.title}
+                    </h3>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      {pdfDoc.description}
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-200/80 space-y-2">
+                    <div className="text-[10px] font-mono text-slate-400 truncate" title={pdfDoc.fileName}>
+                      {pdfDoc.fileName}
+                    </div>
+                    <a
+                      data-cad-key={`pdf-card:${pdfDoc.id}`}
+                      data-cad-pdf-id={pdfDoc.id}
+                      href={pdfDoc.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download={pdfDoc.behavior === 'download' ? pdfDoc.fileName : undefined}
+                      className="w-full py-2.5 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-all"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span data-cad-btn-text>{pdfDoc.buttonLabel || 'Download PDF'}</span>
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ====================================================
           24. LEARNING & KNOWLEDGE RESOURCES
          ==================================================== */}
-      <section className="py-20 bg-slate-50 border-b border-slate-200">
+      <section data-cad-section="learning_resources" className="py-20 bg-slate-50 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="max-w-3xl space-y-3">
             <div className="text-xs font-mono uppercase tracking-widest text-blue-600 font-bold">
               Skill Development
             </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
+            <h2 data-cad-path="learningResources.heading" className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
               {data.learningResources.heading}
             </h2>
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+            <p data-cad-path="learningResources.description" className="text-sm sm:text-base text-slate-600 leading-relaxed">
               {data.learningResources.description}
             </p>
           </div>
@@ -1404,21 +1520,22 @@ export const AresCommanderPage: React.FC = () => {
                       {idx === 2 && <BookOpen className="w-5 h-5" />}
                       {idx === 3 && <Users className="w-5 h-5" />}
                     </div>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-bold">
+                    <span data-cad-path={`learningResources.items.${idx}.badge`} className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-bold">
                       {item.badge}
                     </span>
                   </div>
-                  <h3 className="font-bold text-slate-900 text-base">{item.title}</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">{item.description}</p>
+                  <h3 data-cad-path={`learningResources.items.${idx}.title`} className="font-bold text-slate-900 text-base">{item.title}</h3>
+                  <p data-cad-path={`learningResources.items.${idx}.description`} className="text-xs text-slate-600 leading-relaxed">{item.description}</p>
                 </div>
                 {item.url.startsWith('http') ? (
                   <a
+                    data-cad-path={`learningResources.items.${idx}.url`}
                     href={item.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 pt-2 border-t border-slate-100"
                   >
-                    <span>Visit Resource</span>
+                    <span data-cad-btn-text>Visit Resource</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 ) : (
@@ -1439,13 +1556,13 @@ export const AresCommanderPage: React.FC = () => {
       {/* ====================================================
           31. CUSTOMER FEEDBACK & TESTIMONIALS
          ==================================================== */}
-      <section className="py-20 bg-white border-b border-slate-200">
+      <section data-cad-section="testimonials" className="py-20 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <div className="text-xs font-mono uppercase tracking-widest text-blue-600 font-bold">
               Global Adoption
             </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
+            <h2 data-cad-path="testimonials.heading" className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
               {data.testimonials.heading}
             </h2>
             <p className="text-sm text-slate-600 leading-relaxed">
@@ -1459,13 +1576,13 @@ export const AresCommanderPage: React.FC = () => {
                 key={idx}
                 className="bg-slate-50 rounded-2xl border border-slate-200 p-6 space-y-4 flex flex-col justify-between"
               >
-                <p className="text-xs text-slate-700 leading-relaxed italic">
+                <p data-cad-path={`testimonials.items.${idx}.quote`} className="text-xs text-slate-700 leading-relaxed italic">
                   "{test.quote}"
                 </p>
                 <div className="pt-3 border-t border-slate-200">
-                  <div className="font-bold text-xs text-slate-900">{test.author}</div>
-                  <div className="text-[11px] text-slate-500">{test.company}</div>
-                  <span className="text-[10px] font-mono text-blue-600 font-bold block mt-1">{test.role}</span>
+                  <div data-cad-path={`testimonials.items.${idx}.author`} className="font-bold text-xs text-slate-900">{test.author}</div>
+                  <div data-cad-path={`testimonials.items.${idx}.company`} className="text-[11px] text-slate-500">{test.company}</div>
+                  <span data-cad-path={`testimonials.items.${idx}.role`} className="text-[10px] font-mono text-blue-600 font-bold block mt-1">{test.role}</span>
                 </div>
               </div>
             ))}
@@ -1476,7 +1593,7 @@ export const AresCommanderPage: React.FC = () => {
       {/* ====================================================
           32. FREQUENTLY ASKED QUESTIONS (ACCORDION)
          ==================================================== */}
-      <section ref={faqsRef} className="py-20 bg-slate-50 border-b border-slate-200">
+      <section ref={faqsRef} data-cad-section="faqs" className="py-20 bg-slate-50 border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="text-center space-y-3">
             <div className="text-xs font-mono uppercase tracking-widest text-blue-600 font-bold">
@@ -1534,7 +1651,7 @@ export const AresCommanderPage: React.FC = () => {
                       onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
                       className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 font-bold text-slate-900 text-xs sm:text-sm cursor-pointer hover:text-blue-600 transition-colors"
                     >
-                      <span>{faq.q}</span>
+                      <span data-cad-path={`faqs.${idx}.q`}>{faq.q}</span>
                       <ChevronDown
                         className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
                           isOpen ? 'rotate-180 text-blue-600' : ''
@@ -1542,7 +1659,7 @@ export const AresCommanderPage: React.FC = () => {
                       />
                     </button>
                     {isOpen && (
-                      <div className="px-4 pb-5 sm:px-5 sm:pb-5 text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
+                      <div data-cad-path={`faqs.${idx}.a`} className="px-4 pb-5 sm:px-5 sm:pb-5 text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
                         {faq.a}
                       </div>
                     )}
@@ -1561,7 +1678,7 @@ export const AresCommanderPage: React.FC = () => {
       {/* ====================================================
           33. RELATED GRAEBERT PRODUCTS
          ==================================================== */}
-      <section className="py-20 bg-white border-b border-slate-200">
+      <section data-cad-section="related_products" className="py-20 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="max-w-3xl space-y-3">
             <div className="text-xs font-mono uppercase tracking-widest text-blue-600 font-bold">
@@ -1583,12 +1700,12 @@ export const AresCommanderPage: React.FC = () => {
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-bold">
+                    <span data-cad-path={`relatedProducts.${idx}.category`} className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-bold">
                       {prod.category}
                     </span>
                   </div>
-                  <h3 className="text-base font-bold text-slate-900">{prod.name}</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">{prod.desc}</p>
+                  <h3 data-cad-path={`relatedProducts.${idx}.name`} className="text-base font-bold text-slate-900">{prod.name}</h3>
+                  <p data-cad-path={`relatedProducts.${idx}.desc`} className="text-xs text-slate-600 leading-relaxed">{prod.desc}</p>
                 </div>
                 <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
                   <span className="text-[10px] text-slate-400 italic">Graebert CAD Family</span>
@@ -1615,6 +1732,7 @@ export const AresCommanderPage: React.FC = () => {
       {/* ====================================================
           34. ENQUIRY & PURCHASE SECTION (14 FIELDS)
          ==================================================== */}
+      <div data-cad-section="enquiry_cta">
       <section ref={enquiryRef} id="enquiry" className="py-20 bg-slate-900 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="text-center space-y-3">
@@ -1906,25 +2024,27 @@ export const AresCommanderPage: React.FC = () => {
          ==================================================== */}
       <section className="py-20 bg-slate-950 text-white border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-          <span className="text-xs font-mono uppercase tracking-widest text-blue-400 font-bold block">
-            Ready to Accelerate Your CAD Workflows?
+          <span data-cad-path="finalCta.eyebrow" className="text-xs font-mono uppercase tracking-widest text-blue-400 font-bold block">
+            {(data as any).finalCta?.eyebrow || 'Ready to Accelerate Your CAD Workflows?'}
           </span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
-            Create More. Draft Smarter. Work Anywhere.
+          <h2 data-cad-path="finalCta.heading" className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
+            {(data as any).finalCta?.heading || 'Create More. Draft Smarter. Work Anywhere.'}
           </h2>
-          <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Explore professional DWG-based drafting and 3D modelling with ARES Commander. Connect desktop CAD with cloud and mobile workflows through applicable ARES Trinity features.
+          <p data-cad-path="finalCta.description" className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
+            {(data as any).finalCta?.description || 'Explore professional DWG-based drafting and 3D modelling with ARES Commander. Connect desktop CAD with cloud and mobile workflows through applicable ARES Trinity features.'}
           </p>
 
           <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
             <a
+              data-cad-key="final-trial-cta"
+              data-cad-path="identity.downloadUrl"
               href={data.identity.downloadUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="px-8 py-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm shadow-xl hover:shadow-2xl transition-all flex items-center gap-2"
             >
               <Download className="w-4 h-4" />
-              <span>Start 30-Day Free Trial</span>
+              <span data-cad-btn-text>Start 30-Day Free Trial</span>
             </a>
             <button
               onClick={() => scrollTo(enquiryRef, 'enquiry')}
@@ -1936,6 +2056,7 @@ export const AresCommanderPage: React.FC = () => {
           </div>
         </div>
       </section>
+      </div>
     </div>
   )
 }

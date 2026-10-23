@@ -9,6 +9,7 @@ const UPDATED_AT_KEY = 'leniva_cms_sync_ts_v3'
 export const SYNCED_CMS_KEYS = [
   'leniva_admin_products_catalog',
   'leniva_cad_software_edits',
+  'leniva_cad_visual_published_v1',
   'leniva_custom_cad_products',
   'leniva_home_page_content_v1',
   'leniva_about_page_content_v1',
@@ -25,6 +26,7 @@ export const SYNCED_CMS_KEYS = [
 const ADMIN_CONTENT_CHECK_KEYS = [
   'leniva_admin_products_catalog',
   'leniva_cad_software_edits',
+  'leniva_cad_visual_published_v1',
   'leniva_custom_cad_products',
   'leniva_home_page_content_v1',
   'leniva_about_page_content_v1',
@@ -39,6 +41,7 @@ const COMPACT_INLINE_KEYS = [
   'leniva_admin_password',
   'leniva_site_settings',
   'leniva_cad_software_edits',
+  'leniva_cad_visual_published_v1',
   'leniva_custom_cad_products',
   'leniva_home_page_content_v1',
   'leniva_about_page_content_v1',
@@ -70,6 +73,7 @@ export function dispatchAllCmsUpdatedEvents() {
   const events = [
     'leniva_products_catalog_updated',
     'leniva_cad_edits_updated',
+    'leniva_cad_visual_updated',
     'leniva_home_content_updated',
     'leniva_about_content_updated',
     'leniva_nav_config_updated',

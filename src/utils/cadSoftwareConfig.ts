@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useActiveCadVisualPayload, deepMergeData, useApplyGlobalCadVisualOverrides } from './cadVisualEditorStore'
 import { aresCommanderData as _aresCommanderData } from '../data/aresCommanderData'
 import { aresStandardData as _aresStandardData } from '../data/aresStandardData'
 import { aresMechanicalData as _aresMechanicalData } from '../data/aresMechanicalData'
@@ -1556,6 +1557,22 @@ export function useCadPageData<T extends Record<string, any>>(
   defaultData: T
 ) {
   const { isEnabled, sections, edits } = useCadSectionVisibility(productKey)
-  const data = mergeCadEditsWithPageData(defaultData, edits)
-  return { isEnabled, sections, edits, data }
+  const { payload: visualPayload, isEditorMode, isPreviewMode } = useActiveCadVisualPayload(productKey)
+  useApplyGlobalCadVisualOverrides(productKey)
+  const baseMerged = mergeCadEditsWithPageData(defaultData, edits)
+  const data = deepMergeData(baseMerged, visualPayload?.dataOverrides || {}) as T & {
+    pdfResources?: any[]
+  }
+  if (visualPayload?.pdfResources) {
+    ;(data as any).pdfResources = visualPayload.pdfResources
+  }
+  return {
+    isEnabled,
+    sections,
+    edits,
+    data,
+    visualPayload,
+    isEditorMode,
+    isPreviewMode,
+  }
 }
