@@ -68,8 +68,6 @@ import SketchUpStudioPage from '../../pages/SketchUpStudioPage'
 import EnscapePage from '../../pages/EnscapePage'
 import VRayPage from '../../pages/VRayPage'
 import CoronaPage from '../../pages/CoronaPage'
-import Header from '../Header'
-import Footer from '../Footer'
 
 type ViewportMode = 'desktop' | 'tablet' | 'mobile'
 type InspectorTab = 'element' | 'sections' | 'images' | 'pdfs' | 'seo'
@@ -136,7 +134,6 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
   // Editor state — full-width desktop by default, inspector closed until clicked so the page is 100% identical to live frontend
   const [viewport, setViewport] = useState<ViewportMode>('desktop')
   const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false)
-  const [showHeaderFooter, setShowHeaderFooter] = useState<boolean>(true)
   const [inspectorOpen, setInspectorOpen] = useState<boolean>(false)
   const [inspectorTab, setInspectorTab] = useState<InspectorTab>('element')
 
@@ -291,7 +288,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
   useEffect(() => {
     if (viewMode !== 'editor' || !canvasRef.current) return
     applyCadVisualOverridesToRoot(canvasRef.current, payload)
-  }, [viewMode, payload, viewport, showHeaderFooter])
+  }, [viewMode, payload, viewport])
 
   // Merged data for structured inspector fields
   const mergedAresData = useMemo(() => {
@@ -1258,9 +1255,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
               onClickCapture={handleCanvasClickCapture}
               className="w-full"
             >
-              {showHeaderFooter && <Header />}
               {renderRealCadProductPage(activeProductKey)}
-              {showHeaderFooter && <Footer />}
             </div>
           </CadVisualEditorContext.Provider>
         </div>
@@ -1280,15 +1275,6 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <label className="inline-flex items-center gap-1 text-[10px] text-slate-300 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={showHeaderFooter}
-                    onChange={e => setShowHeaderFooter(e.target.checked)}
-                    className="rounded border-slate-600"
-                  />
-                  <span>Header/Footer</span>
-                </label>
                 <button
                   onClick={() => setInspectorOpen(false)}
                   title="Close Inspector Drawer"
