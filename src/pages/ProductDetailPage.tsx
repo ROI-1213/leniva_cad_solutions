@@ -83,77 +83,72 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
     return <Navigate to="/products" replace />
   }
 
-  // If this product was customized by the admin, use the dynamic renderer so changes reflect immediately!
-  const isCustomEdited = !!customProd && !!customProd.is_admin_customized
-
-  // Delegate dedicated product pages ONLY if no custom admin edits exist for this machine
-  if (!isCustomEdited) {
-    if (resolvedSlug === 'pratham-desktop') {
-      return <PrathamDesktopPage />
-    }
-    if (resolvedSlug === 'pratham-mini') {
-      return <PrathamMiniPage />
-    }
-    if (resolvedSlug === 'pratham-3' || resolvedSlug === 'pratham-3-0') {
-      return <Pratham3Page />
-    }
-    if (resolvedSlug === 'pratham-5' || resolvedSlug === 'pratham-5-0') {
-      return <Pratham5Page />
-    }
-    if (resolvedSlug === 'pratham-6' || resolvedSlug === 'pratham-6-0') {
-      return <Pratham6Page />
-    }
-    if (resolvedSlug === 'pratham-x-600') {
-      return <PrathamX600Page />
-    }
-    if (resolvedSlug === 'pratham-x' || resolvedSlug === 'pratham-x-1000') {
-      return <PrathamX1000Page />
-    }
-    if (resolvedSlug === 'pratham-3-rapid') {
-      return <Pratham3RapidPage />
-    }
-    if (resolvedSlug === 'enscape' || resolvedSlug === 'enscape-3d' || resolvedSlug === 'chaos-enscape') {
-      return <EnscapePage />
-    }
-    if (resolvedSlug === 'vray' || resolvedSlug === 'v-ray' || resolvedSlug === 'chaos-vray' || resolvedSlug === 'chaos-v-ray') {
-      return <VRayPage />
-    }
-    if (resolvedSlug === 'corona' || resolvedSlug === 'chaos-corona' || resolvedSlug === 'chaos-corona-renderer') {
-      return <CoronaPage />
-    }
-    if (resolvedSlug === 'sketchup-studio' || resolvedSlug === 'sketchup_studio' || resolvedSlug === 'sketchupstudio') {
-      return <SketchUpStudioPage />
-    }
-    if (resolvedSlug === 'sketchup-scan' || resolvedSlug === 'sketchup-pro-scan' || resolvedSlug === 'sketchupproscan') {
-      return <SketchUpProScanPage />
-    }
-    if (resolvedSlug === 'ares-mechanical' || resolvedSlug === 'aresmechanical' || resolvedSlug === 'ares_mechanical') {
-      return <AresMechanicalPage />
-    }
-    if (resolvedSlug === 'ares-electrical' || resolvedSlug === 'areselectrical' || resolvedSlug === 'ares_electrical') {
-      return <AresElectricalPage />
-    }
-    if (resolvedSlug === 'ares-standard' || resolvedSlug === 'aresstandard' || resolvedSlug === 'ares_standard') {
-      return <AresStandardPage />
-    }
-    if (resolvedSlug === 'ares-commander' || resolvedSlug === 'arescommander' || resolvedSlug === 'ares_commander') {
-      return <AresCommanderPage />
-    }
-    if (resolvedSlug === 'eka-ht') {
-      return <EkaHtPage />
-    }
-    if (resolvedSlug === 'eka-xl' || resolvedSlug === 'eka-xl-2') {
-      return <EkaXlPage />
-    }
-    if (resolvedSlug === 'eka-xle') {
-      return <EkaXlePage />
-    }
-    if (resolvedSlug === 'eka-gt-max' || resolvedSlug === 'industrial-lcd-3d-printers-eka-gt-max') {
-      return <EkaGtMaxPage />
-    }
-    if (resolvedSlug === 'eka-f1-16k' || resolvedSlug === 'eka-f1-16k-industrial-lcd-jewelry-3d-printer') {
-      return <EkaF116kPage />
-    }
+  // Always render dedicated full-featured product pages so visual editor overrides & rich layouts match 100%
+  if (resolvedSlug === 'pratham-desktop') {
+    return <PrathamDesktopPage />
+  }
+  if (resolvedSlug === 'pratham-mini') {
+    return <PrathamMiniPage />
+  }
+  if (resolvedSlug === 'pratham-3' || resolvedSlug === 'pratham-3-0') {
+    return <Pratham3Page />
+  }
+  if (resolvedSlug === 'pratham-5' || resolvedSlug === 'pratham-5-0') {
+    return <Pratham5Page />
+  }
+  if (resolvedSlug === 'pratham-6' || resolvedSlug === 'pratham-6-0') {
+    return <Pratham6Page />
+  }
+  if (resolvedSlug === 'pratham-x-600') {
+    return <PrathamX600Page />
+  }
+  if (resolvedSlug === 'pratham-x' || resolvedSlug === 'pratham-x-1000') {
+    return <PrathamX1000Page />
+  }
+  if (resolvedSlug === 'pratham-3-rapid') {
+    return <Pratham3RapidPage />
+  }
+  if (resolvedSlug === 'enscape' || resolvedSlug === 'enscape-3d' || resolvedSlug === 'chaos-enscape') {
+    return <EnscapePage />
+  }
+  if (resolvedSlug === 'vray' || resolvedSlug === 'v-ray' || resolvedSlug === 'chaos-vray' || resolvedSlug === 'chaos-v-ray') {
+    return <VRayPage />
+  }
+  if (resolvedSlug === 'corona' || resolvedSlug === 'chaos-corona' || resolvedSlug === 'chaos-corona-renderer') {
+    return <CoronaPage />
+  }
+  if (resolvedSlug === 'sketchup-studio' || resolvedSlug === 'sketchup_studio' || resolvedSlug === 'sketchupstudio') {
+    return <SketchUpStudioPage />
+  }
+  if (resolvedSlug === 'sketchup-scan' || resolvedSlug === 'sketchup-pro-scan' || resolvedSlug === 'sketchupproscan') {
+    return <SketchUpProScanPage />
+  }
+  if (resolvedSlug === 'ares-mechanical' || resolvedSlug === 'aresmechanical' || resolvedSlug === 'ares_mechanical') {
+    return <AresMechanicalPage />
+  }
+  if (resolvedSlug === 'ares-electrical' || resolvedSlug === 'areselectrical' || resolvedSlug === 'ares_electrical') {
+    return <AresElectricalPage />
+  }
+  if (resolvedSlug === 'ares-standard' || resolvedSlug === 'aresstandard' || resolvedSlug === 'ares_standard') {
+    return <AresStandardPage />
+  }
+  if (resolvedSlug === 'ares-commander' || resolvedSlug === 'arescommander' || resolvedSlug === 'ares_commander') {
+    return <AresCommanderPage />
+  }
+  if (resolvedSlug === 'eka-ht') {
+    return <EkaHtPage />
+  }
+  if (resolvedSlug === 'eka-xl' || resolvedSlug === 'eka-xl-2') {
+    return <EkaXlPage />
+  }
+  if (resolvedSlug === 'eka-xle') {
+    return <EkaXlePage />
+  }
+  if (resolvedSlug === 'eka-gt-max' || resolvedSlug === 'industrial-lcd-3d-printers-eka-gt-max') {
+    return <EkaGtMaxPage />
+  }
+  if (resolvedSlug === 'eka-f1-16k' || resolvedSlug === 'eka-f1-16k-industrial-lcd-jewelry-3d-printer') {
+    return <EkaF116kPage />
   }
 
   // Find product by slug or id or alias

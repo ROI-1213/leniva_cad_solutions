@@ -322,6 +322,455 @@ export const ARES_COMMANDER_IMAGE_SLOTS: CadImageSlot[] = [
   },
 ]
 
+export type VisualEditorCategory = 'cad' | 'printers' | 'scanners' | 'all'
+
+export interface VisualPageCatalogItem {
+  key: string
+  label: string
+  brand: string
+  category: string
+  editorGroup: 'cad' | 'printers' | 'scanners'
+  route: string
+  routeAliases?: string[]
+  heroImage?: string
+  defaultBrochureUrl?: string
+}
+
+export const VISUAL_PAGE_CATALOG: VisualPageCatalogItem[] = [
+  // =========================================================================
+  // 1. CAD SOFTWARE PAGES (14 Pages)
+  // =========================================================================
+  {
+    key: 'ares_commander',
+    label: 'ARES Commander',
+    brand: 'Graebert',
+    category: '2D & 3D DWG CAD Software',
+    editorGroup: 'cad',
+    route: '/products/ares-commander',
+    routeAliases: ['/product/ares-commander', '/ares-commander', '/software/ares-commander', '/products/arescommander'],
+    heroImage: '/images/software/ares-commander.jpg',
+    defaultBrochureUrl: 'https://www.graebert.com/cad-software/ares-commander/',
+  },
+  {
+    key: 'ares_standard',
+    label: 'ARES Standard',
+    brand: 'Graebert',
+    category: '2D DWG CAD Drafting',
+    editorGroup: 'cad',
+    route: '/products/ares-standard',
+    routeAliases: ['/product/ares-standard', '/ares-standard', '/software/ares-standard', '/products/aresstandard'],
+    heroImage: '/images/ares-standard/ares-standard-hero.jpg',
+    defaultBrochureUrl: 'https://www.graebert.com/cad-software/ares-standard/',
+  },
+  {
+    key: 'ares_mechanical',
+    label: 'ARES Mechanical',
+    brand: 'Graebert',
+    category: 'Mechanical 2D DWG CAD',
+    editorGroup: 'cad',
+    route: '/products/ares-mechanical',
+    routeAliases: ['/product/ares-mechanical', '/ares-mechanical', '/products/aresmechanical'],
+    heroImage: '/images/software/ares-mechanical.jpg',
+    defaultBrochureUrl: 'https://www.graebert.com/cad-software/ares-mechanical/',
+  },
+  {
+    key: 'ares_electrical',
+    label: 'ARES Electrical',
+    brand: 'Graebert',
+    category: 'Electrical & Panel Schematics CAD',
+    editorGroup: 'cad',
+    route: '/products/ares-electrical',
+    routeAliases: ['/product/ares-electrical', '/ares-electrical', '/products/areselectrical'],
+    heroImage: '/images/software/ares-electrical.jpg',
+    defaultBrochureUrl: 'https://www.graebert.com/cad-software/ares-electrical/',
+  },
+  {
+    key: 'ares_kudo',
+    label: 'ARES Kudo (Cloud CAD)',
+    brand: 'Graebert',
+    category: 'Cloud DWG CAD in Browser',
+    editorGroup: 'cad',
+    route: '/products/ares-kudo',
+    routeAliases: ['/cad-software/ares-kudo', '/product/ares-kudo', '/ares-kudo', '/software/ares-kudo', '/products/ares-trinity'],
+    heroImage: '/images/software/ares-trinity.jpg',
+    defaultBrochureUrl: 'https://www.graebert.com/cad-software/ares-kudo/',
+  },
+  {
+    key: 'ares_touch',
+    label: 'ARES Touch (Mobile CAD)',
+    brand: 'Graebert',
+    category: 'Mobile DWG CAD for iOS & Android',
+    editorGroup: 'cad',
+    route: '/products/ares-touch',
+    routeAliases: ['/cad-software/ares-touch', '/product/ares-touch', '/ares-touch', '/software/ares-touch'],
+    heroImage: '/images/software/ares-trinity.jpg',
+    defaultBrochureUrl: 'https://www.graebert.com/cad-software/ares-touch/',
+  },
+  {
+    key: 'sketchup_pro',
+    label: 'SketchUp Pro',
+    brand: 'Trimble',
+    category: '3D Architectural & Design Modeling',
+    editorGroup: 'cad',
+    route: '/products/sketchup-pro',
+    routeAliases: ['/product/sketchup-pro', '/sketchup-pro', '/products/sketchup', '/product/sketchup', '/sketchup'],
+    heroImage: '/images/software/sketchup-pro.jpg',
+    defaultBrochureUrl: 'https://www.sketchup.com/en/plans-and-pricing/sketchup-pro',
+  },
+  {
+    key: 'sketchup_proscan',
+    label: 'SketchUp Pro + Scan Essentials',
+    brand: 'Trimble',
+    category: 'Point Cloud to 3D BIM Workflow',
+    editorGroup: 'cad',
+    route: '/products/sketchup-pro-scan',
+    routeAliases: ['/products/sketchup-scan', '/product/sketchup-scan', '/sketchup-scan', '/product/sketchup-pro-scan', '/sketchup-pro-scan'],
+    heroImage: '/images/software/sketchup-scan.jpg',
+    defaultBrochureUrl: 'https://www.sketchup.com/en/products/scan-essentials',
+  },
+  {
+    key: 'sketchup_advanced',
+    label: 'SketchUp Pro Advanced Workflows',
+    brand: 'Trimble',
+    category: 'BIM, Point Cloud & Photorealistic Suite',
+    editorGroup: 'cad',
+    route: '/products/sketchup-pro-advanced-workflows',
+    routeAliases: ['/product/sketchup-pro-advanced-workflows', '/sketchup-pro-advanced-workflows', '/products/sketchup-advanced', '/sketchup-advanced'],
+    heroImage: '/images/software/sketchup-studio.jpg',
+    defaultBrochureUrl: 'https://www.sketchup.com/',
+  },
+  {
+    key: 'sketchup_studio',
+    label: 'SketchUp Studio',
+    brand: 'Trimble',
+    category: 'Complete AEC + V-Ray + Scan Essentials',
+    editorGroup: 'cad',
+    route: '/products/sketchup-studio',
+    routeAliases: ['/product/sketchup-studio', '/sketchup-studio', '/products/sketchupstudio'],
+    heroImage: '/images/software/sketchup-studio.jpg',
+    defaultBrochureUrl: 'https://www.sketchup.com/en/plans-and-pricing/sketchup-studio',
+  },
+  {
+    key: 'chaos_enscape',
+    label: 'Chaos Enscape 3D',
+    brand: 'Chaos',
+    category: 'Real-Time 3D Rendering & VR Walkthrough',
+    editorGroup: 'cad',
+    route: '/products/enscape',
+    routeAliases: ['/product/enscape', '/enscape', '/products/chaos-enscape', '/products/enscape-3d'],
+    heroImage: '/images/software/enscape.jpg',
+    defaultBrochureUrl: 'https://www.chaos.com/enscape',
+  },
+  {
+    key: 'chaos_vray',
+    label: 'Chaos V-Ray',
+    brand: 'Chaos',
+    category: 'Photorealistic Ray-Traced Rendering',
+    editorGroup: 'cad',
+    route: '/products/vray',
+    routeAliases: ['/product/vray', '/vray', '/products/v-ray', '/products/chaos-vray', '/products/chaos-v-ray'],
+    heroImage: '/images/software/vray.jpg',
+    defaultBrochureUrl: 'https://www.chaos.com/vray',
+  },
+  {
+    key: 'chaos_corona',
+    label: 'Chaos Corona',
+    brand: 'Chaos',
+    category: 'Architectural Photorealistic Renderer',
+    editorGroup: 'cad',
+    route: '/products/corona',
+    routeAliases: ['/product/corona', '/corona', '/products/chaos-corona', '/product/chaos-corona', '/chaos-corona'],
+    heroImage: '/images/software/corona.jpg',
+    defaultBrochureUrl: 'https://www.chaos.com/corona',
+  },
+  {
+    key: 'cad_category',
+    label: 'CAD Software Category Hub Page',
+    brand: 'Graebert / Trimble / Chaos',
+    category: 'CAD Software Category Overview Page',
+    editorGroup: 'cad',
+    route: '/products/cad-software',
+    routeAliases: [],
+    heroImage: '/images/software/ares-commander.jpg',
+  },
+
+  // =========================================================================
+  // 2. 3D PRINTERS & 3D PRINTING PAGES (20 Pages: FDM, DLP, Industrial LCD & Filaments)
+  // =========================================================================
+  {
+    key: 'pratham_mini',
+    label: 'Pratham Mini',
+    brand: 'Make3D',
+    category: 'Compact Enclosed FDM 3D Printer (170×170×170 mm)',
+    editorGroup: 'printers',
+    route: '/products/pratham-mini',
+    routeAliases: ['/product/pratham-mini', '/pratham-mini'],
+    heroImage: '/images/products/pratham-mini.png',
+    defaultBrochureUrl: '/brochures/pratham-mini.pdf',
+  },
+  {
+    key: 'pratham_desktop',
+    label: 'Pratham Desktop',
+    brand: 'Make3D',
+    category: 'Desktop Studio FDM 3D Printer (200×200×250 mm)',
+    editorGroup: 'printers',
+    route: '/products/pratham-desktop',
+    routeAliases: ['/product/pratham-desktop', '/pratham-desktop'],
+    heroImage: '/images/products/pratham-desktop.png',
+    defaultBrochureUrl: '/brochures/pratham-desktop.pdf',
+  },
+  {
+    key: 'pratham_3',
+    label: 'Pratham 3.0',
+    brand: 'Make3D',
+    category: 'Industrial Workhorse FDM 3D Printer (300×300×300 mm)',
+    editorGroup: 'printers',
+    route: '/products/pratham-3',
+    routeAliases: ['/product/pratham-3', '/pratham-3', '/products/pratham-3-0', '/product/pratham-3-0', '/pratham-3-0'],
+    heroImage: '/images/products/pratham-3-0.png',
+    defaultBrochureUrl: '/brochures/pratham-3-0.pdf',
+  },
+  {
+    key: 'pratham_3_rapid',
+    label: 'Pratham 3.0 Rapid',
+    brand: 'Make3D',
+    category: 'High-Speed 500 mm/s CoreXY FDM (350×350×350 mm)',
+    editorGroup: 'printers',
+    route: '/products/pratham-3-rapid',
+    routeAliases: ['/product/pratham-3-rapid', '/pratham-3-rapid'],
+    heroImage: '/images/products/pratham-3-rapid.png',
+    defaultBrochureUrl: '/brochures/pratham-3-rapid.pdf',
+  },
+  {
+    key: 'pratham_5',
+    label: 'Pratham 5.0',
+    brand: 'Make3D',
+    category: 'Large-Format Heated Chamber FDM (500×500×500 mm)',
+    editorGroup: 'printers',
+    route: '/products/pratham-5',
+    routeAliases: ['/product/pratham-5', '/pratham-5', '/products/pratham-5-0', '/product/pratham-5-0', '/pratham-5-0'],
+    heroImage: '/images/products/pratham-5-0.png',
+    defaultBrochureUrl: '/brochures/pratham-5-0.pdf',
+  },
+  {
+    key: 'pratham_6',
+    label: 'Pratham 6.0',
+    brand: 'Make3D',
+    category: 'Closed-Loop Servo Industrial FDM (600×600×600 mm)',
+    editorGroup: 'printers',
+    route: '/products/pratham-6',
+    routeAliases: ['/product/pratham-6', '/pratham-6', '/products/pratham-6-0', '/product/pratham-6-0', '/pratham-6-0'],
+    heroImage: '/images/products/pratham-6-0.png',
+    defaultBrochureUrl: '/brochures/pratham-6-0.pdf',
+  },
+  {
+    key: 'pratham_x_600',
+    label: 'Pratham X (600)',
+    brand: 'Make3D',
+    category: 'Jumbo Industrial FDM 3D Printer (600×600×600 mm)',
+    editorGroup: 'printers',
+    route: '/products/pratham-x-600',
+    routeAliases: ['/product/pratham-x-600', '/pratham-x-600'],
+    heroImage: '/images/products/pratham-x-600.png',
+    defaultBrochureUrl: '/brochures/pratham-x-600.pdf',
+  },
+  {
+    key: 'pratham_x',
+    label: 'Pratham X (1000)',
+    brand: 'Make3D',
+    category: '1 m³ Giant Industrial FDM 3D Printer (1000×1000×1000 mm)',
+    editorGroup: 'printers',
+    route: '/products/pratham-x',
+    routeAliases: ['/product/pratham-x', '/pratham-x', '/products/pratham-x-1000', '/product/pratham-x-1000', '/pratham-x-1000'],
+    heroImage: '/images/products/pratham-x.png',
+    defaultBrochureUrl: '/brochures/pratham-x.pdf',
+  },
+  {
+    key: 'eka_ht',
+    label: 'EKA HT (DLP)',
+    brand: 'EKA',
+    category: 'Heated-Tray Jewelry DLP 3D Printer (130×73×150 mm)',
+    editorGroup: 'printers',
+    route: '/products/eka-ht',
+    routeAliases: ['/product/eka-ht', '/eka-ht'],
+    heroImage: '/images/products/eka-ht.png',
+    defaultBrochureUrl: '/brochures/eka-ht.pdf',
+  },
+  {
+    key: 'eka_xl',
+    label: 'EKA XL (DLP)',
+    brand: 'EKA',
+    category: 'Large-Platform Jewelry DLP 3D Printer',
+    editorGroup: 'printers',
+    route: '/products/eka-xl',
+    routeAliases: ['/product/eka-xl', '/eka-xl', '/eka-xl-2'],
+    heroImage: '/images/products/eka-xl.png',
+    defaultBrochureUrl: '/brochures/eka-xl.pdf',
+  },
+  {
+    key: 'eka_xle',
+    label: 'EKA XLE (DLP)',
+    brand: 'EKA',
+    category: 'Extended Production Jewelry DLP 3D Printer',
+    editorGroup: 'printers',
+    route: '/products/eka-xle',
+    routeAliases: ['/product/eka-xle', '/eka-xle'],
+    heroImage: '/images/products/eka-xle.png',
+    defaultBrochureUrl: '/brochures/eka-xle.pdf',
+  },
+  {
+    key: 'eka_gt_max',
+    label: 'EKA GT Max (Industrial LCD)',
+    brand: 'EKA',
+    category: 'Industrial Large-Format LCD Resin 3D Printer',
+    editorGroup: 'printers',
+    route: '/products/eka-gt-max',
+    routeAliases: ['/product/eka-gt-max', '/eka-gt-max', '/industrial-lcd-3d-printers-eka-gt-max'],
+    heroImage: '/images/products/eka-gt-max.png',
+    defaultBrochureUrl: '/brochures/eka-gt-max.pdf',
+  },
+  {
+    key: 'eka_f1_16k',
+    label: 'EKA F1 16K (Jewelry LCD)',
+    brand: 'EKA',
+    category: '16K Ultra-HD Industrial LCD Jewelry 3D Printer',
+    editorGroup: 'printers',
+    route: '/products/eka-f1-16k',
+    routeAliases: ['/product/eka-f1-16k', '/eka-f1-16k', '/eka-f1-16k-industrial-lcd-jewelry-3d-printer'],
+    heroImage: '/images/products/eka-f1-16k.png',
+    defaultBrochureUrl: '/brochures/eka-f1-16k.pdf',
+  },
+  {
+    key: 'fdm_category',
+    label: 'FDM 3D Printers Category Page',
+    brand: 'Make3D Pratham Series',
+    category: 'FDM 3D Printers Category Hub Page',
+    editorGroup: 'printers',
+    route: '/products/fdm-3d-printers',
+    routeAliases: [],
+    heroImage: '/images/products/pratham-3-0.png',
+  },
+  {
+    key: 'dlp_category',
+    label: 'DLP 3D Printers Category Page',
+    brand: 'EKA Jewelry DLP Series',
+    category: 'DLP 3D Printers Category Hub Page',
+    editorGroup: 'printers',
+    route: '/products/dlp-3d-printers',
+    routeAliases: ['/dlp-3d-printers'],
+    heroImage: '/images/products/eka-ht.png',
+  },
+  {
+    key: 'lcd_category',
+    label: 'Industrial LCD 3D Printers Category Page',
+    brand: 'EKA Industrial LCD Series',
+    category: 'Industrial LCD 3D Printers Category Hub Page',
+    editorGroup: 'printers',
+    route: '/products/industrial-lcd-3d-printers',
+    routeAliases: ['/industrial-lcd-3d-printers', '/industrial-lcd-resin-3d-printers-for-jewelry-engineering'],
+    heroImage: '/images/products/eka-gt-max.png',
+  },
+  {
+    key: 'filament_white_pla',
+    label: 'PLA+ 3D Filament — White',
+    brand: 'Make3D',
+    category: '1.75mm Engineering PLA+ Filament (White)',
+    editorGroup: 'printers',
+    route: '/product/pla-3d-printer-filament-white',
+    routeAliases: ['/products/filaments/white-pla'],
+    heroImage: '/images/filaments/white-pla.png',
+  },
+  {
+    key: 'filament_grey_silver_pla',
+    label: 'PLA+ 3D Filament — Grey Silver',
+    brand: 'Make3D',
+    category: '1.75mm Engineering PLA+ Filament (Grey Silver)',
+    editorGroup: 'printers',
+    route: '/product/pla-plus-3d-printer-filament-grey-silver',
+    routeAliases: ['/product/plaplus-grey-silver-1kg-175mm', '/products/filaments/grey-silver-pla'],
+    heroImage: '/images/filaments/grey-silver-pla.png',
+  },
+  {
+    key: 'filament_gold_pla',
+    label: 'PLA+ 3D Filament — Gold',
+    brand: 'Make3D',
+    category: '1.75mm Engineering PLA+ Filament (Gold)',
+    editorGroup: 'printers',
+    route: '/product/pla-plus-3d-printer-filament-gold',
+    routeAliases: ['/product/plaplus-gold-1kg-175mm', '/products/filaments/gold-pla'],
+    heroImage: '/images/filaments/gold-pla.png',
+  },
+  {
+    key: 'filaments_category',
+    label: '3D Printing Filaments Hub Page',
+    brand: 'Make3D',
+    category: '3D Printing Filaments Category Overview Page',
+    editorGroup: 'printers',
+    route: '/products/filaments',
+    routeAliases: ['/shop/filaments', '/3d-printer-filament'],
+    heroImage: '/images/filaments/white-pla.png',
+  },
+
+  // =========================================================================
+  // 3. 3D SCANNERS PAGES (4 Pages)
+  // =========================================================================
+  {
+    key: 'devok_mt',
+    label: '3DeVOK MT Professional Multi-Laser 3D Scanner',
+    brand: '3DeVOK',
+    category: '34 Blue + 22 IR Laser Metrology 3D Scanner',
+    editorGroup: 'scanners',
+    route: '/products/3devok-mt',
+    routeAliases: ['/3d-scanners/3devok-mt', '/products/devok-mt-professional-multi-laser-3d-scanner'],
+    heroImage: '/images/scanners/3devok-in-hand-action.png',
+    defaultBrochureUrl: '/brochures/3devok-mt.pdf',
+  },
+  {
+    key: 'devok_mq',
+    label: '3DeVOK MQ Hybrid 3D Scanner',
+    brand: '3DeVOK',
+    category: 'Hybrid Infrared Laser & Structured Light 3D Scanner',
+    editorGroup: 'scanners',
+    route: '/products/3devok-mq',
+    routeAliases: ['/3d-scanners/3devok-mq', '/products/devok-mq-hybrid-3d-scanner'],
+    heroImage: '/images/scanners/3devok-mq.png',
+    defaultBrochureUrl: '/brochures/3devok-mq.pdf',
+  },
+  {
+    key: 'einscan_series',
+    label: 'EINSTAR / EinScan 3D Scanner',
+    brand: 'SHINING 3D',
+    category: 'Handheld True-Color 3D Digitizer & Point Cloud Scanner',
+    editorGroup: 'scanners',
+    route: '/products/einscan',
+    routeAliases: ['/3d-scanners/einscan', '/einscan', '/products/einscan-series', '/products/einscan-3d-scanner'],
+    heroImage: '/images/scanners/einstar.png',
+    defaultBrochureUrl: '/brochures/einstar.pdf',
+  },
+  {
+    key: 'scanners_category',
+    label: '3D Scanners Category Hub Page',
+    brand: '3DeVOK & SHINING 3D',
+    category: 'Complete 3D Scanners Overview & Comparison Hub',
+    editorGroup: 'scanners',
+    route: '/products/3d-scanners',
+    routeAliases: ['/3d-scanners', '/products/scanners', '/scanners'],
+    heroImage: '/images/scanners/3devok-in-hand-action.png',
+  },
+]
+
+export function resolveVisualProductKeyFromPath(pathname: string): string | null {
+  if (!pathname) return null
+  const clean = pathname.replace(/\/+$/, '').toLowerCase() || '/'
+  for (const item of VISUAL_PAGE_CATALOG) {
+    if (item.route.toLowerCase() === clean) return item.key
+    if (item.routeAliases?.some(alias => alias.replace(/\/+$/, '').toLowerCase() === clean)) {
+      return item.key
+    }
+  }
+  return null
+}
+
 export const DEFAULT_ARES_COMMANDER_PDFS: CadPdfResource[] = [
   {
     id: 'ares-commander-brochure',
@@ -379,6 +828,10 @@ export const DEFAULT_ARES_COMMANDER_PDFS: CadPdfResource[] = [
 
 export function getDefaultVisualPayload(productKey: string): CadVisualPagePayload {
   const isAresCommander = productKey === 'ares_commander'
+  const catalogItem = VISUAL_PAGE_CATALOG.find(item => item.key === productKey)
+  const label = catalogItem?.label || productKey.replace(/_/g, ' ').toUpperCase()
+  const defaultBrochureUrl = catalogItem?.defaultBrochureUrl || catalogItem?.route || '/'
+
   return {
     productKey,
     dataOverrides: {},
@@ -386,27 +839,27 @@ export function getDefaultVisualPayload(productKey: string): CadVisualPagePayloa
     pdfResources: isAresCommander ? structuredCloneSafe(DEFAULT_ARES_COMMANDER_PDFS) : [
       {
         id: `${productKey}-brochure`,
-        title: 'Product Brochure & Technical Datasheet (PDF)',
-        description: 'Official product brochure, feature overview, and system requirements.',
+        title: `${label} — Official Product Brochure & Technical Datasheet (PDF)`,
+        description: `Complete technical specifications, features, applications, and documentation for ${label}.`,
         badge: 'PDF Brochure',
         buttonLabel: 'Download Brochure PDF',
-        fileUrl: 'https://www.graebert.com/',
-        originalFileUrl: 'https://www.graebert.com/',
+        fileUrl: defaultBrochureUrl,
+        originalFileUrl: defaultBrochureUrl,
         fileName: `${productKey.replace(/_/g, '-')}-brochure.pdf`,
-        fileSize: '2.1 MB',
+        fileSize: '2.4 MB',
         visible: true,
         behavior: 'new_tab',
       },
     ],
-    sectionOrder: ARES_COMMANDER_SECTIONS.map(s => s.id),
+    sectionOrder: isAresCommander ? ARES_COMMANDER_SECTIONS.map(s => s.id) : [],
     hiddenSections: {},
     seo: {
       title: isAresCommander
         ? 'ARES Commander – 2D & 3D DWG CAD Software | Authorized Partner Leniva CAD Solutions'
-        : `${productKey.replace(/_/g, ' ').toUpperCase()} | Leniva CAD Solutions`,
+        : `${label} | ${catalogItem?.brand || 'Leniva'} — Authorized Partner Leniva CAD Solutions`,
       description: isAresCommander
         ? 'Buy ARES Commander in India. Native DWG 2D & 3D CAD software for Windows, macOS & Linux with ARES Trinity Cloud & Mobile collaboration. Start a free 30-day trial or request a quote.'
-        : 'Authorized CAD software solutions, licensing, and technical support from Leniva CAD Solutions.',
+        : `Explore ${label} (${catalogItem?.category || '3D Printers, Scanners & CAD Solutions'}) from Leniva CAD Solutions. View technical specifications, download brochures, and request an official quote.`,
     },
     updatedAt: new Date().toISOString(),
   }
@@ -888,8 +1341,141 @@ export function useActiveCadVisualPayload(productKey: string): {
   }
 }
 
+export function stampDeterministicCadKeys(root: HTMLElement) {
+  if (!root) return
+  const sections = Array.from(root.querySelectorAll<HTMLElement>('section'))
+  sections.forEach((sec, idx) => {
+    if (!sec.hasAttribute('data-cad-section')) {
+      sec.setAttribute('data-cad-section', `auto_sec_${idx}`)
+    }
+  })
+}
+
+export interface DiscoveredDomPdfLink {
+  key: string
+  label: string
+  href: string
+  isButton: boolean
+}
+
+export function discoverLiveDomInventory(
+  root: HTMLElement,
+  productKey: string
+): {
+  sections: CadSectionDefinition[]
+  imageSlots: CadImageSlot[]
+  pdfLinks: DiscoveredDomPdfLink[]
+} {
+  if (!root) {
+    return {
+      sections: productKey === 'ares_commander' ? ARES_COMMANDER_SECTIONS : [],
+      imageSlots: productKey === 'ares_commander' ? ARES_COMMANDER_IMAGE_SLOTS : [],
+      pdfLinks: [],
+    }
+  }
+
+  stampDeterministicCadKeys(root)
+
+  // 1. Discover Sections
+  let sections: CadSectionDefinition[] = []
+  if (productKey === 'ares_commander') {
+    sections = [...ARES_COMMANDER_SECTIONS]
+  } else {
+    const secNodes = Array.from(root.querySelectorAll<HTMLElement>('[data-cad-section]'))
+    sections = secNodes.map((sec, idx) => {
+      const id = sec.getAttribute('data-cad-section') || `auto_sec_${idx}`
+      const headingEl = sec.querySelector<HTMLElement>('h1, h2, h3, h4')
+      const headingText = (headingEl?.textContent || '').trim()
+      const descEl = sec.querySelector<HTMLElement>('p')
+      const descText = (descEl?.textContent || '').trim()
+      const shortTitle = headingText
+        ? headingText.length > 42
+          ? `${headingText.slice(0, 42)}...`
+          : headingText
+        : `Section ${idx + 1}`
+      return {
+        id,
+        label: `${idx + 1}. ${headingText || `Page Section ${idx + 1}`}`,
+        shortLabel: `${idx + 1}. ${shortTitle}`,
+        description: descText ? descText.slice(0, 120) : 'Click any text, image, or button in this section to edit.',
+        category: idx === 0 ? 'hero' : 'content',
+      }
+    })
+  }
+
+  // 2. Discover Image Slots
+  let imageSlots: CadImageSlot[] = []
+  if (productKey === 'ares_commander') {
+    imageSlots = [...ARES_COMMANDER_IMAGE_SLOTS]
+  } else {
+    const imgs = Array.from(root.querySelectorAll<HTMLImageElement>('img'))
+    imageSlots = imgs.map((img, idx) => {
+      const elKey = computeDeterministicCadKey(root, img)
+      if (!img.hasAttribute('data-cad-key')) {
+        img.setAttribute('data-cad-key', elKey)
+      }
+      const origSrc = img.getAttribute('data-original-src') || img.getAttribute('src') || img.src || ''
+      if (!img.hasAttribute('data-original-src') && origSrc) {
+        img.setAttribute('data-original-src', origSrc)
+      }
+      const closestSec = img.closest<HTMLElement>('[data-cad-section]')
+      const secId = closestSec?.getAttribute('data-cad-section') || 'auto_sec_0'
+      const altText = img.getAttribute('data-original-alt') || img.alt || `Product Image ${idx + 1}`
+      if (!img.hasAttribute('data-original-alt')) {
+        img.setAttribute('data-original-alt', altText)
+      }
+      const dims =
+        img.naturalWidth && img.naturalHeight
+          ? `${img.naturalWidth} × ${img.naturalHeight} px`
+          : 'Maintain Aspect Ratio'
+      return {
+        id: elKey,
+        label: `${idx + 1}. ${altText.slice(0, 56)}`,
+        sectionId: secId,
+        dataPath: img.getAttribute('data-cad-path') || undefined,
+        defaultSrc: origSrc,
+        defaultAlt: altText,
+        recommendedDimensions: dims,
+      }
+    })
+  }
+
+  // 3. Discover PDF / Brochure / Download links & buttons on the live page
+  const pdfLinks: DiscoveredDomPdfLink[] = []
+  const candidates = Array.from(root.querySelectorAll<HTMLElement>('a, button'))
+  for (const el of candidates) {
+    const text = (el.textContent || '').trim()
+    const href = el instanceof HTMLAnchorElement ? el.getAttribute('href') || '' : el.getAttribute('data-visual-override-href') || ''
+    const lowerText = text.toLowerCase()
+    const lowerHref = href.toLowerCase()
+    const isPdfOrBrochure =
+      lowerHref.endsWith('.pdf') ||
+      lowerHref.includes('/brochures/') ||
+      lowerText.includes('brochure') ||
+      lowerText.includes('datasheet') ||
+      lowerText.includes('download') ||
+      lowerText.includes('spec sheet') ||
+      lowerText.includes('manual') ||
+      lowerText.includes('trial')
+
+    if (isPdfOrBrochure && text.length > 0 && text.length < 80) {
+      const key = computeDeterministicCadKey(root, el)
+      pdfLinks.push({
+        key,
+        label: text,
+        href: href || '#',
+        isButton: el.tagName.toLowerCase() === 'button',
+      })
+    }
+  }
+
+  return { sections, imageSlots, pdfLinks }
+}
+
 export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVisualPagePayload) {
   if (!root || !payload) return
+
+  stampDeterministicCadKeys(root)
 
   // 1. Apply SEO title & description when on public product page
   if (typeof document !== 'undefined' && !window.location.pathname.startsWith('/admin')) {
@@ -911,9 +1497,9 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
   const sectionNodes = Array.from(root.querySelectorAll<HTMLElement>('[data-cad-section]'))
   const hiddenMap = payload.hiddenSections || {}
   const orderList = Array.isArray(payload.sectionOrder) ? payload.sectionOrder : []
-  const defaultOrder = ARES_COMMANDER_SECTIONS.map(s => s.id)
+  const currentSecIds = sectionNodes.map(s => s.getAttribute('data-cad-section') || '')
   const isCustomOrder =
-    orderList.length > 0 && orderList.some((id, idx) => id !== defaultOrder[idx])
+    orderList.length > 0 && orderList.some((id, idx) => currentSecIds[idx] && id !== currentSecIds[idx])
 
   for (const sec of sectionNodes) {
     const secId = sec.getAttribute('data-cad-section') || ''
@@ -936,7 +1522,19 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
     }
   }
 
-  // 3. Apply elementOverrides (text, href, src, alt, objectFit, hidden)
+  // 3. Apply primary PDF Brochure replacement to any /brochures/ links on the page if updated in pdfResources
+  const primaryPdf = payload.pdfResources?.[0]
+  if (primaryPdf && primaryPdf.fileUrl && primaryPdf.fileUrl !== primaryPdf.originalFileUrl) {
+    const brochureAnchors = Array.from(root.querySelectorAll<HTMLAnchorElement>('a[href*="/brochures/"], a[download]'))
+    for (const a of brochureAnchors) {
+      if (!a.hasAttribute('data-original-href')) {
+        a.setAttribute('data-original-href', a.getAttribute('href') || '')
+      }
+      a.href = primaryPdf.fileUrl
+    }
+  }
+
+  // 4. Apply elementOverrides (text, href, src, alt, objectFit, hidden, pdfUrl, buttonLabel)
   const overrides = payload.elementOverrides || {}
   for (const [elKey, ov] of Object.entries(overrides)) {
     if (!ov) continue
@@ -947,25 +1545,73 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
       target.style.display = ov.hidden ? 'none' : ''
     }
     if (target instanceof HTMLImageElement) {
-      if (ov.src) target.src = ov.src
+      if (!target.hasAttribute('data-original-src')) {
+        target.setAttribute('data-original-src', target.getAttribute('src') || target.src || '')
+      }
+      if (ov.src) {
+        target.src = ov.src
+      } else if (target.hasAttribute('data-original-src')) {
+        target.src = target.getAttribute('data-original-src') || target.src
+      }
       if (ov.alt !== undefined) target.alt = ov.alt
       if (ov.objectFit) target.style.objectFit = ov.objectFit
     } else {
-      if (ov.text !== undefined && target.childElementCount === 0) {
-        target.textContent = ov.text
-      } else if (ov.text !== undefined && target.hasAttribute('data-cad-text-leaf')) {
-        target.textContent = ov.text
+      if (!target.hasAttribute('data-original-text')) {
+        target.setAttribute('data-original-text', target.textContent || '')
       }
-      if (target instanceof HTMLAnchorElement) {
-        if (ov.pdfUrl) {
-          target.href = ov.pdfUrl
-        } else if (ov.href) {
-          target.href = ov.href
+      const newText =
+        ov.buttonLabel !== undefined
+          ? ov.buttonLabel
+          : ov.text !== undefined
+            ? ov.text
+            : target.getAttribute('data-original-text') ?? undefined
+      if (newText !== undefined) {
+        if (target.childElementCount === 0 || target.hasAttribute('data-cad-text-leaf')) {
+          target.textContent = newText
+        } else {
+          // Preserve child SVG icons inside buttons or links by updating the inner span or text node
+          const textSpan =
+            target.querySelector<HTMLElement>('[data-cad-btn-text]') ||
+            Array.from(target.querySelectorAll<HTMLElement>('span')).find(
+              s => s.childElementCount === 0 && (s.textContent || '').trim().length > 0
+            )
+          if (textSpan) {
+            textSpan.textContent = newText
+          } else {
+            const textNode = Array.from(target.childNodes).find(
+              n => n.nodeType === Node.TEXT_NODE && (n.textContent || '').trim().length > 0
+            )
+            if (textNode) {
+              textNode.textContent = ` ${newText} `
+            }
+          }
         }
-        if (ov.buttonLabel !== undefined) {
-          const textSpan = target.querySelector('[data-cad-btn-text]')
-          if (textSpan) textSpan.textContent = ov.buttonLabel
-          else if (target.childElementCount === 0) target.textContent = ov.buttonLabel
+      }
+
+      const targetUrl = ov.pdfUrl || ov.href
+      if (target instanceof HTMLAnchorElement) {
+        if (targetUrl) {
+          if (!target.hasAttribute('data-original-href')) {
+            target.setAttribute('data-original-href', target.getAttribute('href') || '')
+          }
+          target.href = targetUrl
+        }
+      } else if (target instanceof HTMLButtonElement && targetUrl) {
+        target.setAttribute('data-visual-override-href', targetUrl)
+        if (!target.hasAttribute('data-visual-href-bound')) {
+          target.setAttribute('data-visual-href-bound', 'true')
+          target.addEventListener('click', ev => {
+            const inEditorEditMode = Boolean(
+              target.closest('[data-cad-editor-canvas="true"][data-preview-mode="false"]')
+            )
+            if (inEditorEditMode) return
+            const url = target.getAttribute('data-visual-override-href')
+            if (url) {
+              ev.preventDefault()
+              ev.stopPropagation()
+              window.open(url, '_blank', 'noopener,noreferrer')
+            }
+          })
         }
       }
     }
@@ -1005,6 +1651,66 @@ export function useApplyGlobalCadVisualOverrides(productKey: string) {
     }, 30)
     return () => clearTimeout(timer)
   }, [productKey, payload])
+}
+
+/**
+ * Global Route-Aware Applier for all 38 Product & Category Pages (CAD Software, 3D Printers, Filaments, 3D Scanners).
+ * Mounted in `src/App.tsx` so any published visual edits apply automatically on the live public website!
+ */
+export const GlobalVisualPageOverridesApplier: React.FC<{ pathname: string }> = ({ pathname }) => {
+  const productKey = resolveVisualProductKeyFromPath(pathname)
+  const [tick, setTick] = useState(0)
+
+  useEffect(() => {
+    const onUpdate = () => setTick(t => t + 1)
+    window.addEventListener('leniva_cad_visual_updated', onUpdate)
+    window.addEventListener('leniva_cloud_cms_synced', onUpdate)
+    window.addEventListener('storage', onUpdate)
+    return () => {
+      window.removeEventListener('leniva_cad_visual_updated', onUpdate)
+      window.removeEventListener('leniva_cloud_cms_synced', onUpdate)
+      window.removeEventListener('storage', onUpdate)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!productKey || typeof document === 'undefined' || pathname.startsWith('/admin')) return
+    const published = getPublishedVisualPayload(productKey)
+    if (!published) return
+
+    const applyNow = () => {
+      const mainEl = document.querySelector<HTMLElement>('main')
+      if (mainEl) {
+        applyCadVisualOverridesToRoot(mainEl, published)
+      }
+    }
+
+    const t1 = setTimeout(applyNow, 40)
+    const t2 = setTimeout(applyNow, 250)
+    const t3 = setTimeout(applyNow, 700)
+
+    const mainEl = document.querySelector<HTMLElement>('main')
+    let observer: MutationObserver | null = null
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null
+
+    if (mainEl && typeof MutationObserver !== 'undefined') {
+      observer = new MutationObserver(() => {
+        if (debounceTimer) clearTimeout(debounceTimer)
+        debounceTimer = setTimeout(applyNow, 60)
+      })
+      observer.observe(mainEl, { childList: true, subtree: true })
+    }
+
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+      clearTimeout(t3)
+      if (debounceTimer) clearTimeout(debounceTimer)
+      observer?.disconnect()
+    }
+  }, [productKey, pathname, tick])
+
+  return null
 }
 
 export function findElementByCadKey(root: HTMLElement, elKey: string): HTMLElement | null {

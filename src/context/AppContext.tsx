@@ -217,6 +217,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Quote operations
   const openQuoteModal = (productName = '') => {
+    if (
+      typeof window !== 'undefined' &&
+      window.location.pathname.startsWith('/admin') &&
+      document.querySelector('[data-cad-editor-canvas="true"][data-preview-mode="false"]')
+    ) {
+      return
+    }
     setQuoteProduct(productName)
     setIsQuoteModalOpen(true)
   }

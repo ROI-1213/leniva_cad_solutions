@@ -8,6 +8,7 @@ import QuoteModal from './components/QuoteModal'
 import SearchModal from './components/SearchModal'
 import ScrollToTop from './components/ScrollToTop'
 import AdminPage from './pages/AdminPage'
+import { GlobalVisualPageOverridesApplier } from './utils/cadVisualEditorStore'
 
 // Lazy-loaded pages — each loads only when that route is visited
 const HomePage = lazy(() => import('./pages/HomePage'))
@@ -176,6 +177,7 @@ export default function App() {
     <AppProvider>
       <div className="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-red-600 selection:text-white font-inter">
         <ScrollToTop />
+        <GlobalVisualPageOverridesApplier pathname={location.pathname} />
         {!isAdminRoute && <Header />}
 
         <main className="flex-1" key={isAdminRoute ? 'admin' : `public-${cloudSyncVersion}`}>

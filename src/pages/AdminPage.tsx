@@ -156,6 +156,8 @@ export default function AdminPage() {
     | 'settings'
     | 'users'
     | 'cad_visual_edit'
+    | 'printers_visual_edit'
+    | 'scanners_visual_edit'
 
   const [activeTab, setActiveTab] = useState<AdminTab>('quotes')
   const [isLoading, setIsLoading] = useState(false)
@@ -1458,7 +1460,33 @@ export default function AdminPage() {
   // AUTHENTICATED DASHBOARD (FULL CONTROL SUITE)
   // ----------------------------------------------------
   if (activeTab === 'cad_visual_edit') {
-    return <CadVisualPageEditor onExitToDashboard={() => setActiveTab('quotes')} />
+    return (
+      <CadVisualPageEditor
+        initialCategory="cad"
+        initialProductKey="ares_commander"
+        onExitToDashboard={() => setActiveTab('quotes')}
+      />
+    )
+  }
+
+  if (activeTab === 'printers_visual_edit') {
+    return (
+      <CadVisualPageEditor
+        initialCategory="printers"
+        initialProductKey="pratham_mini"
+        onExitToDashboard={() => setActiveTab('quotes')}
+      />
+    )
+  }
+
+  if (activeTab === 'scanners_visual_edit') {
+    return (
+      <CadVisualPageEditor
+        initialCategory="scanners"
+        initialProductKey="devok_mt"
+        onExitToDashboard={() => setActiveTab('quotes')}
+      />
+    )
   }
 
   return (
@@ -1653,19 +1681,47 @@ export default function AdminPage() {
               <span>Admin Account</span>
             </button>
 
-            <div className="pt-2 border-t border-slate-100 mt-1">
-              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 px-3.5 pb-1.5">CAD Software</p>
-              {/* LAST NAVIGATION ITEM: CAD Software Edit (Live Visual Frontend Page Editor) */}
+            <div className="pt-2 border-t border-slate-100 mt-1 space-y-1">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 px-3.5 pb-1">Page-Wise Live Visual Editors</p>
+              {/* CAD Software Edit (Live Visual Frontend Page Editor) */}
               <button
                 onClick={() => setActiveTab('cad_visual_edit')}
-                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer text-slate-700 hover:bg-slate-100"
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer text-slate-700 hover:bg-blue-50 hover:text-blue-700"
               >
                 <div className="flex items-center space-x-3">
-                  <Monitor className="w-4 h-4" />
+                  <Monitor className="w-4 h-4 text-blue-600" />
                   <span>CAD Software Edit</span>
                 </div>
                 <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-blue-50 text-blue-700 border border-blue-200">
-                  Visual
+                  14 Pages
+                </span>
+              </button>
+
+              {/* 3D Printers & 3D Edit (Live Visual Frontend Page Editor) */}
+              <button
+                onClick={() => setActiveTab('printers_visual_edit')}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer text-slate-700 hover:bg-emerald-50 hover:text-emerald-700"
+              >
+                <div className="flex items-center space-x-3">
+                  <Printer className="w-4 h-4 text-emerald-600" />
+                  <span>3D Printers & 3D Edit</span>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  20 Pages
+                </span>
+              </button>
+
+              {/* 3D Scanners Edit (Live Visual Frontend Page Editor) */}
+              <button
+                onClick={() => setActiveTab('scanners_visual_edit')}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer text-slate-700 hover:bg-purple-50 hover:text-purple-700"
+              >
+                <div className="flex items-center space-x-3">
+                  <Scan className="w-4 h-4 text-purple-600" />
+                  <span>3D Scanners Edit</span>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-purple-50 text-purple-700 border border-purple-200">
+                  4 Pages
                 </span>
               </button>
             </div>

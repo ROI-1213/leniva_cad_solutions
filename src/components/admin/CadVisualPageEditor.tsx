@@ -31,12 +31,17 @@ import {
   RefreshCw,
   LayoutGrid,
 } from 'lucide-react'
-import { DEFAULT_CAD_PRODUCTS, CadProductItem } from '../../utils/cadSoftwareConfig'
 import { aresCommanderData } from '../../data/aresCommanderData'
 import {
   CadVisualPagePayload,
   CadVisualEditorContext,
   CadPdfResource,
+  CadSectionDefinition,
+  CadImageSlot,
+  DiscoveredDomPdfLink,
+  VisualEditorCategory,
+  VisualPageCatalogItem,
+  VISUAL_PAGE_CATALOG,
   ARES_COMMANDER_SECTIONS,
   ARES_COMMANDER_IMAGE_SLOTS,
   getWorkingVisualPayload,
@@ -52,9 +57,10 @@ import {
   structuredCloneSafe,
   computeDeterministicCadKey,
   applyCadVisualOverridesToRoot,
+  discoverLiveDomInventory,
 } from '../../utils/cadVisualEditorStore'
 
-// Import actual live frontend CAD software page components so we render the exact real page
+// 1. CAD Software Pages (14 pages)
 import AresCommanderPage from '../../pages/AresCommanderPage'
 import AresStandardPage from '../../pages/AresStandardPage'
 import AresMechanicalPage from '../../pages/AresMechanicalPage'
@@ -68,6 +74,34 @@ import SketchUpStudioPage from '../../pages/SketchUpStudioPage'
 import EnscapePage from '../../pages/EnscapePage'
 import VRayPage from '../../pages/VRayPage'
 import CoronaPage from '../../pages/CoronaPage'
+import CategoryDetailPage from '../../pages/CategoryDetailPage'
+
+// 2. 3D Printers & 3D Filaments Pages (20 pages)
+import PrathamMiniPage from '../../pages/PrathamMiniPage'
+import PrathamDesktopPage from '../../pages/PrathamDesktopPage'
+import Pratham3Page from '../../pages/Pratham3Page'
+import Pratham3RapidPage from '../../pages/Pratham3RapidPage'
+import Pratham5Page from '../../pages/Pratham5Page'
+import Pratham6Page from '../../pages/Pratham6Page'
+import PrathamX600Page from '../../pages/PrathamX600Page'
+import PrathamX1000Page from '../../pages/PrathamX1000Page'
+import EkaHtPage from '../../pages/EkaHtPage'
+import EkaXlPage from '../../pages/EkaXlPage'
+import EkaXlePage from '../../pages/EkaXlePage'
+import EkaGtMaxPage from '../../pages/EkaGtMaxPage'
+import EkaF116kPage from '../../pages/EkaF116kPage'
+import DlpCategoryPage from '../../pages/DlpCategoryPage'
+import IndustrialLcdCategoryPage from '../../pages/IndustrialLcdCategoryPage'
+import FilamentCategoryPage from '../../pages/FilamentCategoryPage'
+import WhitePlaDetailPage from '../../pages/WhitePlaDetailPage'
+import GreySilverPlaPage from '../../pages/GreySilverPlaPage'
+import GoldPlaPage from '../../pages/GoldPlaPage'
+
+// 3. 3D Scanners Pages (4 pages)
+import DevokMTPage from '../../pages/DevokMTPage'
+import DevokMQPage from '../../pages/DevokMQPage'
+import EinscanPage from '../../pages/EinscanPage'
+import ScannersCategoryPage from '../../pages/ScannersCategoryPage'
 
 type ViewportMode = 'desktop' | 'tablet' | 'mobile'
 type InspectorTab = 'element' | 'sections' | 'images' | 'pdfs' | 'seo'
@@ -87,8 +121,9 @@ interface SelectedElementInfo {
   currentObjectFit?: 'cover' | 'contain' | 'fill' | 'scale-down'
 }
 
-function renderRealCadProductPage(productKey: string) {
+function renderRealProductPage(productKey: string) {
   switch (productKey) {
+    // CAD Software Pages
     case 'ares_commander':
       return <AresCommanderPage />
     case 'ares_standard':
@@ -115,19 +150,88 @@ function renderRealCadProductPage(productKey: string) {
       return <VRayPage />
     case 'chaos_corona':
       return <CoronaPage />
+    case 'cad_category':
+      return <CategoryDetailPage forcedSlug="cad-software" />
+
+    // 3D Printers (FDM, DLP, Industrial LCD) & Filaments Pages
+    case 'pratham_mini':
+      return <PrathamMiniPage />
+    case 'pratham_desktop':
+      return <PrathamDesktopPage />
+    case 'pratham_3':
+      return <Pratham3Page />
+    case 'pratham_3_rapid':
+      return <Pratham3RapidPage />
+    case 'pratham_5':
+      return <Pratham5Page />
+    case 'pratham_6':
+      return <Pratham6Page />
+    case 'pratham_x_600':
+      return <PrathamX600Page />
+    case 'pratham_x':
+      return <PrathamX1000Page />
+    case 'eka_ht':
+      return <EkaHtPage />
+    case 'eka_xl':
+      return <EkaXlPage />
+    case 'eka_xle':
+      return <EkaXlePage />
+    case 'eka_gt_max':
+      return <EkaGtMaxPage />
+    case 'eka_f1_16k':
+      return <EkaF116kPage />
+    case 'fdm_category':
+      return <CategoryDetailPage forcedSlug="fdm-3d-printers" />
+    case 'dlp_category':
+      return <DlpCategoryPage />
+    case 'lcd_category':
+      return <IndustrialLcdCategoryPage />
+    case 'filament_white_pla':
+      return <WhitePlaDetailPage />
+    case 'filament_grey_silver_pla':
+      return <GreySilverPlaPage />
+    case 'filament_gold_pla':
+      return <GoldPlaPage />
+    case 'filaments_category':
+      return <FilamentCategoryPage />
+
+    // 3D Scanners Pages
+    case 'devok_mt':
+      return <DevokMTPage />
+    case 'devok_mq':
+      return <DevokMQPage />
+    case 'einscan_series':
+      return <EinscanPage />
+    case 'scanners_category':
+      return <ScannersCategoryPage />
+
     default:
       return <AresCommanderPage />
   }
 }
 
 export interface CadVisualPageEditorProps {
+  initialCategory?: VisualEditorCategory
+  initialProductKey?: string
   onExitToDashboard?: () => void
 }
 
-export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExitToDashboard }) => {
-  // Open directly in full-page visual editor mode for ARES Commander so it displays the complete live page immediately
+export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
+  initialCategory = 'cad',
+  initialProductKey,
+  onExitToDashboard,
+}) => {
+  const resolvedStartKey = useMemo(() => {
+    if (initialProductKey) return initialProductKey
+    if (initialCategory === 'printers') return 'pratham_mini'
+    if (initialCategory === 'scanners') return 'devok_mt'
+    return 'ares_commander'
+  }, [initialCategory, initialProductKey])
+
+  // Open directly in full-page visual editor mode so it displays the complete live page immediately
   const [viewMode, setViewMode] = useState<'list' | 'editor'>('editor')
-  const [activeProductKey, setActiveProductKey] = useState<string>('ares_commander')
+  const [categoryFilter, setCategoryFilter] = useState<VisualEditorCategory>(initialCategory)
+  const [activeProductKey, setActiveProductKey] = useState<string>(resolvedStartKey)
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [showAuditModal, setShowAuditModal] = useState<boolean>(false)
 
@@ -138,7 +242,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
   const [inspectorTab, setInspectorTab] = useState<InspectorTab>('element')
 
   // Initial working payload
-  const initialWorking = useMemo(() => getWorkingVisualPayload('ares_commander'), [])
+  const initialWorking = useMemo(() => getWorkingVisualPayload(resolvedStartKey), [resolvedStartKey])
   const [payload, setPayload] = useState<CadVisualPagePayload>(() => initialWorking.payload)
   const [history, setHistory] = useState<CadVisualPagePayload[]>(() => [
     structuredCloneSafe(initialWorking.payload),
@@ -156,6 +260,17 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
     lastSavedAt: initialWorking.lastSavedAt,
     lastPublishedAt: initialWorking.lastPublishedAt,
   })
+
+  // Dynamically discovered live DOM structure (for all 38 CAD, 3D Printer, Filament & 3D Scanner pages)
+  const [discoveredInventory, setDiscoveredInventory] = useState<{
+    sections: CadSectionDefinition[]
+    imageSlots: CadImageSlot[]
+    pdfLinks: DiscoveredDomPdfLink[]
+  }>(() => ({
+    sections: resolvedStartKey === 'ares_commander' ? ARES_COMMANDER_SECTIONS : [],
+    imageSlots: resolvedStartKey === 'ares_commander' ? ARES_COMMANDER_IMAGE_SLOTS : [],
+    pdfLinks: [],
+  }))
 
   // Selection & notifications
   const [selectedElement, setSelectedElement] = useState<SelectedElementInfo | null>(null)
@@ -183,6 +298,10 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
   // Load product working payload when switching products
   const loadProductIntoEditor = useCallback((productKey: string) => {
     const working = getWorkingVisualPayload(productKey)
+    const catItem = VISUAL_PAGE_CATALOG.find(p => p.key === productKey)
+    if (catItem && categoryFilter !== 'all') {
+      setCategoryFilter(catItem.editorGroup)
+    }
     setActiveProductKey(productKey)
     setPayload(working.payload)
     setHistory([structuredCloneSafe(working.payload)])
@@ -195,9 +314,24 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
       lastPublishedAt: working.lastPublishedAt,
     })
     setSelectedElement(null)
-    setExpandedSectionId('hero')
+    setExpandedSectionId(productKey === 'ares_commander' ? 'hero' : 'auto_sec_0')
     setViewMode('editor')
-  }, [])
+  }, [categoryFilter])
+
+  // Sync if parent switches between CAD Software Edit / 3D Printers Edit / 3D Scanners Edit
+  useEffect(() => {
+    setCategoryFilter(initialCategory)
+    const nextKey =
+      initialProductKey ||
+      (initialCategory === 'printers'
+        ? 'pratham_mini'
+        : initialCategory === 'scanners'
+          ? 'devok_mt'
+          : 'ares_commander')
+    if (nextKey !== activeProductKey) {
+      loadProductIntoEditor(nextKey)
+    }
+  }, [initialCategory, initialProductKey])
 
   // Apply payload mutations and record in Undo/Redo stack
   const updatePayload = useCallback(
@@ -284,10 +418,48 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
   }, [hasUnsavedChanges])
 
-  // Re-apply DOM overrides whenever payload changes inside the editor canvas
+  // Discover live DOM sections, images, and PDF links whenever activeProductKey or viewMode changes
   useEffect(() => {
     if (viewMode !== 'editor' || !canvasRef.current) return
-    applyCadVisualOverridesToRoot(canvasRef.current, payload)
+    const runDiscoveryAndApply = () => {
+      const root = canvasRef.current
+      if (!root) return
+      const inv = discoverLiveDomInventory(root, activeProductKey)
+      setDiscoveredInventory(inv)
+      applyCadVisualOverridesToRoot(root, payload)
+    }
+    const t1 = setTimeout(runDiscoveryAndApply, 30)
+    const t2 = setTimeout(runDiscoveryAndApply, 250)
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+    }
+  }, [viewMode, activeProductKey])
+
+  // Re-apply DOM overrides whenever payload changes inside the editor canvas (and observe tab switches on 3D Printer / Scanner pages)
+  useEffect(() => {
+    if (viewMode !== 'editor' || !canvasRef.current) return
+    const root = canvasRef.current
+    applyCadVisualOverridesToRoot(root, payload)
+
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null
+    const observer =
+      typeof MutationObserver !== 'undefined'
+        ? new MutationObserver(() => {
+            if (debounceTimer) clearTimeout(debounceTimer)
+            debounceTimer = setTimeout(() => {
+              if (canvasRef.current) {
+                applyCadVisualOverridesToRoot(canvasRef.current, payload)
+              }
+            }, 60)
+          })
+        : null
+
+    observer?.observe(root, { childList: true, subtree: true })
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer)
+      observer?.disconnect()
+    }
   }, [viewMode, payload, viewport])
 
   // Merged data for structured inspector fields
@@ -447,7 +619,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
       return
     }
 
-    // 3. Check if user clicked a Link (<a>)
+    // 3. Check if user clicked a Link (<a>) or Action Button (<button>)
     const closestLink = target.closest('a')
     if (closestLink && root.contains(closestLink)) {
       e.preventDefault()
@@ -472,6 +644,34 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
       setInspectorOpen(true)
       setInspectorTab('element')
       return
+    }
+
+    const closestButton = target.closest('button')
+    if (closestButton && root.contains(closestButton)) {
+      const elKey = computeDeterministicCadKey(root, closestButton)
+      const dataPath = closestButton.getAttribute('data-cad-path') || undefined
+      const currentText = (closestButton.textContent || '').trim()
+      const currentHref =
+        payload.elementOverrides?.[elKey]?.pdfUrl ||
+        payload.elementOverrides?.[elKey]?.href ||
+        closestButton.getAttribute('data-visual-override-href') ||
+        ''
+
+      if (currentText.length > 0 && currentText.length < 120) {
+        setSelectedElement({
+          key: elKey,
+          kind: 'link',
+          tagName: 'button',
+          label: `Button: "${currentText.slice(0, 32)}"`,
+          dataPath,
+          sectionId,
+          currentText,
+          currentHref,
+        })
+        setInspectorOpen(true)
+        setInspectorTab('element')
+        return
+      }
     }
 
     // 4. Check if user clicked an editable text node or element with data-cad-path
@@ -583,12 +783,22 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
     }
   }
 
+  const activeSectionsBase =
+    activeProductKey === 'ares_commander'
+      ? ARES_COMMANDER_SECTIONS
+      : discoveredInventory.sections
+
+  const activeImageSlotsBase =
+    activeProductKey === 'ares_commander'
+      ? ARES_COMMANDER_IMAGE_SLOTS
+      : discoveredInventory.imageSlots
+
   // Move section up/down
   const moveSectionOrder = (sectionId: string, direction: 'up' | 'down') => {
     updatePayload(prev => {
       const order = Array.isArray(prev.sectionOrder) && prev.sectionOrder.length > 0
         ? [...prev.sectionOrder]
-        : ARES_COMMANDER_SECTIONS.map(s => s.id)
+        : activeSectionsBase.map(s => s.id)
       const idx = order.indexOf(sectionId)
       if (idx === -1) return prev
       const swapIdx = direction === 'up' ? idx - 1 : idx + 1
@@ -620,11 +830,18 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
     }
   }
 
-  const activeProductMeta: CadProductItem =
-    DEFAULT_CAD_PRODUCTS.find(p => p.key === activeProductKey) || DEFAULT_CAD_PRODUCTS[0]
+  const activeProductMeta: VisualPageCatalogItem =
+    VISUAL_PAGE_CATALOG.find(p => p.key === activeProductKey) || VISUAL_PAGE_CATALOG[0]
+
+  const categoryProducts = useMemo(() => {
+    return VISUAL_PAGE_CATALOG.filter(p => {
+      if (categoryFilter === 'all') return true
+      return p.editorGroup === categoryFilter
+    })
+  }, [categoryFilter])
 
   const filteredProducts = useMemo(() => {
-    return DEFAULT_CAD_PRODUCTS.filter(p => {
+    return categoryProducts.filter(p => {
       if (!searchQuery.trim()) return true
       const q = searchQuery.toLowerCase()
       return (
@@ -634,158 +851,176 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
         p.route.toLowerCase().includes(q)
       )
     })
-  }, [searchQuery, refreshTick])
+  }, [categoryProducts, searchQuery, refreshTick])
+
+  const categoryCounts = useMemo(() => {
+    return {
+      all: VISUAL_PAGE_CATALOG.length,
+      cad: VISUAL_PAGE_CATALOG.filter(p => p.editorGroup === 'cad').length,
+      printers: VISUAL_PAGE_CATALOG.filter(p => p.editorGroup === 'printers').length,
+      scanners: VISUAL_PAGE_CATALOG.filter(p => p.editorGroup === 'scanners').length,
+    }
+  }, [])
+
+  const categoryHeaderTitle =
+    categoryFilter === 'printers'
+      ? '3D Printers & Filaments Edit — Full-Page Live Visual Editor'
+      : categoryFilter === 'scanners'
+        ? '3D Scanners Edit — Full-Page Live Visual Editor'
+        : categoryFilter === 'cad'
+          ? 'CAD Software Edit — Full-Page Live Visual Editor'
+          : 'All Product Pages — Full-Page Live Visual Editor'
 
   // ============================================================================
-  // VIEW 1: PRODUCT SELECTION DASHBOARD ("Admin Dashboard -> CAD Software Edit")
+  // VIEW 1: PRODUCT SELECTION DASHBOARD (Supports CAD Software, 3D Printers & 3D Scanners)
   // ============================================================================
   if (viewMode === 'list') {
-    const aresInfo = getWorkingVisualPayload('ares_commander')
     return (
       <div className="min-h-screen bg-slate-100 p-4 sm:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {onExitToDashboard && (
-          <div>
-            <button
-              onClick={onExitToDashboard}
-              className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold inline-flex items-center gap-2 cursor-pointer shadow-sm"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to Admin Dashboard</span>
-            </button>
-          </div>
-        )}
-        {/* Top Banner */}
-        <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 rounded-2xl p-6 sm:p-8 text-white shadow-xl border border-slate-800">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="space-y-2 max-w-3xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-mono uppercase tracking-wider font-bold">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {onExitToDashboard && (
+            <div className="flex items-center justify-between gap-3">
+              <button
+                onClick={onExitToDashboard}
+                className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold inline-flex items-center gap-2 cursor-pointer shadow-sm"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Back to Admin Dashboard</span>
+              </button>
+              <button
+                onClick={() => setViewMode('editor')}
+                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold inline-flex items-center gap-2 cursor-pointer shadow-sm"
+              >
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Live Visual CAD Page Editor</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-                CAD Software Edit — Full-Page Live Visual Editor
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Open the complete live product page at 100% full width exactly as it appears on the public website, click any heading, paragraph, button, table cell, image, or PDF document to edit directly on the page, upload replacement images & PDFs to persistent cloud storage, save drafts, and publish live to Vercel immediately.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3 shrink-0">
-              <button
-                onClick={() => setShowAuditModal(true)}
-                className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold flex items-center gap-2 cursor-pointer transition-all"
-              >
-                <FileCheck className="w-4 h-4 text-emerald-400" />
-                <span>20-Section Audit Checklist</span>
-              </button>
-              <button
-                onClick={() => loadProductIntoEditor('ares_commander')}
-                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-extrabold flex items-center gap-2 shadow-lg cursor-pointer transition-all"
-              >
-                <Sparkles className="w-4 h-4" />
-                <span>Edit ARES Commander Full Page</span>
+                <span>Return to Active Page ({activeProductMeta.label})</span>
               </button>
             </div>
-          </div>
-        </div>
+          )}
 
-        {/* Featured Primary Product Card: ARES Commander */}
-        <div className="bg-white rounded-2xl border-2 border-blue-600/80 shadow-md p-6 sm:p-7">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-              <div className="w-28 h-20 rounded-xl overflow-hidden bg-slate-900 border border-slate-200 shrink-0">
-                <img
-                  src={aresInfo.payload.dataOverrides?.hero?.image || '/images/software/ares-commander.jpg'}
-                  alt="ARES Commander"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-mono uppercase font-bold">
-                    Flagship Reference Page
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-mono font-bold">
-                    Graebert • 2D & 3D DWG CAD
-                  </span>
-                  {aresInfo.hasDraft && (
-                    <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-mono font-bold">
-                      Unsaved Draft Ready
-                    </span>
-                  )}
-                  {aresInfo.isPublished && (
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold">
-                      Custom Published Live
-                    </span>
-                  )}
+          {/* Top Banner */}
+          <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 rounded-2xl p-6 sm:p-8 text-white shadow-xl border border-slate-800">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="space-y-2 max-w-3xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-mono uppercase tracking-wider font-bold">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Page-Wise Live Visual Editor</span>
                 </div>
-                <h3 className="text-xl font-black text-slate-900">
-                  ARES Commander — Complete Product Page (`/products/ares-commander`)
-                </h3>
-                <p className="text-xs text-slate-600">
-                  20 Live Sections • 11 Editable Image Slots • 4 Downloadable PDF Brochures & Datasheets • Full Inline Text, Table, FAQ & Section Reordering
+                <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                  {categoryHeaderTitle}
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  Open any CAD Software, 3D Printer (FDM, DLP, Industrial LCD), 3D Scanner, or Filament page at 100% full width exactly as it appears on the live website. Click any heading, text, specification table cell, button, image, or PDF brochure to edit directly on the page, save drafts, and publish live to Vercel.
                 </p>
               </div>
-            </div>
 
-            <div className="flex flex-wrap items-center gap-3 shrink-0">
-              <a
-                href="/products/ares-commander"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>View Live Page</span>
-              </a>
-              <button
-                onClick={() => loadProductIntoEditor('ares_commander')}
-                className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-extrabold flex items-center gap-2 shadow-sm cursor-pointer transition-all"
-              >
-                <Layers className="w-4 h-4" />
-                <span>Edit Full Page</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-3 shrink-0">
+                <button
+                  onClick={() => setShowAuditModal(true)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold flex items-center gap-2 cursor-pointer transition-all"
+                >
+                  <FileCheck className="w-4 h-4 text-emerald-400" />
+                  <span>Page Audit Info</span>
+                </button>
+                <button
+                  onClick={() => loadProductIntoEditor(activeProductKey)}
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-extrabold flex items-center gap-2 shadow-lg cursor-pointer transition-all"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Edit {activeProductMeta.label} Full Page</span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* All CAD Software Product Pages Grid */}
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h3 className="text-lg font-extrabold text-slate-900">
-                All CAD Software Product Pages ({filteredProducts.length})
-              </h3>
-              <p className="text-xs text-slate-500">
-                Select any CAD software product below and click "Edit Page" to open its full-screen live visual editor.
-              </p>
+          {/* Category Filter Pills + Search Bar */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-xs">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setCategoryFilter('cad')}
+                className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                  categoryFilter === 'cad'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+              >
+                CAD Software Pages ({categoryCounts.cad})
+              </button>
+              <button
+                onClick={() => setCategoryFilter('printers')}
+                className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                  categoryFilter === 'printers'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+              >
+                3D Printers & Filaments ({categoryCounts.printers})
+              </button>
+              <button
+                onClick={() => setCategoryFilter('scanners')}
+                className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                  categoryFilter === 'scanners'
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+              >
+                3D Scanners ({categoryCounts.scanners})
+              </button>
+              <button
+                onClick={() => setCategoryFilter('all')}
+                className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                  categoryFilter === 'all'
+                    ? 'bg-slate-900 text-white shadow-sm'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+              >
+                All Product Pages ({categoryCounts.all})
+              </button>
             </div>
-            <div className="relative w-full sm:w-72">
+
+            <div className="relative w-full lg:w-80">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search CAD software pages..."
-                className="w-full pl-9 pr-3 py-2 rounded-xl bg-white border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Search any CAD, 3D printer, or scanner page..."
+                className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
 
+          {/* All Pages Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredProducts.map(prod => {
               const info = getWorkingVisualPayload(prod.key)
+              const groupBadgeColor =
+                prod.editorGroup === 'printers'
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : prod.editorGroup === 'scanners'
+                    ? 'bg-purple-50 text-purple-700 border-purple-200'
+                    : 'bg-blue-50 text-blue-700 border-blue-200'
+              const groupLabel =
+                prod.editorGroup === 'printers'
+                  ? '3D Printer / Filament'
+                  : prod.editorGroup === 'scanners'
+                    ? '3D Scanner'
+                    : 'CAD Software'
+
               return (
                 <div
                   key={prod.key}
-                  className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col justify-between gap-4 hover:shadow-md hover:border-blue-300 transition-all"
+                  className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col justify-between gap-4 hover:shadow-md hover:border-blue-400 transition-all"
                 >
-                  <div className="space-y-2">
+                  <div className="space-y-2.5">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold">
-                        {prod.brand}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold">
+                          {prod.brand}
+                        </span>
+                        <span className={`text-[10px] font-mono px-2 py-0.5 rounded border font-bold ${groupBadgeColor}`}>
+                          {groupLabel}
+                        </span>
+                      </div>
                       <div className="flex items-center gap-1.5">
                         {info.hasDraft && (
                           <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">
@@ -797,15 +1032,29 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
                             Published
                           </span>
                         ) : (
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold">
                             Live Default
                           </span>
                         )}
                       </div>
                     </div>
-                    <h4 className="text-base font-bold text-slate-900">{prod.label}</h4>
-                    <p className="text-xs text-slate-500">{prod.category}</p>
-                    <div className="text-[11px] font-mono text-slate-400 truncate">{prod.route}</div>
+
+                    <div className="flex items-center gap-3.5 pt-1">
+                      {prod.heroImage && (
+                        <div className="w-16 h-14 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
+                          <img
+                            src={prod.heroImage}
+                            alt={prod.label}
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <h4 className="text-base font-extrabold text-slate-900 truncate">{prod.label}</h4>
+                        <p className="text-xs text-slate-500 line-clamp-1">{prod.category}</p>
+                        <div className="text-[11px] font-mono text-slate-400 truncate mt-0.5">{prod.route}</div>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
@@ -822,7 +1071,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
                       onClick={() => loadProductIntoEditor(prod.key)}
                       className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
                     >
-                      <span>Edit Page</span>
+                      <span>Edit Full Page</span>
                       <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -830,61 +1079,68 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
               )
             })}
           </div>
-        </div>
 
-        {/* 20-Section Coverage Audit Modal */}
-        {showAuditModal && (
-          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
-              <div className="p-5 bg-slate-900 text-white flex items-center justify-between">
-                <div>
-                  <h3 className="text-base font-black">
-                    Complete ARES Commander Frontend Page Audit & Section Coverage Checklist
-                  </h3>
-                  <p className="text-xs text-slate-400">
-                    All 20 sections, 11 image assets, and 4 PDF download resources audited from `/products/ares-commander`
-                  </p>
+          {/* 20-Section Coverage Audit Modal */}
+          {showAuditModal && (
+            <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+                <div className="p-5 bg-slate-900 text-white flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-black">
+                      Complete Live Visual Page Editor — All 38 Pages Connected
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      14 CAD Software Pages • 20 3D Printer & Filament Pages • 4 3D Scanner Pages
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowAuditModal(false)}
+                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => setShowAuditModal(false)}
-                  className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="p-6 overflow-y-auto space-y-6 text-xs">
-                <div>
-                  <h4 className="font-bold text-slate-900 uppercase tracking-wider mb-3">
-                    Audited Page Sections (20 / 20 Connected to Live Visual Editor)
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                    {ARES_COMMANDER_SECTIONS.map(sec => (
-                      <div key={sec.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                        <div>
-                          <div className="font-bold text-slate-900">{sec.label}</div>
-                          <div className="text-[11px] text-slate-500 mt-0.5">{sec.description}</div>
+                <div className="p-6 overflow-y-auto space-y-6 text-xs">
+                  <div>
+                    <h4 className="font-bold text-slate-900 uppercase tracking-wider mb-3">
+                      All Connected Pages ({VISUAL_PAGE_CATALOG.length} Live Frontend Pages)
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                      {VISUAL_PAGE_CATALOG.map(item => (
+                        <div key={item.key} className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start justify-between gap-2.5">
+                          <div className="flex items-start gap-2.5 min-w-0">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                            <div className="min-w-0">
+                              <div className="font-bold text-slate-900 truncate">{item.label} ({item.brand})</div>
+                              <div className="text-[11px] text-slate-500 truncate">{item.route}</div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setShowAuditModal(false)
+                              loadProductIntoEditor(item.key)
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold shrink-0 cursor-pointer"
+                          >
+                            Edit
+                          </button>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
-                <button
-                  onClick={() => {
-                    setShowAuditModal(false)
-                    loadProductIntoEditor('ares_commander')
-                  }}
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold cursor-pointer"
-                >
-                  Open ARES Commander Live Visual Editor
-                </button>
+                <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+                  <button
+                    onClick={() => setShowAuditModal(false)}
+                    className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
       </div>
     )
   }
@@ -892,17 +1148,17 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
   // ============================================================================
   // VIEW 2: FULL-SCREEN 100% WIDTH LIVE VISUAL PAGE EDITOR
   // Renders fixed inset-0 w-screen h-screen so the product page inside Admin
-  // has the EXACT same full viewport width and layout as /products/ares-commander!
+  // has the EXACT same full viewport width and layout as the public frontend!
   // ============================================================================
   const orderedSections = (
     Array.isArray(payload.sectionOrder) && payload.sectionOrder.length > 0
       ? payload.sectionOrder
-      : ARES_COMMANDER_SECTIONS.map(s => s.id)
+      : activeSectionsBase.map(s => s.id)
   )
-    .map(id => ARES_COMMANDER_SECTIONS.find(s => s.id === id))
+    .map(id => activeSectionsBase.find(s => s.id === id))
     .filter((s): s is NonNullable<typeof s> => Boolean(s))
 
-  for (const sec of ARES_COMMANDER_SECTIONS) {
+  for (const sec of activeSectionsBase) {
     if (!orderedSections.some(s => s.id === sec.id)) {
       orderedSections.push(sec)
     }
@@ -914,11 +1170,11 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
     <div className="fixed inset-0 z-50 w-screen h-screen bg-white flex flex-col overflow-hidden">
       {/* ====================================================================
           STICKY TOP VISUAL EDITOR BAR (Compact, Full-Width)
-          Back to Admin | All Products | Product Select | Desktop/Tablet/Mobile | Sections / Images / PDFs / SEO | Undo/Redo | Save Draft | Preview | Publish Changes
+          Back to Admin | All Pages | Category Filter | Page Select | Sections/Images/PDFs/SEO | Viewport | Undo/Redo | Save Draft | Preview | Publish
          ==================================================================== */}
       <div className="bg-slate-950 border-b border-slate-800 px-3 sm:px-5 py-2 flex flex-wrap items-center justify-between gap-2 text-white z-40 shrink-0">
-        {/* Left: Back to Admin + All CAD Pages + Product Switcher + Status */}
-        <div className="flex items-center gap-2">
+        {/* Left: Back to Admin + All Pages + Category Filter + Page Switcher + Status */}
+        <div className="flex items-center gap-1.5 flex-wrap">
           {onExitToDashboard && (
             <button
               onClick={() => {
@@ -944,20 +1200,44 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
             className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
           >
             <LayoutGrid className="w-3.5 h-3.5 text-blue-400" />
-            <span className="hidden sm:inline">All Products</span>
+            <span className="hidden sm:inline">All Pages</span>
           </button>
 
+          {/* Category Filter Dropdown */}
+          <select
+            value={categoryFilter}
+            onChange={e => {
+              const nextCat = e.target.value as VisualEditorCategory
+              setCategoryFilter(nextCat)
+              const firstInCat = VISUAL_PAGE_CATALOG.find(
+                p => nextCat === 'all' || p.editorGroup === nextCat
+              )
+              if (firstInCat && firstInCat.key !== activeProductKey) {
+                if (!hasUnsavedChanges || window.confirm('Switch category without saving current changes?')) {
+                  loadProductIntoEditor(firstInCat.key)
+                }
+              }
+            }}
+            className="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-blue-300 text-xs font-extrabold focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="cad">CAD Software ({categoryCounts.cad})</option>
+            <option value="printers">3D Printers & Filaments ({categoryCounts.printers})</option>
+            <option value="scanners">3D Scanners ({categoryCounts.scanners})</option>
+            <option value="all">All Categories ({categoryCounts.all})</option>
+          </select>
+
+          {/* Page Selector Dropdown */}
           <select
             value={activeProductKey}
             onChange={e => {
-              if (hasUnsavedChanges && !window.confirm('Switch product without saving current changes?')) {
+              if (hasUnsavedChanges && !window.confirm('Switch page without saving current changes?')) {
                 return
               }
               loadProductIntoEditor(e.target.value)
             }}
-            className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs font-bold max-w-[240px] sm:max-w-[300px] focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {DEFAULT_CAD_PRODUCTS.map(p => (
+            {categoryProducts.map(p => (
               <option key={p.key} value={p.key}>
                 {p.label} ({p.brand})
               </option>
@@ -1252,10 +1532,11 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
             <div
               ref={canvasRef}
               data-cad-editor-canvas="true"
+              data-preview-mode={isPreviewMode ? 'true' : 'false'}
               onClickCapture={handleCanvasClickCapture}
               className="w-full"
             >
-              {renderRealCadProductPage(activeProductKey)}
+              {renderRealProductPage(activeProductKey)}
             </div>
           </CadVisualEditorContext.Provider>
         </div>
@@ -1641,8 +1922,8 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
 
                           <button
                             onClick={() => {
-                              const slot = ARES_COMMANDER_IMAGE_SLOTS.find(
-                                s => s.dataPath === selectedElement.dataPath
+                              const slot = activeImageSlotsBase.find(
+                                s => s.dataPath === selectedElement.dataPath || s.id === selectedElement.key
                               )
                               const origSrc =
                                 slot?.defaultSrc ||
@@ -1965,6 +2246,23 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
                               </div>
                             </div>
                           )}
+
+                          {isExpanded && activeProductKey !== 'ares_commander' && (
+                            <div className="p-3 border-t border-slate-200 bg-white space-y-2.5 rounded-b-xl">
+                              <p className="text-[11px] text-slate-600 leading-relaxed">{sec.description}</p>
+                              <div className="flex items-center justify-between gap-2 pt-1">
+                                <button
+                                  onClick={() => scrollToCanvasSection(sec.id)}
+                                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold cursor-pointer"
+                                >
+                                  Scroll to Section on Page
+                                </button>
+                                <span className="text-[10px] text-slate-400">
+                                  Click any text, spec row, button, or image in this section to edit
+                                </span>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )
                     })}
@@ -1979,7 +2277,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-bold text-slate-900 text-sm">
-                      Page Images ({ARES_COMMANDER_IMAGE_SLOTS.length} Audited Slots)
+                      Page Images ({activeImageSlotsBase.length} Live Slots on Page)
                     </h4>
                     <p className="text-[11px] text-slate-500">
                       Upload or replace any image from your computer. All uploads are stored in persistent cloud storage.
@@ -1987,7 +2285,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
                   </div>
 
                   <div className="space-y-3">
-                    {ARES_COMMANDER_IMAGE_SLOTS.map(slot => {
+                    {activeImageSlotsBase.map(slot => {
                       const currentSrc =
                         (slot.dataPath ? getByPath(mergedAresData, slot.dataPath) : undefined) ||
                         payload.elementOverrides?.[slot.dataPath || slot.id]?.src ||
@@ -2096,6 +2394,103 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
                  ============================================================== */}
               {inspectorTab === 'pdfs' && (
                 <div className="space-y-4">
+                  {/* Live Brochure / PDF Buttons Discovered on the Active Page */}
+                  {discoveredInventory.pdfLinks.length > 0 && (
+                    <div className="space-y-2.5 pb-3 border-b border-slate-200">
+                      <div>
+                        <h4 className="font-bold text-slate-900 text-sm">
+                          Page Brochure & Download Buttons ({discoveredInventory.pdfLinks.length})
+                        </h4>
+                        <p className="text-[11px] text-slate-500">
+                          Upload a PDF directly to any brochure or download button currently displayed on this page.
+                        </p>
+                      </div>
+
+                      {discoveredInventory.pdfLinks.map(linkItem => {
+                        const ov = payload.elementOverrides?.[linkItem.key]
+                        const activeHref = ov?.pdfUrl || ov?.href || linkItem.href
+                        const activeLabel = ov?.buttonLabel || ov?.text || linkItem.label
+                        return (
+                          <div
+                            key={linkItem.key}
+                            className="p-3 rounded-xl bg-blue-50/50 border border-blue-200 space-y-2"
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-bold text-slate-900 truncate">{activeLabel}</span>
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-bold">
+                                {linkItem.isButton ? 'Button' : 'Link'}
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-1.5">
+                              <input
+                                type="text"
+                                value={activeLabel}
+                                onChange={e =>
+                                  setElementOverrideValue(linkItem.key, {
+                                    buttonLabel: e.target.value,
+                                    text: e.target.value,
+                                  })
+                                }
+                                placeholder="Button label..."
+                                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold"
+                              />
+                              <input
+                                type="text"
+                                value={activeHref}
+                                onChange={e =>
+                                  setElementOverrideValue(linkItem.key, {
+                                    href: e.target.value,
+                                    pdfUrl: e.target.value,
+                                  })
+                                }
+                                placeholder="PDF / Download URL..."
+                                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono text-[10px]"
+                              />
+                            </div>
+
+                            <label className="w-full py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors">
+                              <Upload className="w-3.5 h-3.5" />
+                              <span>Upload / Replace PDF for "{activeLabel.slice(0, 24)}"</span>
+                              <input
+                                type="file"
+                                accept=".pdf,application/pdf"
+                                className="hidden"
+                                onChange={async e => {
+                                  const f = e.target.files?.[0]
+                                  if (!f) return
+                                  e.target.value = ''
+                                  try {
+                                    setUploadState({
+                                      active: true,
+                                      targetId: linkItem.key,
+                                      progress: 20,
+                                      statusText: 'Uploading PDF...',
+                                    })
+                                    const res = await uploadAssetToPersistentStorage(f, 'pdf', (p, s) =>
+                                      setUploadState({ active: true, targetId: linkItem.key, progress: p, statusText: s })
+                                    )
+                                    setElementOverrideValue(linkItem.key, {
+                                      href: res.url,
+                                      pdfUrl: res.url,
+                                      pdfName: res.fileName,
+                                      pdfSize: res.fileSize,
+                                    })
+                                    showToast('success', `Uploaded PDF "${res.fileName}" (${res.fileSize}) to button!`)
+                                  } catch (err: any) {
+                                    showToast('error', err?.message || 'PDF upload failed')
+                                  } finally {
+                                    setUploadState(null)
+                                  }
+                                }}
+                              />
+                            </label>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between gap-2">
                     <div>
                       <h4 className="font-bold text-slate-900 text-sm">
@@ -2109,13 +2504,13 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({ onExit
                       onClick={() => {
                         const newPdf: CadPdfResource = {
                           id: `pdf_${Date.now()}`,
-                          title: 'New ARES Commander Technical Document (PDF)',
+                          title: `New ${activeProductMeta.label} Technical Document (PDF)`,
                           description: 'Official technical documentation and product resource.',
                           badge: 'PDF Document',
                           buttonLabel: 'Download PDF',
-                          fileUrl: 'https://www.graebert.com/cad-software/ares-commander/',
-                          originalFileUrl: 'https://www.graebert.com/cad-software/ares-commander/',
-                          fileName: 'ARES-Commander-Document.pdf',
+                          fileUrl: activeProductMeta.defaultBrochureUrl || activeProductMeta.route,
+                          originalFileUrl: activeProductMeta.defaultBrochureUrl || activeProductMeta.route,
+                          fileName: `${activeProductKey.replace(/_/g, '-')}-document.pdf`,
                           fileSize: '1.5 MB',
                           visible: true,
                           behavior: 'new_tab',
