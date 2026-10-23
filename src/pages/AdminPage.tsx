@@ -1599,23 +1599,6 @@ export default function AdminPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('products')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
-                activeTab === 'products' ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <Package className="w-4 h-4" />
-                <span>Product Catalog</span>
-              </div>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
-                activeTab === 'products' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'
-              }`}>
-                {productsList.length}
-              </span>
-            </button>
-
-            <button
               onClick={() => setActiveTab('blogs')}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
                 activeTab === 'blogs' ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-slate-100'
