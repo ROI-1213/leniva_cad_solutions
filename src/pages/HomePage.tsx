@@ -178,14 +178,35 @@ export const HomePage: React.FC = () => {
     setCurrentSlide(prev => (prev - 1 + (slides.length || 1)) % (slides.length || 1))
   }, [slides.length])
 
-  // Continuous auto-scrolling every 4 seconds
+  // Continuous auto-scrolling for hero banner (especially seamless in mobile view)
   useEffect(() => {
     if (slides.length <= 1) return
     const timer = setInterval(() => {
       nextSlide()
-    }, 4000)
+    }, 3500)
     return () => clearInterval(timer)
   }, [nextSlide, slides.length])
+
+  // Touch gesture support for mobile swiping
+  const [touchStartX, setTouchStartX] = useState<number | null>(null)
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX)
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return
+    const touchEndX = e.changedTouches[0].clientX
+    const diff = touchStartX - touchEndX
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) {
+        nextSlide()
+      } else {
+        prevSlide()
+      }
+    }
+    setTouchStartX(null)
+  }
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-8 sm:pb-10">
@@ -197,7 +218,11 @@ export const HomePage: React.FC = () => {
       >
         <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           {/* Main Panoramic Hero Showcase Carousel with Curved Edges */}
-          <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg border border-slate-200/90 bg-white group">
+          <div 
+            className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg border border-slate-200/90 bg-white group select-none touch-pan-y"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
             {/* Slides container with exact 3:1 HD banner aspect ratio */}
             <div className="relative w-full aspect-[1024/341] bg-white">
               {slides.map((slide, index) => {
@@ -228,24 +253,24 @@ export const HomePage: React.FC = () => {
               })}
             </div>
 
-            {/* Left & Right Arrow Navigation Controls */}
+            {/* Left & Right Arrow Navigation Controls — Hidden in mobile view only as requested */}
             <button
               onClick={prevSlide}
               aria-label="Previous Slide"
-              className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/90 hover:bg-red-600 text-slate-700 hover:text-white border border-slate-200/80 flex items-center justify-center backdrop-blur-md transition-all opacity-85 hover:opacity-100 shadow-md cursor-pointer"
+              className="hidden sm:flex absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/90 hover:bg-red-600 text-slate-700 hover:text-white border border-slate-200/80 items-center justify-center backdrop-blur-md transition-all opacity-85 hover:opacity-100 shadow-md cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={nextSlide}
               aria-label="Next Slide"
-              className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/90 hover:bg-red-600 text-slate-700 hover:text-white border border-slate-200/80 flex items-center justify-center backdrop-blur-md transition-all opacity-85 hover:opacity-100 shadow-md cursor-pointer"
+              className="hidden sm:flex absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/90 hover:bg-red-600 text-slate-700 hover:text-white border border-slate-200/80 items-center justify-center backdrop-blur-md transition-all opacity-85 hover:opacity-100 shadow-md cursor-pointer"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
 
-            {/* Indicator Dots at Bottom Center */}
-            <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center space-x-2 bg-white/85 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-200/80 shadow-sm">
+            {/* Indicator Dots at Bottom Center — Hidden in mobile view only as requested */}
+            <div className="hidden sm:flex absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 items-center space-x-2 bg-white/85 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-200/80 shadow-sm">
               {slides.map((slide, idx) => (
                 <button
                   key={slide.id}
