@@ -39,7 +39,6 @@ import {
   CadPdfResource,
   ARES_COMMANDER_SECTIONS,
   ARES_COMMANDER_IMAGE_SLOTS,
-  DEFAULT_ARES_COMMANDER_PDFS,
   getWorkingVisualPayload,
   saveVisualDraft,
   discardVisualDraft,
