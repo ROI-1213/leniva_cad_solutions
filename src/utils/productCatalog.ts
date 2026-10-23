@@ -412,6 +412,15 @@ export const getStoredProductsCatalog = (): ProductItem[] => {
           if (!def) {
             return {
               ...item,
+              id: item.id || item.slug || 'custom-prod',
+              slug: item.slug || item.id || 'custom-prod',
+              name: item.name || 'Custom Product',
+              brand: item.brand || 'Leniva',
+              category: item.category || 'FDM 3D Printers',
+              category_slug: item.category_slug || 'fdm-3d-printers',
+              technology: item.technology || 'Additive Manufacturing',
+              tagline: item.tagline || '',
+              hero_image: item.hero_image || '/images/products/pratham-mini.png',
               price: 0,
               original_price: 0,
               is_quote_based: true,

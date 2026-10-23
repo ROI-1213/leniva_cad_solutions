@@ -1376,74 +1376,79 @@ export default function AdminPage() {
   }
 
   // Counts by category
-  const printersCount = productsList.filter(p =>
-    p.category_slug.includes('printer') ||
-    p.category.toLowerCase().includes('printer') ||
-    ['fdm-3d-printers', 'dlp-3d-printers', 'industrial-lcd-3d-printers'].includes(p.category_slug)
+  const safeProductsList = Array.isArray(productsList) ? productsList : []
+  const printersCount = safeProductsList.filter(p =>
+    (p.category_slug || '').includes('printer') ||
+    (p.category || '').toLowerCase().includes('printer') ||
+    ['fdm-3d-printers', 'dlp-3d-printers', 'industrial-lcd-3d-printers'].includes(p.category_slug || '')
   ).length
 
-  const scannersCount = productsList.filter(p =>
-    p.category_slug.includes('scanner') ||
-    p.category.toLowerCase().includes('scanner') ||
-    p.technology.toLowerCase().includes('scanner')
+  const scannersCount = safeProductsList.filter(p =>
+    (p.category_slug || '').includes('scanner') ||
+    (p.category || '').toLowerCase().includes('scanner') ||
+    (p.technology || '').toLowerCase().includes('scanner')
   ).length
 
-  const filamentsCount = productsList.filter(p =>
-    p.category_slug.includes('filament') ||
-    p.category.toLowerCase().includes('filament') ||
-    p.technology.toLowerCase().includes('materials')
+  const filamentsCount = safeProductsList.filter(p =>
+    (p.category_slug || '').includes('filament') ||
+    (p.category || '').toLowerCase().includes('filament') ||
+    (p.technology || '').toLowerCase().includes('materials')
   ).length
 
-  const cadCount = productsList.filter(p =>
-    p.category_slug.includes('cad') ||
-    p.category.toLowerCase().includes('cad') ||
-    p.category.toLowerCase().includes('software')
+  const cadCount = safeProductsList.filter(p =>
+    (p.category_slug || '').includes('cad') ||
+    (p.category || '').toLowerCase().includes('cad') ||
+    (p.category || '').toLowerCase().includes('software')
   ).length
 
   // Filtered Products with category and search
-  const filteredProducts = productsList.filter(p => {
+  const filteredProducts = safeProductsList.filter(p => {
+    const catSlug = p.category_slug || ''
+    const cat = (p.category || '').toLowerCase()
+    const tech = (p.technology || '').toLowerCase()
+
     // Category tab filter
     if (selectedCatalogCategory === 'printers') {
       const isPrinter =
-        p.category_slug.includes('printer') ||
-        p.category.toLowerCase().includes('printer') ||
-        ['fdm-3d-printers', 'dlp-3d-printers', 'industrial-lcd-3d-printers'].includes(p.category_slug)
+        catSlug.includes('printer') ||
+        cat.includes('printer') ||
+        ['fdm-3d-printers', 'dlp-3d-printers', 'industrial-lcd-3d-printers'].includes(catSlug)
       if (!isPrinter) return false
     } else if (selectedCatalogCategory === 'scanners') {
       const isScanner =
-        p.category_slug.includes('scanner') ||
-        p.category.toLowerCase().includes('scanner') ||
-        p.technology.toLowerCase().includes('scanner')
+        catSlug.includes('scanner') ||
+        cat.includes('scanner') ||
+        tech.includes('scanner')
       if (!isScanner) return false
     } else if (selectedCatalogCategory === 'filaments') {
       const isFilament =
-        p.category_slug.includes('filament') ||
-        p.category.toLowerCase().includes('filament') ||
-        p.technology.toLowerCase().includes('materials')
+        catSlug.includes('filament') ||
+        cat.includes('filament') ||
+        tech.includes('materials')
       if (!isFilament) return false
     } else if (selectedCatalogCategory === 'cad') {
       const isCad =
-        p.category_slug.includes('cad') ||
-        p.category.toLowerCase().includes('cad') ||
-        p.category.toLowerCase().includes('software')
+        catSlug.includes('cad') ||
+        cat.includes('cad') ||
+        cat.includes('software')
       if (!isCad) return false
     }
 
     if (!productSearch) return true
     const q = productSearch.toLowerCase()
     return (
-      p.name.toLowerCase().includes(q) ||
-      p.category.toLowerCase().includes(q) ||
-      p.brand.toLowerCase().includes(q) ||
-      p.technology.toLowerCase().includes(q) ||
-      p.slug.toLowerCase().includes(q) ||
+      (p.name || '').toLowerCase().includes(q) ||
+      cat.includes(q) ||
+      (p.brand || '').toLowerCase().includes(q) ||
+      tech.includes(q) ||
+      (p.slug || '').toLowerCase().includes(q) ||
       (p.tagline && p.tagline.toLowerCase().includes(q)) ||
-      (p.materials && p.materials.some(m => m.toLowerCase().includes(q)))
+      (Array.isArray(p.materials) && p.materials.some(m => (m || '').toLowerCase().includes(q)))
     )
   })
 
   // Filtered Quotes
-  const filteredQuotes = quotes.filter(q => {
+  const filteredQuotes = (Array.isArray(quotes) ? quotes : []).filter(q => {
     if (quoteFilter === 'all') return true
     return q.status === quoteFilter
   })

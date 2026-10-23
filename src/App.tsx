@@ -7,6 +7,7 @@ import WhatsAppButton from './components/WhatsAppButton'
 import QuoteModal from './components/QuoteModal'
 import SearchModal from './components/SearchModal'
 import ScrollToTop from './components/ScrollToTop'
+import AdminPage from './pages/AdminPage'
 
 // Lazy-loaded pages — each loads only when that route is visited
 const HomePage = lazy(() => import('./pages/HomePage'))
@@ -51,7 +52,6 @@ const AresStandardPage = lazy(() => import('./pages/AresStandardPage'))
 const AresCommanderPage = lazy(() => import('./pages/AresCommanderPage'))
 const AresKudoPage = lazy(() => import('./pages/AresKudoPage'))
 const AresTouchPage = lazy(() => import('./pages/AresTouchPage'))
-const AdminPage = lazy(() => import('./pages/AdminPage'))
 const FilamentCategoryPage = lazy(() => import('./pages/FilamentCategoryPage'))
 const FilamentDetailPage = lazy(() => import('./pages/FilamentCategoryPage').then(m => ({ default: m.FilamentDetailPage })))
 const WhitePlaDetailPage = lazy(() => import('./pages/WhitePlaDetailPage'))
@@ -92,16 +92,39 @@ class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
     const isChunkError =
       error.message?.includes('Failed to fetch dynamically imported module') ||
       error.message?.includes('Importing a module script failed') ||
+      error.message?.includes('Unable to preload CSS') ||
       error.name === 'ChunkLoadError'
 
-    if (isChunkError) {
-      const storageKey = 'leniva_chunk_reload'
-      const lastReload = sessionStorage.getItem(storageKey)
-      const now = Date.now()
-      if (!lastReload || now - parseInt(lastReload) > 10000) {
-        sessionStorage.setItem(storageKey, now.toString())
-        window.location.reload()
+    const storageKey = 'leniva_chunk_reload'
+    const lastReload = sessionStorage.getItem(storageKey)
+    const now = Date.now()
+    if (!lastReload || now - parseInt(lastReload) > 8000) {
+      sessionStorage.setItem(storageKey, now.toString())
+      if (!isChunkError) {
+        // Sanitize any corrupted localStorage JSON if a runtime error occurred
+        try {
+          const keysToCheck = [
+            'leniva_admin_products_catalog',
+            'leniva_cad_software_edits',
+            'leniva_custom_cad_products',
+            'leniva_home_content',
+            'leniva_about_content',
+          ]
+          for (const k of keysToCheck) {
+            const raw = localStorage.getItem(k)
+            if (raw) {
+              try {
+                JSON.parse(raw)
+              } catch {
+                localStorage.removeItem(k)
+              }
+            }
+          }
+        } catch {
+          // ignore
+        }
       }
+      window.location.reload()
     }
   }
 
