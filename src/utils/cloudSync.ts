@@ -819,6 +819,36 @@ function runReleaseLocalStorageMigration(): void {
       }
     }
 
+    // 4. Clean stale blog post images with old Vite bundle hashes or missing paths
+    const rawBlogs = rawGetItem('leniva_admin_blogs_catalog')
+    if (rawBlogs) {
+      try {
+        const parsedBlogs = JSON.parse(rawBlogs)
+        if (Array.isArray(parsedBlogs) && parsedBlogs.length > 0) {
+          const publicBlogImages: Record<string, string> = {
+            'blog-1': '/images/blogs/blog-reverse-engineering.jpg',
+            'blog-2': '/images/blogs/blog-fdm-lcd-dlp.jpg',
+            'blog-3': '/images/blogs/blog-3d-scanning-inspection.jpg',
+            'blog-4': '/images/blogs/blog-cad-additive-manufacturing.jpg',
+            'blog-5': '/images/blogs/blog-industrial-3d-printing.jpg',
+          }
+          let modified = false
+          parsedBlogs.forEach((b: any) => {
+            const isStale = typeof b?.image === 'string' && (b.image.includes('/assets/blog-') || b.image.includes('/src/assets/blogs/'))
+            if (isStale || !b?.image) {
+              b.image = publicBlogImages[b.id] || publicBlogImages[b.slug] || '/images/blogs/blog-reverse-engineering.jpg'
+              modified = true
+            }
+          })
+          if (modified) {
+            rawSetItem('leniva_admin_blogs_catalog', JSON.stringify(parsedBlogs))
+          }
+        }
+      } catch {
+        rawRemoveItem('leniva_admin_blogs_catalog')
+      }
+    }
+
     rawSetItem(MIGRATION_KEY, '1')
     dispatchAllCmsUpdatedEvents()
   } catch (e) {

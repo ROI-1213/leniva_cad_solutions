@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { ChevronRight, Calendar, Clock, Share2, Tag } from 'lucide-react'
 import { blogPosts } from '../data/blogs'
-import { getStoredBlogsAsBlogPosts } from '../utils/blogCatalog'
+import { getStoredBlogsAsBlogPosts, FALLBACK_PUBLIC_BLOG_IMAGES } from '../utils/blogCatalog'
 import { BlogPost } from '../types'
 
 export const BlogPostPage: React.FC = () => {
@@ -102,7 +102,21 @@ export const BlogPostPage: React.FC = () => {
 
           {/* Hero Image */}
           <div className="aspect-[16/9] rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
-            <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
+            <img
+              src={post.image || FALLBACK_PUBLIC_BLOG_IMAGES[post.id] || `/images/blogs/${post.slug}.jpg`}
+              alt={post.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                const target = e.currentTarget
+                const fallback = FALLBACK_PUBLIC_BLOG_IMAGES[post.id] || `/images/blogs/${post.slug}.jpg`
+                const defaultFallback = '/images/blogs/blog-reverse-engineering.jpg'
+                if (target.src !== fallback && !target.src.endsWith(fallback)) {
+                  target.src = fallback
+                } else if (!target.src.endsWith(defaultFallback)) {
+                  target.src = defaultFallback
+                }
+              }}
+            />
           </div>
 
           {/* Article Markdown/Content Body */}
@@ -151,7 +165,21 @@ export const BlogPostPage: React.FC = () => {
                 to={`/blog/${rel.slug}`}
                 className="bg-white p-5 rounded-2xl border border-slate-200 hover:border-red-300 hover:shadow-lg transition-all flex items-center space-x-4 group"
               >
-                <img src={rel.image} alt={rel.title} className="w-16 h-16 object-cover rounded-xl shrink-0" />
+                <img
+                  src={rel.image || FALLBACK_PUBLIC_BLOG_IMAGES[rel.id] || `/images/blogs/${rel.slug}.jpg`}
+                  alt={rel.title}
+                  className="w-16 h-16 object-cover rounded-xl shrink-0"
+                  onError={(e) => {
+                    const target = e.currentTarget
+                    const fallback = FALLBACK_PUBLIC_BLOG_IMAGES[rel.id] || `/images/blogs/${rel.slug}.jpg`
+                    const defaultFallback = '/images/blogs/blog-reverse-engineering.jpg'
+                    if (target.src !== fallback && !target.src.endsWith(fallback)) {
+                      target.src = fallback
+                    } else if (!target.src.endsWith(defaultFallback)) {
+                      target.src = defaultFallback
+                    }
+                  }}
+                />
                 <div className="space-y-1">
                   <div className="text-[10px] font-bold uppercase text-red-600">{rel.category}</div>
                   <h4 className="text-xs font-bold text-slate-950 group-hover:text-red-600 line-clamp-2 transition-colors">

@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, Clock, Calendar, ArrowRight } from 'lucide-react'
 import { blogPosts } from '../data/blogs'
-import { getStoredBlogsAsBlogPosts } from '../utils/blogCatalog'
+import { getStoredBlogsAsBlogPosts, FALLBACK_PUBLIC_BLOG_IMAGES } from '../utils/blogCatalog'
 import { BlogPost } from '../types'
 
 export const BlogPage: React.FC = () => {
@@ -100,9 +100,19 @@ export const BlogPage: React.FC = () => {
             >
               <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
                 <img
-                  src={post.image}
+                  src={post.image || FALLBACK_PUBLIC_BLOG_IMAGES[post.id] || `/images/blogs/${post.slug}.jpg`}
                   alt={post.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  onError={(e) => {
+                    const target = e.currentTarget
+                    const publicFallback = FALLBACK_PUBLIC_BLOG_IMAGES[post.id] || `/images/blogs/${post.slug}.jpg`
+                    const defaultPublic = '/images/blogs/blog-reverse-engineering.jpg'
+                    if (target.src !== publicFallback && !target.src.endsWith(publicFallback)) {
+                      target.src = publicFallback
+                    } else if (!target.src.endsWith(defaultPublic)) {
+                      target.src = defaultPublic
+                    }
+                  }}
                 />
                 <span className="absolute top-3 left-3 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-slate-900/80 backdrop-blur-sm text-white rounded">
                   {post.category}
