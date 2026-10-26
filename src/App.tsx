@@ -427,9 +427,17 @@ export default function App() {
             <Route path="/products/areskudo" element={<AresKudoPage />} />
             <Route path="/product/areskudo" element={<AresKudoPage />} />
             <Route path="/areskudo" element={<AresKudoPage />} />
+            <Route path="/cad-software/ares-trinity" element={<AresKudoPage />} />
+            <Route path="/software/ares-trinity" element={<AresKudoPage />} />
             <Route path="/products/ares-trinity" element={<AresKudoPage />} />
             <Route path="/product/ares-trinity" element={<AresKudoPage />} />
             <Route path="/ares-trinity" element={<AresKudoPage />} />
+            <Route path="/products/ares-trinity-kudo-touch" element={<AresKudoPage />} />
+            <Route path="/product/ares-trinity-kudo-touch" element={<AresKudoPage />} />
+            <Route path="/ares-trinity-kudo-touch" element={<AresKudoPage />} />
+            <Route path="/products/ares-trinity-kudo-to" element={<AresKudoPage />} />
+            <Route path="/product/ares-trinity-kudo-to" element={<AresKudoPage />} />
+            <Route path="/ares-trinity-kudo-to" element={<AresKudoPage />} />
 
             {/* Dedicated ARES Touch Mobile CAD Product Page */}
             <Route path="/cad-software/ares-touch" element={<AresTouchPage />} />

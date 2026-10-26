@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import {
   Cloud,
   CheckCircle2,
@@ -41,6 +41,7 @@ import { useCadPageData } from '../utils/cadSoftwareConfig'
 export const AresKudoPage: React.FC = () => {
   const { openQuoteModal } = useApp()
   const { data } = useCadPageData('ares_kudo', aresKudoData)
+  const location = useLocation()
 
   // State management
   const [activeNav, setActiveNav] = useState('overview')
@@ -129,6 +130,16 @@ export const AresKudoPage: React.FC = () => {
       })
     }
   }
+
+  // Auto-scroll to Trinity Ecosystem when navigated via Trinity route/hash
+  useEffect(() => {
+    if (location.pathname.includes('trinity') || location.hash === '#trinity') {
+      const timer = setTimeout(() => {
+        scrollTo('trinity')
+      }, 400)
+      return () => clearTimeout(timer)
+    }
+  }, [location.pathname, location.hash])
 
   // Active section observer on scroll
   useEffect(() => {
@@ -1508,7 +1519,9 @@ export const AresKudoPage: React.FC = () => {
                   <div className="space-y-4">
                     <div>
                       <h3 className="text-lg font-bold text-slate-900">{plan.name}</h3>
-                      <span className="text-xs text-blue-600 font-semibold">{plan.targetUser}</span>
+                      <span className="text-xs text-blue-600 font-semibold">
+                        {plan.id === 'free' ? 'Only for 30 days' : plan.targetUser}
+                      </span>
                     </div>
 
                     <p className="text-xs text-slate-500 leading-relaxed min-h-[36px]">{plan.tagline}</p>

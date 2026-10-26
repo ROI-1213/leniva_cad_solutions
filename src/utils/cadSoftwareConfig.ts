@@ -140,6 +140,7 @@ export const CAD_KEY_TO_SLUG_MAP: Record<string, string> = {
   ares_electrical: 'ares-electrical',
   ares_kudo: 'ares-kudo',
   ares_touch: 'ares-touch',
+  ares_trinity: 'ares-trinity',
   sketchup_pro: 'sketchup',
   sketchup_proscan: 'sketchup-scan',
   sketchup_advanced: 'sketchup-advanced',

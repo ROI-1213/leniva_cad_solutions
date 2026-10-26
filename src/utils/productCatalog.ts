@@ -313,6 +313,8 @@ export const CAD_SLUG_TO_KEY_MAP: Record<string, string> = {
   'ares-commander': 'ares_commander',
   'ares-kudo': 'ares_kudo',
   'ares-touch': 'ares_touch',
+  'ares-trinity': 'ares_kudo',
+  'ares-trinity-kudo-touch': 'ares_kudo',
   enscape: 'chaos_enscape',
   vray: 'chaos_vray',
   corona: 'chaos_corona',

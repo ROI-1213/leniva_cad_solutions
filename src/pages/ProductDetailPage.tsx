@@ -39,6 +39,8 @@ import AresMechanicalPage from './AresMechanicalPage'
 import AresElectricalPage from './AresElectricalPage'
 import AresStandardPage from './AresStandardPage'
 import AresCommanderPage from './AresCommanderPage'
+import AresKudoPage from './AresKudoPage'
+import AresTouchPage from './AresTouchPage'
 
 interface ProductDetailPageProps {
   forcedSlug?: string
@@ -68,6 +70,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
     'gt-max': 'eka-gt-max',
     'eka-f1-16k-industrial-lcd-jewelry-3d-printer': 'eka-f1-16k',
     'f1-16k': 'eka-f1-16k',
+    'ares-trinity-kudo-touch': 'ares-trinity',
+    'ares-trinity-kudo-to': 'ares-trinity',
+    'ares-trinity-cloud-mobile': 'ares-trinity',
+    'ares-kudo': 'ares-kudo',
+    'ares-touch': 'ares-touch',
   }
   const resolvedSlug = slug ? (slugAliases[slug.toLowerCase()] || slug.toLowerCase()) : ''
 
@@ -134,6 +141,15 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
   }
   if (resolvedSlug === 'ares-commander' || resolvedSlug === 'arescommander' || resolvedSlug === 'ares_commander') {
     return <AresCommanderPage />
+  }
+  if (resolvedSlug === 'ares-kudo' || resolvedSlug === 'areskudo' || resolvedSlug === 'ares_kudo') {
+    return <AresKudoPage />
+  }
+  if (resolvedSlug === 'ares-touch' || resolvedSlug === 'arestouch' || resolvedSlug === 'ares_touch') {
+    return <AresTouchPage />
+  }
+  if (resolvedSlug === 'ares-trinity' || resolvedSlug === 'arestrinity' || resolvedSlug === 'ares_trinity' || resolvedSlug.includes('trinity')) {
+    return <AresKudoPage />
   }
   if (resolvedSlug === 'eka-ht') {
     return <EkaHtPage />

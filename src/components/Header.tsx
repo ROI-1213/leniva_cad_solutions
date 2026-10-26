@@ -64,6 +64,28 @@ export const Header: React.FC = () => {
     }
   }
 
+  const normalizeProductUrl = (rawSlug: string): string => {
+    if (!rawSlug) return '/products'
+    if (rawSlug.startsWith('http://') || rawSlug.startsWith('https://')) return rawSlug
+    let clean = rawSlug.trim()
+    while (clean.startsWith('/')) {
+      clean = clean.substring(1)
+    }
+    if (clean.startsWith('products/')) {
+      clean = clean.replace(/^products\/+/, '')
+    }
+    if (clean.startsWith('product/')) {
+      clean = clean.replace(/^product\/+/, '')
+    }
+    if (clean.startsWith('shop/filaments/')) {
+      return `/${clean}`
+    }
+    if (clean.startsWith('filaments/')) {
+      return `/shop/${clean}`
+    }
+    return `/products/${clean}`
+  }
+
   const megaCategories = navConfig.hardwareMegaMenu.categories.map(cat => ({
     ...cat,
     icon: getHardwareCategoryIcon(cat.id),
@@ -318,7 +340,7 @@ export const Header: React.FC = () => {
                                 {currentCat.products.map(prod => (
                                   <Link
                                     key={prod.slug}
-                                    to={`/products/${prod.slug}`}
+                                    to={normalizeProductUrl(prod.slug)}
                                     onClick={() => setActiveMegaMenu(null)}
                                     className="flex items-center gap-3 p-2 rounded-xl border border-slate-200/80 hover:border-red-300 hover:bg-red-50/30 hover:shadow-xs transition-all group bg-white relative"
                                   >
@@ -462,7 +484,7 @@ export const Header: React.FC = () => {
                                 {currentCat.products.map(prod => (
                                   <Link
                                     key={prod.slug}
-                                    to={`/products/${prod.slug}`}
+                                    to={normalizeProductUrl(prod.slug)}
                                     className="p-2.5 rounded-lg border border-slate-100 hover:border-red-200 hover:bg-red-50/40 transition-all group"
                                   >
                                     <div className="flex items-center justify-between">
@@ -852,7 +874,7 @@ export const Header: React.FC = () => {
                           {cat.products.map(p => (
                             <Link
                               key={p.slug}
-                              to={`/products/${p.slug}`}
+                              to={normalizeProductUrl(p.slug)}
                               onClick={() => setIsMobileMenuOpen(false)}
                               className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-slate-50 text-slate-700 hover:text-red-600 transition-colors"
                             >
@@ -911,7 +933,7 @@ export const Header: React.FC = () => {
                           {cat.products.map(p => (
                             <Link
                               key={p.slug}
-                              to={`/products/${p.slug}`}
+                              to={normalizeProductUrl(p.slug)}
                               onClick={() => setIsMobileMenuOpen(false)}
                               className="block text-[11px] text-slate-500 hover:text-slate-900"
                             >

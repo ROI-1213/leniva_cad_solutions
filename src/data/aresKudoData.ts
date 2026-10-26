@@ -894,10 +894,10 @@ export const aresKudoData = {
       id: 'free' as const,
       name: 'ARES Kudo Free',
       tagline: 'Ideal for project reviewers, clients, and students who need zero-cost DWG viewing and collaboration.',
-      targetUser: 'Reviewers & Stakeholders',
+      targetUser: 'Only for 30 days',
       priceEur: { free: true },
       priceInr: { free: true },
-      billingNote: 'Free forever with no credit card required',
+      billingNote: 'Free trial for 30 days with no credit card required',
       features: [
         'Zero-install 2D DWG & DXF web viewer',
         'Accurate measuring (Distance, Area, Radius, Angle)',

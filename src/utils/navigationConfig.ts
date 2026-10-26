@@ -141,6 +141,7 @@ export const DEFAULT_NAVIGATION_CONFIG: MasterNavigationConfig = {
           { name: 'ARES Touch', slug: 'ares-touch', spec: 'Mobile DWG CAD & Field', image: '/images/software/ares-touch.jpg' },
           { name: 'ARES Mechanical', slug: 'ares-mechanical', spec: 'Mechanical Design CAD', image: '/images/software/ares-mechanical.jpg' },
           { name: 'ARES Electrical', slug: 'ares-electrical', spec: 'Electrical Schematics CAD', image: '/images/software/ares-electrical.jpg' },
+          { name: 'ARES Trinity (Kudo + Touch)', slug: 'ares-trinity', spec: 'Cloud & Mobile Ecosystem', image: '/images/software/ares-commander.jpg' },
         ],
       },
       {
@@ -332,11 +333,12 @@ export const getStoredNavigationConfig = (): MasterNavigationConfig => {
 
               const targetCat = config.cadMegaMenu.categories.find(c => c.id === targetBrandId)
               if (targetCat) {
-                const alreadyExists = targetCat.products.some(p => p.slug.includes(slug) || p.name.toLowerCase() === name)
+                const cleanSlug = slug.replace(/^\/+products\/+/, '').replace(/^\/+/, '')
+                const alreadyExists = targetCat.products.some(p => p.slug.replace(/^\/+products\/+/, '').replace(/^\/+/, '') === cleanSlug || p.name.toLowerCase() === name)
                 if (!alreadyExists) {
                   targetCat.products.push({
                     name: item.name,
-                    slug: `/products/${slug}`,
+                    slug: cleanSlug,
                     spec: item.tagline || 'Engineering Software',
                     image: item.hero_image || '/images/software/ares-commander.jpg',
                     badge: item.badge,
@@ -363,11 +365,12 @@ export const getStoredNavigationConfig = (): MasterNavigationConfig => {
 
               const targetCat = config.hardwareMegaMenu.categories.find(c => c.id === targetHwId)
               if (targetCat) {
-                const alreadyExists = targetCat.products.some(p => p.slug.includes(slug) || p.name.toLowerCase() === name)
+                const cleanSlug = slug.replace(/^\/+products\/+/, '').replace(/^\/+/, '')
+                const alreadyExists = targetCat.products.some(p => p.slug.replace(/^\/+products\/+/, '').replace(/^\/+/, '') === cleanSlug || p.name.toLowerCase() === name)
                 if (!alreadyExists) {
                   targetCat.products.push({
                     name: item.name,
-                    slug: targetHwId === 'filaments' ? `/shop/filaments/${slug}` : `/products/${slug}`,
+                    slug: targetHwId === 'filaments' ? `shop/filaments/${cleanSlug}` : cleanSlug,
                     spec: item.tagline || (targetHwId === 'filaments' ? '3D Filament' : 'Additive System'),
                     badge: item.badge,
                   })
