@@ -509,10 +509,10 @@ export const fdmPagesData: Record<string, FdmPageSectionData> = {
     brochureUrl: '/brochures/pratham-3.pdf',
     keySpecs: [
       { label: 'Build Volume', value: '300 × 300 × 300 mm (27 L)' },
-      { label: 'Chamber Enclosure', value: 'Fully Enclosed Thermal Body' },
+      { label: 'Chamber Enclosure', value: 'Fully Enclosed Body' },
       { label: 'XY Motion Gantry', value: 'THK Linear Motion Guide Rails' },
-      { label: 'Print Speed', value: 'Up to 120 mm/s (40–120 mm/s)' },
-      { label: 'Layer Resolution', value: '80 – 600 microns' },
+      { label: 'Print Speed', value: '40 – 120 mm/s' },
+      { label: 'Layer Resolution', value: '80 – 400 microns' },
       { label: 'Bed Leveling', value: '9-Point Magnetic Touch Sensor' },
     ],
     specifications: {
@@ -522,10 +522,8 @@ export const fdmPagesData: Record<string, FdmPageSectionData> = {
       'Print Bed Temp': '120°C (Silicone Fast-Heat Bed)',
       'Standard Nozzle': '0.4 mm standard brass',
       'Changeable Nozzles': '0.3 / 0.4 / 0.5 / 0.6 / 0.8 mm',
-      'Marketing Print Speed': 'Up to 120 mm/s',
-      'Brochure Print Speed': '40 – 120 mm/s',
-      'Marketing Resolution': '80 – 600 microns',
-      'Brochure Resolution Steps': '0.08 / 0.1 / 0.2 / 0.3 / 0.4 mm',
+      'Print Speed': '40 – 120 mm/s',
+      'Layer Resolution': '80 – 400 microns',
       'Dimensional Tolerance': '±0.1 mm',
       'Filament Diameter': '1.75 mm standard',
       'XY Motion Gantry': 'THK Linear Motion Guide Rails',
@@ -552,9 +550,9 @@ export const fdmPagesData: Record<string, FdmPageSectionData> = {
       'Smart Features': 'Power resume + Optical filament run-out sensor',
     },
     features: [
-      'High-Speed Industrial Printing: Up to 120 mm/s (brochure range 40–120 mm/s)',
+      'High-Speed Industrial Printing: 40–120 mm/s',
       'Advanced Connectivity Options: Wi-Fi • USB • SD Card',
-      'Precision Layer Resolution: 80 – 600 Microns (0.08 / 0.1 / 0.2 / 0.3 / 0.4 mm)',
+      'Precision Layer Resolution: 80 – 400 Microns (0.08 / 0.1 / 0.2 / 0.3 / 0.4 mm)',
       'Optimized Build Volume: 300 × 300 × 300 mm (27,000 cm³ Enclosed Cubic Space)',
       'Wide File Compatibility: STL • OBJ • GCODE with Simplify3D & Ultimaker Cura',
       '1.75 mm Broad Thermoplastic Support: PLA, ABS, PETG, TPU (95A), ASA, PP, HIPS, Carbon-Fused Composites',
@@ -563,9 +561,9 @@ export const fdmPagesData: Record<string, FdmPageSectionData> = {
     featureCards: [
       {
         title: 'High-Speed Industrial Printing',
-        subtitle: '40–120 mm/s Brochure Range',
+        subtitle: '40–120 mm/s Range',
         badge: 'Feature 01',
-        highlight: 'Up to 120 mm/s',
+        highlight: '40 – 120 mm/s',
         desc: 'THK linear motion guide rails and high-torque steppers deliver rapid, vibration-free layer deposition.',
       },
       {
@@ -579,7 +577,7 @@ export const fdmPagesData: Record<string, FdmPageSectionData> = {
         title: 'Precision Layer Resolution',
         subtitle: '0.08 / 0.1 / 0.2 / 0.3 / 0.4 mm',
         badge: 'Feature 03',
-        highlight: '80 – 600 Microns',
+        highlight: '80 – 400 Microns',
         desc: 'Micro-step linear rail motion minimizes layer stepping and surface ringing with ±0.1 mm repeatability.',
       },
       {
@@ -787,8 +785,8 @@ export const fdmPagesData: Record<string, FdmPageSectionData> = {
     keySpecs: [
       { label: 'Build Volume', value: '500 × 500 × 500 mm (125 L)' },
       { label: 'Technology', value: 'FDM / FFF' },
-      { label: 'Layer Resolution', value: '80–600 µm (0.08–0.4 mm)' },
-      { label: 'Print Speed', value: 'Up to 120 mm/s (40–120 mm/s)' },
+      { label: 'Layer Resolution', value: '80–400 µm' },
+      { label: 'Print Speed', value: '40–120 mm/s' },
       { label: 'Extruder Temp', value: 'Up to 280°C' },
       { label: 'Heated Bed Temp', value: 'Up to 120°C (Silicone + Aluminum)' },
       { label: 'Dimensional Tol.', value: '±0.1 mm' },
@@ -797,9 +795,9 @@ export const fdmPagesData: Record<string, FdmPageSectionData> = {
     specifications: {
       'Print Technology': 'Fused Filament Fabrication (FDM / FFF)',
       'Build Volume': '500 × 500 × 500 mm (125 Liters)',
-      'Layer Resolution': '80–600 microns (Brochure: 0.08 / 0.1 / 0.2 / 0.3 / 0.4 mm)',
+      'Layer Resolution': '80–400 microns',
       'Dimensional Tolerance': '±0.1 mm',
-      'Print Speed': 'Up to 120 mm/s (Brochure: 40–120 mm/sec)',
+      'Print Speed': '40–120 mm/s',
       'Extruder Temperature': '280°C, single extruder',
       'Printbed Temperature': '120°C',
       'Nozzle Size (Standard)': '0.5 mm standard',
@@ -824,9 +822,9 @@ export const fdmPagesData: Record<string, FdmPageSectionData> = {
       'Power Rating': '750 W',
     },
     features: [
-      'High-Speed Industrial Printing: Up to 120 mm/s (40–120 mm/sec)',
+      'High-Speed Industrial Printing: 40–120 mm/s',
       'Advanced Connectivity Options: USB / SD / Optional Wi-Fi',
-      'Precision Layer Resolution: 80–600 µm Range (0.08, 0.1, 0.2, 0.3, 0.4 mm)',
+      'Precision Layer Resolution: 80–400 µm Range (0.08, 0.1, 0.2, 0.3, 0.4 mm)',
       'Optimized 500 mm³ Build Volume: 500 × 500 × 500 mm (125 Liters Volume)',
       'Wide File Compatibility: STL, GCODE & OBJ with Simplify3D License Included',
       '1.75 mm Filament Support: 10+ Filament Types (PLA, ABS, PETG, TPU, ASA, Nylon, Carbon Fiber, PP, HIPS)',
@@ -1014,11 +1012,11 @@ export const fdmPagesData: Record<string, FdmPageSectionData> = {
       },
       {
         q: 'What is the print speed of Pratham 5.0?',
-        a: 'The product page states up to 120 mm/s, while the brochure specifies 40–120 mm/sec.',
+        a: 'Pratham 5.0 supports print speeds of 40–120 mm/s depending on material and layer profile.',
       },
       {
         q: 'What is the layer resolution?',
-        a: 'The product page states 80–600 microns, while the brochure lists 0.08, 0.1, 0.2, 0.3 and 0.4 mm.',
+        a: 'The layer resolution is 80–400 microns (0.08, 0.1, 0.2, 0.3 and 0.4 mm).',
       },
       {
         q: 'Is Wi-Fi included?',
@@ -1077,8 +1075,8 @@ export const fdmPagesData: Record<string, FdmPageSectionData> = {
     keySpecs: [
       { label: 'Build Volume', value: '600 × 600 × 600 mm (216 L)' },
       { label: 'Technology', value: 'FDM / FFF' },
-      { label: 'Layer Resolution', value: '80–600 µm (0.08–0.4 mm)' },
-      { label: 'Print Speed', value: 'Up to 120 mm/s (40–120 mm/s)' },
+      { label: 'Layer Resolution', value: '80–400 µm' },
+      { label: 'Print Speed', value: '40–120 mm/s' },
       { label: 'Extruder Temp', value: 'Up to 280°C' },
       { label: 'Heated Bed Temp', value: 'Up to 120°C (Silicone + Aluminum)' },
       { label: 'Machine Weight', value: '100 kg Net Weight' },
@@ -1087,9 +1085,9 @@ export const fdmPagesData: Record<string, FdmPageSectionData> = {
     specifications: {
       'Print Technology': 'Fused Filament Fabrication (FDM / FFF)',
       'Build Volume': '600 × 600 × 600 mm (216 Liters)',
-      'Layer Resolution': '80–600 microns (Brochure: 0.08 / 0.1 / 0.2 / 0.3 / 0.4 mm)',
+      'Layer Resolution': '80–400 microns',
       'Dimensional Tolerance': '±0.1 mm',
-      'Print Speed': 'Up to 120 mm/s (Brochure: 40–120 mm/sec)',
+      'Print Speed': '40–120 mm/s',
       'Extruder Temperature': '280°C (Single Extruder)',
       'Printbed Temperature': '120°C',
       'Nozzle Size (Standard)': '0.5 mm standard',
@@ -1295,11 +1293,11 @@ export const fdmPagesData: Record<string, FdmPageSectionData> = {
       },
       {
         q: 'What is the layer resolution?',
-        a: 'The product page states 80–600 microns, while the brochure lists 0.08, 0.1, 0.2, 0.3 and 0.4 mm.',
+        a: 'The layer resolution is 80–400 microns (0.08, 0.1, 0.2, 0.3 and 0.4 mm).',
       },
       {
         q: 'What is the print speed?',
-        a: 'The product page states up to 120 mm/s, while the brochure specifies 40–120 mm/sec.',
+        a: 'Pratham 6.0 supports print speeds of 40–120 mm/s depending on material, nozzle size and part geometry.',
       },
       {
         q: 'What file formats are supported?',
@@ -1358,12 +1356,11 @@ export const fdmPagesData: Record<string, FdmPageSectionData> = {
       'Printbed Heating & Temp': '120 °C (Silicone Fastest Heating Bed + Aluminum Printbed Platform)',
       'Nozzle Sizes': '0.5 mm Standard (0.3 / 0.4 / 0.6 / 0.8 mm changeable)',
       'Layer Resolution': '0.08 / 0.1 / 0.2 / 0.3 / 0.4 mm',
-      'Filament Compatibility': '1.75 mm PLA+ / PETG / TPU',
+      'Filament Compatibility': '1.75 mm PLA, PETG, TPU',
       'Software Bundle': 'Simplify3D License Software included with machine',
       'Operating Control': 'Full Color Touch Screen Controller',
       'Supported File Formats': 'STL or GCODE',
-      'Connectivity': 'USB / SD Card / Wi-Fi (optional add-on)',
-      'Optional Factory Add-ons': 'Dual Nozzle • Camera Monitoring • Wi-Fi Operating',
+      'Connectivity': 'USB / SD Card',
     },
     features: [
       'ALL-Axis Industrial Ball Screw on X, Y, and Z axes with Japanese THK linear motion guides',
@@ -1372,7 +1369,7 @@ export const fdmPagesData: Record<string, FdmPageSectionData> = {
       '250 KG All-Metal MS Body eliminates frame flex and gantry warp',
       'X-Y Precision: 11 Microns, Z Precision: 10 Microns, ±0.2 mm tolerance across 1-meter span',
       'Simplify3D License Included + Changeable Nozzle System (0.5 mm standard; 0.3–0.8 mm)',
-      'Optional Factory Add-ons: Dual Extrusion Nozzles, Wi-Fi Camera Remote Monitoring, Enclosed Panels',
+      'Factory Options: Custom Tooling Fixtures, Specialized Build Surfaces, Enclosed Panels',
     ],
     featureCards: [
       {
@@ -1521,12 +1518,12 @@ export const fdmPagesData: Record<string, FdmPageSectionData> = {
       'Changeable Nozzle Options': '0.3 / 0.4 / 0.6 / 0.8 mm',
       'Heatbed Build Platform': 'Heated aluminum printbed',
       'Filament Diameter': '1.75 mm',
-      'Brochure-listed Materials': 'PLA+ / PETG / TPU (Page also lists ABS, ASA, Nylon, PC, Carbon Fiber)',
+      'Filament Compatibility': 'PLA, PETG, TPU',
       'Operating Control': 'Touchscreen control',
       'Software Bundle': 'Simplify3D license',
       'Operating System Compatibility': 'Windows / Mac',
       'Supported File Formats': 'STL / G-code',
-      'Connectivity Interfaces': 'USB / SD Card / Wi-Fi (optional add-on)',
+      'Connectivity Interfaces': 'USB / SD Card',
       'XY Gantry Motion': 'THK linear motion guide with ball screw',
       'X-Y Precision': '11 microns',
       'Z Precision': '10 microns with industrial ball screw',
@@ -1709,7 +1706,7 @@ export const fdmPagesData: Record<string, FdmPageSectionData> = {
       },
       {
         q: 'What materials can Pratham X print?',
-        a: 'The product page lists PLA, ABS, PETG, ASA, Nylon, TPU, PC and carbon-fiber composites. The brochure specifically lists PLA+, PETG and TPU.',
+        a: 'Pratham X supports PLA, PETG, and TPU filaments.',
       },
       {
         q: 'Is Pratham X suitable for industrial production?',

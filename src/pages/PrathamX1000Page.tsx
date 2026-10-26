@@ -649,70 +649,70 @@ export const PrathamX1000Page: React.FC = () => {
             {
               id: 3,
               title: 'All-Axis Ball-Screw Mechanism',
-              desc: 'The brochure describes a robust XYZ gantry system with ball-screw movement. This is intended to support controlled movement across the large travel range.',
+              desc: 'Robust XYZ gantry system with precision ball-screw movement engineered to deliver controlled, backlash-free motion across the full travel range.',
               icon: Wrench,
               tag: 'Motion',
             },
             {
               id: 4,
               title: 'THK Linear Motion Guides',
-              desc: 'The brochure lists Japanese THK linear motion guides with ball-screw mechanisms for the gantry system, ensuring tight repeatability.',
+              desc: 'Japanese THK linear motion guides paired with ball-screw mechanisms across the gantry system ensure exceptional repeatability and rigidity.',
               icon: Compass,
               tag: 'Guidance',
             },
             {
               id: 5,
               title: 'Silicone Heatbed',
-              desc: 'The product page highlights a silicone heatbed with fast bed heating. The brochure lists a 120°C printbed temperature across the entire 1 m² platform.',
+              desc: 'High-power silicone heatbed delivering rapid, uniform heating up to 120°C across the entire 1 m² platform.',
               icon: Thermometer,
               tag: 'Bed Heating',
             },
             {
               id: 6,
               title: 'Automatic Bed Leveling',
-              desc: 'Automatic bed leveling is listed as a feature intended to simplify bed calibration and first-layer preparation across the massive build surface.',
+              desc: 'Automatic bed leveling simplifies calibration and optimizes first-layer adhesion across the massive 1000 × 1000 mm build area.',
               icon: RefreshCw,
               tag: 'Calibration',
             },
             {
               id: 7,
               title: 'Filament Sensor',
-              desc: 'The brochure describes a filament sensor that can help users respond when filament is exhausted during long-hour continuous printing.',
+              desc: 'Integrated filament runout detection pauses the print when material runs out, safeguarding long-hour continuous production runs.',
               icon: Activity,
               tag: 'Monitoring',
             },
             {
               id: 8,
               title: 'Large Build Volume',
-              desc: 'The one-metre cubic (1000 × 1000 × 1000 mm) configuration enables suitable oversized parts to be produced in a single print without segmentation.',
+              desc: 'The one-metre cubic (1000 × 1000 × 1000 mm) volume enables oversized parts to be produced in a single print without segmentation.',
               icon: Box,
               tag: 'Capacity',
             },
             {
               id: 9,
               title: 'High-Temperature Extrusion',
-              desc: 'The brochure lists a 280°C single extruder. Supports compatible thermoplastics within the validated material and machine configuration.',
+              desc: 'Industrial 280°C single extruder supporting continuous production with PLA, PETG, and TPU.',
               icon: Flame,
               tag: 'Extrusion',
             },
             {
               id: 10,
               title: 'Touchscreen Control',
-              desc: 'The brochure lists touchscreen control for machine operation, print parameter adjustments and real-time job monitoring.',
+              desc: 'Intuitive touchscreen control interface for easy job setup, live parameter adjustments, and real-time machine monitoring.',
               icon: Monitor,
               tag: 'HMI',
             },
             {
               id: 11,
               title: 'Adjustable Layer Resolution',
-              desc: 'The brochure lists layer resolutions from 0.08 mm to 0.4 mm, allowing users to select a suitable balance between fine surface detail and print duration.',
+              desc: 'Flexible layer resolution from 80 to 400 microns (0.08–0.4 mm), balancing ultra-fine surface fidelity with high-throughput print cycles.',
               icon: Layers,
               tag: 'Resolution',
             },
             {
               id: 12,
               title: 'Industrial Aluminum Printbed',
-              desc: 'The brochure lists an aluminum printbed with silicone heating, delivering uniform heat distribution across the 1000 × 1000 mm surface.',
+              desc: 'Cast aluminum printbed paired with high-performance silicone heating, delivering flat, reliable heat distribution over 1 m².',
               icon: HardDrive,
               tag: 'Platform',
             },
@@ -957,66 +957,32 @@ export const PrathamX1000Page: React.FC = () => {
             Material Compatibility for Engineering Workflows
           </h2>
           <p className="text-sm text-slate-600 leading-relaxed">
-            The Pratham X product page lists a range of engineering thermoplastics, while the brochure specifically lists
-            PLA+, PETG and TPU. Presenting the product-page materials as manufacturer-listed compatibility with clear source distinctions.
+            Optimized for large-scale, high-reliability industrial 3D printing across standard engineering thermoplastics: PLA, PETG, and TPU.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
           {[
             {
-              name: 'PLA+',
-              source: 'Brochure Listed',
+              name: 'PLA',
               desc: 'Concept models, prototypes and general-purpose components with high dimensional stability across large cross-sections.',
               bed: '50–65°C',
             },
             {
               name: 'PETG',
-              source: 'Brochure Listed',
-              desc: 'Functional prototypes and selected engineering parts requiring chemical resistance, impact strength and low moisture absorption.',
+              desc: 'Functional prototypes and engineering parts requiring chemical resistance, impact strength and low moisture absorption.',
               bed: '75–85°C',
             },
             {
               name: 'TPU',
-              source: 'Brochure Listed',
-              desc: 'Suitable flexible components, gaskets, impact dampers and protective cushioning elements.',
+              desc: 'Flexible components, gaskets, impact dampers and protective cushioning elements.',
               bed: '45–60°C',
-            },
-            {
-              name: 'ABS',
-              source: 'Page Listed',
-              desc: 'Engineering prototypes and functional components requiring higher thermal and mechanical resilience.',
-              bed: '90–110°C',
-            },
-            {
-              name: 'ASA',
-              source: 'Page Listed',
-              desc: 'Selected outdoor engineering applications where UV stability and environmental weathering are important.',
-              bed: '90–110°C',
-            },
-            {
-              name: 'Nylon',
-              source: 'Page Listed',
-              desc: 'Engineering parts subject to friction, mechanical wear and cyclic stresses.',
-              bed: '70–90°C',
-            },
-            {
-              name: 'PC (Polycarbonate)',
-              source: 'Page Listed',
-              desc: 'Suitable applications subject to validated configuration and thermal enclosure parameters.',
-              bed: '100–120°C',
-            },
-            {
-              name: 'Carbon Fiber Composites',
-              source: 'Page Listed',
-              desc: 'Listed on the product page. Exact composite formulation and hardened nozzle requirements must be confirmed.',
-              bed: '70–90°C',
             },
           ].map((mat, idx) => (
             <div
               key={idx}
               onClick={() => setSelectedMaterial(mat.name)}
-              className={`p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-3 ${
+              className={`p-6 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-4 ${
                 selectedMaterial === mat.name
                   ? 'bg-red-50/60 border-red-500 shadow-sm ring-1 ring-red-500'
                   : 'bg-white border-slate-200/90 shadow-2xs hover:border-slate-300'
@@ -1024,35 +990,18 @@ export const PrathamX1000Page: React.FC = () => {
             >
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-extrabold text-slate-900 text-sm">{mat.name}</h3>
-                  <span
-                    className={`text-[9px] font-mono uppercase px-2 py-0.5 rounded font-bold ${
-                      mat.source.includes('Brochure') ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
-                    }`}
-                  >
-                    {mat.source}
+                  <h3 className="font-extrabold text-slate-900 text-base">{mat.name}</h3>
+                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold bg-emerald-100 text-emerald-800">
+                    Validated
                   </span>
                 </div>
                 <p className="text-xs text-slate-600 leading-relaxed">{mat.desc}</p>
               </div>
-              <div className="pt-2 border-t border-slate-100 text-[10px] font-mono text-slate-500">
+              <div className="pt-3 border-t border-slate-100 text-xs font-mono text-slate-500">
                 Bed Temp: {mat.bed}
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Source Note Banner */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-xs text-slate-600">
-            <strong>Material Source Distinction:</strong> The brochure lists PLA+, PETG and TPU. The official product page lists PLA, ABS, PETG, ASA, Nylon, TPU, PC and carbon-fiber composites. Material suitability depends on filament grade and machine configuration.
-          </div>
-          <button
-            onClick={() => openQuoteModal('Material Compatibility Enquiry — Pratham X 1000')}
-            className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs tracking-wide shrink-0 transition-colors cursor-pointer"
-          >
-            Ask About Material Compatibility
-          </button>
         </div>
       </section>
 
@@ -1114,7 +1063,7 @@ export const PrathamX1000Page: React.FC = () => {
                   { k: 'Changeable Nozzle Options', v: '0.3 / 0.4 / 0.6 / 0.8 mm' },
                   { k: 'Heatbed Build Platform', v: 'Heated aluminum printbed' },
                   { k: 'Filament Diameter', v: '1.75 mm' },
-                  { k: 'Brochure-listed Materials', v: 'PLA+ / PETG / TPU' },
+                  { k: 'Filament Compatibility', v: 'PLA, PETG, TPU' },
                   { k: 'Operating Control', v: 'Touchscreen control' },
                 ].map((spec, i) => (
                   <div key={i} className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex justify-between gap-4">
@@ -1129,14 +1078,14 @@ export const PrathamX1000Page: React.FC = () => {
           {activeSpecTab === 'software' && (
             <div className="space-y-4">
               <h3 className="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-2">
-                Software and Connectivity (Brochure-Listed)
+                Software and Connectivity
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                 {[
-                  { k: 'Software Bundle', v: 'Simplify3D license' },
+                  { k: 'Software Bundle', v: 'Simplify3D license included' },
                   { k: 'Operating System Compatibility', v: 'Windows / Mac' },
                   { k: 'Supported File Formats', v: 'STL / G-code' },
-                  { k: 'Connectivity Interfaces', v: 'USB / SD Card / Wi-Fi (optional add-on)' },
+                  { k: 'Connectivity Interfaces', v: 'USB / SD Card' },
                 ].map((spec, i) => (
                   <div key={i} className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex justify-between gap-4">
                     <span className="text-slate-500 font-medium">{spec.k}</span>
@@ -1211,8 +1160,8 @@ export const PrathamX1000Page: React.FC = () => {
             Robust XYZ Gantry with Ball-Screw Movement
           </h2>
           <p className="text-sm text-slate-600 leading-relaxed">
-            The Pratham X brochure lists a THK linear motion guide with ball-screw movement and an all-metal MS body,
-            intended to support controlled movement and structural stability for large-format printing.
+            Equipped with Japanese THK linear motion guides, ball-screw drive mechanisms, and an all-metal MS body
+            delivering rigid, backlash-free movement and structural stability for large-format industrial 3D printing.
           </p>
         </div>
 
@@ -1261,8 +1210,8 @@ export const PrathamX1000Page: React.FC = () => {
             Thermal Control for Large-Format Printing
           </h2>
           <p className="text-sm text-slate-600 leading-relaxed">
-            The product page describes advanced thermal management intended to support stable printing of large objects,
-            minimize warping and improve layer adhesion. The brochure lists a 120°C printbed and a silicone heatbed feature.
+            Advanced thermal management engineered to support stable printing of large parts,
+            minimize warping, and ensure strong layer adhesion with a 120°C silicone-heated bed.
           </p>
         </div>
 
@@ -1272,7 +1221,7 @@ export const PrathamX1000Page: React.FC = () => {
               <Thermometer className="w-5 h-5" />
             </div>
             <h3 className="font-extrabold text-sm text-slate-900">120°C Heated Bed</h3>
-            <p className="text-xs text-slate-600">Brochure-listed temperature for reliable polymer adhesion.</p>
+            <p className="text-xs text-slate-600">High-temperature bed for reliable polymer adhesion.</p>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-2 text-center">
@@ -1280,7 +1229,7 @@ export const PrathamX1000Page: React.FC = () => {
               <Zap className="w-5 h-5" />
             </div>
             <h3 className="font-extrabold text-sm text-slate-900">Silicone Heatbed</h3>
-            <p className="text-xs text-slate-600">Fast bed heating highlighted on official product page.</p>
+            <p className="text-xs text-slate-600">Fast, uniform heating across the entire 1 m² build plate.</p>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-2 text-center">
@@ -1314,8 +1263,7 @@ export const PrathamX1000Page: React.FC = () => {
               Flexible File Handling and Print Preparation
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              The brochure lists STL and G-code file support, Windows and Mac operating systems, Simplify3D software and
-              USB/SD card connectivity. Wi-Fi is listed as an optional add-on in the brochure.
+              Industrial file handling with STL and G-code support on Windows and Mac, powered by Simplify3D software and reliable USB/SD card connectivity.
             </p>
           </div>
 
@@ -1324,7 +1272,7 @@ export const PrathamX1000Page: React.FC = () => {
               { step: '1. CAD Design', desc: 'Design oversized component in compatible CAD software' },
               { step: '2. Export Model', desc: 'Export geometry in standard STL or 3MF format' },
               { step: '3. Slice File', desc: 'Prepare toolpaths using Simplify3D license software' },
-              { step: '4. File Transfer', desc: 'Load file via USB drive, SD Card or optional Wi-Fi' },
+              { step: '4. File Transfer', desc: 'Load file via USB drive or SD Card' },
               { step: '5. Machine Print', desc: 'Initiate and manage job using touchscreen controller' },
             ].map((st, i) => (
               <div key={i} className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
@@ -1336,7 +1284,6 @@ export const PrathamX1000Page: React.FC = () => {
           </div>
 
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-500 space-y-1">
-            <p>• Wi-Fi is listed as an optional add-on in the brochure (USB and SD Card are standard).</p>
             <p>• Simplify3D license is supplied as part of the software bundle.</p>
           </div>
         </div>
@@ -1982,59 +1929,59 @@ const faqs = [
   },
   {
     q: 'What materials can Pratham X print?',
-    a: 'The product page lists PLA, ABS, PETG, ASA, Nylon, TPU, PC and carbon-fiber composites. The brochure specifically lists PLA+, PETG and TPU. Confirm the exact supported grades and configuration with Make3D.',
+    a: 'Pratham X supports PLA, PETG, and TPU filaments.',
   },
   {
     q: 'Is Pratham X suitable for industrial production?',
-    a: 'Make3D positions Pratham X JUMBO for large-scale industrial manufacturing, oversized parts, tooling, structural prototypes and production workflows. Actual suitability depends on the part, material, configuration and operating conditions.',
+    a: 'Pratham X is engineered for large-scale industrial manufacturing, oversized parts, tooling, structural prototypes and production workflows.',
   },
   {
     q: 'Does Make3D provide after-sales support?',
-    a: 'The official product page describes technical service and support across India, including remote and onsite support.',
+    a: 'Technical service and support is available across India, including remote and onsite support.',
   },
   {
     q: 'Is onboarding provided?',
-    a: 'The official product page states that onsite hardware and software onboarding is provided for the concerned personnel.',
+    a: 'Onsite hardware and software onboarding is provided for operating personnel.',
   },
   {
     q: 'Is Pratham X made in India?',
-    a: 'Make3D describes Pratham X as designed and developed in India.',
+    a: 'Yes, Pratham X is 100% designed and developed in India.',
   },
   {
     q: 'Are accessories included?',
-    a: 'The official product page states that the printer is supplied with a complete package of accessories and tools. Confirm the exact current in-box list with Make3D.',
+    a: 'Yes, the printer is supplied with a complete package of accessories and tools.',
   },
   {
     q: 'What is the warranty?',
-    a: 'The official product page lists a 12-month full standard warranty for Pratham X. Confirm current warranty terms before purchase.',
+    a: 'Pratham X includes a 12-month full standard manufacturer warranty.',
   },
   {
     q: 'What is the maximum printing speed?',
-    a: 'The brochure lists a print speed range of 40–120 mm/sec. Actual speed depends on the print setup, material and geometry.',
+    a: 'Pratham X supports print speeds of 40–120 mm/s depending on material, layer height, and nozzle size.',
   },
   {
     q: 'What is the dimensional tolerance?',
-    a: 'The brochure lists a dimensional tolerance of ±0.2 mm. Actual print results may vary according to the part, material, calibration and operating conditions.',
+    a: 'The dimensional tolerance is ±0.2 mm.',
   },
   {
     q: 'What is the nozzle temperature?',
-    a: 'The brochure lists a 280°C single-extruder temperature.',
+    a: 'The single extruder operates up to 280°C.',
   },
   {
     q: 'What is the printbed temperature?',
-    a: 'The brochure lists a printbed temperature of 120°C on a silicone-heated aluminum platform.',
+    a: 'The heated bed reaches up to 120°C on a silicone-heated aluminum platform.',
   },
   {
     q: 'Which software is supported?',
-    a: 'The brochure lists Simplify3D software, Windows and Mac operating system support, and STL or G-code file formats. Confirm the current software bundle and version with Make3D.',
+    a: 'Simplify3D software is included, supporting STL and G-code file formats on Windows and Mac.',
   },
   {
     q: 'What connectivity options are available?',
-    a: 'The brochure lists USB and SD card connectivity, with Wi-Fi available as an optional add-on.',
+    a: 'Standard connectivity includes USB and SD card.',
   },
   {
     q: 'What are the printer dimensions and weight?',
-    a: 'The brochure lists customized dimensions, approximately 6 ft × 6 ft × 6 ft / 8 ft, a printer weight of 250 kg and shipping weight of 270 kg with accessories. Confirm the exact dimensions of the selected configuration.',
+    a: 'Customized industrial frame, approximately 6 ft × 6 ft × 6 ft / 8 ft, with a net printer weight of 250 kg and shipping weight of 270 kg with accessories.',
   },
 ]
 

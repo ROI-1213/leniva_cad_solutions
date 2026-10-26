@@ -15,7 +15,6 @@ import {
   Usb,
   Compass,
   Flame,
-  MapPin,
   Wifi,
   CheckCircle,
   PhoneCall,
@@ -1238,78 +1237,6 @@ export const PrathamDesktopPage: React.FC = () => {
             <p className="text-xs text-slate-600 leading-relaxed">
               Customers across engineering, jewellery manufacturing, educational institutes and government labs.
             </p>
-          </div>
-        </div>
-
-        {/* Pan-India Map / Network Visual */}
-        <div className="bg-slate-900 rounded-3xl p-8 sm:p-10 text-white border border-slate-800 shadow-xl relative overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-6 space-y-4">
-              <div className="text-xs font-mono uppercase tracking-widest text-red-400 font-bold">
-                Direct Engineering Support
-              </div>
-              <h3 className="text-2xl sm:text-3xl font-black text-white">
-                TECHNICAL SERVICE & SUPPORT NETWORK
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Leniva CAD Solutions provides end-to-end installation, operator onboarding, preventive maintenance, and
-                immediate genuine spare parts fulfillment from hubs across India.
-              </p>
-              <div className="grid grid-cols-2 gap-4 pt-2">
-                <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700">
-                  <div className="text-lg font-black text-red-400 font-mono">24–48h</div>
-                  <div className="text-[11px] text-slate-300">Onsite Turnaround</div>
-                </div>
-                <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700">
-                  <div className="text-lg font-black text-white font-mono">100%</div>
-                  <div className="text-[11px] text-slate-300">Genuine Spares Stocked</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="lg:col-span-6 bg-slate-800/60 rounded-2xl p-6 border border-slate-700 space-y-3">
-              <div className="text-xs font-mono uppercase tracking-wider text-slate-400 font-bold">
-                Key Technical Regional Service Hubs
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs font-mono text-slate-300">
-                <span className="p-2 bg-slate-900/80 rounded border border-slate-800 flex items-center space-x-1.5">
-                  <MapPin className="w-3 h-3 text-red-400" />
-                  <span>Bengaluru</span>
-                </span>
-                <span className="p-2 bg-slate-900/80 rounded border border-slate-800 flex items-center space-x-1.5">
-                  <MapPin className="w-3 h-3 text-red-400" />
-                  <span>Mumbai</span>
-                </span>
-                <span className="p-2 bg-slate-900/80 rounded border border-slate-800 flex items-center space-x-1.5">
-                  <MapPin className="w-3 h-3 text-red-400" />
-                  <span>Pune</span>
-                </span>
-                <span className="p-2 bg-slate-900/80 rounded border border-slate-800 flex items-center space-x-1.5">
-                  <MapPin className="w-3 h-3 text-red-400" />
-                  <span>Delhi-NCR</span>
-                </span>
-                <span className="p-2 bg-slate-900/80 rounded border border-slate-800 flex items-center space-x-1.5">
-                  <MapPin className="w-3 h-3 text-red-400" />
-                  <span>Chennai</span>
-                </span>
-                <span className="p-2 bg-slate-900/80 rounded border border-slate-800 flex items-center space-x-1.5">
-                  <MapPin className="w-3 h-3 text-red-400" />
-                  <span>Ahmedabad</span>
-                </span>
-                <span className="p-2 bg-slate-900/80 rounded border border-slate-800 flex items-center space-x-1.5">
-                  <MapPin className="w-3 h-3 text-red-400" />
-                  <span>Hyderabad</span>
-                </span>
-                <span className="p-2 bg-slate-900/80 rounded border border-slate-800 flex items-center space-x-1.5">
-                  <MapPin className="w-3 h-3 text-red-400" />
-                  <span>Kolkata</span>
-                </span>
-                <span className="p-2 bg-slate-900/80 rounded border border-slate-800 flex items-center space-x-1.5">
-                  <MapPin className="w-3 h-3 text-red-400" />
-                  <span>Indore</span>
-                </span>
-              </div>
-            </div>
           </div>
         </div>
       </section>

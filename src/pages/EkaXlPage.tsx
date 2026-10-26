@@ -420,7 +420,7 @@ export const EkaXlPage: React.FC = () => {
               { metric: '100% Direct', label: 'Castable Wax' },
               { metric: '125 × 70 mm', label: 'Compact Platform' },
               { metric: '1 Year', label: 'Full Warranty' },
-              { metric: '24×7', label: 'Online Support' },
+              { metric: 'Direct', label: 'Technical Support' },
             ].map((stat, i) => (
               <div key={i} className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-1">
                 <div className="text-2xl sm:text-3xl font-black text-amber-400">{stat.metric}</div>

@@ -40,6 +40,7 @@ export interface ScannerProductDetail {
   heroImage: string
   transparentImage: string
   galleryImages: string[]
+  brochureUrl?: string
   keySpecsSummary: {
     accuracy: string
     resolution: string
@@ -73,6 +74,7 @@ export const devokMQData: ScannerProductDetail = {
     'Professional scanning solution for engineering, manufacturing, design and research.',
   heroImage: '/images/scanners/3devok-mq-hardware-kit.png',
   transparentImage: '/images/scanners/3devok-mq-hardware-kit.png',
+  brochureUrl: '/brochures/3devok-mq.pdf',
   galleryImages: [
     '/images/scanners/3devok-mq-hardware-kit.png',
     '/images/scanners/3devok-sensor-architecture.png',
@@ -309,6 +311,7 @@ export const devokMTData: ScannerProductDetail = {
     'VDI/VDE 2634 compliant industrial inspection solution trusted by automotive, aerospace, and precision tooling manufacturers.',
   heroImage: '/images/products/3devok-mt.png',
   transparentImage: '/images/products/3devok-mt.png',
+  brochureUrl: '/brochures/3devok-mt.pdf',
   galleryImages: [
     '/images/products/3devok-mt.png',
     '/images/scanners/scanner-inspection.jpg',

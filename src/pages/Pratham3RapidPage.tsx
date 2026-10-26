@@ -485,8 +485,7 @@ export const Pratham3RapidPage: React.FC = () => {
                 className="hover:underline text-red-600 font-semibold"
               >
                 Official Product Page
-              </a>{' '}
-              & Official Brochure
+              </a>
             </span>
           </div>
 
@@ -496,49 +495,41 @@ export const Pratham3RapidPage: React.FC = () => {
                 label: 'Build Volume',
                 val: '350×350×350 mm',
                 sub: '350 mm Cubic Area',
-                src: 'Page & Brochure',
               },
               {
                 label: 'Print Speed',
                 val: 'Up to 500 mm/s',
                 sub: 'Maximum Listed Speed',
-                src: 'Page & Brochure',
               },
               {
                 label: 'Technology',
                 val: 'High-Speed FDM',
                 sub: 'FFF Technology',
-                src: 'Page & Brochure',
               },
               {
                 label: 'Layer Resolution',
                 val: '0.08 – 0.4 mm',
                 sub: '0.08/0.1/0.2/0.3/0.4',
-                src: 'Brochure Listed',
               },
               {
                 label: 'Dimensional Tol.',
                 val: '0.1 – 0.2 mm',
                 sub: 'Machined Accuracy',
-                src: 'Brochure Listed',
               },
               {
                 label: 'Nozzle Temp',
                 val: '300°C',
                 sub: 'High-Temp Ready',
-                src: 'Brochure Listed',
               },
               {
                 label: 'Printbed Temp',
                 val: '120°C',
                 sub: 'Magnetic PEI Sheet',
-                src: 'Brochure Listed',
               },
               {
                 label: 'Filament Dia.',
                 val: '1.75 mm',
                 sub: 'Standard Diameter',
-                src: 'Page & Brochure',
               },
             ].map((item, idx) => (
               <div key={idx} className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col justify-between">
@@ -547,9 +538,6 @@ export const Pratham3RapidPage: React.FC = () => {
                   <strong className="text-xs sm:text-sm font-black text-slate-950 mt-1 block font-mono">{item.val}</strong>
                   <span className="text-[10px] text-slate-500 block mt-0.5">{item.sub}</span>
                 </div>
-                <span className="text-[9px] font-mono text-red-600 block mt-2 pt-1 border-t border-slate-200/60">
-                  {item.src}
-                </span>
               </div>
             ))}
           </div>
@@ -722,7 +710,7 @@ export const Pratham3RapidPage: React.FC = () => {
               id: 3,
               title: 'Industrial-Grade Precision',
               sub: '0.1–0.2 mm Tolerance',
-              desc: 'The product page highlights consistent dimensional accuracy, micron-level layer resolution and stable mechanical architecture. The brochure lists a dimensional tolerance of 0.1–0.2 mm with 11-micron X-Y and 10-micron Z precision.',
+              desc: 'Features consistent dimensional accuracy, micron-level layer resolution and stable mechanical architecture with 0.1–0.2 mm dimensional tolerance and 11-micron X-Y / 10-micron Z precision.',
               icon: Compass,
               tag: 'Accuracy',
             },
@@ -730,7 +718,7 @@ export const Pratham3RapidPage: React.FC = () => {
               id: 4,
               title: 'High-Temperature Filament Support',
               sub: '300°C Hotend Capability',
-              desc: 'The brochure lists a 300°C high-temperature nozzle. The manufacturer lists compatibility with ABS, ASA, Nylon and composites, along with other filament types.',
+              desc: 'Equipped with a 300°C high-temperature nozzle supporting engineering materials including ABS, ASA, Nylon, and advanced composites.',
               icon: Flame,
               tag: 'Polymers',
             },
@@ -738,7 +726,7 @@ export const Pratham3RapidPage: React.FC = () => {
               id: 5,
               title: 'Reinforced Structural Frame',
               sub: 'Rigid Industrial Construction',
-              desc: 'The product page describes a rigid, CNC-machined body intended to minimize vibration and support stability during long-duration printing. Features THK linear guides on XY and industrial leadscrew on Z.',
+              desc: 'Rigid, CNC-machined body engineered to minimize vibration and ensure stability during long-duration printing. Equipped with THK linear guides on XY and industrial leadscrew on Z.',
               icon: Factory,
               tag: 'Chassis',
             },
@@ -746,7 +734,7 @@ export const Pratham3RapidPage: React.FC = () => {
               id: 6,
               title: 'Smart Cooling & Thermal Control',
               sub: 'Optimized Cooling Paths',
-              desc: 'The manufacturer describes optimized cooling paths and controlled chamber temperature to support print strength and help prevent warping in technical materials.',
+              desc: 'Optimized cooling paths and controlled chamber environment support print strength and help prevent warping in technical materials.',
               icon: Thermometer,
               tag: 'Thermal',
             },
@@ -754,7 +742,7 @@ export const Pratham3RapidPage: React.FC = () => {
               id: 7,
               title: 'Intelligent Touchscreen Interface',
               sub: '5-inch IPS Touch Display',
-              desc: 'The brochure specifies a 5-inch IPS touchscreen. The interface is intended to support file management, monitoring and printer operation directly from the machine console.',
+              desc: '5-inch IPS touchscreen interface providing intuitive file management, monitoring, and printer control directly from the machine console.',
               icon: Monitor,
               tag: 'HMI',
             },
@@ -770,7 +758,7 @@ export const Pratham3RapidPage: React.FC = () => {
               id: 9,
               title: 'High-Flow Hotend',
               sub: '30 mm³/s Flow Rate',
-              desc: 'The brochure lists a high-flow hotend rated at 30 mm³/s. Present this as the brochure\'s listed flow-rate specification, supporting rapid material throughput.',
+              desc: 'High-flow hotend rated at 30 mm³/s supporting rapid material throughput and high-speed extrusion.',
               icon: Activity,
               tag: 'Extrusion',
             },
@@ -778,7 +766,7 @@ export const Pratham3RapidPage: React.FC = () => {
               id: 10,
               title: 'Magnetic PEI Build Plate',
               sub: 'Removable Build Surface',
-              desc: 'The brochure lists a magnetic PEI sheet. Explain its role as a removable build surface intended to make part removal and routine print handling easier.',
+              desc: 'Removable magnetic PEI sheet for excellent first-layer adhesion and effortless part removal.',
               icon: Layers,
               tag: 'Platform',
             },
@@ -786,7 +774,7 @@ export const Pratham3RapidPage: React.FC = () => {
               id: 11,
               title: 'Enclosed Filament Chamber',
               sub: 'Filament Storage and Handling',
-              desc: 'The brochure lists an enclosed filament chamber. Provides dedicated internal spool housing and orderly material management during continuous operations.',
+              desc: 'Enclosed filament chamber providing dedicated internal spool housing and protected material handling during continuous operations.',
               icon: Box,
               tag: 'Chamber',
             },
@@ -794,7 +782,7 @@ export const Pratham3RapidPage: React.FC = () => {
               id: 12,
               title: 'Filament Runout and Jam Sensor',
               sub: 'Intelligent Filament Monitoring',
-              desc: 'The brochure lists filament runout and jam sensing. Explain that these features are intended to detect filament-feed issues and help users respond to interruptions.',
+              desc: 'Intelligent filament runout and jam sensing to detect feed issues and prevent failed prints.',
               icon: ShieldCheck,
               tag: 'Protection',
             },
@@ -802,7 +790,7 @@ export const Pratham3RapidPage: React.FC = () => {
               id: 13,
               title: '300°C High-Temperature Nozzle',
               sub: 'Engineering Material Capability',
-              desc: 'The brochure lists a maximum nozzle temperature of 300°C, enabling suitable high-temperature filament workflows including technical blends.',
+              desc: 'Maximum nozzle temperature of 300°C enables printing with engineering and high-temperature filaments.',
               icon: Flame,
               tag: 'Toolhead',
             },
@@ -810,7 +798,7 @@ export const Pratham3RapidPage: React.FC = () => {
               id: 14,
               title: 'Versatile Connectivity',
               sub: 'USB, Wi-Fi and Ethernet',
-              desc: 'The product page and brochure list USB, Wi-Fi and Ethernet connectivity options for file transfer and local workshop integration.',
+              desc: 'Versatile USB, Wi-Fi, and Ethernet connectivity options for seamless file transfer and workshop network integration.',
               icon: Radio,
               tag: 'Network',
             },
@@ -818,7 +806,7 @@ export const Pratham3RapidPage: React.FC = () => {
               id: 15,
               title: 'HEPA + Carbon Filter',
               sub: 'Enclosed Printing with Filtration',
-              desc: 'The brochure lists HEPA + carbon filtration and an enclosed industrial body, intended to help manage airborne particles and odors during printing.',
+              desc: 'Enclosed industrial body with integrated HEPA + activated carbon filtration to manage airborne particles and odors.',
               icon: Filter,
               tag: 'Environment',
             },
@@ -1955,7 +1943,7 @@ export const Pratham3RapidPage: React.FC = () => {
             className="px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs tracking-wide shadow-sm hover:shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
           >
             <PhoneCall className="w-4 h-4 text-red-500" />
-            <span>Talk to a Make3D Expert</span>
+            <span>Talk to an Expert</span>
           </button>
         </div>
       </section>

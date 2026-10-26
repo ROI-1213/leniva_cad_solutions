@@ -76,7 +76,7 @@ export const ekaGtMaxData = {
       title: 'Hassle-Free Support',
       description:
         'Backed by responsive and professional after-sales service. Our expert team is ready to assist you promptly whenever you need help.',
-      visualHighlight: '24×7 Engineering Desk',
+      visualHighlight: 'Dedicated Engineering Desk',
       badge: 'Dedicated Technical Support',
     },
     {
@@ -255,10 +255,10 @@ export const ekaF116kData = {
     },
     {
       id: 'f1-6',
-      title: '24×7 Online Support',
+      title: 'Online Technical Support',
       description: 'Dedicated service assistance for hassle-free printing.',
       visualHighlight: 'Dedicated Specialist Hotline',
-      badge: '24×7 Assistance',
+      badge: 'Technical Assistance',
     },
   ] as LcdProductFeature[],
 

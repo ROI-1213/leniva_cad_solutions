@@ -33,9 +33,8 @@ export const Pratham3Page: React.FC = () => {
   const [activeSpecTab, setActiveSpecTab] = useState<'print' | 'motion' | 'hardware' | 'software'>('print')
   const [activeGalleryCat, setActiveGalleryCat] = useState<string>('all')
   const [speedGauge, setSpeedGauge] = useState<number>(120)
-  const [layerSlider, setLayerSlider] = useState<number>(100) // 80 to 600 microns
+  const [layerSlider, setLayerSlider] = useState<number>(100) // 80 to 400 microns
   const [openFaq, setOpenFaq] = useState<number | null>(0)
-  const [activeImageIndex, setActiveImageIndex] = useState<number>(0)
 
   // Section Refs for Sticky Nav
   const overviewRef = useRef<HTMLDivElement>(null)
@@ -159,30 +158,6 @@ export const Pratham3Page: React.FC = () => {
       if (document.head.contains(scriptFaq)) document.head.removeChild(scriptFaq)
     }
   }, [])
-
-  // Product Gallery Images (Views 01 - 04)
-  const productGalleryImages = [
-    {
-      src: '/images/products/pratham-3-0.png',
-      label: 'Isometric 3/4 Studio View',
-      caption: 'Full metal enclosed chassis with tinted safety viewports and rigid gantry',
-    },
-    {
-      src: '/images/showcase/pratham-showcase.png',
-      label: 'Production Workshop View',
-      caption: 'Pratham 3.0 industrial floor integration for 24/7 continuous manufacturing',
-    },
-    {
-      src: '/images/showcase/showcase-1.png',
-      label: 'Interior Heated Bed & Hotend',
-      caption: 'Silicone heated aluminum bed with 9-point magnetic touch sensor',
-    },
-    {
-      src: '/images/showcase/showcase-2.png',
-      label: 'Touchscreen Interface',
-      caption: 'Intuitive industrial color touchscreen for offline USB/SD control',
-    },
-  ]
 
   // Applications (Section 6)
   const applications = [
@@ -548,7 +523,7 @@ export const Pratham3Page: React.FC = () => {
                   Chamber Enclosure
                 </span>
                 <span className="text-xs sm:text-sm font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
-                  Fully Enclosed Thermal Body
+                  Fully Enclosed Body
                 </span>
               </div>
             </div>
@@ -646,23 +621,6 @@ export const Pratham3Page: React.FC = () => {
 
               {/* Machine Realistic Floor Shadow */}
               <div className="w-3/4 h-5 bg-slate-900/15 rounded-full blur-md -mt-3" />
-            </div>
-
-            {/* Thumbnail switcher */}
-            <div className="flex items-center justify-center gap-2 mt-4">
-              {productGalleryImages.map((img, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveImageIndex(i)}
-                  className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer ${
-                    activeImageIndex === i
-                      ? 'bg-slate-900 text-white shadow-xs'
-                      : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-400'
-                  }`}
-                >
-                  {img.label}
-                </button>
-              ))}
             </div>
           </div>
         </div>
@@ -1123,11 +1081,11 @@ export const Pratham3Page: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-lg font-black text-slate-950">Precision Layer Resolution</h3>
-                <p className="text-xs text-slate-500 font-semibold mt-0.5">80 – 600 Microns</p>
+                <p className="text-xs text-slate-500 font-semibold mt-0.5">80 – 400 Microns</p>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Adjustable layer heights from razor-sharp 80-micron visual master models up to high-speed 600-micron
-                deposition for bulk tooling cores and rapid draft parts.
+                Adjustable layer heights from razor-sharp 80-micron visual master models up to 400-micron
+                deposition for reliable mechanical prototypes and rapid draft parts.
               </p>
             </div>
 
@@ -1140,7 +1098,7 @@ export const Pratham3Page: React.FC = () => {
               <input
                 type="range"
                 min="80"
-                max="600"
+                max="400"
                 step="20"
                 value={layerSlider}
                 onChange={(e) => setLayerSlider(Number(e.target.value))}
@@ -1148,7 +1106,7 @@ export const Pratham3Page: React.FC = () => {
               />
               <div className="flex justify-between text-[10px] text-slate-400 font-mono">
                 <span>80 μm (Fine Detail)</span>
-                <span>600 μm (Draft Rapid)</span>
+                <span>400 μm (Draft Rapid)</span>
               </div>
             </div>
           </div>
@@ -1326,20 +1284,12 @@ export const Pratham3Page: React.FC = () => {
                 </h4>
                 <div className="space-y-3 divide-y divide-slate-100 text-xs">
                   <div className="flex justify-between pt-2">
-                    <span className="font-bold text-slate-600">Marketing Print Speed</span>
-                    <span className="font-mono text-slate-950 font-bold">Up to 120 mm/s</span>
-                  </div>
-                  <div className="flex justify-between pt-2">
-                    <span className="font-bold text-slate-600">Brochure Print Speed</span>
+                    <span className="font-bold text-slate-600">Print Speed</span>
                     <span className="font-mono text-slate-950 font-bold">40 – 120 mm/s</span>
                   </div>
                   <div className="flex justify-between pt-2">
-                    <span className="font-bold text-slate-600">Marketing Resolution</span>
-                    <span className="font-mono text-slate-950 font-bold">80 – 600 microns</span>
-                  </div>
-                  <div className="flex justify-between pt-2">
-                    <span className="font-bold text-slate-600">Brochure Resolution Steps</span>
-                    <span className="font-mono text-slate-950 font-bold">0.08 / 0.1 / 0.2 / 0.3 / 0.4 mm</span>
+                    <span className="font-bold text-slate-600">Layer Resolution</span>
+                    <span className="font-mono text-slate-950 font-bold">80 – 400 microns</span>
                   </div>
                   <div className="flex justify-between pt-2">
                     <span className="font-bold text-slate-600">Dimensional Tolerance</span>

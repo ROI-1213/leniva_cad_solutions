@@ -203,7 +203,21 @@ export const Header: React.FC = () => {
               )}
             </Link>
 
-            {/* 2. CAD Software Mega Menu (FIRST in hierarchy) */}
+            {/* 2. About Us */}
+            <Link
+              to="/about"
+              className="flex flex-col items-center group px-2 sm:px-2.5 py-1 relative shrink-0"
+            >
+              <User className={`w-4 h-4 transition-colors ${location.pathname === '/about' ? 'text-red-600' : 'text-slate-600 group-hover:text-red-600'}`} />
+              <span className={`text-xs mt-1 whitespace-nowrap transition-colors ${location.pathname === '/about' ? 'text-red-600 font-bold' : 'text-slate-700 font-medium group-hover:text-red-600'}`}>
+                About Us
+              </span>
+              {location.pathname === '/about' && (
+                <div className="w-5 h-[2.5px] bg-red-600 rounded-full mt-0.5 absolute -bottom-1" />
+              )}
+            </Link>
+
+            {/* 3. CAD Software Mega Menu (FIRST in hierarchy) */}
             <div
               className="relative shrink-0"
               onMouseEnter={() => setActiveMegaMenu('cad-software')}
@@ -613,20 +627,6 @@ export const Header: React.FC = () => {
               )}
             </Link>
 
-            {/* 7. About Us - FORCED SINGLE LINE */}
-            <Link
-              to="/about"
-              className="flex flex-col items-center group px-2 sm:px-2.5 py-1 relative shrink-0"
-            >
-              <User className={`w-4 h-4 transition-colors ${location.pathname === '/about' ? 'text-red-600' : 'text-slate-600 group-hover:text-red-600'}`} />
-              <span className={`text-xs mt-1 whitespace-nowrap transition-colors ${location.pathname === '/about' ? 'text-red-600 font-bold' : 'text-slate-700 font-medium group-hover:text-red-600'}`}>
-                About Us
-              </span>
-              {location.pathname === '/about' && (
-                <div className="w-5 h-[2.5px] bg-red-600 rounded-full mt-0.5 absolute -bottom-1" />
-              )}
-            </Link>
-
             {/* 8. Contact */}
             <Link
               to="/contact"
@@ -712,6 +712,15 @@ export const Header: React.FC = () => {
               <span>Home</span>
             </Link>
             <Link
+              to="/about"
+              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
+                location.pathname === '/about' ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              <User className="w-3.5 h-3.5 shrink-0" />
+              <span>About Us</span>
+            </Link>
+            <Link
               to="/products/cad-software"
               className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
                 location.pathname.startsWith('/products/cad-software') || location.pathname.includes('ares') || location.pathname.includes('sketchup') || location.pathname.includes('enscape') || location.pathname.includes('vray') || location.pathname.includes('corona')
@@ -759,15 +768,6 @@ export const Header: React.FC = () => {
               <span>Blogs</span>
             </Link>
             <Link
-              to="/about"
-              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
-                location.pathname === '/about' ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <User className="w-3.5 h-3.5 shrink-0" />
-              <span>About Us</span>
-            </Link>
-            <Link
               to="/contact"
               className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
                 location.pathname === '/contact' ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
@@ -809,9 +809,17 @@ export const Header: React.FC = () => {
             <div className="space-y-1 text-sm font-semibold">
               <Link
                 to="/"
+                onClick={() => setIsMobileMenuOpen(false)}
                 className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50"
               >
                 Home
+              </Link>
+              <Link
+                to="/about"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50"
+              >
+                About Us
               </Link>
 
               {/* 1. CAD Software Accordion (FIRST in hierarchy) */}
@@ -972,9 +980,6 @@ export const Header: React.FC = () => {
               </Link>
               <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50">
                 Blogs & Technical Articles
-              </Link>
-              <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50">
-                About Us
               </Link>
               <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50">
                 Contact

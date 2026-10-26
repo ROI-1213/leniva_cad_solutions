@@ -178,7 +178,7 @@ export const DEFAULT_HOME_CONTENT: HomeContentConfig = {
   },
   printers: {
     sectionBadge: 'Core Business • 3D Printing Systems',
-    title: '3D Printer Technologies',
+    title: 'Next generation 3d printers',
     description:
       'We provide proven additive manufacturing systems tailored for functional engineering prototypes, fine jewellery casting, dental models, and industrial production.',
     viewAllText: 'View All 3D Printers',

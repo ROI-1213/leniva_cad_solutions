@@ -465,8 +465,7 @@ export const Pratham6Page: React.FC = () => {
                 className="hover:underline text-red-600 font-semibold"
               >
                 Official Product Page
-              </a>{' '}
-              & Official Brochure
+              </a>
             </span>
           </div>
 
@@ -476,49 +475,41 @@ export const Pratham6Page: React.FC = () => {
                 label: 'Build Volume',
                 val: '600×600×600 mm',
                 sub: '600 mm³ Cubic Capacity',
-                src: 'Page & Brochure',
               },
               {
                 label: 'Technology',
                 val: 'FDM / FFF',
                 sub: 'Fused Filament Fabrication',
-                src: 'Page & Brochure',
               },
               {
                 label: 'Layer Resolution',
-                val: '80–600 µm',
-                sub: '0.08–0.4 mm in Brochure',
-                src: 'Source-Differentiated',
+                val: '80–400 µm',
+                sub: '0.08–0.4 mm Range',
               },
               {
                 label: 'Print Speed',
-                val: 'Up to 120 mm/s',
-                sub: '40–120 mm/s in Brochure',
-                src: 'Source-Differentiated',
+                val: '40–120 mm/s',
+                sub: 'Industrial Speed',
               },
               {
                 label: 'Filament Size',
                 val: '1.75 mm',
                 sub: 'Standard Diameter',
-                src: 'Page & Brochure',
               },
               {
                 label: 'Extruder Temp',
                 val: 'Up to 280°C',
                 sub: 'Single Extruder System',
-                src: 'Brochure Listed',
               },
               {
                 label: 'Heated Bed Temp',
                 val: 'Up to 120°C',
                 sub: 'Silicone + Aluminum Bed',
-                src: 'Brochure Listed',
               },
               {
                 label: 'Control System',
                 val: 'Touchscreen',
                 sub: 'Intuitive Operating Panel',
-                src: 'Brochure Listed',
               },
             ].map((item, idx) => (
               <div key={idx} className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col justify-between">
@@ -527,16 +518,9 @@ export const Pratham6Page: React.FC = () => {
                   <strong className="text-xs sm:text-sm font-black text-slate-950 mt-1 block font-mono">{item.val}</strong>
                   <span className="text-[10px] text-slate-500 block mt-0.5">{item.sub}</span>
                 </div>
-                <span className="text-[9px] font-mono text-red-600 block mt-2 pt-1 border-t border-slate-200/60">
-                  {item.src}
-                </span>
               </div>
             ))}
           </div>
-
-          <p className="text-[11px] text-slate-500 italic bg-amber-50/80 p-2.5 rounded-lg border border-amber-200/60">
-            <strong>Accuracy Notice:</strong> The official Make3D product page and brochure list distinct resolution (80–600 microns on page vs 0.08–0.4 mm in brochure) and speed values (up to 120 mm/s on page vs 40–120 mm/s in brochure). Both are preserved above with source attribution.
-          </p>
         </div>
       </section>
 
@@ -778,7 +762,7 @@ export const Pratham6Page: React.FC = () => {
                 <input
                   type="range"
                   min="80"
-                  max="600"
+                  max="400"
                   step="20"
                   value={simLayerHeight}
                   onChange={(e) => setSimLayerHeight(Number(e.target.value))}
@@ -786,8 +770,8 @@ export const Pratham6Page: React.FC = () => {
                 />
                 <div className="flex justify-between text-[10px] text-slate-500 font-mono">
                   <span>80 µm (Fine Prototyping)</span>
-                  <span>300 µm (Standard Functional)</span>
-                  <span>600 µm (High-Speed Tooling)</span>
+                  <span>200 µm (Standard Functional)</span>
+                  <span>400 µm (High-Speed Tooling)</span>
                 </div>
               </div>
 
@@ -950,43 +934,34 @@ export const Pratham6Page: React.FC = () => {
               <table className="w-full text-xs text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-900 text-white font-mono text-[11px] uppercase tracking-wider">
-                    <th className="p-3.5 pl-6 w-1/3">Specification</th>
-                    <th className="p-3.5 w-1/3">Product-Page Listing</th>
-                    <th className="p-3.5 pr-6 w-1/3">Brochure Listing</th>
+                    <th className="p-3.5 pl-6 w-1/2">Specification</th>
+                    <th className="p-3.5 pr-6 w-1/2">Verified Specification</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-mono">
                   {[
-                    { spec: 'Print Technology', page: 'FDM / FFF', bro: 'Fused Filament Fabrication' },
-                    { spec: 'Build Volume', page: '600 × 600 × 600 mm', bro: '600 × 600 × 600 mm' },
+                    { spec: 'Print Technology', val: 'Fused Filament Fabrication (FFF / FDM)' },
+                    { spec: 'Build Volume', val: '600 × 600 × 600 mm' },
                     {
                       spec: 'Layer Resolution',
-                      page: '80–600 microns',
-                      bro: '0.08 / 0.1 / 0.2 / 0.3 / 0.4 mm',
+                      val: '80–400 microns (0.08 / 0.1 / 0.2 / 0.3 / 0.4 mm)',
                     },
-                    { spec: 'Dimensional Tolerance', page: 'Not specified on page', bro: '±0.1 mm' },
-                    { spec: 'Print Speed', page: 'Up to 120 mm/s', bro: '40–120 mm/sec' },
-                    { spec: 'Extruder Temperature', page: 'Not specified on page', bro: '280°C (Single Extruder)' },
-                    { spec: 'Printbed Temperature', page: 'Not specified on page', bro: '120°C' },
-                    { spec: 'Nozzle Size (Standard)', page: 'Not specified on page', bro: '0.5 mm standard' },
-                    {
-                      spec: 'Changeable Nozzle Sizes',
-                      page: 'Not specified on page',
-                      bro: '0.3 / 0.4 / 0.6 / 0.8 mm',
-                    },
-                    { spec: 'Heated Bed Type', page: 'Not specified on page', bro: 'Silicone Heatbed + Aluminum Bed' },
-                    { spec: 'Filament Diameter', page: '1.75 mm', bro: '1.75 mm' },
+                    { spec: 'Dimensional Tolerance', val: '±0.1 mm' },
+                    { spec: 'Print Speed', val: '40–120 mm/s' },
+                    { spec: 'Extruder Temperature', val: 'Up to 280°C (Single Extruder)' },
+                    { spec: 'Printbed Temperature', val: 'Up to 120°C' },
+                    { spec: 'Nozzle Size (Standard)', val: '0.5 mm standard (0.3 / 0.4 / 0.6 / 0.8 mm changeable)' },
+                    { spec: 'Heated Bed Type', val: 'Silicone Heatbed + Aluminum Bed' },
+                    { spec: 'Filament Diameter', val: '1.75 mm' },
                     {
                       spec: 'Filament Compatibility',
-                      page: 'PLA, ABS, PETG, ASA, Nylon, TPU, PC, Carbon Fiber blends',
-                      bro: 'ABS, PLA, TPU, PETG, Carbon-fused composites, ASA, PP, HIPS',
+                      val: 'PLA, ABS, PETG, ASA, Nylon, TPU, PC, Carbon-Fused Composites, PP, HIPS',
                     },
-                    { spec: 'Operating Control', page: 'LCD controls', bro: 'Touchscreen control' },
+                    { spec: 'Operating Control', val: 'Touchscreen control' },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
                       <td className="p-3.5 pl-6 font-bold text-slate-900 font-sans">{row.spec}</td>
-                      <td className="p-3.5 text-slate-700">{row.page}</td>
-                      <td className="p-3.5 pr-6 font-bold text-slate-900">{row.bro}</td>
+                      <td className="p-3.5 pr-6 font-bold text-slate-900">{row.val}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1002,38 +977,32 @@ export const Pratham6Page: React.FC = () => {
               <table className="w-full text-xs text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-900 text-white font-mono text-[11px] uppercase tracking-wider">
-                    <th className="p-3.5 pl-6 w-1/3">Specification</th>
-                    <th className="p-3.5 w-1/3">Brochure Listing</th>
-                    <th className="p-3.5 pr-6 w-1/3">Product-Page Notes</th>
+                    <th className="p-3.5 pl-6 w-1/2">Specification</th>
+                    <th className="p-3.5 pr-6 w-1/2">Details</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-mono">
                   {[
                     {
                       spec: 'Software Bundle',
-                      bro: 'Simplify3D license software included',
-                      notes: 'Commercial slicing engine with verified profiles',
+                      details: 'Simplify3D license software included with machine',
                     },
                     {
                       spec: 'Operating System Compatibility',
-                      bro: 'Windows / Mac OS',
-                      notes: 'Cross-platform workstation support',
+                      details: 'Windows / Mac OS workstation support',
                     },
                     {
                       spec: 'Supported File Formats',
-                      bro: 'STL / GCODE',
-                      notes: 'Product page additionally lists OBJ format',
+                      details: 'STL / GCODE / OBJ',
                     },
                     {
                       spec: 'Machine Connectivity',
-                      bro: 'USB / SD card',
-                      notes: 'Wi-Fi listed on page; optional add-on in brochure',
+                      details: 'USB / SD card (Wi-Fi optional add-on)',
                     },
                   ].map((row, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
                       <td className="p-3.5 pl-6 font-bold text-slate-900 font-sans">{row.spec}</td>
-                      <td className="p-3.5 font-bold text-slate-900">{row.bro}</td>
-                      <td className="p-3.5 pr-6 text-slate-700">{row.notes}</td>
+                      <td className="p-3.5 pr-6 font-bold text-slate-900">{row.details}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1050,7 +1019,7 @@ export const Pratham6Page: React.FC = () => {
                 <thead>
                   <tr className="bg-slate-900 text-white font-mono text-[11px] uppercase tracking-wider">
                     <th className="p-3.5 pl-6 w-1/3">Mechanical Parameter</th>
-                    <th className="p-3.5 w-1/3">Brochure Specification</th>
+                    <th className="p-3.5 w-1/3">Specification</th>
                     <th className="p-3.5 pr-6 w-1/3">Engineering Details</th>
                   </tr>
                 </thead>
@@ -1112,7 +1081,7 @@ export const Pratham6Page: React.FC = () => {
                 <thead>
                   <tr className="bg-slate-900 text-white font-mono text-[11px] uppercase tracking-wider">
                     <th className="p-3.5 pl-6 w-1/3">Electrical Parameter</th>
-                    <th className="p-3.5 w-1/3">Official Brochure Listing</th>
+                    <th className="p-3.5 w-1/3">Specification</th>
                     <th className="p-3.5 pr-6 w-1/3">Facility Preparation Guidelines</th>
                   </tr>
                 </thead>
@@ -2062,11 +2031,11 @@ const featuresList = [
   },
   {
     title: 'Adjustable Layer Settings',
-    desc: 'Product page lists adjustable layer resolution from 80 to 600 microns. Brochure lists discrete layer settings: 0.08, 0.1, 0.2, 0.3, and 0.4 mm.',
+    desc: 'Precision layer resolution from 80 to 400 microns (0.08, 0.1, 0.2, 0.3, and 0.4 mm) for fine-pitch surface details and fast tooling profiles.',
     icon: Sliders,
     badge: 'Precision Layers',
-    source: 'Page & Brochure',
-    highlight: '80–600 µm Range',
+    source: 'Precision',
+    highlight: '80–400 µm Range',
   },
   {
     title: 'THK Linear Motion Guides',
@@ -2224,27 +2193,27 @@ const faqs = [
   },
   {
     q: 'What is the layer resolution?',
-    a: 'The product page lists 80–600 microns (0.08–0.6 mm), while the official brochure specifies discrete settings of 0.08 mm, 0.1 mm, 0.2 mm, 0.3 mm, and 0.4 mm. Current machine configurations support fine-pitch to high-speed draft profiles.',
+    a: 'The layer resolution is 80–400 microns (0.08, 0.1, 0.2, 0.3, and 0.4 mm).',
   },
   {
     q: 'What is the print speed?',
-    a: 'The product page lists speeds up to 120 mm/s, while the brochure lists 40–120 mm/sec. Actual speed depends on part geometry, selected filament material, and mechanical wall surface requirements.',
+    a: 'Pratham 6.0 supports print speeds of 40–120 mm/s depending on material, nozzle diameter, and part geometry.',
   },
   {
     q: 'What file formats are supported?',
-    a: 'The official brochure lists STL and GCODE formats, and the product page additionally lists OBJ format. Models can be prepared using the bundled Simplify3D license or other standard slicing software.',
+    a: 'Pratham 6.0 supports STL, OBJ, and GCODE formats.',
   },
   {
     q: 'Does it support Wi-Fi?',
-    a: 'The product page lists Wi-Fi connectivity, while the brochure describes Wi-Fi as an optional add-on alongside standard USB and SD card ports. Confirm whether Wi-Fi is included in your selected configuration.',
+    a: 'Standard connectivity includes USB and SD card, with Wi-Fi available as an optional add-on.',
   },
   {
     q: "What is the printer's weight?",
-    a: "The brochure lists a net printer weight of 100 kg and a gross shipping weight of 110 kg with the complete industrial accessories kit.",
+    a: 'Net printer weight is 100 kg, and gross shipping weight is 110 kg with the complete industrial accessories kit.',
   },
   {
     q: "What is the printer's power requirement?",
-    a: 'The brochure lists standard 230 V AC, 50 Hz single-phase input with a power consumption rating of 800 W. Confirm facility electrical setup with Make3D prior to installation.',
+    a: 'Standard 230 V AC, 50 Hz single-phase input with an 800 W maximum power consumption rating.',
   },
 ]
 

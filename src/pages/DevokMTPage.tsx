@@ -14,6 +14,8 @@ import {
   HeartPulse,
   Landmark,
   Crosshair,
+  Download,
+  FileText,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { devokMTData as defaultDevokMTData } from '../data/scannersData'
@@ -238,20 +240,37 @@ export const DevokMTPage: React.FC = () => {
               </p>
 
               {/* CTAs */}
-              <div className="pt-2 flex flex-wrap items-center gap-4">
+              <div className="pt-2 flex flex-wrap items-center gap-3">
                 <button
                   onClick={() => openQuoteModal('3DeVOK MT - Demo Request')}
-                  className="px-8 py-3.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-red-600/30 transition-all flex items-center space-x-2 cursor-pointer"
+                  className="px-6 py-3.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-red-600/30 transition-all flex items-center space-x-2 cursor-pointer"
                 >
                   <Scan className="w-4 h-4" />
                   <span>Request a Demo</span>
                 </button>
+                <a
+                  href={devokMTData.brochureUrl || '/brochures/3devok-mt.pdf'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl backdrop-blur-sm border border-white/20 transition-all flex items-center space-x-2 cursor-pointer"
+                >
+                  <FileText className="w-4 h-4 text-blue-400" />
+                  <span>View Brochure</span>
+                </a>
+                <a
+                  href={devokMTData.brochureUrl || '/brochures/3devok-mt.pdf'}
+                  download="3devok-mt-brochure.pdf"
+                  className="px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl border border-slate-700 transition-all flex items-center space-x-2 cursor-pointer shadow-md"
+                >
+                  <Download className="w-4 h-4 text-red-400" />
+                  <span>Download Brochure</span>
+                </a>
                 <button
                   onClick={() => openQuoteModal('3DeVOK MT - Technical Expert Consultation')}
-                  className="px-8 py-3.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl backdrop-blur-sm border border-white/20 transition-all flex items-center space-x-2 cursor-pointer"
+                  className="px-6 py-3.5 bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white text-xs font-bold rounded-xl border border-white/10 transition-all flex items-center space-x-2 cursor-pointer"
                 >
                   <Phone className="w-4 h-4 text-red-400" />
-                  <span>Talk to an Industrial 3D Scanning Expert</span>
+                  <span>Talk to an Expert</span>
                 </button>
               </div>
 
@@ -627,6 +646,14 @@ export const DevokMTPage: React.FC = () => {
               >
                 Request a Quote
               </button>
+              <a
+                href={devokMTData.brochureUrl || '/brochures/3devok-mt.pdf'}
+                download="3devok-mt-brochure.pdf"
+                className="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl border border-white/20 transition-all flex items-center justify-center space-x-2 text-center cursor-pointer"
+              >
+                <Download className="w-4 h-4 text-red-400" />
+                <span>Brochure</span>
+              </a>
               <button
                 onClick={() => openQuoteModal('3DeVOK MT - Talk to an Expert')}
                 className="px-8 py-3.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl border border-white/20 transition-all text-center cursor-pointer"

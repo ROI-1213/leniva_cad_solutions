@@ -480,15 +480,15 @@ export const PrathamX600Page: React.FC = () => {
               </div>
 
               <div className="p-6 rounded-2xl bg-gradient-to-br from-red-950/60 to-slate-800/90 border border-red-500/30 space-y-3">
-                <div className="text-sm font-bold text-white">Need Dual Nozzle or Wi-Fi Camera Monitoring?</div>
+                <div className="text-sm font-bold text-white">Need Custom Machine Options?</div>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  Pratham X (600) offers optional factory add-ons including Dual Extrusion Nozzles, Wi-Fi Camera Remote Monitoring, and Enclosed Panels.
+                  Pratham X (600) offers dedicated industrial engineering support, custom nozzle sizes, and tooling fixtures.
                 </p>
                 <button
-                  onClick={() => openQuoteModal('Pratham X (600) Addons & Options')}
+                  onClick={() => openQuoteModal('Pratham X (600) Custom Options')}
                   className="w-full py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
                 >
-                  Configure Custom Add-ons
+                  Consult an Expert
                 </button>
               </div>
             </div>
@@ -695,7 +695,7 @@ export const PrathamX600Page: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 p-4 hover:bg-slate-50">
                   <div className="font-bold text-slate-700">Filament Compatibility</div>
-                  <div className="sm:col-span-2 text-slate-900">1.75 mm PLA+ / PETG / TPU</div>
+                  <div className="sm:col-span-2 text-slate-900">1.75 mm PLA, PETG, TPU</div>
                 </div>
               </>
             )}
@@ -716,11 +716,7 @@ export const PrathamX600Page: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 p-4 hover:bg-slate-50">
                   <div className="font-bold text-slate-700">Connectivity</div>
-                  <div className="sm:col-span-2 text-slate-900">USB / SD Card / Wi-Fi (optional add-on)</div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 p-4 hover:bg-slate-50">
-                  <div className="font-bold text-slate-700">Optional Factory Add-ons</div>
-                  <div className="sm:col-span-2 text-slate-900 font-semibold text-red-600">Dual Nozzle • Camera Monitoring • Wi-Fi Operating</div>
+                  <div className="sm:col-span-2 text-slate-900">USB / SD Card</div>
                 </div>
               </>
             )}

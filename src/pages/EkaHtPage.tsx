@@ -525,7 +525,7 @@ export const EkaHtPage: React.FC = () => {
           <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-3">
             <h3 className="text-lg font-black text-slate-950 uppercase tracking-tight">Trusted by Industrial Users</h3>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              24X7 Dedicated Technical Support engineered for jewelers, casting workshops, and precision prototyping studios.
+              Dedicated Technical Support engineered for jewelers, casting workshops, and precision prototyping studios.
             </p>
           </div>
 

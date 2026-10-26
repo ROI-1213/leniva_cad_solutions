@@ -186,7 +186,7 @@ export const products: Product[] = [
       ekaXlData.primaryDesc,
       ekaXlData.secondaryDesc,
       `${ekaXlData.positioningTitle} with ${ekaXlData.warrantyStatement}`,
-      'Dedicated Service Support & 24×7 Online Service Support',
+      'Dedicated Service Support',
       'Lifetime Free Software Update & Proudly Made in India',
     ],
     featureCards: [
@@ -411,7 +411,7 @@ export const products: Product[] = [
     })),
     supportCards: [
       { title: 'Factory Pre-Calibrated Platform', desc: 'Arrives factory pre-calibrated for immediate plug-and-print industrial deployment.' },
-      { title: '24×7 Engineering Desk', desc: 'Backed by responsive and professional after-sales technical service across India.' },
+      { title: 'Dedicated Engineering Desk', desc: 'Backed by responsive and professional after-sales technical service across India.' },
       { title: 'Automatic Resin Feeding & Heating', desc: 'Smart auto vat level sensor and built-in tank heating ensure uninterrupted large builds.' },
       { title: 'Chitubox Workflow Integration', desc: 'Seamless slicing and 7-inch touchscreen operation with Wi-Fi and USB connectivity.' },
     ],
@@ -488,7 +488,7 @@ export const products: Product[] = [
     })),
     supportCards: [
       { title: 'Free Lifetime Software Updates', desc: 'Continuous slicer and firmware upgrades included with every EKA F1 16K.' },
-      { title: '24×7 Online Support', desc: 'Dedicated specialist hotline and remote troubleshooting assistance.' },
+      { title: 'Online Technical Support', desc: 'Dedicated specialist hotline and remote troubleshooting assistance.' },
       { title: 'Complete Starter Package', desc: 'Includes UV Curing Oven, 1 Resin Tray, 500 g Direct Castable Resin, and Free Shipping.' },
       { title: 'Proudly Made in India', desc: '100% indigenous engineering and local spare parts availability.' },
     ],
