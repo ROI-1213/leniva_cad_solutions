@@ -131,13 +131,16 @@ export const AresKudoPage: React.FC = () => {
     }
   }
 
-  // Auto-scroll to Trinity Ecosystem when navigated via Trinity route/hash
+  // Ensure page displays from the top when navigated without explicit hash
   useEffect(() => {
-    if (location.pathname.includes('trinity') || location.hash === '#trinity') {
+    if (location.hash) {
+      const targetId = location.hash.replace('#', '')
       const timer = setTimeout(() => {
-        scrollTo('trinity')
+        scrollTo(targetId)
       }, 400)
       return () => clearTimeout(timer)
+    } else {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     }
   }, [location.pathname, location.hash])
 
