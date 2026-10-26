@@ -17,7 +17,6 @@ import {
   Flame,
   Wifi,
   CheckCircle,
-  PhoneCall,
   Activity,
   ExternalLink,
   Lightbulb,
@@ -1205,7 +1204,7 @@ export const PrathamDesktopPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto gap-6">
           {/* Card 01 */}
           <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md transition-all space-y-3">
             <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold">
@@ -1218,17 +1217,6 @@ export const PrathamDesktopPage: React.FC = () => {
           </div>
 
           {/* Card 02 */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md transition-all space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold">
-              <PhoneCall className="w-6 h-6" />
-            </div>
-            <h3 className="text-base font-extrabold text-slate-900 uppercase">DEDICATED TECHNICAL SERVICE</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              24×7 remote and onsite support with certified technical engineers and rapid spares dispatch.
-            </p>
-          </div>
-
-          {/* Card 03 */}
           <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md transition-all space-y-3">
             <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold">
               <Activity className="w-6 h-6" />

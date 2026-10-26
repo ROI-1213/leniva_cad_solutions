@@ -451,10 +451,6 @@ export const fdmPagesData: Record<string, FdmPageSectionData> = {
         desc: 'Built for continuous prototyping, student labs, and small-batch production with enclosed thermal stability.',
       },
       {
-        title: 'DEDICATED TECHNICAL SERVICE',
-        desc: '24×7 remote and onsite support with certified technical engineers and rapid spares dispatch.',
-      },
-      {
         title: 'HAPPY USERS FROM EVERY SEGMENT',
         desc: 'Customers across engineering, jewellery manufacturing, educational institutes and government labs.',
       },
