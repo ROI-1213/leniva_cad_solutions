@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { Search, X, ArrowRight, Printer, Wrench, ShoppingBag, BookOpen } from 'lucide-react'
 import { useApp } from '../context/AppContext'
@@ -92,10 +93,15 @@ export const SearchModal: React.FC = () => {
     navigate(path)
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
+  if (typeof document === 'undefined') return null
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[99999] flex items-start justify-center pt-12 sm:pt-16 px-3 sm:px-4 bg-slate-950/75 backdrop-blur-sm animate-fade-in"
+      onClick={closeSearchModal}
+    >
       <div 
-        className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200"
+        className="relative w-full max-w-3xl max-h-[88dvh] sm:max-h-[85vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200"
         onClick={e => e.stopPropagation()}
       >
         {/* Search Input Bar */}
@@ -259,7 +265,8 @@ export const SearchModal: React.FC = () => {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 export default SearchModal

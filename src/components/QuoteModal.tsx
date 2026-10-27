@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X, CheckCircle, Send, Phone, Mail, Building, FileText, Package } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { QuoteFormData } from '../types'
@@ -24,7 +25,19 @@ export const QuoteModal: React.FC = () => {
     }
   }, [quoteProduct])
 
+  // Lock background scroll on mobile/desktop when modal is open
+  useEffect(() => {
+    if (isQuoteModalOpen) {
+      const originalOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = originalOverflow
+      }
+    }
+  }, [isQuoteModalOpen])
+
   if (!isQuoteModalOpen) return null
+  if (typeof document === 'undefined') return null
 
   const isDemoRequest = /\bdemo\b|demonstration/i.test(quoteProduct || '')
   const isConsultationRequest =
@@ -105,21 +118,24 @@ export const QuoteModal: React.FC = () => {
     closeQuoteModal()
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-2.5 sm:p-4 md:p-6 bg-slate-950/75 backdrop-blur-sm animate-fade-in"
+      onClick={handleResetAndClose}
+    >
       <div 
-        className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200"
+        className="relative w-full max-w-2xl max-h-[92dvh] sm:max-h-[90vh] bg-white rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-slate-200/90 my-auto"
         onClick={e => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 bg-slate-900 text-white">
-          <div>
-            <span className="text-xs font-semibold tracking-wider uppercase text-red-400">{modalBadge}</span>
-            <h3 className="text-xl font-bold tracking-tight">{modalHeading}</h3>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 bg-slate-900 text-white shrink-0 border-b border-slate-800">
+          <div className="min-w-0 pr-3">
+            <span className="text-[10px] sm:text-xs font-semibold tracking-wider uppercase text-red-400 block">{modalBadge}</span>
+            <h3 className="text-base sm:text-xl font-bold tracking-tight truncate sm:whitespace-normal">{modalHeading}</h3>
           </div>
           <button
             onClick={handleResetAndClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+            className="p-1.5 sm:p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
             aria-label="Close quote modal"
           >
             <X className="w-5 h-5" />
@@ -127,37 +143,40 @@ export const QuoteModal: React.FC = () => {
         </div>
 
         {isSuccess ? (
-          <div className="p-8 text-center space-y-4">
-            <div className="w-16 h-16 mx-auto bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-10 h-10" />
+          <div className="p-6 sm:p-8 text-center space-y-4 overflow-y-auto max-h-[85dvh]">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
+              <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10" />
             </div>
-            <h4 className="text-2xl font-bold text-slate-900">{confirmationHeading}</h4>
-            <p className="text-slate-600 max-w-md mx-auto text-sm leading-relaxed">
+            <h4 className="text-xl sm:text-2xl font-bold text-slate-900">{confirmationHeading}</h4>
+            <p className="text-slate-600 max-w-md mx-auto text-xs sm:text-sm leading-relaxed">
               {confirmationMessage}
             </p>
-            <div className="pt-4 flex flex-wrap items-center justify-center gap-3">
+            <div className="pt-3 sm:pt-4 flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-3">
               <a
                 href={`mailto:viju@leniva3d.com?subject=${encodeURIComponent(`New Customer Enquiry – ${formData.productOrService || quoteProduct || 'Leniva 3D'} – Leniva 3D`)}&body=${encodeURIComponent(`Customer Name: ${formData.fullName}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nCompany: ${formData.company}\nRequirement: ${formData.productOrService || quoteProduct}\nMessage: ${formData.message}`)}`}
-                className="inline-flex items-center space-x-1.5 px-5 py-2.5 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
+                className="w-full sm:w-auto inline-flex items-center justify-center space-x-1.5 px-5 py-2.5 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-sm text-center"
               >
                 <span>Direct Email to viju@leniva3d.com</span>
               </a>
               <button
                 type="button"
                 onClick={handleResetAndClose}
-                className="px-6 py-2.5 bg-slate-900 text-white text-xs font-semibold rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+                className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 text-white text-xs font-semibold rounded-xl hover:bg-slate-800 transition-colors cursor-pointer text-center"
               >
                 Close Window
               </button>
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-            <p className="text-xs text-slate-500">
+          <form
+            onSubmit={handleSubmit}
+            className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3.5 sm:space-y-4 overscroll-contain"
+          >
+            <p className="text-xs text-slate-500 leading-relaxed">
               {modalIntro}
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Full Name <span className="text-rose-500">*</span>
@@ -231,7 +250,7 @@ export const QuoteModal: React.FC = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
               <div className="md:col-span-2">
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Product / Service Requirement <span className="text-rose-500">*</span>
@@ -242,7 +261,7 @@ export const QuoteModal: React.FC = () => {
                     required
                     value={formData.productOrService}
                     onChange={handleChange}
-                    className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none bg-white"
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none bg-white truncate"
                   >
                     <option value="">Select product or service...</option>
                     {formData.productOrService && (
@@ -355,22 +374,22 @@ export const QuoteModal: React.FC = () => {
               />
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-              <p className="text-[11px] text-slate-500">
+            <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <p className="text-[11px] text-slate-500 text-center sm:text-left order-2 sm:order-1">
                 🔒 We respect your privacy. Technical details are held under strict NDA.
               </p>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2.5 w-full sm:w-auto justify-end order-1 sm:order-2">
                 <button
                   type="button"
                   onClick={handleResetAndClose}
-                  className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-900"
+                  className="flex-1 sm:flex-initial px-4 py-2.5 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 sm:border-transparent rounded-lg transition-colors text-center cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="inline-flex items-center space-x-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all disabled:opacity-50"
+                  className="flex-1 sm:flex-initial inline-flex items-center justify-center space-x-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? (
                     <span>Submitting...</span>
@@ -386,7 +405,8 @@ export const QuoteModal: React.FC = () => {
           </form>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 export default QuoteModal
