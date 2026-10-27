@@ -223,7 +223,7 @@ export const EkaGtMaxPage: React.FC = () => {
         <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden p-6 sm:p-10 lg:p-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Content Column */}
-            <div className="lg:col-span-7 space-y-6">
+            <div className="order-2 lg:order-1 lg:col-span-7 space-y-6">
               {/* Product Badge */}
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-xs font-mono font-bold uppercase tracking-wider">
@@ -324,7 +324,7 @@ export const EkaGtMaxPage: React.FC = () => {
             </div>
 
             {/* Right Product Visual Column */}
-            <div className="lg:col-span-5 flex flex-col items-center justify-center">
+            <div className="order-1 lg:order-2 lg:col-span-5 flex flex-col items-center justify-center">
               <div className="relative w-full aspect-square max-w-[460px] rounded-2xl bg-slate-100 bg-gradient-to-b from-blue-100/60 via-slate-100/50 to-slate-200/40 p-8 flex items-center justify-center border border-slate-200 shadow-inner group">
                 {/* Tech dimension overlays */}
                 <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-md text-[10px] font-mono font-bold text-slate-600 border border-slate-200/80 shadow-xs">

@@ -95,7 +95,7 @@ export const DevokMTPage: React.FC = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* LEFT: Product Visual with Presentation Box */}
-            <div className="lg:col-span-6 relative">
+            <div className="order-1 lg:order-1 lg:col-span-6 relative">
               {/* Interactive View Switcher Tabs */}
               <div className="flex items-center justify-between mb-3 px-1">
                 <span className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider">
@@ -220,7 +220,7 @@ export const DevokMTPage: React.FC = () => {
             </div>
 
             {/* RIGHT: Typography, Description & CTAs */}
-            <div className="lg:col-span-6 space-y-6">
+            <div className="order-2 lg:order-2 lg:col-span-6 space-y-6">
               <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-wider">
                 <Crosshair className="w-3.5 h-3.5" />
                 <span>Industrial Inspection & Reverse Engineering</span>

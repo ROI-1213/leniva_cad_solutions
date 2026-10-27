@@ -364,7 +364,7 @@ export const PrathamDesktopPage: React.FC = () => {
 
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             {/* Left Column: Hero Content */}
-            <div className="lg:col-span-7 space-y-6">
+            <div className="order-2 lg:order-1 lg:col-span-7 space-y-6">
               {/* Product Badge */}
               <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700">
                 <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
@@ -466,7 +466,7 @@ export const PrathamDesktopPage: React.FC = () => {
             </div>
 
             {/* Right Column: Large Realistic Render with Measurement Callouts */}
-            <div className="lg:col-span-5 relative flex items-center justify-center">
+            <div className="order-1 lg:order-2 lg:col-span-5 relative flex items-center justify-center">
               <div className="relative w-full max-w-md mx-auto aspect-square flex items-center justify-center p-4">
                 {/* Visual coordinate lines */}
                 <div className="absolute inset-4 border border-dashed border-slate-200 rounded-2xl pointer-events-none" />

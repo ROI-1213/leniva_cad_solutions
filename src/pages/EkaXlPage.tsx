@@ -147,7 +147,7 @@ export const EkaXlPage: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Left Content */}
-          <div className="lg:col-span-6 space-y-6">
+          <div className="order-2 lg:order-1 lg:col-span-6 space-y-6">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-mono font-bold tracking-wider uppercase">
               <Gem className="w-3.5 h-3.5 text-amber-600" />
               <span>ENTRY LEVEL JEWELRY DLP</span>
@@ -203,7 +203,7 @@ export const EkaXlPage: React.FC = () => {
           </div>
 
           {/* Right Product Image */}
-          <div className="lg:col-span-6 relative">
+          <div className="order-1 lg:order-2 lg:col-span-6 relative">
             <div className="relative rounded-3xl bg-slate-50 bg-gradient-to-b from-amber-50/60 via-slate-100/70 to-white p-6 sm:p-12 border border-slate-200/90 shadow-xl overflow-hidden flex flex-col items-center justify-center min-h-[440px]">
               {/* Subtle Tech Grid */}
               <div

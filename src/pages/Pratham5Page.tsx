@@ -305,7 +305,7 @@ export const Pratham5Page: React.FC = () => {
       <section ref={overviewRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           {/* Left Column: Product Information */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="order-2 lg:order-1 lg:col-span-7 space-y-6">
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-red-700 text-xs font-bold font-mono tracking-wider uppercase">
                 <Sparkles className="w-3.5 h-3.5 text-red-600 animate-pulse" />
@@ -397,7 +397,7 @@ export const Pratham5Page: React.FC = () => {
           </div>
 
           {/* Right Column: Hero Visual with Technical Callout Pins */}
-          <div className="lg:col-span-5 relative">
+          <div className="order-1 lg:order-2 lg:col-span-5 relative">
             <div className="relative rounded-3xl bg-radial from-white via-slate-100/80 to-slate-200/50 p-6 sm:p-8 border border-slate-200/80 shadow-lg overflow-hidden group">
               {/* Technical Grid Overlay */}
               <div

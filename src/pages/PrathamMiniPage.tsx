@@ -189,7 +189,7 @@ export const PrathamMiniPage: React.FC = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center relative z-10">
             {/* Left Column: Headlines, Specs & CTAs */}
-            <div className="lg:col-span-7 space-y-6">
+            <div className="order-2 lg:order-1 lg:col-span-7 space-y-6">
               <div className="inline-flex items-center space-x-2 px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full text-red-600 text-xs font-mono font-bold uppercase tracking-wider">
                 <Sparkles className="w-3.5 h-3.5 text-red-600" />
                 <span>PRATHAM MINI 3D PRINTER • MADE IN INDIA</span>
@@ -254,7 +254,7 @@ export const PrathamMiniPage: React.FC = () => {
             </div>
 
             {/* Right Column: Realistic Machine Render & Floating Badges */}
-            <div className="lg:col-span-5 relative flex justify-center">
+            <div className="order-1 lg:order-2 lg:col-span-5 relative flex justify-center">
               <div className="relative w-full max-w-md aspect-square rounded-3xl bg-gradient-to-b from-slate-100/70 to-slate-200/50 border border-slate-200 flex items-center justify-center p-8 group">
                 <img
                   src="/images/products/pratham-mini.png"

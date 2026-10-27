@@ -203,7 +203,7 @@ export const PrathamX600Page: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           {/* Left Column: Product Info */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="order-2 lg:order-1 lg:col-span-7 space-y-6">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-50 border border-red-200">
               <span className="flex h-2 w-2 rounded-full bg-red-600 animate-pulse" />
               <span className="text-xs font-bold text-red-800 tracking-wide uppercase">
@@ -290,7 +290,7 @@ export const PrathamX600Page: React.FC = () => {
           </div>
 
           {/* Right Column: Hero Machine Image */}
-          <div className="lg:col-span-5 flex justify-center">
+          <div className="order-1 lg:order-2 lg:col-span-5 flex justify-center">
             <div className="relative w-full max-w-md bg-gradient-to-b from-slate-100 to-slate-200/80 rounded-3xl p-8 border border-slate-200/80 shadow-xl overflow-hidden group">
               <div className="absolute -top-12 -right-12 w-48 h-48 bg-red-500/10 rounded-full blur-2xl pointer-events-none" />
               <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />

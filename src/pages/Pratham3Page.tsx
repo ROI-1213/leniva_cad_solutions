@@ -488,7 +488,7 @@ export const Pratham3Page: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Hero Left Content */}
-          <div className="lg:col-span-6 space-y-6">
+          <div className="order-2 lg:order-1 lg:col-span-6 space-y-6">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-red-700 text-xs font-mono font-bold tracking-wider uppercase">
               <Sparkles className="w-3.5 h-3.5 text-red-600" />
               <span>PRATHAM 3.0 • INDUSTRIAL FDM</span>
@@ -573,7 +573,7 @@ export const Pratham3Page: React.FC = () => {
           </div>
 
           {/* Hero Right Visual: Large Dominant Realistic Pratham 3.0 */}
-          <div className="lg:col-span-6 relative">
+          <div className="order-1 lg:order-2 lg:col-span-6 relative">
             <div className="relative rounded-3xl bg-slate-50 bg-gradient-to-b from-slate-100/90 to-white p-6 sm:p-10 border border-slate-200/90 shadow-xl overflow-hidden flex flex-col items-center justify-center min-h-[460px]">
               {/* Engineering Grid Background */}
               <div

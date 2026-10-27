@@ -388,7 +388,7 @@ export const ScannersCategoryPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
             {/* Left Content Column */}
-            <div className="lg:col-span-7 space-y-6 sm:space-y-7">
+            <div className="order-2 lg:order-1 lg:col-span-7 space-y-6 sm:space-y-7">
               {/* Category Pill Tag with Signature Orange & Deep Green Accents */}
               <div className="inline-flex items-center space-x-2.5 px-3.5 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/25 text-orange-600 text-xs font-bold uppercase tracking-wider">
                 <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
@@ -456,7 +456,7 @@ export const ScannersCategoryPage: React.FC = () => {
             </div>
 
             {/* Right: Large 3DeVOK Scanner Cinematic Visual */}
-            <div className="lg:col-span-5 relative">
+            <div className="order-1 lg:order-2 lg:col-span-5 relative">
               {/* Product Switcher Header */}
               <div className="flex items-center justify-between mb-3 px-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-1.5">

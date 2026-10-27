@@ -252,8 +252,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
 
         {/* Product Main Showcase Card */}
         <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200/90 shadow-sm grid grid-cols-1 lg:grid-cols-12 gap-10">
-          {/* LEFT: Image Gallery */}
-          <div className="lg:col-span-6 space-y-4">
+          {/* LEFT: Image Gallery (1st on mobile) */}
+          <div className="order-1 lg:order-1 lg:col-span-6 space-y-4">
             <div className="relative aspect-square rounded-2xl overflow-hidden bg-slate-50 border border-slate-200">
               <img
                 src={product.images[activeImageIndex] || product.heroImage}
@@ -288,8 +288,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
             )}
           </div>
 
-          {/* RIGHT: Product Information & Quotation CTA */}
-          <div className="lg:col-span-6 flex flex-col justify-between space-y-6">
+          {/* RIGHT: Product Information & Quotation CTA (2nd on mobile) */}
+          <div className="order-2 lg:order-2 lg:col-span-6 flex flex-col justify-between space-y-6">
             <div className="space-y-4">
               {/* Brand Logo / Label */}
               {(() => {
