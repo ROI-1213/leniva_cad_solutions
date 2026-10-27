@@ -10,6 +10,7 @@ import {
   Facebook,
   CheckCircle,
   Send,
+  Menu,
 } from 'lucide-react'
 import { siteConfig } from '../data/siteConfig'
 import { useApp } from '../context/AppContext'
@@ -141,6 +142,16 @@ export const Footer: React.FC = () => {
           <div className="space-y-3">
             <h4 className="font-bold text-white uppercase tracking-wider text-xs">Support & Legal</h4>
             <ul className="space-y-2 text-slate-400">
+              <li>
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent('leniva_open_mobile_menu'))}
+                  className="hover:text-red-400 transition-colors text-left flex items-center space-x-1.5 cursor-pointer text-slate-300 font-semibold"
+                >
+                  <Menu className="w-3.5 h-3.5 text-red-500" />
+                  <span>Navigation Menu</span>
+                </button>
+              </li>
               <li><Link to="/warranty" className="hover:text-red-400 transition-colors">Warranty & Service Level</Link></li>
               <li><Link to="/return-policy" className="hover:text-red-400 transition-colors">Return & Refund Policy</Link></li>
               <li><Link to="/privacy-policy" className="hover:text-red-400 transition-colors">Privacy Policy</Link></li>

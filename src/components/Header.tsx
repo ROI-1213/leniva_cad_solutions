@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
 import {
   Phone,
@@ -124,15 +125,38 @@ export const Header: React.FC = () => {
     setActiveMegaMenu(null)
   }, [location])
 
-  // Lock background body scroll when mobile menu is open
+  // Global event listeners to open/toggle the mobile navigation menu from anywhere (footer, sections, sticky buttons)
+  useEffect(() => {
+    const handleOpen = () => setIsMobileMenuOpen(true)
+    const handleClose = () => setIsMobileMenuOpen(false)
+    const handleToggle = () => setIsMobileMenuOpen(prev => !prev)
+
+    window.addEventListener('leniva_open_mobile_menu', handleOpen)
+    window.addEventListener('leniva_close_mobile_menu', handleClose)
+    window.addEventListener('leniva_toggle_mobile_menu', handleToggle)
+
+    return () => {
+      window.removeEventListener('leniva_open_mobile_menu', handleOpen)
+      window.removeEventListener('leniva_close_mobile_menu', handleClose)
+      window.removeEventListener('leniva_toggle_mobile_menu', handleToggle)
+    }
+  }, [])
+
+  // Lock background body scroll when mobile menu is open without losing the current scroll position at the footer or sections
   useEffect(() => {
     if (isMobileMenuOpen) {
+      const scrollY = window.scrollY
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.width = '100%'
       document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'unset'
-    }
-    return () => {
-      document.body.style.overflow = 'unset'
+      return () => {
+        document.body.style.position = ''
+        document.body.style.top = ''
+        document.body.style.width = ''
+        document.body.style.overflow = ''
+        window.scrollTo(0, scrollY)
+      }
     }
   }, [isMobileMenuOpen])
 
@@ -822,14 +846,15 @@ export const Header: React.FC = () => {
         )}
       </div>
 
-      {/* 3. MOBILE RESPONSIVE FORMAL DRAWER (Slides smoothly from the Right) */}
-      {isMobileMenuOpen && (
+      {/* 3. MOBILE RESPONSIVE FORMAL DRAWER (Mounted via React Portal directly into document.body to guarantee 100% visibility at any scroll depth, footer, or section) */}
+      {isMobileMenuOpen && typeof document !== 'undefined' && createPortal(
         <div
-          className="lg:hidden fixed inset-0 bg-slate-950/70 z-[100] backdrop-blur-sm flex justify-end transition-opacity duration-300"
+          className="lg:hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex justify-end transition-opacity duration-300"
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 99999 }}
           onClick={() => setIsMobileMenuOpen(false)}
         >
           <div
-            className="bg-white h-[100dvh] w-[88vw] max-w-sm sm:max-w-md shadow-2xl flex flex-col justify-between overflow-hidden border-l border-slate-200 animate-in slide-in-from-right duration-300"
+            className="bg-white h-[100dvh] w-[88vw] max-w-sm sm:max-w-md shadow-2xl flex flex-col justify-between overflow-hidden border-l border-slate-200 animate-in slide-in-from-right duration-300 relative z-[100000]"
             onClick={e => e.stopPropagation()}
           >
             {/* Formal Executive Header */}
@@ -1212,7 +1237,8 @@ export const Header: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </header>
   )
