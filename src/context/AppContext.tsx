@@ -163,6 +163,64 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [wishlistItems])
 
+  // Global Interceptor: Clicking "Download Brochure" / brochure links on ANY CAD Software page displays the Enquiry Form
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const handleDocumentClick = (e: MouseEvent) => {
+      // Don't intercept inside admin panel editor
+      if (window.location.pathname.startsWith('/admin')) return
+
+      const target = (e.target as HTMLElement)?.closest('a, button') as HTMLElement | null
+      if (!target) return
+
+      const pathname = window.location.pathname.toLowerCase()
+      const isCadRoute =
+        pathname.includes('ares') ||
+        pathname.includes('sketchup') ||
+        pathname.includes('enscape') ||
+        pathname.includes('vray') ||
+        pathname.includes('v-ray') ||
+        pathname.includes('corona') ||
+        pathname.includes('cad-software') ||
+        target.closest('[data-cad-software="true"]') !== null
+
+      // ONLY for CAD softwares - never intercept 3D printers or 3D scanners!
+      if (!isCadRoute) return
+
+      const text = (target.textContent || '').trim().toLowerCase()
+      const href = (target.getAttribute('href') || '').toLowerCase()
+      const title = (target.getAttribute('title') || '').toLowerCase()
+      const downloadAttr = (target.getAttribute('download') || '').toLowerCase()
+
+      const isBrochureClick =
+        text.includes('brochure') ||
+        href.includes('brochure') ||
+        title.includes('brochure') ||
+        downloadAttr.includes('brochure') ||
+        target.hasAttribute('data-cad-pdf-id')
+
+      if (isBrochureClick) {
+        e.preventDefault()
+        e.stopPropagation()
+
+        // Derive product name from document title or H1
+        let derivedProduct = document.title.split('|')[0].split('–')[0].trim() || 'CAD Software'
+        if (derivedProduct.toLowerCase().includes('leniva') || derivedProduct.length < 3) {
+          const h1 = document.querySelector('h1')?.textContent?.trim()
+          if (h1) derivedProduct = h1
+        }
+
+        openQuoteModal(`${derivedProduct} - Official Brochure Download`)
+      }
+    }
+
+    document.addEventListener('click', handleDocumentClick, true)
+    return () => {
+      document.removeEventListener('click', handleDocumentClick, true)
+    }
+  }, [])
+
   // Cart operations
   const addToCart = (item: Omit<CartItem, 'id'>) => {
     setCartItems(prev => {

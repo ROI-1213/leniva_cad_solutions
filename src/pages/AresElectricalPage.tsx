@@ -32,6 +32,8 @@ import {
   ToggleLeft,
   ShieldAlert,
   Activity,
+  Download,
+  FileText,
   Link as LinkIcon,
   FileText,
   Eye,
@@ -224,6 +226,15 @@ export const AresElectricalPage: React.FC = () => {
                 >
                   <Send className="w-4 h-4" />
                   <span>Request a Quote</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => openQuoteModal('ARES Electrical - Official Brochure Download')}
+                  className="px-6 py-3.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-100 font-semibold text-sm border border-slate-700 transition-all flex items-center space-x-2 cursor-pointer"
+                >
+                  <Download className="w-4 h-4 text-emerald-400" />
+                  <span>Download Brochure</span>
                 </button>
 
                 <a
@@ -1515,33 +1526,57 @@ export const AresElectricalPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {data.resources.cards.map((res, i) => (
-              <a
-                key={i}
-                href={res.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all flex flex-col justify-between group"
-              >
-                <div>
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-3 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                    {i === 0 && <BookOpen className="w-4 h-4" />}
-                    {i === 1 && <Video className="w-4 h-4" />}
-                    {i === 2 && <GraduationCap className="w-4 h-4" />}
-                    {i === 3 && <Headphones className="w-4 h-4" />}
-                    {i === 4 && <FileDown className="w-4 h-4" />}
+            {data.resources.cards.map((res, i) => {
+              const isBrochure = /brochure/i.test(res.title || res.linkText || '')
+              return isBrochure ? (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => openQuoteModal('ARES Electrical - Official Brochure Download')}
+                  className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all flex flex-col justify-between group text-left cursor-pointer"
+                >
+                  <div>
+                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-3 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                      <FileDown className="w-4 h-4" />
+                    </div>
+                    <h3 className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                      {res.title}
+                    </h3>
+                    <p className="mt-2 text-xs text-slate-500 leading-relaxed">{res.desc}</p>
                   </div>
-                  <h3 className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                    {res.title}
-                  </h3>
-                  <p className="mt-2 text-xs text-slate-500 leading-relaxed">{res.desc}</p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] font-semibold text-blue-600 flex items-center space-x-1">
-                  <span>{res.linkText}</span>
-                  <ExternalLink className="w-3 h-3" />
-                </div>
-              </a>
-            ))}
+                  <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] font-semibold text-blue-600 flex items-center space-x-1">
+                    <span>{res.linkText}</span>
+                    <Send className="w-3 h-3" />
+                  </div>
+                </button>
+              ) : (
+                <a
+                  key={i}
+                  href={res.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all flex flex-col justify-between group"
+                >
+                  <div>
+                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-3 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                      {i === 0 && <BookOpen className="w-4 h-4" />}
+                      {i === 1 && <Video className="w-4 h-4" />}
+                      {i === 2 && <GraduationCap className="w-4 h-4" />}
+                      {i === 3 && <Headphones className="w-4 h-4" />}
+                      {i === 4 && <FileDown className="w-4 h-4" />}
+                    </div>
+                    <h3 className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                      {res.title}
+                    </h3>
+                    <p className="mt-2 text-xs text-slate-500 leading-relaxed">{res.desc}</p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] font-semibold text-blue-600 flex items-center space-x-1">
+                    <span>{res.linkText}</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </div>
+                </a>
+              )
+            })}
           </div>
         </div>
       </section>

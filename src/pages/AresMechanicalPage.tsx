@@ -24,6 +24,8 @@ import {
   Layout,
   Zap,
   Terminal,
+  Download,
+  FileText,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useApp } from '../context/AppContext'
@@ -278,6 +280,14 @@ export const AresMechanicalPage: React.FC = () => {
                 >
                   <span>{cadEdits?.pricingCta || 'Request a Quote'}</span>
                   <ArrowRight className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openQuoteModal('ARES Mechanical - Official Brochure Download')}
+                  className="inline-flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold px-5 py-3 rounded-xl transition-all text-sm cursor-pointer"
+                >
+                  <Download className="w-4 h-4 text-emerald-400" />
+                  <span>Download Brochure</span>
                 </button>
                 <button
                   onClick={() => scrollTo('standards')}

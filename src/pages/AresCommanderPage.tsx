@@ -351,18 +351,16 @@ export const AresCommanderPage: React.FC = () => {
                   <span data-cad-path="hero.quoteCtaLabel">{(data.hero as any).quoteCtaLabel || 'Request Quote'}</span>
                 </button>
                 {primaryBrochurePdf && (
-                  <a
+                  <button
+                    type="button"
                     data-cad-key={`pdf:${primaryBrochurePdf.id}`}
                     data-cad-pdf-id={primaryBrochurePdf.id}
-                    href={primaryBrochurePdf.fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    download={primaryBrochurePdf.behavior === 'download' ? primaryBrochurePdf.fileName : undefined}
-                    className="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 font-bold text-xs sm:text-sm flex items-center gap-2 transition-all"
+                    onClick={() => openQuoteModal('ARES Commander - Official Brochure Download')}
+                    className="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 font-bold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer"
                   >
                     <FileText className="w-4 h-4 text-blue-600" />
                     <span data-cad-btn-text>{primaryBrochurePdf.buttonLabel}</span>
-                  </a>
+                  </button>
                 )}
                 <button
                   onClick={() => scrollTo(draftingRef, '2d-drafting')}
@@ -1464,18 +1462,16 @@ export const AresCommanderPage: React.FC = () => {
                     <div className="text-[10px] font-mono text-slate-400 truncate" title={pdfDoc.fileName}>
                       {pdfDoc.fileName}
                     </div>
-                    <a
+                    <button
+                      type="button"
                       data-cad-key={`pdf-card:${pdfDoc.id}`}
                       data-cad-pdf-id={pdfDoc.id}
-                      href={pdfDoc.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      download={pdfDoc.behavior === 'download' ? pdfDoc.fileName : undefined}
-                      className="w-full py-2.5 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-all"
+                      onClick={() => openQuoteModal(`ARES Commander - ${pdfDoc.title}`)}
+                      className="w-full py-2.5 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer"
                     >
                       <Download className="w-3.5 h-3.5" />
                       <span data-cad-btn-text>{pdfDoc.buttonLabel || 'Download PDF'}</span>
-                    </a>
+                    </button>
                   </div>
                 </div>
               ))}

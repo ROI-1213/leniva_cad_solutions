@@ -220,6 +220,14 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
   const [copiedLink, setCopiedLink] = useState(false)
 
   const inWishlist = isInWishlist(product.id)
+  const isCadSoftware =
+    product.category === 'cad-software' ||
+    product.category === 'software' ||
+    product.categorySlug === 'cad-software' ||
+    product.brand === 'Graebert' ||
+    product.brand === 'Trimble' ||
+    product.brand === 'Chaos' ||
+    /ares|sketchup|enscape|vray|v-ray|corona|cad/i.test(resolvedSlug || product.slug || product.name)
 
   // Find related products
   const relatedProducts = products
@@ -408,23 +416,46 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
                   <span>1-Year Official Warranty & Dedicated Field Support</span>
                 </div>
                 <div className="flex items-center space-x-2 font-semibold">
-                  <a
-                    href={product.brochureUrl || `/brochures/${product.slug}.pdf`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-700 hover:text-red-600 hover:border-red-300 flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
-                  >
-                    <Eye className="w-3.5 h-3.5 text-blue-600" />
-                    <span>View Brochure</span>
-                  </a>
-                  <a
-                    href={product.brochureUrl || `/brochures/${product.slug}.pdf`}
-                    download={`${product.slug}-brochure.pdf`}
-                    className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
-                  >
-                    <Download className="w-3.5 h-3.5 text-white" />
-                    <span>Download PDF</span>
-                  </a>
+                  {isCadSoftware ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => openQuoteModal(`${product.name} - Brochure Enquiry`)}
+                        className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-700 hover:text-red-600 hover:border-red-300 flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-blue-600" />
+                        <span>View Brochure</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openQuoteModal(`${product.name} - Official Brochure Download`)}
+                        className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
+                      >
+                        <Download className="w-3.5 h-3.5 text-white" />
+                        <span>Download Brochure</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <a
+                        href={product.brochureUrl || `/brochures/${product.slug}.pdf`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-700 hover:text-red-600 hover:border-red-300 flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-blue-600" />
+                        <span>View Brochure</span>
+                      </a>
+                      <a
+                        href={product.brochureUrl || `/brochures/${product.slug}.pdf`}
+                        download={`${product.slug}-brochure.pdf`}
+                        className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
+                      >
+                        <Download className="w-3.5 h-3.5 text-white" />
+                        <span>Download PDF</span>
+                      </a>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

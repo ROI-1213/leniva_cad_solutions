@@ -206,6 +206,15 @@ export const AresStandardPage: React.FC = () => {
 
                 <button
                   type="button"
+                  onClick={() => openQuoteModal('ARES Standard - Official Brochure Download')}
+                  className="px-6 py-3.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-100 font-semibold text-sm border border-slate-700 transition-all flex items-center space-x-2 cursor-pointer"
+                >
+                  <Download className="w-4 h-4 text-emerald-400" />
+                  <span>Download Brochure</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => openQuoteModal('ARES Standard Trial Download')}
                   className="px-6 py-3.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-100 font-semibold text-sm border border-slate-700 transition-all flex items-center space-x-2 cursor-pointer"
                 >

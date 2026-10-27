@@ -39,39 +39,50 @@ export const QuoteModal: React.FC = () => {
   if (!isQuoteModalOpen) return null
   if (typeof document === 'undefined') return null
 
-  const isDemoRequest = /\bdemo\b|demonstration/i.test(quoteProduct || '')
+  const isBrochureRequest = /\bbrochure\b/i.test(quoteProduct || '')
+  const isDemoRequest = !isBrochureRequest && /\bdemo\b|demonstration/i.test(quoteProduct || '')
   const isConsultationRequest =
+    !isBrochureRequest &&
     !isDemoRequest &&
     /\bconsultation\b|schedule.*engineer|talk to.*expert|technical call/i.test(quoteProduct || '')
 
-  const modalBadge = isDemoRequest
-    ? 'Official Demo Request'
-    : isConsultationRequest
-      ? 'Engineering Consultation'
-      : 'Official Inquiry'
+  const modalBadge = isBrochureRequest
+    ? 'Official Brochure & Technical Datasheet'
+    : isDemoRequest
+      ? 'Official Demo Request'
+      : isConsultationRequest
+        ? 'Engineering Consultation'
+        : 'Official Inquiry'
 
-  const modalHeading = isDemoRequest
-    ? 'Request a Product Demonstration'
-    : isConsultationRequest
-      ? 'Schedule an Engineering Consultation'
-      : 'Request an Engineering Quotation'
+  const modalHeading = isBrochureRequest
+    ? 'Download Official Product Brochure'
+    : isDemoRequest
+      ? 'Request a Product Demonstration'
+      : isConsultationRequest
+        ? 'Schedule an Engineering Consultation'
+        : 'Request an Engineering Quotation'
 
-  const modalIntro = isDemoRequest
-    ? 'Please provide your details below to schedule a live product demonstration with our application engineers.'
-    : isConsultationRequest
-      ? 'Please share your technical requirements below to schedule an engineering consultation with our specialists.'
-      : 'Please provide your project requirements below. Our application engineers review all inquiries to ensure the most cost-effective hardware, software, and service configuration.'
+  const modalIntro = isBrochureRequest
+    ? 'Please provide your details below to receive the complete official CAD software brochure, technical datasheet, and licensing documentation.'
+    : isDemoRequest
+      ? 'Please provide your details below to schedule a live product demonstration with our application engineers.'
+      : isConsultationRequest
+        ? 'Please share your technical requirements below to schedule an engineering consultation with our specialists.'
+        : 'Please provide your project requirements below. Our application engineers review all inquiries to ensure the most cost-effective hardware, software, and service configuration.'
 
-  const submitButtonText = isDemoRequest
-    ? 'Submit Demo Request'
-    : isConsultationRequest
-      ? 'Schedule Consultation'
-      : 'Submit Quote Request'
+  const submitButtonText = isBrochureRequest
+    ? 'Request & Download Brochure'
+    : isDemoRequest
+      ? 'Submit Demo Request'
+      : isConsultationRequest
+        ? 'Schedule Consultation'
+        : 'Submit Quote Request'
 
   const confirmationHeading = 'Enquiry Submitted Successfully'
 
-  const confirmationMessage =
-    'Thank you for contacting Leniva 3D. Your enquiry has been submitted successfully. Our team will get back to you shortly.'
+  const confirmationMessage = isBrochureRequest
+    ? 'Thank you for your interest! Your brochure request has been received. Our application team is sharing the official documentation with you immediately.'
+    : 'Thank you for contacting Leniva 3D. Your enquiry has been submitted successfully. Our team will get back to you shortly.'
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -84,12 +95,16 @@ export const QuoteModal: React.FC = () => {
     try {
       await submitQuote({
         ...formData,
-        source: isDemoRequest
+        source: isBrochureRequest
+          ? 'CAD Software Brochure Download Enquiry'
+          : isDemoRequest
           ? 'Product Demonstration Request'
           : isConsultationRequest
           ? 'Engineering Consultation Request'
           : 'Quote Request Form',
-        enquiryType: isDemoRequest
+        enquiryType: isBrochureRequest
+          ? 'quote'
+          : isDemoRequest
           ? 'demo'
           : isConsultationRequest
           ? 'consultation'
