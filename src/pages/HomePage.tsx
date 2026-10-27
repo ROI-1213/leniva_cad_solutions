@@ -354,14 +354,27 @@ export const HomePage: React.FC = () => {
       {/* ====================================================
           SECTION 2: COMPANY INTRODUCTION
          ==================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-8 py-4 sm:py-8">
-        <div className="bg-slate-50/80 rounded-3xl p-8 sm:p-12 lg:p-14 border border-slate-200/80 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          <div className="lg:col-span-7 space-y-6">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-tight">
+      <section className="max-w-7xl mx-auto px-3 sm:px-8 py-4 sm:py-8">
+        <div className="bg-slate-50/80 rounded-2xl sm:rounded-3xl p-4 sm:p-10 lg:p-14 border border-slate-200/80 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+          
+          {/* Image Showcase - Displayed 1st on mobile and sized bigger */}
+          <div className="order-1 lg:order-2 lg:col-span-5 relative w-full">
+            <div className="rounded-2xl overflow-hidden shadow-xl border border-slate-200/90 bg-white group w-full">
+              <img
+                src={homeContent.companyIntro.posterImage}
+                alt={homeContent.companyIntro.posterAlt}
+                className="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+              />
+            </div>
+          </div>
+
+          {/* Text Content - Displayed 2nd on mobile */}
+          <div className="order-2 lg:order-1 lg:col-span-7 space-y-5 sm:space-y-6">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-tight">
               {homeContent.companyIntro.heading} <br />
               <span className="text-red-600">{homeContent.companyIntro.headingHighlight}</span>
             </h2>
-            <p className="text-slate-600 text-base sm:text-lg leading-relaxed font-normal">
+            <p className="text-slate-600 text-sm sm:text-lg leading-relaxed font-normal">
               {homeContent.companyIntro.description}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-sm font-semibold text-slate-800 pt-1">
@@ -372,31 +385,22 @@ export const HomePage: React.FC = () => {
                 </div>
               ))}
             </div>
-            <div className="pt-4 flex flex-wrap items-center gap-4">
+            <div className="pt-2 sm:pt-4 flex flex-wrap items-center gap-3 sm:gap-4">
               <Link
                 to={homeContent.companyIntro.btnExploreLink}
-                className="px-7 py-3.5 bg-slate-950 hover:bg-red-600 text-white text-sm font-bold rounded-xl transition-all shadow-sm"
+                className="px-6 sm:px-7 py-3 sm:py-3.5 bg-slate-950 hover:bg-red-600 text-white text-xs sm:text-sm font-bold rounded-xl transition-all shadow-sm"
               >
                 {homeContent.companyIntro.btnExploreText}
               </Link>
               <Link
                 to={homeContent.companyIntro.btnContactLink}
-                className="px-7 py-3.5 border border-slate-300 hover:border-slate-800 text-slate-900 text-sm font-bold rounded-xl transition-all bg-white shadow-2xs"
+                className="px-6 sm:px-7 py-3 sm:py-3.5 border border-slate-300 hover:border-slate-800 text-slate-900 text-xs sm:text-sm font-bold rounded-xl transition-all bg-white shadow-2xs"
               >
                 {homeContent.companyIntro.btnContactText}
               </Link>
             </div>
           </div>
 
-          <div className="lg:col-span-5 relative">
-            <div className="rounded-2xl overflow-hidden shadow-xl border border-slate-200/90 bg-white group">
-              <img
-                src={homeContent.companyIntro.posterImage}
-                alt={homeContent.companyIntro.posterAlt}
-                className="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-[1.02]"
-              />
-            </div>
-          </div>
         </div>
       </section>
 
