@@ -19,6 +19,7 @@ import {
   Factory,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
+import { recordCustomerEnquiry } from '../utils/cloudSync'
 import { ekaGtMaxData as defaultEkaGtMaxData, LcdGalleryItem } from '../data/industrialLcdData'
 import { mergeCatalogWithHardwareData } from '../utils/productCatalog'
 
@@ -90,13 +91,29 @@ export const EkaGtMaxPage: React.FC = () => {
     }
   }, [])
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setFormSubmitting(true)
-    setTimeout(() => {
+    try {
+      await recordCustomerEnquiry({
+        fullName: formState.name,
+        email: formState.email,
+        phone: formState.phone,
+        company: formState.organization,
+        productOrService: `EKA GT Max Industrial LCD Printer (${formState.application || 'Engineering Prototyping'})`,
+        quantity: '1',
+        application: formState.application,
+        timeline: 'Immediate',
+        message: formState.message || `Application: ${formState.application}`,
+        source: 'EKA GT Max Product Page Form',
+        enquiryType: 'quote',
+      })
+    } catch (err) {
+      console.warn('Form submit error:', err)
+    } finally {
       setFormSubmitting(false)
       setFormSuccess(true)
-    }, 900)
+    }
   }
 
   const galleryCategories = [

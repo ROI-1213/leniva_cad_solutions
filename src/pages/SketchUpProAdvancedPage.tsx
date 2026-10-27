@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { sketchupProAdvancedData } from '../data/sketchupProAdvancedData'
 import { useCadPageData } from '../utils/cadSoftwareConfig'
+import { useApp } from '../context/AppContext'
 
 // ─── Icon Map ────────────────────────────────────────────────────────────────
 const IconMap: Record<string, React.FC<{ className?: string }>> = {
@@ -60,6 +61,7 @@ const NAV_SECTIONS = [
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export default function SketchUpProAdvancedPage() {
+  const { openQuoteModal } = useApp()
   const { data: d } = useCadPageData('sketchup_advanced', sketchupProAdvancedData)
 
   const [activeSection, setActiveSection] = useState('overview')
@@ -202,14 +204,13 @@ export default function SketchUpProAdvancedPage() {
                 >
                   Subscribe <ArrowRight className="w-4 h-4" />
                 </button>
-                <a
-                  href="https://www.sketchup.com/try-sketchup"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-white/30 text-white font-semibold text-sm hover:bg-white/10 transition-all"
+                <button
+                  type="button"
+                  onClick={() => openQuoteModal('SketchUp Pro Advanced Workflows Trial')}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-white/30 text-white font-semibold text-sm hover:bg-white/10 transition-all cursor-pointer"
                 >
-                  Try SketchUp <ExternalLink className="w-4 h-4" />
-                </a>
+                  Request Evaluation Trial <Send className="w-4 h-4" />
+                </button>
                 <button
                   onClick={() => scrollTo('compare')}
                   className="inline-flex items-center gap-2 px-5 py-3 text-white/70 text-sm font-medium hover:text-white transition-colors"
@@ -731,14 +732,12 @@ export default function SketchUpProAdvancedPage() {
                   >
                     Enquire Now
                   </Link>
-                  <a
-                    href="https://www.sketchup.com/try-sketchup"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-full py-3.5 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm hover:bg-slate-50 transition-colors text-center"
+                  <button
+                    onClick={() => openQuoteModal('SketchUp Pro Advanced Workflows Free Trial')}
+                    className="block w-full py-3.5 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm hover:bg-slate-50 transition-colors text-center cursor-pointer"
                   >
                     Try Free First
-                  </a>
+                  </button>
                 </div>
 
                 <p className="text-xs text-slate-400 text-center pt-2">

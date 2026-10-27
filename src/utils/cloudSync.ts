@@ -291,6 +291,7 @@ export interface StoredQuoteRecord {
   status: string
   created_at: string
   notes?: string
+  enquiry_type?: 'quote' | 'demo' | 'consultation' | 'trial' | 'contact'
 }
 
 export interface StoredContactRecord {
@@ -303,6 +304,7 @@ export interface StoredContactRecord {
   status: string
   created_at: string
   notes?: string
+  enquiry_type?: 'quote' | 'demo' | 'consultation' | 'trial' | 'contact'
 }
 
 export const DEFAULT_INITIAL_QUOTES: StoredQuoteRecord[] = [
@@ -434,6 +436,7 @@ export async function recordCustomerEnquiry(payload: {
   subject?: string
   message?: string
   source?: string
+  enquiryType?: 'quote' | 'demo' | 'consultation' | 'trial' | 'contact'
 }): Promise<boolean> {
   if (typeof window === 'undefined') return false
 
@@ -458,6 +461,21 @@ export async function recordCustomerEnquiry(payload: {
   const nowIso = new Date().toISOString()
   const uniqueId = Math.floor(Date.now() / 100) % 100000000
 
+  // Intelligently classify enquiry type if not explicitly supplied
+  let detectedType: 'quote' | 'demo' | 'consultation' | 'trial' | 'contact' = payload.enquiryType || 'quote'
+  const combined = `${payload.productOrService || ''} ${payload.subject || ''} ${payload.source || ''} ${payload.message || ''}`.toLowerCase()
+  if (!payload.enquiryType) {
+    if (combined.includes('demo') || combined.includes('demonstration')) {
+      detectedType = 'demo'
+    } else if (combined.includes('consultation') || combined.includes('engineer') || combined.includes('specialist') || combined.includes('technical call')) {
+      detectedType = 'consultation'
+    } else if (combined.includes('trial') || combined.includes('evaluation')) {
+      detectedType = 'trial'
+    } else if (payload.source?.toLowerCase().includes('contact')) {
+      detectedType = 'contact'
+    }
+  }
+
   const newQuote: StoredQuoteRecord = {
     id: uniqueId,
     name: (payload.fullName || 'Customer').trim(),
@@ -471,6 +489,7 @@ export async function recordCustomerEnquiry(payload: {
     status: 'pending',
     created_at: nowIso,
     notes: payload.source ? `Submitted via ${payload.source}` : '',
+    enquiry_type: detectedType,
   }
 
   const newContact: StoredContactRecord = {
@@ -488,7 +507,8 @@ export async function recordCustomerEnquiry(payload: {
     ).trim(),
     status: 'unread',
     created_at: nowIso,
-    notes: payload.company ? `Company: ${payload.company}` : '',
+    notes: payload.company ? `Company: ${payload.company}` : (payload.source ? `Source: ${payload.source}` : ''),
+    enquiry_type: detectedType,
   }
 
   const currentQuotes = getStoredQuotes()
@@ -701,6 +721,63 @@ export async function pullCmsStateFromCloud(forceApply = false): Promise<boolean
         if (k in cleanCloudKeys) {
           const remoteVal = cleanCloudKeys[k]
           const localVal = rawGetItem(k)
+
+          if (k === 'leniva_admin_quotes') {
+            try {
+              const localArr = localVal ? JSON.parse(localVal) : []
+              const remoteArr = remoteVal ? JSON.parse(remoteVal) : []
+              if (Array.isArray(localArr) && Array.isArray(remoteArr)) {
+                const mapById = new Map<number, any>()
+                for (const item of localArr) {
+                  if (item && item.id != null) mapById.set(Number(item.id), item)
+                }
+                for (const item of remoteArr) {
+                  if (item && item.id != null) mapById.set(Number(item.id), item)
+                }
+                const mergedArr = Array.from(mapById.values()).sort((a, b) => {
+                  const tsA = new Date(a.created_at || 0).getTime() || Number(a.id || 0)
+                  const tsB = new Date(b.created_at || 0).getTime() || Number(b.id || 0)
+                  return tsB - tsA
+                })
+                const mergedStr = JSON.stringify(mergedArr)
+                if (localVal !== mergedStr) {
+                  rawSetItem(k, mergedStr)
+                  changedAnyKey = true
+                }
+                continue
+              }
+            } catch {
+              // fallback
+            }
+          } else if (k === 'leniva_admin_contacts') {
+            try {
+              const localArr = localVal ? JSON.parse(localVal) : []
+              const remoteArr = remoteVal ? JSON.parse(remoteVal) : []
+              if (Array.isArray(localArr) && Array.isArray(remoteArr)) {
+                const mapById = new Map<number, any>()
+                for (const item of localArr) {
+                  if (item && item.id != null) mapById.set(Number(item.id), item)
+                }
+                for (const item of remoteArr) {
+                  if (item && item.id != null) mapById.set(Number(item.id), item)
+                }
+                const mergedArr = Array.from(mapById.values()).sort((a, b) => {
+                  const tsA = new Date(a.created_at || 0).getTime() || Number(a.id || 0)
+                  const tsB = new Date(b.created_at || 0).getTime() || Number(b.id || 0)
+                  return tsB - tsA
+                })
+                const mergedStr = JSON.stringify(mergedArr)
+                if (localVal !== mergedStr) {
+                  rawSetItem(k, mergedStr)
+                  changedAnyKey = true
+                }
+                continue
+              }
+            } catch {
+              // fallback
+            }
+          }
+
           if (localVal !== remoteVal) {
             rawSetItem(k, remoteVal)
             changedAnyKey = true

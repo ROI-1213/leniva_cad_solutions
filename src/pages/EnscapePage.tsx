@@ -356,25 +356,23 @@ export const EnscapePage: React.FC = () => {
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-              <a
-                href={enscapeData.hero.trialUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-5 py-3.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-sm shadow-xs transition-all flex items-center space-x-2"
+              <button
+                type="button"
+                onClick={() => openQuoteModal('Chaos Enscape 14-Day Free Trial')}
+                className="px-5 py-3.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-sm shadow-xs transition-all flex items-center space-x-2 cursor-pointer"
               >
                 <span>Start Free Trial</span>
-                <ExternalLink className="w-4 h-4 text-slate-400" />
-              </a>
+                <Send className="w-4 h-4 text-blue-600" />
+              </button>
 
-              <a
-                href={enscapeData.hero.officialUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-3.5 text-slate-500 hover:text-slate-800 font-semibold text-xs flex items-center space-x-1"
+              <button
+                type="button"
+                onClick={() => openQuoteModal('Chaos Enscape Official Licensing Consultation')}
+                className="px-4 py-3.5 text-slate-500 hover:text-slate-800 font-semibold text-xs flex items-center space-x-1 cursor-pointer"
               >
-                <span>Official Chaos Site</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+                <span>Licensing Consultation</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </div>
 
             {/* Key Verified Stats */}
@@ -1263,15 +1261,14 @@ export const EnscapePage: React.FC = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 shrink-0 w-full md:w-auto">
-            <a
-              href={enscapeData.hero.trialUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-3.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2"
+            <button
+              type="button"
+              onClick={() => openQuoteModal('Chaos Enscape 14-Day Free Trial')}
+              className="px-6 py-3.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer"
             >
               <span>Start Free Trial</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
+              <Send className="w-3.5 h-3.5" />
+            </button>
             <button
               onClick={() => openQuoteModal('Enscape Trial Assistance')}
               className="px-5 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs transition-all flex items-center justify-center space-x-2 cursor-pointer"

@@ -224,15 +224,14 @@ export const CoronaPage: React.FC = () => {
 
           {/* Action Buttons */}
           <div className="flex items-center space-x-2">
-            <a
-              href={coronaData.identity.trialUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+            <button
+              type="button"
+              onClick={() => openQuoteModal('Chaos Corona 30-Day Free Trial')}
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
             >
               <span>30-Day Trial</span>
-              <ExternalLink className="w-3 h-3 text-slate-400" />
-            </a>
+              <Send className="w-3 h-3 text-red-600" />
+            </button>
             <button
               onClick={() => scrollTo(enquiryRef, 'enquiry')}
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-all hover:shadow-md cursor-pointer"
@@ -287,15 +286,14 @@ export const CoronaPage: React.FC = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-wrap items-center gap-3 pt-3">
-                <a
-                  href={coronaData.identity.trialUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-xl shadow-md hover:shadow-lg transition-all"
+                <button
+                  type="button"
+                  onClick={() => openQuoteModal('Chaos Corona 30-Day Free Trial')}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer"
                 >
                   <Download className="w-4 h-4" />
                   <span>Start 30-Day Free Trial</span>
-                </a>
+                </button>
                 <button
                   onClick={() => scrollTo(pricingRef, 'pricing')}
                   className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-white hover:bg-slate-100 text-slate-900 border border-slate-300 font-bold text-sm rounded-xl transition-colors cursor-pointer"
@@ -1158,14 +1156,13 @@ export const CoronaPage: React.FC = () => {
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
 
-                  <a
-                    href={plan.officialUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block text-center text-[11px] text-slate-500 hover:text-red-600 transition-colors"
+                  <button
+                    type="button"
+                    onClick={() => openQuoteModal(`Chaos Corona (${plan.name}) License Consultation`)}
+                    className="block w-full text-center text-[11px] text-slate-500 hover:text-red-600 transition-colors cursor-pointer"
                   >
-                    View Official Chaos Plan Page →
-                  </a>
+                    Consult on Plan & Licensing →
+                  </button>
                 </div>
               </div>
             ))}
@@ -1205,14 +1202,13 @@ export const CoronaPage: React.FC = () => {
               Download the fully functional evaluation trial directly from Chaos. Test all features with Autodesk 3ds Max and Maxon Cinema 4D.
             </p>
           </div>
-          <a
-            href={coronaData.identity.trialUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-8 py-3.5 bg-white text-red-600 hover:bg-red-50 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all shrink-0"
+          <button
+            type="button"
+            onClick={() => openQuoteModal('Chaos Corona 30-Day Free Trial')}
+            className="px-8 py-3.5 bg-white text-red-600 hover:bg-red-50 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all shrink-0 cursor-pointer"
           >
             Start Your Free Trial →
-          </a>
+          </button>
         </div>
       </section>
 

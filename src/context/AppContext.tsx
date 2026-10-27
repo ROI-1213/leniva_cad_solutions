@@ -235,16 +235,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const submitQuote = async (data: QuoteFormData): Promise<boolean> => {
     try {
+      const prodOrSvc = data.productOrService || quoteProduct || 'General Quotation / Demo Enquiry'
+      let detectedType = data.enquiryType
+      if (!detectedType) {
+        const text = `${prodOrSvc} ${data.source || ''}`.toLowerCase()
+        if (text.includes('demo') || text.includes('demonstration')) {
+          detectedType = 'demo'
+        } else if (text.includes('consultation') || text.includes('engineer') || text.includes('technical call') || text.includes('specialist')) {
+          detectedType = 'consultation'
+        } else if (text.includes('trial') || text.includes('evaluation')) {
+          detectedType = 'trial'
+        } else {
+          detectedType = 'quote'
+        }
+      }
+
       await recordCustomerEnquiry({
         fullName: data.fullName,
         company: data.company,
         email: data.email,
         phone: data.phone,
-        productOrService: data.productOrService || quoteProduct || 'General Quotation / Demo Enquiry',
+        productOrService: prodOrSvc,
         quantity: data.quantity || '1',
         application: data.application || 'Immediate',
         message: data.message,
-        source: 'Quote / Consultation Form',
+        source: data.source || (detectedType === 'demo' ? 'Product Demo Request' : detectedType === 'consultation' ? 'Engineering Consultation' : 'Quote Request'),
+        enquiryType: detectedType,
       })
     } catch (e) {
       console.warn('Enquiry cloud sync fallback:', e)

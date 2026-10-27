@@ -113,6 +113,7 @@ interface QuoteRequest {
   status: string
   notes?: string
   created_at: string
+  enquiry_type?: 'quote' | 'demo' | 'consultation' | 'trial' | 'contact'
 }
 
 interface ContactMessage {
@@ -193,6 +194,8 @@ export default function AdminPage() {
   const [productSearch, setProductSearch] = useState('')
   const [selectedCatalogCategory, setSelectedCatalogCategory] = useState<'all' | 'printers' | 'scanners' | 'filaments' | 'cad'>('all')
   const [quoteFilter, setQuoteFilter] = useState('all')
+  const [quoteEnquiryTypeFilter, setQuoteEnquiryTypeFilter] = useState<'all' | 'quote' | 'demo' | 'consultation' | 'trial' | 'contact'>('all')
+  const [quoteSearchInput, setQuoteSearchInput] = useState('')
 
   // Modals / Forms
   const [selectedQuote, setSelectedQuote] = useState<QuoteRequest | null>(null)
@@ -1474,11 +1477,57 @@ export default function AdminPage() {
     )
   })
 
+  const getEnquiryType = (q: QuoteRequest): 'quote' | 'demo' | 'consultation' | 'trial' | 'contact' => {
+    if ((q as any).enquiry_type) return (q as any).enquiry_type
+    const text = `${q.service_or_product || ''} ${q.notes || ''} ${q.message || ''}`.toLowerCase()
+    if (text.includes('demo') || text.includes('demonstration')) return 'demo'
+    if (text.includes('consultation') || text.includes('engineer') || text.includes('technical call') || text.includes('specialist')) return 'consultation'
+    if (text.includes('trial') || text.includes('evaluation')) return 'trial'
+    if (text.includes('contact form') || text.includes('contact message') || text.includes('general inquiry')) return 'contact'
+    return 'quote'
+  }
+
   // Filtered Quotes
   const filteredQuotes = (Array.isArray(quotes) ? quotes : []).filter(q => {
-    if (quoteFilter === 'all') return true
-    return q.status === quoteFilter
+    const matchesStatus = quoteFilter === 'all' || q.status === quoteFilter
+    const detectedType = getEnquiryType(q)
+    const matchesType = quoteEnquiryTypeFilter === 'all' || detectedType === quoteEnquiryTypeFilter
+    const query = quoteSearchInput.trim().toLowerCase()
+    const matchesSearch = !query ||
+      (q.name || '').toLowerCase().includes(query) ||
+      (q.email || '').toLowerCase().includes(query) ||
+      (q.company || '').toLowerCase().includes(query) ||
+      (q.service_or_product || '').toLowerCase().includes(query) ||
+      (q.message || '').toLowerCase().includes(query)
+    return matchesStatus && matchesType && matchesSearch
   })
+
+  const handleExportQuotesCsv = () => {
+    const headers = ['ID', 'Date', 'Type', 'Client Name', 'Email', 'Phone', 'Company', 'Product / Service', 'Quantity', 'Timeline', 'Status', 'Notes', 'Message']
+    const rows = filteredQuotes.map(q => [
+      q.id,
+      q.created_at ? new Date(q.created_at).toISOString() : '',
+      getEnquiryType(q),
+      `"${(q.name || '').replace(/"/g, '""')}"`,
+      `"${(q.email || '').replace(/"/g, '""')}"`,
+      `"${(q.phone || '').replace(/"/g, '""')}"`,
+      `"${(q.company || '').replace(/"/g, '""')}"`,
+      `"${(q.service_or_product || '').replace(/"/g, '""')}"`,
+      `"${(q.quantity || '').replace(/"/g, '""')}"`,
+      `"${(q.timeline || '').replace(/"/g, '""')}"`,
+      q.status,
+      `"${(q.notes || '').replace(/"/g, '""')}"`,
+      `"${(q.message || '').replace(/"/g, '""')}"`,
+    ])
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n')
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement('a')
+    link.setAttribute('href', encodedUri)
+    link.setAttribute('download', `leniva_inquiries_${new Date().toISOString().slice(0, 10)}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 
   // ----------------------------------------------------
   // AUTHENTICATED DASHBOARD (FULL CONTROL SUITE)
@@ -1899,12 +1948,30 @@ export default function AdminPage() {
              ==================================================== */}
           {activeTab === 'quotes' && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-black text-slate-900">Customer Quote Requests & RFQs</h3>
-                  <p className="text-xs text-slate-500">Full control over status, pricing notes, and records</p>
+                  <h3 className="text-lg font-black text-slate-900">Customer Inquiries, Quotes & Consultations</h3>
+                  <p className="text-xs text-slate-500">Real-time inquiries from Quotes, Live Demos, Engineering Consultations, and Free Trial requests</p>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={quoteSearchInput}
+                      onChange={e => setQuoteSearchInput(e.target.value)}
+                      placeholder="Search inquiries..."
+                      className="text-xs pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-48 sm:w-56"
+                    />
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
+                    {quoteSearchInput && (
+                      <button
+                        onClick={() => setQuoteSearchInput('')}
+                        className="absolute right-2 top-1.5 text-slate-400 hover:text-slate-600 text-xs"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
                   <select
                     value={quoteFilter}
                     onChange={e => setQuoteFilter(e.target.value)}
@@ -1916,7 +1983,79 @@ export default function AdminPage() {
                     <option value="quoted">Quoted</option>
                     <option value="completed">Completed</option>
                   </select>
+                  <button
+                    onClick={handleExportQuotesCsv}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+                    title="Export currently filtered inquiries to CSV"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Export CSV</span>
+                  </button>
                 </div>
+              </div>
+
+              {/* Enquiry Type Filter Pills */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-100">
+                <button
+                  onClick={() => setQuoteEnquiryTypeFilter('all')}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    quoteEnquiryTypeFilter === 'all'
+                      ? 'bg-slate-900 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  All Inquiries ({quotes.length})
+                </button>
+                <button
+                  onClick={() => setQuoteEnquiryTypeFilter('quote')}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    quoteEnquiryTypeFilter === 'quote'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                  }`}
+                >
+                  Quotes & RFQs ({quotes.filter(q => getEnquiryType(q) === 'quote').length})
+                </button>
+                <button
+                  onClick={() => setQuoteEnquiryTypeFilter('demo')}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    quoteEnquiryTypeFilter === 'demo'
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-purple-50 text-purple-700 hover:bg-purple-100'
+                  }`}
+                >
+                  Demo Requests ({quotes.filter(q => getEnquiryType(q) === 'demo').length})
+                </button>
+                <button
+                  onClick={() => setQuoteEnquiryTypeFilter('consultation')}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    quoteEnquiryTypeFilter === 'consultation'
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                  }`}
+                >
+                  Engineering Consultations ({quotes.filter(q => getEnquiryType(q) === 'consultation').length})
+                </button>
+                <button
+                  onClick={() => setQuoteEnquiryTypeFilter('trial')}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    quoteEnquiryTypeFilter === 'trial'
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                  }`}
+                >
+                  Free Trials ({quotes.filter(q => getEnquiryType(q) === 'trial').length})
+                </button>
+                <button
+                  onClick={() => setQuoteEnquiryTypeFilter('contact')}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    quoteEnquiryTypeFilter === 'contact'
+                      ? 'bg-amber-600 text-white'
+                      : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                  }`}
+                >
+                  Contact Form ({quotes.filter(q => getEnquiryType(q) === 'contact').length})
+                </button>
               </div>
 
               <div className="overflow-x-auto">
@@ -1924,66 +2063,129 @@ export default function AdminPage() {
                   <thead>
                     <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider bg-slate-50/50">
                       <th className="py-3 px-3">ID</th>
+                      <th className="py-3 px-3">Submitted Date</th>
+                      <th className="py-3 px-3">Type</th>
                       <th className="py-3 px-3">Client & Company</th>
                       <th className="py-3 px-3">Contact</th>
-                      <th className="py-3 px-3">Product / Service</th>
+                      <th className="py-3 px-3">Product / Requirement</th>
                       <th className="py-3 px-3">Quantity & Timeline</th>
                       <th className="py-3 px-3">Status</th>
                       <th className="py-3 px-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {filteredQuotes.map(q => (
-                      <tr key={q.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="py-3 px-3 font-mono font-bold text-slate-400">#{q.id}</td>
-                        <td className="py-3 px-3">
-                          <div className="font-bold text-slate-900">{q.name}</div>
-                          <div className="text-[11px] text-slate-500">{q.company || 'Individual'}</div>
-                        </td>
-                        <td className="py-3 px-3 text-slate-600">
-                          <div>{q.email}</div>
-                          <div className="text-[11px] text-slate-400">{q.phone || 'â€”'}</div>
-                        </td>
-                        <td className="py-3 px-3 font-semibold text-slate-800">
-                          {q.service_or_product}
-                        </td>
-                        <td className="py-3 px-3 text-slate-600">
-                          <div>Qty: {q.quantity}</div>
-                          <div className="text-[11px] text-slate-400">{q.timeline}</div>
-                        </td>
-                        <td className="py-3 px-3">
-                          <select
-                            value={q.status}
-                            onChange={e => handleUpdateQuoteStatus(q.id, e.target.value)}
-                            className="text-xs font-bold rounded-lg border border-slate-200 bg-white px-2 py-1 cursor-pointer focus:ring-1 focus:ring-blue-500"
-                          >
-                            <option value="pending">Pending</option>
-                            <option value="in_review">In Review</option>
-                            <option value="quoted">Quoted</option>
-                            <option value="completed">Completed</option>
-                          </select>
-                        </td>
-                        <td className="py-3 px-3 text-right space-x-2">
-                          <button
-                            onClick={() => {
-                              setSelectedQuote(q)
-                              setQuoteNotesInput(q.notes || '')
-                            }}
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
-                            title="Inspect details & notes"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteQuote(q.id)}
-                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
-                            title="Delete quote"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                    {filteredQuotes.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} className="py-8 text-center text-slate-400 font-medium">
+                          No inquiries found matching your filters.
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      filteredQuotes.map(q => {
+                        const type = getEnquiryType(q)
+                        return (
+                          <tr key={q.id} className="hover:bg-slate-50 transition-colors">
+                            <td className="py-3 px-3 font-mono font-bold text-slate-400">#{q.id}</td>
+                            <td className="py-3 px-3 text-slate-600 font-mono text-[11px] whitespace-nowrap">
+                              <div className="font-bold text-slate-800">
+                                {q.created_at ? new Date(q.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                              </div>
+                              <div className="text-[10px] text-slate-400">
+                                {q.created_at ? new Date(q.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true }) : ''}
+                              </div>
+                            </td>
+                            <td className="py-3 px-3 whitespace-nowrap">
+                              {type === 'demo' && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-200">
+                                  Demo Request
+                                </span>
+                              )}
+                              {type === 'consultation' && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 border border-indigo-200">
+                                  Consultation
+                                </span>
+                              )}
+                              {type === 'trial' && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                  Free Trial
+                                </span>
+                              )}
+                              {type === 'contact' && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                                  Contact Form
+                                </span>
+                              )}
+                              {type === 'quote' && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200">
+                                  Quote / RFQ
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-3 px-3">
+                              <div className="font-bold text-slate-900">{q.name}</div>
+                              <div className="text-[11px] text-slate-500">{q.company || 'Individual'}</div>
+                            </td>
+                            <td className="py-3 px-3 text-slate-600">
+                              <div>
+                                <a href={`mailto:${q.email}`} className="hover:text-blue-600 hover:underline">
+                                  {q.email}
+                                </a>
+                              </div>
+                              {q.phone && (
+                                <div className="text-[11px] text-slate-400 font-mono">
+                                  <a href={`tel:${q.phone}`} className="hover:text-blue-600">
+                                    {q.phone}
+                                  </a>
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-3 px-3">
+                              <div className="font-semibold text-slate-800">{q.service_or_product}</div>
+                              {q.message && (
+                                <div className="text-[11px] text-slate-500 max-w-xs truncate" title={q.message}>
+                                  {q.message}
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-3 px-3 text-slate-600">
+                              <div>Qty: {q.quantity}</div>
+                              <div className="text-[11px] text-slate-400">{q.timeline}</div>
+                            </td>
+                            <td className="py-3 px-3">
+                              <select
+                                value={q.status}
+                                onChange={e => handleUpdateQuoteStatus(q.id, e.target.value)}
+                                className="text-xs font-bold rounded-lg border border-slate-200 bg-white px-2 py-1 cursor-pointer focus:ring-1 focus:ring-blue-500"
+                              >
+                                <option value="pending">Pending</option>
+                                <option value="in_review">In Review</option>
+                                <option value="quoted">Quoted</option>
+                                <option value="completed">Completed</option>
+                              </select>
+                            </td>
+                            <td className="py-3 px-3 text-right space-x-2 whitespace-nowrap">
+                              <button
+                                onClick={() => {
+                                  setSelectedQuote(q)
+                                  setQuoteNotesInput(q.notes || '')
+                                }}
+                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
+                                title="Inspect details & notes"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteQuote(q.id)}
+                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                                title="Delete quote"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        )
+                      })
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -1996,17 +2198,42 @@ export default function AdminPage() {
               <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200">
                 <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                   <h4 className="text-base font-black text-slate-900">
-                    Quote Inquiry #{selectedQuote.id}
+                    Inquiry #{selectedQuote.id}
                   </h4>
                   <button
                     onClick={() => setSelectedQuote(null)}
                     className="text-slate-400 hover:text-slate-700 font-bold text-lg cursor-pointer"
                   >
-                    âœ•
+                    ✕
                   </button>
                 </div>
 
                 <div className="space-y-3 text-xs">
+                  {/* Submission Date & Type Highlight */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Submitted Date & Time</span>
+                      <strong className="text-slate-900 font-mono text-xs">
+                        {selectedQuote.created_at
+                          ? new Date(selectedQuote.created_at).toLocaleString('en-GB', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: true,
+                            })
+                          : 'N/A'}
+                      </strong>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Enquiry Type</span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-blue-100 text-blue-800">
+                        {getEnquiryType(selectedQuote)}
+                      </span>
+                    </div>
+                  </div>
+
                   <div>
                     <span className="text-slate-500 block">Client:</span>
                     <strong className="text-sm text-slate-900">{selectedQuote.name} ({selectedQuote.company || 'Independent'})</strong>
@@ -2014,29 +2241,49 @@ export default function AdminPage() {
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <span className="text-slate-500 block">Email:</span>
-                      <strong className="text-slate-800">{selectedQuote.email}</strong>
+                      <strong className="text-slate-800">
+                        <a href={`mailto:${selectedQuote.email}`} className="hover:underline text-blue-600">
+                          {selectedQuote.email}
+                        </a>
+                      </strong>
                     </div>
                     <div>
                       <span className="text-slate-500 block">Phone:</span>
-                      <strong className="text-slate-800">{selectedQuote.phone || 'N/A'}</strong>
+                      <strong className="text-slate-800">
+                        {selectedQuote.phone ? (
+                          <a href={`tel:${selectedQuote.phone}`} className="hover:underline text-blue-600">
+                            {selectedQuote.phone}
+                          </a>
+                        ) : 'N/A'}
+                      </strong>
                     </div>
                   </div>
                   <div>
                     <span className="text-slate-500 block">Requested Product / Service:</span>
                     <strong className="text-slate-800">{selectedQuote.service_or_product}</strong>
                   </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <span className="text-slate-500 block">Quantity:</span>
+                      <strong className="text-slate-800">{selectedQuote.quantity || '1'}</strong>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block">Timeline / Urgency:</span>
+                      <strong className="text-slate-800">{selectedQuote.timeline || 'Immediate'}</strong>
+                    </div>
+                  </div>
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <span className="text-slate-500 block mb-1 font-bold">Client Requirement:</span>
-                    <p className="text-slate-700 leading-relaxed font-normal">{selectedQuote.message || 'No additional message provided.'}</p>
+                    <span className="text-slate-500 block mb-1 font-bold">Client Requirement & Message:</span>
+                    <p className="text-slate-700 leading-relaxed font-normal whitespace-pre-wrap">{selectedQuote.message || 'No additional message provided.'}</p>
                   </div>
 
                   <div>
-                    <label className="block text-slate-700 font-bold mb-1">Admin Internal Notes / Quotation Amount</label>
+                    <label className="block text-slate-700 font-bold mb-1">Admin Internal Notes / Quotation Follow-up</label>
                     <textarea
                       rows={3}
                       value={quoteNotesInput}
                       onChange={e => setQuoteNotesInput(e.target.value)}
-                      placeholder="e.g. Sent official quote + GST on 28th Sep"
+                      placeholder="e.g. Sent official quote + GST on 28th Sep. Scheduled demo call."
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -2099,8 +2346,13 @@ export default function AdminPage() {
                         </td>
                         <td className="py-3 px-3 font-semibold text-blue-700">{c.subject}</td>
                         <td className="py-3 px-3 text-slate-600 max-w-xs truncate">{c.message}</td>
-                        <td className="py-3 px-3 text-slate-400 font-mono text-[11px]">
-                          {new Date(c.created_at).toLocaleDateString()}
+                        <td className="py-3 px-3 text-slate-600 font-mono text-[11px] whitespace-nowrap">
+                          <div className="font-bold text-slate-800">
+                            {c.created_at ? new Date(c.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                          </div>
+                          <div className="text-[10px] text-slate-400">
+                            {c.created_at ? new Date(c.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true }) : ''}
+                          </div>
                         </td>
                         <td className="py-3 px-3">
                           <select
@@ -2158,6 +2410,22 @@ export default function AdminPage() {
                 </div>
 
                 <div className="space-y-3 text-xs">
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Submitted Date & Time</span>
+                    <strong className="text-slate-900 font-mono text-xs">
+                      {selectedContact.created_at
+                        ? new Date(selectedContact.created_at).toLocaleString('en-GB', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true,
+                          })
+                        : 'N/A'}
+                    </strong>
+                  </div>
+
                   <div>
                     <span className="text-slate-500 block">From:</span>
                     <strong className="text-sm text-slate-900">{selectedContact.name}</strong>

@@ -293,15 +293,14 @@ export const VRayPage: React.FC = () => {
 
           {/* Quick Actions */}
           <div className="flex items-center space-x-2.5">
-            <a
-              href={vrayData.hero.trialUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-bold transition-all"
+            <button
+              type="button"
+              onClick={() => openQuoteModal('Chaos V-Ray Free Trial Request')}
+              className="hidden sm:inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-bold transition-all cursor-pointer"
             >
               <span>Free Trial</span>
-              <ExternalLink className="w-3 h-3 text-slate-400" />
-            </a>
+              <Send className="w-3 h-3 text-blue-600" />
+            </button>
             <button
               onClick={() => openQuoteModal('Chaos V-Ray Subscription')}
               className="inline-flex items-center space-x-1.5 px-4 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-xs font-bold shadow-sm transition-all cursor-pointer"
@@ -370,25 +369,23 @@ export const VRayPage: React.FC = () => {
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-              <a
-                href={vrayData.hero.trialUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-5 py-3.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-sm shadow-xs transition-all flex items-center space-x-2"
+              <button
+                type="button"
+                onClick={() => openQuoteModal('Chaos V-Ray 30-Day Free Trial')}
+                className="px-5 py-3.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-sm shadow-xs transition-all flex items-center space-x-2 cursor-pointer"
               >
                 <span>Start Free Trial</span>
-                <ExternalLink className="w-4 h-4 text-slate-400" />
-              </a>
+                <Send className="w-4 h-4 text-blue-600" />
+              </button>
 
-              <a
-                href={vrayData.hero.officialUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-3.5 text-slate-500 hover:text-slate-800 font-semibold text-xs flex items-center space-x-1"
+              <button
+                type="button"
+                onClick={() => openQuoteModal('Chaos V-Ray Official Licensing Consultation')}
+                className="px-4 py-3.5 text-slate-500 hover:text-slate-800 font-semibold text-xs flex items-center space-x-1 cursor-pointer"
               >
-                <span>Official Chaos Site</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+                <span>Licensing Consultation</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </div>
 
             {/* Key Verified Stats */}
@@ -1478,14 +1475,13 @@ export const VRayPage: React.FC = () => {
                   <span>Enquire About Licensing</span>
                 </button>
 
-                <a
-                  href={plan.officialUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block text-center text-[11px] font-semibold hover:underline text-slate-500"
+                <button
+                  type="button"
+                  onClick={() => openQuoteModal(`Chaos ${plan.name} License Consultation`)}
+                  className="block w-full text-center text-[11px] font-semibold hover:underline text-slate-500 cursor-pointer"
                 >
-                  Verify Official Terms & Details →
-                </a>
+                  Consult on Plan & Licensing →
+                </button>
               </div>
             </div>
           ))}
@@ -1514,15 +1510,14 @@ export const VRayPage: React.FC = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 shrink-0 w-full md:w-auto">
-            <a
-              href={vrayData.freeTrial.trialUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-3.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2"
+            <button
+              type="button"
+              onClick={() => openQuoteModal('Chaos V-Ray 30-Day Free Trial')}
+              className="px-6 py-3.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer"
             >
               <span>Start Free Trial</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
+              <Send className="w-3.5 h-3.5" />
+            </button>
             <button
               onClick={() => openQuoteModal('V-Ray Trial Guidance')}
               className="px-5 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs transition-all flex items-center justify-center space-x-2 cursor-pointer"

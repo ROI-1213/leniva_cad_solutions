@@ -196,4 +196,6 @@ export interface QuoteFormData {
   quantity: string
   application: string
   message: string
+  source?: string
+  enquiryType?: 'quote' | 'demo' | 'consultation' | 'trial' | 'contact'
 }

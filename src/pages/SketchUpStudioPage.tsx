@@ -28,6 +28,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useApp } from '../context/AppContext'
+import { recordCustomerEnquiry } from '../utils/cloudSync'
 import { sketchUpStudioData as defaultSketchUpStudioData } from '../data/sketchupStudioData'
 import { useCadPageData } from '../utils/cadSoftwareConfig'
 
@@ -104,13 +105,29 @@ export const SketchUpStudioPage: React.FC = () => {
     }
   }
 
-  const handleSubmitEnquiry = (e: React.FormEvent) => {
+  const handleSubmitEnquiry = async (e: React.FormEvent) => {
     e.preventDefault()
     setFormLoading(true)
-    setTimeout(() => {
+    try {
+      await recordCustomerEnquiry({
+        fullName: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        company: formData.company,
+        productOrService: `SketchUp Studio (${formData.seats || '1'} Seats, ${formData.timeline || 'Immediate'})`,
+        quantity: formData.seats || '1',
+        application: formData.industry || 'AEC & 3D Visualization',
+        timeline: formData.timeline || 'Immediate',
+        message: formData.message || `Industry: ${formData.industry} | Seats: ${formData.seats}`,
+        source: 'SketchUp Studio Consultation Form',
+        enquiryType: 'quote',
+      })
+    } catch (err) {
+      console.warn('Enquiry submit error:', err)
+    } finally {
       setFormLoading(false)
       setFormSubmitted(true)
-    }, 1200)
+    }
   }
 
   // Filter tools
@@ -264,15 +281,14 @@ export const SketchUpStudioPage: React.FC = () => {
                   <Scan className="w-4 h-4 text-red-400" />
                   <span>Explore Reality Capture</span>
                 </button>
-                <a
-                  href={sketchUpStudioData.identity.officialUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center space-x-2 text-slate-400 hover:text-white px-4 py-3 text-sm font-semibold transition-colors"
+                <button
+                  type="button"
+                  onClick={() => openQuoteModal('SketchUp Studio Commercial Details')}
+                  className="inline-flex items-center space-x-2 text-slate-400 hover:text-white px-4 py-3 text-sm font-semibold transition-colors cursor-pointer"
                 >
-                  <span>Official Trimble Page</span>
-                  <ExternalLink className="w-4 h-4" />
-                </a>
+                  <span>Request Official Details</span>
+                  <Send className="w-4 h-4 text-blue-400" />
+                </button>
               </div>
             </div>
 

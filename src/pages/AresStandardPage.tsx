@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useApp } from '../context/AppContext'
+import { recordCustomerEnquiry } from '../utils/cloudSync'
 import { aresStandardData } from '../data/aresStandardData'
 import { useCadPageData } from '../utils/cadSoftwareConfig'
 
@@ -87,13 +88,28 @@ export const AresStandardPage: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setFormSubmitting(true)
-    setTimeout(() => {
+    try {
+      await recordCustomerEnquiry({
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        company: formData.company,
+        productOrService: `ARES Standard (${formData.licenses} Licenses, ${formData.preference})`,
+        quantity: formData.licenses,
+        application: formData.workflow,
+        message: formData.message || `Workflow: ${formData.workflow} | Term: ${formData.preference}`,
+        source: 'ARES Standard Consultation Form',
+        enquiryType: 'quote',
+      })
+    } catch (err) {
+      console.warn('Form submission error:', err)
+    } finally {
       setFormSubmitting(false)
       setFormSubmitted(true)
-    }, 900)
+    }
   }
 
   const filteredFaqs =
@@ -179,25 +195,23 @@ export const AresStandardPage: React.FC = () => {
 
               {/* CTAs */}
               <div className="flex flex-wrap gap-4 pt-3 items-center">
-                <a
-                  href={data.identity.trialUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-6 py-3.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/25 transition-all flex items-center space-x-2"
+                <button
+                  type="button"
+                  onClick={() => openQuoteModal('ARES Standard 30-Day Free Trial')}
+                  className="px-6 py-3.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/25 transition-all flex items-center space-x-2 cursor-pointer"
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>Start Free 30-Day Trial</span>
-                </a>
+                </button>
 
-                <a
-                  href={data.identity.downloadUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-6 py-3.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-100 font-semibold text-sm border border-slate-700 transition-all flex items-center space-x-2"
+                <button
+                  type="button"
+                  onClick={() => openQuoteModal('ARES Standard Trial Download')}
+                  className="px-6 py-3.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-100 font-semibold text-sm border border-slate-700 transition-all flex items-center space-x-2 cursor-pointer"
                 >
                   <Download className="w-4 h-4 text-blue-400" />
-                  <span>Download</span>
-                </a>
+                  <span>Request Free Trial</span>
+                </button>
 
                 <button
                   onClick={() => openQuoteModal('ARES Standard')}
@@ -311,15 +325,14 @@ export const AresStandardPage: React.FC = () => {
             </div>
 
             <div className="shrink-0 pl-3 hidden md:flex items-center space-x-2">
-              <a
-                href={data.identity.downloadUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3.5 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-colors flex items-center gap-1.5"
+              <button
+                type="button"
+                onClick={() => openQuoteModal('ARES Standard Trial Download')}
+                className="px-3.5 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5 text-blue-600" />
-                <span>Download</span>
-              </a>
+                <span>Free Trial</span>
+              </button>
               <button
                 onClick={() => openQuoteModal('ARES Standard')}
                 className="px-3.5 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors"
@@ -800,16 +813,14 @@ export const AresStandardPage: React.FC = () => {
 
           <div className="mt-8 p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600">
             <span>Notice: ARES Standard is officially supported on 64-bit Windows systems.</span>
-            <a
-              href={data.identity.downloadUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-700 font-bold inline-flex items-center gap-1.5"
+            <button
+              type="button"
+              onClick={() => openQuoteModal('ARES Standard Trial Download')}
+              className="text-blue-600 hover:text-blue-700 font-bold inline-flex items-center gap-1.5 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>Download ARES Standard</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
+              <span>Request Trial Download</span>
+            </button>
           </div>
         </div>
       </section>
@@ -871,14 +882,13 @@ export const AresStandardPage: React.FC = () => {
                   >
                     Request a Quote
                   </button>
-                  <a
-                    href={data.licensing.officialBuyUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block text-center text-[11px] text-blue-600 hover:text-blue-700 py-1"
+                  <button
+                    type="button"
+                    onClick={() => openQuoteModal(`ARES Standard (${tier.name}) Licensing Plan`)}
+                    className="block w-full text-center text-[11px] text-blue-600 hover:text-blue-700 py-1 cursor-pointer font-medium"
                   >
-                    Graebert Licensing Configurator →
-                  </a>
+                    Request Custom Licensing Quote →
+                  </button>
                 </div>
               </div>
             ))}
@@ -904,24 +914,22 @@ export const AresStandardPage: React.FC = () => {
               </p>
 
               <div className="flex flex-wrap gap-4 pt-4">
-                <a
-                  href={data.freeTrial.trialUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-6 py-3 rounded-lg bg-blue-500 hover:bg-blue-400 text-white font-semibold text-xs transition-colors flex items-center space-x-2"
+                <button
+                  type="button"
+                  onClick={() => openQuoteModal('ARES Standard 30-Day Free Trial')}
+                  className="px-6 py-3 rounded-lg bg-blue-500 hover:bg-blue-400 text-white font-semibold text-xs transition-colors flex items-center space-x-2 cursor-pointer"
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>Start Free 30-Day Trial</span>
-                </a>
-                <a
-                  href={data.identity.downloadUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-6 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700 transition-colors flex items-center space-x-2"
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openQuoteModal('ARES Standard Evaluation License')}
+                  className="px-6 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700 transition-colors flex items-center space-x-2 cursor-pointer"
                 >
                   <Download className="w-4 h-4 text-blue-400" />
-                  <span>Download Free Trial</span>
-                </a>
+                  <span>Request Free Trial</span>
+                </button>
                 <Link
                   to="/contact"
                   className="px-6 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700 transition-colors flex items-center space-x-2"

@@ -35,6 +35,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useApp } from '../context/AppContext'
+import { recordCustomerEnquiry } from '../utils/cloudSync'
 import { aresKudoData } from '../data/aresKudoData'
 import { useCadPageData } from '../utils/cadSoftwareConfig'
 
@@ -200,13 +201,28 @@ export const AresKudoPage: React.FC = () => {
   }, [comparisonFilter, data.comparisonMatrix])
 
   // Form submit handler
-  const handleConsultationSubmit = (e: React.FormEvent) => {
+  const handleConsultationSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setFormSubmitting(true)
-    setTimeout(() => {
+    try {
+      await recordCustomerEnquiry({
+        fullName: formName,
+        email: formEmail,
+        phone: formPhone,
+        company: formCompany,
+        productOrService: `ARES Kudo Cloud DWG CAD (${formSeats} Seats, ${formCloudStorage})`,
+        quantity: formSeats,
+        application: formDeployment || 'Cloud Consultation',
+        message: formNotes ? `${formNotes} | Storage: ${formCloudStorage}` : `Storage: ${formCloudStorage} | Deployment: ${formDeployment}`,
+        source: 'ARES Kudo Engineering Consultation Form',
+        enquiryType: 'consultation',
+      })
+    } catch (err) {
+      console.warn('Consultation submission error:', err)
+    } finally {
       setFormSubmitting(false)
       setFormSubmitted(true)
-    }, 800)
+    }
   }
 
   return (

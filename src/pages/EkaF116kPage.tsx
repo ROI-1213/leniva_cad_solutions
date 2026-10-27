@@ -19,6 +19,7 @@ import {
   Box,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
+import { recordCustomerEnquiry } from '../utils/cloudSync'
 import { ekaF116kData as defaultEkaF116kData, LcdGalleryItem } from '../data/industrialLcdData'
 import { mergeCatalogWithHardwareData } from '../utils/productCatalog'
 
@@ -90,13 +91,29 @@ export const EkaF116kPage: React.FC = () => {
     }
   }, [])
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setFormSubmitting(true)
-    setTimeout(() => {
+    try {
+      await recordCustomerEnquiry({
+        fullName: formState.name,
+        email: formState.email,
+        phone: formState.phone,
+        company: (formState as any).company || formState.businessType,
+        productOrService: `EKA F1 16K LCD 3D Printer (${formState.resinType || 'Direct Castable Wax'})`,
+        quantity: '1',
+        application: `${formState.businessType} - ${formState.resinType}`,
+        timeline: 'Immediate',
+        message: formState.message || `Business: ${formState.businessType} | Resin: ${formState.resinType}`,
+        source: 'EKA F1 16K Product Page Form',
+        enquiryType: 'quote',
+      })
+    } catch (err) {
+      console.warn('Form submit error:', err)
+    } finally {
       setFormSubmitting(false)
       setFormSuccess(true)
-    }, 900)
+    }
   }
 
   const galleryCategories = [

@@ -76,7 +76,19 @@ export const QuoteModal: React.FC = () => {
     e.preventDefault()
     setIsSubmitting(true)
     try {
-      await submitQuote(formData)
+      await submitQuote({
+        ...formData,
+        source: isDemoRequest
+          ? 'Product Demonstration Request'
+          : isConsultationRequest
+          ? 'Engineering Consultation Request'
+          : 'Quote Request Form',
+        enquiryType: isDemoRequest
+          ? 'demo'
+          : isConsultationRequest
+          ? 'consultation'
+          : 'quote',
+      })
       setIsSuccess(true)
     } catch (err) {
       console.error(err)

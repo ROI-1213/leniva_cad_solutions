@@ -48,6 +48,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useApp } from '../context/AppContext'
+import { recordCustomerEnquiry } from '../utils/cloudSync'
 import { aresElectricalData } from '../data/aresElectricalData'
 import { useCadPageData } from '../utils/cadSoftwareConfig'
 
@@ -116,13 +117,29 @@ export const AresElectricalPage: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setFormSubmitting(true)
-    setTimeout(() => {
+    try {
+      await recordCustomerEnquiry({
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        company: formData.company,
+        productOrService: `ARES Electrical (${formData.seats || '1'} Seats, ${formData.timeline || 'Immediate'})`,
+        quantity: formData.seats || '1',
+        application: formData.standard || 'Electrical CAD Design',
+        timeline: formData.timeline || 'Immediate',
+        message: formData.message || `Standard: ${formData.standard || 'IEC'} | Seats: ${formData.seats || '1'}`,
+        source: 'ARES Electrical Consultation Form',
+        enquiryType: 'consultation',
+      })
+    } catch (err) {
+      console.warn('Enquiry submit error:', err)
+    } finally {
       setFormSubmitting(false)
       setFormSubmitted(true)
-    }, 900)
+    }
   }
 
   const filteredFaqs =
@@ -217,15 +234,14 @@ export const AresElectricalPage: React.FC = () => {
                   <ChevronDown className="w-4 h-4 text-slate-400" />
                 </a>
 
-                <a
-                  href={data.identity.officialUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center space-x-1.5 text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors ml-2"
+                <button
+                  type="button"
+                  onClick={() => openQuoteModal('ARES Electrical Technical Consultation')}
+                  className="inline-flex items-center space-x-1.5 text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors ml-2 cursor-pointer"
                 >
-                  <span>Official Product Details</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
+                  <span>Request Technical Details</span>
+                  <Send className="w-3.5 h-3.5" />
+                </button>
               </div>
             </motion.div>
 
@@ -1403,14 +1419,13 @@ export const AresElectricalPage: React.FC = () => {
                   >
                     Request a Quote
                   </button>
-                  <a
-                    href={data.identity.configuratorUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block text-center text-[11px] text-blue-600 hover:text-blue-700 py-1"
+                  <button
+                    type="button"
+                    onClick={() => openQuoteModal(`ARES Electrical (${tier.name}) Licensing Consultation`)}
+                    className="block w-full text-center text-[11px] text-blue-600 hover:text-blue-700 py-1 cursor-pointer font-medium"
                   >
-                    Compare Official Configurator →
-                  </a>
+                    Request Custom Licensing Quote →
+                  </button>
                 </div>
               </div>
             ))}

@@ -27,6 +27,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useApp } from '../context/AppContext'
+import { recordCustomerEnquiry } from '../utils/cloudSync'
 import { aresMechanicalData as defaultAresMechanicalData } from '../data/aresMechanicalData'
 import { useCadPageData } from '../utils/cadSoftwareConfig'
 
@@ -100,13 +101,29 @@ export const AresMechanicalPage: React.FC = () => {
     }
   }
 
-  const handleSubmitEnquiry = (e: React.FormEvent) => {
+  const handleSubmitEnquiry = async (e: React.FormEvent) => {
     e.preventDefault()
     setFormLoading(true)
-    setTimeout(() => {
+    try {
+      await recordCustomerEnquiry({
+        fullName: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        company: formData.company,
+        productOrService: `ARES Mechanical (${formData.seats || '1'} Seats, ${formData.timeline || 'Immediate'})`,
+        quantity: formData.seats || '1',
+        application: formData.standards || 'Mechanical CAD Drafting',
+        timeline: formData.timeline || 'Immediate',
+        message: formData.message || `Standard: ${formData.standards || 'ISO'} | Seats: ${formData.seats || '1'}`,
+        source: 'ARES Mechanical Consultation Form',
+        enquiryType: 'quote',
+      })
+    } catch (err) {
+      console.warn('Enquiry submit error:', err)
+    } finally {
       setFormLoading(false)
       setFormSubmitted(true)
-    }, 1200)
+    }
   }
 
   return (
@@ -269,15 +286,14 @@ export const AresMechanicalPage: React.FC = () => {
                   <Award className="w-4 h-4 text-blue-400" />
                   <span>Explore Standards</span>
                 </button>
-                <a
-                  href={aresMechanicalData.identity.officialUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center space-x-2 text-slate-400 hover:text-white px-4 py-3 text-sm font-semibold transition-colors"
+                <button
+                  type="button"
+                  onClick={() => openQuoteModal('ARES Mechanical Technical Details')}
+                  className="inline-flex items-center space-x-2 text-slate-400 hover:text-white px-4 py-3 text-sm font-semibold transition-colors cursor-pointer"
                 >
-                  <span>Official Product Details</span>
-                  <ExternalLink className="w-4 h-4" />
-                </a>
+                  <span>Request Technical Details</span>
+                  <Send className="w-4 h-4 text-blue-400" />
+                </button>
               </div>
             </div>
 
@@ -1075,15 +1091,14 @@ export const AresMechanicalPage: React.FC = () => {
 
               <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
                 <span>Notice: ARES Mechanical is officially supported on 64-bit Windows systems.</span>
-                <a
-                  href={aresMechanicalData.identity.downloadUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-700 font-bold inline-flex items-center gap-1"
+                <button
+                  type="button"
+                  onClick={() => openQuoteModal('ARES Mechanical 30-Day Trial Download')}
+                  className="text-blue-600 hover:text-blue-700 font-bold inline-flex items-center gap-1 cursor-pointer"
                 >
-                  <span>Official Download Page</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Request 30-Day Trial Download</span>
+                </button>
               </div>
             </div>
           </div>

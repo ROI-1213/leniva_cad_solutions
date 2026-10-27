@@ -50,7 +50,7 @@ import {
 import { FileText } from 'lucide-react'
 
 export const AresCommanderPage: React.FC = () => {
-  const { submitQuote } = useApp()
+  const { submitQuote, openQuoteModal } = useApp()
   const { data, isEditorMode } = useCadPageData('ares_commander', aresCommanderData)
   const pageRootRef = useRef<HTMLDivElement>(null)
   useApplyCadVisualDomOverrides(pageRootRef, 'ares_commander')
@@ -267,15 +267,13 @@ export const AresCommanderPage: React.FC = () => {
           </div>
 
           <div className="hidden lg:flex items-center space-x-2">
-            <a
-              href={data.identity.downloadUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors flex items-center gap-1"
+            <button
+              onClick={() => openQuoteModal('ARES Commander Free Trial Request')}
+              className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>Trial</span>
-            </a>
+              <span>Free Trial</span>
+            </button>
             <button
               onClick={() => scrollTo(enquiryRef, 'enquiry')}
               className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 shadow-sm"
@@ -335,17 +333,16 @@ export const AresCommanderPage: React.FC = () => {
 
               {/* CTAs */}
               <div className="pt-3 flex flex-wrap items-center gap-3">
-                <a
+                <button
+                  type="button"
                   data-cad-key="hero-trial-cta"
                   data-cad-path="identity.downloadUrl"
-                  href={data.identity.downloadUrl || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
+                  onClick={() => openQuoteModal('ARES Commander 30-Day Free Trial')}
+                  className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all cursor-pointer"
                 >
                   <Download className="w-4 h-4" />
                   <span data-cad-btn-text data-cad-path="hero.trialCtaLabel">{(data.hero as any).trialCtaLabel || 'Start 30-Day Free Trial'}</span>
-                </a>
+                </button>
                 <button
                   onClick={() => scrollTo(enquiryRef, 'enquiry')}
                   className="px-6 py-3 rounded-xl bg-white border border-slate-300 hover:border-slate-400 text-slate-800 hover:bg-slate-50 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-2xs transition-all cursor-pointer"
@@ -1355,15 +1352,14 @@ export const AresCommanderPage: React.FC = () => {
               <Info className="w-4 h-4 text-amber-600 shrink-0" />
               <span data-cad-path="licensing.pricingAccuracyRules">{data.licensing.pricingAccuracyRules}</span>
             </div>
-            <a
+            <button
+              type="button"
               data-cad-path="licensing.pricingConfiguratorUrl"
-              href={data.licensing.pricingConfiguratorUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-1.5 rounded-lg bg-white border border-amber-300 hover:border-amber-400 text-amber-900 font-bold text-xs shrink-0"
+              onClick={() => openQuoteModal('ARES Commander Licensing Consultation')}
+              className="px-3 py-1.5 rounded-lg bg-white border border-amber-300 hover:border-amber-400 text-amber-900 font-bold text-xs shrink-0 cursor-pointer"
             >
-              Open Graebert Configurator →
-            </a>
+              Request Custom Quote →
+            </button>
           </div>
         </div>
       </section>
@@ -1395,17 +1391,16 @@ export const AresCommanderPage: React.FC = () => {
             </div>
 
             <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3 justify-center">
-              <a
+              <button
+                type="button"
                 data-cad-key="trial-banner-cta"
                 data-cad-path="freeTrial.downloadUrl"
-                href={data.freeTrial.downloadUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-6 py-3.5 rounded-xl bg-white hover:bg-blue-50 text-blue-700 font-extrabold text-sm text-center shadow-lg transition-all flex items-center justify-center gap-2"
+                onClick={() => openQuoteModal('ARES Commander 30-Day Free Trial')}
+                className="px-6 py-3.5 rounded-xl bg-white hover:bg-blue-50 text-blue-700 font-extrabold text-sm text-center shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Download className="w-4 h-4" />
-                <span data-cad-btn-text>Start Free 30-Day Trial</span>
-              </a>
+                <span data-cad-btn-text>Request 30-Day Free Trial</span>
+              </button>
               <p data-cad-path="freeTrial.termsNote" className="text-[10px] text-blue-200 text-center italic">
                 {data.freeTrial.termsNote}
               </p>
@@ -2035,17 +2030,16 @@ export const AresCommanderPage: React.FC = () => {
           </p>
 
           <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
-            <a
+            <button
+              type="button"
               data-cad-key="final-trial-cta"
               data-cad-path="identity.downloadUrl"
-              href={data.identity.downloadUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-8 py-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm shadow-xl hover:shadow-2xl transition-all flex items-center gap-2"
+              onClick={() => openQuoteModal('ARES Commander 30-Day Free Trial')}
+              className="px-8 py-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm shadow-xl hover:shadow-2xl transition-all flex items-center gap-2 cursor-pointer"
             >
               <Download className="w-4 h-4" />
-              <span data-cad-btn-text>Start 30-Day Free Trial</span>
-            </a>
+              <span data-cad-btn-text>Request 30-Day Free Trial</span>
+            </button>
             <button
               onClick={() => scrollTo(enquiryRef, 'enquiry')}
               className="px-8 py-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-sm border border-slate-700 shadow-md transition-all cursor-pointer flex items-center gap-2"

@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useApp } from '../context/AppContext'
+import { recordCustomerEnquiry } from '../utils/cloudSync'
 import { proScanData as defaultProScanData } from '../data/proScanData'
 import { useCadPageData } from '../utils/cadSoftwareConfig'
 
@@ -95,13 +96,29 @@ export const SketchUpProScanPage: React.FC = () => {
     }
   }
 
-  const handleSubmitEnquiry = (e: React.FormEvent) => {
+  const handleSubmitEnquiry = async (e: React.FormEvent) => {
     e.preventDefault()
     setFormLoading(true)
-    setTimeout(() => {
+    try {
+      await recordCustomerEnquiry({
+        fullName: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        company: formData.company,
+        productOrService: `SketchUp Pro Scan (${formData.seats || '1'} Seats, ${formData.timeline || 'Immediate'})`,
+        quantity: formData.seats || '1',
+        application: formData.scanFormat || 'Point Cloud & Scan-to-BIM',
+        timeline: formData.timeline || 'Immediate',
+        message: formData.message || `Format: ${formData.scanFormat} | Seats: ${formData.seats}`,
+        source: 'SketchUp Pro Scan Consultation Form',
+        enquiryType: 'quote',
+      })
+    } catch (err) {
+      console.warn('Enquiry submit error:', err)
+    } finally {
       setFormLoading(false)
       setFormSubmitted(true)
-    }, 1200)
+    }
   }
 
   return (
@@ -258,15 +275,14 @@ export const SketchUpProScanPage: React.FC = () => {
                   <Scan className="w-4 h-4 text-blue-400" />
                   <span>Explore Scan Essentials</span>
                 </button>
-                <a
-                  href={proScanData.identity.officialUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center space-x-2 text-slate-400 hover:text-white px-4 py-3 text-sm font-semibold transition-colors"
+                <button
+                  type="button"
+                  onClick={() => openQuoteModal('SketchUp Pro Scan Commercial Details')}
+                  className="inline-flex items-center space-x-2 text-slate-400 hover:text-white px-4 py-3 text-sm font-semibold transition-colors cursor-pointer"
                 >
-                  <span>Official Trimble Page</span>
-                  <ExternalLink className="w-4 h-4" />
-                </a>
+                  <span>Request Official Details</span>
+                  <Send className="w-4 h-4 text-blue-400" />
+                </button>
               </div>
             </div>
 
