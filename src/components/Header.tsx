@@ -124,6 +124,18 @@ export const Header: React.FC = () => {
     setActiveMegaMenu(null)
   }, [location])
 
+  // Lock background body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isMobileMenuOpen])
+
 
   const toggleMobileSection = (section: string) => {
     setExpandedMobileSection(prev => (prev === section ? null : section))
@@ -808,225 +820,393 @@ export const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. MOBILE RESPONSIVE DRAWER ACCORDION */}
+      {/* 3. MOBILE RESPONSIVE FORMAL DRAWER (Slides smoothly from the Right) */}
       {isMobileMenuOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-slate-950/60 z-[100] backdrop-blur-sm flex"
+          className="lg:hidden fixed inset-0 bg-slate-950/70 z-[100] backdrop-blur-sm flex justify-end transition-opacity duration-300"
           onClick={() => setIsMobileMenuOpen(false)}
         >
           <div
-            className="bg-white h-[100dvh] max-w-sm w-[88vw] shadow-2xl p-4 pb-24 overflow-y-auto space-y-4"
+            className="bg-white h-[100dvh] w-[88vw] max-w-sm sm:max-w-md shadow-2xl flex flex-col justify-between overflow-hidden border-l border-slate-200 animate-in slide-in-from-right duration-300"
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 sticky top-0 bg-white z-10 pt-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Navigation Menu</span>
+            {/* Formal Executive Header */}
+            <div className="flex items-center justify-between px-5 py-4 bg-slate-950 text-white shrink-0 border-b border-slate-800">
+              <div className="flex items-center space-x-3">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center font-black text-white text-sm shadow-md ring-1 ring-white/20">
+                  3D
+                </div>
+                <div>
+                  <div className="text-sm font-black tracking-wide text-white leading-tight uppercase">
+                    Leniva CAD Solutions
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-medium tracking-wider uppercase">
+                    Navigation Menu
+                  </div>
+                </div>
+              </div>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-1.5 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100"
+                className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
+                aria-label="Close navigation menu"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-1 text-sm font-semibold">
-              <Link
-                to="/"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50"
-              >
-                Home
-              </Link>
-              <Link
-                to="/about"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50"
-              >
-                About Us
-              </Link>
-
-              {/* 1. CAD Software Accordion (FIRST in hierarchy) */}
-              <div>
-                <button
-                  onClick={() => toggleMobileSection('cad-software')}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50"
+            {/* Scrollable Navigation Body */}
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1.5 divide-y divide-slate-100">
+              {/* Quick Search Shortcut */}
+              <div className="pb-2">
+                <div
+                  onClick={() => {
+                    setIsMobileMenuOpen(false)
+                    openSearchModal()
+                  }}
+                  className="flex items-center space-x-2.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200/80 rounded-xl text-slate-400 cursor-pointer border border-slate-200/70 transition-colors"
                 >
-                  <span className="font-semibold">CAD Software</span>
-                  <ChevronDown
-                    className={`w-4 h-4 transition-transform ${
-                      expandedMobileSection === 'cad-software' ? 'rotate-180 text-red-600' : ''
-                    }`}
-                  />
-                </button>
-                {expandedMobileSection === 'cad-software' && (
-                  <div className="pl-4 py-1 space-y-2 border-l-2 border-red-100 ml-3">
-                    <Link to="/products/cad-software" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs font-bold text-red-600 py-1">
-                      View All CAD Software →
-                    </Link>
-                    {navConfig.cadMegaMenu.categories.map(cat => (
-                      <div key={cat.id} className="pt-2">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <div className="h-5 px-1.5 py-0.5 rounded bg-white border border-slate-200 flex items-center justify-center">
-                            <img src={cat.logo} alt={cat.label} className="h-full w-auto max-w-[48px] object-contain" />
-                          </div>
-                          <span className="block text-xs font-bold text-slate-800">{cat.label}</span>
-                        </div>
-                        <div className="space-y-1.5">
-                          {cat.products.map(p => (
-                            <Link
-                              key={p.slug}
-                              to={normalizeProductUrl(p.slug)}
-                              onClick={() => setIsMobileMenuOpen(false)}
-                              className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-slate-50 text-slate-700 hover:text-red-600 transition-colors"
-                            >
-                              <div className="relative w-8 h-8 rounded-md overflow-hidden border border-slate-200 shrink-0">
-                                <img
-                                  src={p.image}
-                                  alt={p.name}
-                                  className="w-full h-full object-cover"
-                                  loading="lazy"
-                                />
-                                <div className="absolute bottom-0 right-0 w-3 h-3 bg-white/95 p-0.5 rounded-xs flex items-center justify-center">
-                                  <img src={cat.logo} alt="" className="w-full h-full object-contain" />
-                                </div>
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <span className="block text-xs font-semibold truncate">{p.name}</span>
-                                <span className="block text-[10px] text-slate-400 truncate">{p.spec}</span>
-                              </div>
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                  <Search className="w-4 h-4 text-slate-500 shrink-0" />
+                  <span className="text-xs font-medium text-slate-500 truncate">Search products, CAD software, scanners...</span>
+                </div>
               </div>
 
-              {/* 2. 3D Printers Accordion (SECOND in hierarchy) */}
-              <div>
-                <button
-                  onClick={() => toggleMobileSection('products')}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50"
+              {/* Main Menu Links & Accordions */}
+              <div className="pt-2 space-y-1">
+                {/* Home */}
+                <Link
+                  to="/"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
+                    location.pathname === '/' ? 'bg-red-50 text-red-600 font-bold' : 'text-slate-800 hover:bg-slate-50 font-semibold'
+                  }`}
                 >
-                  <span className="font-semibold">3D Printers</span>
-                  <ChevronDown
-                    className={`w-4 h-4 transition-transform ${
-                      expandedMobileSection === 'products' ? 'rotate-180 text-red-600' : ''
-                    }`}
-                  />
-                </button>
-                {expandedMobileSection === 'products' && (
-                  <div className="pl-4 py-1 space-y-2 border-l-2 border-red-100 ml-3">
-                    <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className="block text-xs font-bold text-red-600 py-1">
-                      View All 3D Printers Catalog →
-                    </Link>
-                    {navConfig.hardwareMegaMenu.categories.map(cat => (
-                      <div key={cat.id} className="pt-1">
-                        <Link
-                          to={cat.route}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="block text-xs font-bold text-slate-800 hover:text-red-600"
-                        >
-                          {cat.label}
-                        </Link>
-                        <div className="pl-2 pt-1 space-y-1">
-                          {cat.products.map(p => (
-                            <Link
-                              key={p.slug}
-                              to={normalizeProductUrl(p.slug)}
-                              onClick={() => setIsMobileMenuOpen(false)}
-                              className="block text-[11px] text-slate-500 hover:text-slate-900"
-                            >
-                              • {p.name}
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
+                  <div className="flex items-center space-x-3">
+                    <Home className={`w-4 h-4 ${location.pathname === '/' ? 'text-red-600' : 'text-slate-500'}`} />
+                    <span className="text-sm">Home</span>
                   </div>
-                )}
-              </div>
+                  <ChevronRight className="w-4 h-4 text-slate-300" />
+                </Link>
 
-
-              {/* Shop Accordion */}
-              <div>
-                <button
-                  onClick={() => toggleMobileSection('shop')}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50"
+                {/* About Us */}
+                <Link
+                  to="/about"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
+                    location.pathname === '/about' ? 'bg-red-50 text-red-600 font-bold' : 'text-slate-800 hover:bg-slate-50 font-semibold'
+                  }`}
                 >
-                  <span className="font-semibold">Shop ({navConfig.shopDropdown.bannerTitle})</span>
-                  <ChevronDown
-                    className={`w-4 h-4 transition-transform ${
-                      expandedMobileSection === 'shop' ? 'rotate-180 text-red-600' : ''
+                  <div className="flex items-center space-x-3">
+                    <User className={`w-4 h-4 ${location.pathname === '/about' ? 'text-red-600' : 'text-slate-500'}`} />
+                    <span className="text-sm">About Us</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-300" />
+                </Link>
+
+                {/* 1. CAD Software Accordion (FIRST in hierarchy) */}
+                <div className="rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => toggleMobileSection('cad-software')}
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
+                      location.pathname.startsWith('/products/cad-software') || expandedMobileSection === 'cad-software'
+                        ? 'bg-slate-100 text-slate-950 font-bold'
+                        : 'text-slate-800 hover:bg-slate-50 font-semibold'
                     }`}
-                  />
-                </button>
-                {expandedMobileSection === 'shop' && (
-                  <div className="pl-4 py-1 space-y-2 border-l-2 border-red-100 ml-3">
-                    <Link
-                      to={navConfig.shopDropdown.allStoreRoute}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="block text-xs font-bold text-red-600 py-1"
-                    >
-                      {navConfig.shopDropdown.allStoreLinkText} →
-                    </Link>
-                    {navConfig.shopDropdown.cards.map(card => (
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Layers className={`w-4 h-4 ${expandedMobileSection === 'cad-software' ? 'text-red-600' : 'text-slate-500'}`} />
+                      <span className="text-sm">CAD Software</span>
+                    </div>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-700">Official</span>
+                      <ChevronDown
+                        className={`w-4 h-4 transition-transform duration-200 ${
+                          expandedMobileSection === 'cad-software' ? 'rotate-180 text-red-600' : 'text-slate-400'
+                        }`}
+                      />
+                    </div>
+                  </button>
+
+                  {expandedMobileSection === 'cad-software' && (
+                    <div className="mt-1 pl-3 pr-2 py-2 space-y-2.5 bg-slate-50/70 rounded-xl border border-slate-200/80 animate-in fade-in duration-150">
                       <Link
-                        key={card.id}
-                        to={card.route}
+                        to="/products/cad-software"
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="block text-xs text-slate-700 hover:text-red-600 py-1 font-medium"
+                        className="flex items-center justify-between text-xs font-bold text-red-600 hover:text-red-700 px-2 py-1"
                       >
-                        • {card.title} <span className="text-[10px] text-slate-400">({card.badge})</span>
+                        <span>Explore All CAD Software</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
-                    ))}
-                    <div className="pt-1 border-t border-slate-100 space-y-1">
-                      {navConfig.shopDropdown.shortcuts.map((sc, idx) => (
-                        <Link
-                          key={idx}
-                          to={sc.route}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="block text-xs text-slate-500 hover:text-red-600 py-0.5"
-                        >
-                          → {sc.label}
-                        </Link>
+                      {navConfig.cadMegaMenu.categories.map(cat => (
+                        <div key={cat.id} className="pt-1.5 border-t border-slate-200/60 first:border-0 first:pt-0">
+                          <div className="flex items-center gap-2 mb-1.5 px-2">
+                            <div className="h-5 px-1.5 py-0.5 rounded bg-white border border-slate-200 flex items-center justify-center shrink-0">
+                              <img src={cat.logo} alt={cat.label} className="h-full w-auto max-w-[48px] object-contain" />
+                            </div>
+                            <span className="text-xs font-bold text-slate-900">{cat.label}</span>
+                          </div>
+                          <div className="space-y-1">
+                            {cat.products.map(p => (
+                              <Link
+                                key={p.slug}
+                                to={normalizeProductUrl(p.slug)}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-white text-slate-700 hover:text-red-600 transition-colors border border-transparent hover:border-slate-200 shadow-2xs"
+                              >
+                                <div className="relative w-8 h-8 rounded-md overflow-hidden border border-slate-200 bg-white shrink-0">
+                                  <img
+                                    src={p.image}
+                                    alt={p.name}
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                  />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <span className="block text-xs font-bold truncate text-slate-800">{p.name}</span>
+                                  <span className="block text-[10px] text-slate-500 truncate">{p.spec}</span>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
                       ))}
                     </div>
+                  )}
+                </div>
+
+                {/* 2. 3D Printers Accordion (SECOND in hierarchy) */}
+                <div className="rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => toggleMobileSection('products')}
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
+                      location.pathname.startsWith('/products') && !location.pathname.startsWith('/products/cad-software') && !location.pathname.includes('scanner')
+                        ? 'bg-slate-100 text-slate-950 font-bold'
+                        : 'text-slate-800 hover:bg-slate-50 font-semibold'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Printer className={`w-4 h-4 ${expandedMobileSection === 'products' ? 'text-red-600' : 'text-slate-500'}`} />
+                      <span className="text-sm">3D Printers</span>
+                    </div>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">Hardware</span>
+                      <ChevronDown
+                        className={`w-4 h-4 transition-transform duration-200 ${
+                          expandedMobileSection === 'products' ? 'rotate-180 text-red-600' : 'text-slate-400'
+                        }`}
+                      />
+                    </div>
+                  </button>
+
+                  {expandedMobileSection === 'products' && (
+                    <div className="mt-1 pl-3 pr-2 py-2 space-y-2.5 bg-slate-50/70 rounded-xl border border-slate-200/80 animate-in fade-in duration-150">
+                      <Link
+                        to="/products"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center justify-between text-xs font-bold text-red-600 hover:text-red-700 px-2 py-1"
+                      >
+                        <span>View All 3D Printers</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                      {navConfig.hardwareMegaMenu.categories.map(cat => (
+                        <div key={cat.id} className="pt-1.5 border-t border-slate-200/60 first:border-0 first:pt-0">
+                          <Link
+                            to={cat.route}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="block text-xs font-bold text-slate-900 hover:text-red-600 px-2 py-1"
+                          >
+                            {cat.label}
+                          </Link>
+                          <div className="space-y-1 pl-2">
+                            {cat.products.map(p => (
+                              <Link
+                                key={p.slug}
+                                to={normalizeProductUrl(p.slug)}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="block text-xs text-slate-600 hover:text-red-600 py-0.5 font-medium"
+                              >
+                                • {p.name}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. 3D Scanners */}
+                <Link
+                  to="/products/3d-scanners"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
+                    location.pathname.includes('scanner') ? 'bg-red-50 text-red-600 font-bold' : 'text-slate-800 hover:bg-slate-50 font-semibold'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Scan className={`w-4 h-4 ${location.pathname.includes('scanner') ? 'text-red-600' : 'text-slate-500'}`} />
+                    <span className="text-sm">3D Scanners</span>
                   </div>
-                )}
+                  <ChevronRight className="w-4 h-4 text-slate-300" />
+                </Link>
+
+                {/* 4. Shop Accordion */}
+                <div className="rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => toggleMobileSection('shop')}
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
+                      location.pathname.startsWith('/shop')
+                        ? 'bg-slate-100 text-slate-950 font-bold'
+                        : 'text-slate-800 hover:bg-slate-50 font-semibold'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <ShoppingCart className={`w-4 h-4 ${expandedMobileSection === 'shop' ? 'text-red-600' : 'text-slate-500'}`} />
+                      <span className="text-sm">Shop ({navConfig.shopDropdown.bannerTitle})</span>
+                    </div>
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        expandedMobileSection === 'shop' ? 'rotate-180 text-red-600' : 'text-slate-400'
+                      }`}
+                    />
+                  </button>
+
+                  {expandedMobileSection === 'shop' && (
+                    <div className="mt-1 pl-3 pr-2 py-2 space-y-2 bg-slate-50/70 rounded-xl border border-slate-200/80 animate-in fade-in duration-150">
+                      <Link
+                        to={navConfig.shopDropdown.allStoreRoute}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center justify-between text-xs font-bold text-red-600 hover:text-red-700 px-2 py-1"
+                      >
+                        <span>{navConfig.shopDropdown.allStoreLinkText}</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                      {navConfig.shopDropdown.cards.map(card => (
+                        <Link
+                          key={card.id}
+                          to={card.route}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="block text-xs text-slate-700 hover:text-red-600 px-2 py-1 font-medium"
+                        >
+                          • {card.title} <span className="text-[10px] text-slate-400">({card.badge})</span>
+                        </Link>
+                      ))}
+                      <div className="pt-1 border-t border-slate-200/60 space-y-1">
+                        {navConfig.shopDropdown.shortcuts.map((sc, idx) => (
+                          <Link
+                            key={idx}
+                            to={sc.route}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="block text-xs text-slate-500 hover:text-red-600 px-2 py-0.5"
+                          >
+                            → {sc.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 5. Blogs */}
+                <Link
+                  to="/blog"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
+                    location.pathname.startsWith('/blog') ? 'bg-red-50 text-red-600 font-bold' : 'text-slate-800 hover:bg-slate-50 font-semibold'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <BookOpen className={`w-4 h-4 ${location.pathname.startsWith('/blog') ? 'text-red-600' : 'text-slate-500'}`} />
+                    <span className="text-sm">Blogs & Technical Articles</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-300" />
+                </Link>
+
+                {/* 6. Contact */}
+                <Link
+                  to="/contact"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
+                    location.pathname === '/contact' ? 'bg-red-50 text-red-600 font-bold' : 'text-slate-800 hover:bg-slate-50 font-semibold'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <PhoneCall className={`w-4 h-4 ${location.pathname === '/contact' ? 'text-red-600' : 'text-slate-500'}`} />
+                    <span className="text-sm">Contact Us</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-300" />
+                </Link>
+
+                {/* 7. Warranty & Support */}
+                <Link
+                  to="/warranty"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
+                    location.pathname === '/warranty' ? 'bg-red-50 text-red-600 font-bold' : 'text-slate-800 hover:bg-slate-50 font-semibold'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <ShieldCheck className={`w-4 h-4 ${location.pathname === '/warranty' ? 'text-red-600' : 'text-slate-500'}`} />
+                    <span className="text-sm">Warranty & Support</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-300" />
+                </Link>
+
+                {/* 8. Wishlist */}
+                <Link
+                  to="/wishlist"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
+                    location.pathname === '/wishlist' ? 'bg-red-50 text-red-600 font-bold' : 'text-slate-800 hover:bg-slate-50 font-semibold'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Heart className={`w-4 h-4 ${location.pathname === '/wishlist' ? 'text-red-600' : 'text-slate-500'}`} />
+                    <span className="text-sm">Saved Wishlist</span>
+                  </div>
+                  {wishlistCount > 0 ? (
+                    <span className="px-2 py-0.5 text-xs font-bold bg-red-600 text-white rounded-full">
+                      {wishlistCount}
+                    </span>
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-slate-300" />
+                  )}
+                </Link>
               </div>
-
-
-              <Link to="/products/3d-scanners" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50">
-                3D Scanners
-              </Link>
-              <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50">
-                Blogs & Technical Articles
-              </Link>
-              <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50">
-                Contact
-              </Link>
-              <Link to="/warranty" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50">
-                Warranty & Support
-              </Link>
-              <Link to="/wishlist" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50">
-                Wishlist ({wishlistCount})
-              </Link>
             </div>
 
-            <div className="pt-4 border-t border-slate-100 space-y-2">
+            {/* Formal Executive Footer Actions */}
+            <div className="shrink-0 p-4 border-t border-slate-200 bg-slate-50 space-y-3">
               <button
                 onClick={() => {
                   setIsMobileMenuOpen(false)
-                  openQuoteModal('3DeVOK 3D Scanner Mobile Demo Request')
+                  openQuoteModal('Product Consultation & Demo Request')
                 }}
-                className="w-full py-3 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white text-xs font-bold rounded-xl shadow-md text-center flex items-center justify-center space-x-2"
+                className="w-full py-3 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-rose-700 text-white text-xs font-extrabold rounded-xl shadow-md text-center flex items-center justify-center space-x-2 transition-all cursor-pointer"
               >
                 <span className="w-2 h-2 rounded-full bg-white animate-ping" />
-                <span>Request a Demo</span>
+                <span>Request a Consultation / Demo</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
-              <div className="text-center text-[11px] text-slate-500 pt-2">
-                Tech Support: <a href={`tel:${liveSiteSettings.secondaryPhone || siteConfig.supportPhone}`} className="text-red-600 font-bold">{liveSiteSettings.secondaryPhone || siteConfig.supportPhone}</a>
+
+              <div className="flex items-center justify-between text-[11px] text-slate-600 pt-1 px-1">
+                <a
+                  href={`tel:${liveSiteSettings.secondaryPhone || siteConfig.supportPhone}`}
+                  className="flex items-center space-x-1.5 hover:text-red-600 font-medium"
+                >
+                  <Phone className="w-3 h-3 text-red-600" />
+                  <span>{liveSiteSettings.secondaryPhone || siteConfig.supportPhone}</span>
+                </a>
+                <a
+                  href="mailto:viju@leniva3d.com"
+                  className="flex items-center space-x-1.5 hover:text-red-600 font-medium"
+                >
+                  <Mail className="w-3 h-3 text-red-600" />
+                  <span>viju@leniva3d.com</span>
+                </a>
+              </div>
+
+              <div className="text-[10px] text-center text-slate-400">
+                Leniva CAD Solutions • Bangalore, India
               </div>
             </div>
           </div>
