@@ -166,9 +166,9 @@ export const ContactPage: React.FC = () => {
                 <div className="w-16 h-16 mx-auto bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
                   <CheckCircle2 className="w-10 h-10" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-950">Enquiry Successfully Submitted</h3>
+                <h3 className="text-2xl font-bold text-slate-950">Enquiry Submitted Successfully</h3>
                 <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
-                  Thank you for reaching out, <strong className="text-slate-900">{formData.fullName}</strong>. Your requirement has been routed to our technical sales and engineering desk. Our team will contact you shortly.
+                  Thank you for contacting Leniva 3D. Your enquiry has been submitted successfully. Our team will get back to you shortly.
                 </p>
                 <button
                   onClick={() => setIsSubmitted(false)}

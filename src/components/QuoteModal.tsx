@@ -55,17 +55,10 @@ export const QuoteModal: React.FC = () => {
       ? 'Schedule Consultation'
       : 'Submit Quote Request'
 
-  const confirmationHeading = isDemoRequest
-    ? 'Thank You for Your Demo Request!'
-    : isConsultationRequest
-      ? 'Thank You for Your Consultation Request!'
-      : 'Thank You for Your Enquiry!'
+  const confirmationHeading = 'Enquiry Submitted Successfully'
 
-  const confirmationMessage = isDemoRequest
-    ? 'Our team will contact you shortly to schedule your product demonstration.'
-    : isConsultationRequest
-      ? 'Our engineering team will contact you shortly to schedule your consultation.'
-      : 'Our team will contact you shortly.'
+  const confirmationMessage =
+    'Thank you for contacting Leniva 3D. Your enquiry has been submitted successfully. Our team will get back to you shortly.'
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target

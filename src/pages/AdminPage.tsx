@@ -38,6 +38,14 @@ import {
   CheckCircle2,
   Award,
   ShoppingCart,
+  Mail,
+  Send,
+  Inbox,
+  Server,
+  Download,
+  Phone,
+  MapPin,
+  Calendar,
 } from 'lucide-react'
 import { ShopAndNavigationEditor } from '../components/admin/ShopAndNavigationEditor'
 import { CadVisualPageEditor } from '../components/admin/CadVisualPageEditor'
@@ -89,6 +97,9 @@ import {
   saveStoredQuotes,
   getStoredContacts,
   saveStoredContacts,
+  StoredEnquiryRecord,
+  getStoredEnquiries,
+  saveStoredEnquiries,
 } from '../utils/cloudSync'
 import { blogPosts as fallbackBlogs } from '../data/blogs'
 
@@ -151,6 +162,7 @@ export default function AdminPage() {
   const [loginError, setLoginError] = useState('')
 
   type AdminTab =
+    | 'enquiries'
     | 'dashboard'
     | 'quotes'
     | 'contacts'
@@ -166,7 +178,7 @@ export default function AdminPage() {
     | 'printers_visual_edit'
     | 'scanners_visual_edit'
 
-  const [activeTab, setActiveTab] = useState<AdminTab>('quotes')
+  const [activeTab, setActiveTab] = useState<AdminTab>('enquiries')
   const [visualEditorTarget, setVisualEditorTarget] = useState<{
     category: VisualEditorCategory
     productKey: string
@@ -175,6 +187,7 @@ export default function AdminPage() {
   const [_stats, setStats] = useState<Stats | null>(null)
 
   // Lists
+  const [enquiries, setEnquiries] = useState<StoredEnquiryRecord[]>(getStoredEnquiries)
   const [quotes, setQuotes] = useState<QuoteRequest[]>(getStoredQuotes)
   const [contacts, setContacts] = useState<ContactMessage[]>(getStoredContacts)
   const [productsList, setProductsList] = useState<ProductItem[]>(getStoredProductsCatalog)
@@ -196,6 +209,29 @@ export default function AdminPage() {
   const [quoteFilter, setQuoteFilter] = useState('all')
   const [quoteEnquiryTypeFilter, setQuoteEnquiryTypeFilter] = useState<'all' | 'quote' | 'demo' | 'consultation' | 'trial' | 'contact'>('all')
   const [quoteSearchInput, setQuoteSearchInput] = useState('')
+
+  // Enquiry Management Filters & Modals
+  const [selectedEnquiry, setSelectedEnquiry] = useState<StoredEnquiryRecord | null>(null)
+  const [enquirySearchInput, setEnquirySearchInput] = useState('')
+  const [enquiryStatusFilter, setEnquiryStatusFilter] = useState<'all' | 'New' | 'Contacted' | 'Pending' | 'Converted' | 'Closed'>('all')
+  const [enquiryProductFilter, setEnquiryProductFilter] = useState('all')
+  const [enquirySourceFilter, setEnquirySourceFilter] = useState('all')
+  const [enquiryDateFilter, setEnquiryDateFilter] = useState('')
+  const [enquiryEmailFilter, setEnquiryEmailFilter] = useState<'all' | 'sent' | 'pending' | 'failed'>('all')
+  const [enquiryAdminNotes, setEnquiryAdminNotes] = useState('')
+  const [enquiryFollowUpDate, setEnquiryFollowUpDate] = useState('')
+
+  // SMTP Diagnostics & Test State
+  const [smtpServerHost] = useState('ns1.sslsecure.co.in')
+  const [smtpServerPort, setSmtpServerPort] = useState(465)
+  const [smtpReceiverEmail] = useState('viju@leniva3d.com')
+  const [smtpTestRecipient, setSmtpTestRecipient] = useState('roiprojects012@gmail.com')
+  const [smtpPasswordInput, setSmtpPasswordInput] = useState('')
+  const [showSmtpPassword, setShowSmtpPassword] = useState(false)
+  const [showSmtpDiagnostics, setShowSmtpDiagnostics] = useState(false)
+  const [isTestingSmtp, setIsTestingSmtp] = useState(false)
+  const [smtpTestResult, setSmtpTestResult] = useState<{ success: boolean; message?: string; error?: string; messageId?: string; logs?: string[] } | null>(null)
+  const [isRetryingEnquiryId, setIsRetryingEnquiryId] = useState<number | null>(null)
 
   // Modals / Forms
   const [selectedQuote, setSelectedQuote] = useState<QuoteRequest | null>(null)
@@ -1530,6 +1566,230 @@ export default function AdminPage() {
   }
 
   // ----------------------------------------------------
+  // ENQUIRY MANAGEMENT CALCULATIONS & HANDLERS
+  // ----------------------------------------------------
+  const totalEnquiriesCount = enquiries.length
+  const newEnquiriesCount = enquiries.filter(e => e.status === 'New').length
+  const todayEnquiriesCount = enquiries.filter(e => {
+    try {
+      const d = new Date(e.created_at)
+      const today = new Date()
+      return d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear()
+    } catch {
+      return false
+    }
+  }).length
+  const pendingEnquiriesCount = enquiries.filter(e => e.status === 'Pending').length
+  const contactedEnquiriesCount = enquiries.filter(e => e.status === 'Contacted').length
+  const convertedEnquiriesCount = enquiries.filter(e => e.status === 'Converted').length
+  const closedEnquiriesCount = enquiries.filter(e => e.status === 'Closed').length
+  const emailFailuresCount = enquiries.filter(e => e.email_notification_status === 'failed').length
+
+  const uniqueEnquiryProducts = Array.from(new Set(enquiries.map(e => e.product_service_name).filter(Boolean)))
+  const uniqueEnquirySources = Array.from(new Set(enquiries.map(e => e.source_page).filter(Boolean)))
+
+  const filteredEnquiries = enquiries.filter(e => {
+    if (enquiryStatusFilter !== 'all' && e.status !== enquiryStatusFilter) return false
+    if (enquiryProductFilter !== 'all' && e.product_service_name !== enquiryProductFilter) return false
+    if (enquirySourceFilter !== 'all' && e.source_page !== enquirySourceFilter) return false
+    if (enquiryEmailFilter !== 'all' && e.email_notification_status !== enquiryEmailFilter) return false
+    if (enquiryDateFilter) {
+      const enquiryDate = (e.created_at || '').slice(0, 10)
+      if (enquiryDate !== enquiryDateFilter) return false
+    }
+    if (enquirySearchInput.trim()) {
+      const q = enquirySearchInput.toLowerCase()
+      const match =
+        (e.customer_name || '').toLowerCase().includes(q) ||
+        (e.email || '').toLowerCase().includes(q) ||
+        (e.phone || '').toLowerCase().includes(q) ||
+        (e.company_name || '').toLowerCase().includes(q) ||
+        (e.product_service_name || '').toLowerCase().includes(q) ||
+        (e.subject || '').toLowerCase().includes(q) ||
+        (e.message || '').toLowerCase().includes(q) ||
+        (e.enquiry_number || '').toLowerCase().includes(q)
+      if (!match) return false
+    }
+    return true
+  })
+
+  const handleUpdateEnquiryStatus = async (id: number, newStatus: StoredEnquiryRecord['status']) => {
+    const updated = enquiries.map(e => e.id === id ? { ...e, status: newStatus, updated_at: new Date().toISOString() } : e)
+    setEnquiries(updated)
+    saveStoredEnquiries(updated)
+    if (selectedEnquiry && selectedEnquiry.id === id) {
+      setSelectedEnquiry({ ...selectedEnquiry, status: newStatus })
+    }
+    fetch('/api/enquiries', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status: newStatus }),
+    }).catch(() => null)
+    pushCmsStateToCloud({ isEnquirySubmission: true }).catch(() => null)
+  }
+
+  const handleSaveEnquiryNotes = async (id: number) => {
+    const updated = enquiries.map(e =>
+      e.id === id
+        ? { ...e, admin_notes: enquiryAdminNotes, follow_up_date: enquiryFollowUpDate, updated_at: new Date().toISOString() }
+        : e
+    )
+    setEnquiries(updated)
+    saveStoredEnquiries(updated)
+    if (selectedEnquiry && selectedEnquiry.id === id) {
+      setSelectedEnquiry({ ...selectedEnquiry, admin_notes: enquiryAdminNotes, follow_up_date: enquiryFollowUpDate })
+    }
+    fetch('/api/enquiries', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, admin_notes: enquiryAdminNotes, follow_up_date: enquiryFollowUpDate }),
+    }).catch(() => null)
+    pushCmsStateToCloud({ isEnquirySubmission: true }).catch(() => null)
+    alert('Admin notes & follow-up date updated successfully.')
+  }
+
+  const handleRetryEmail = async (id: number) => {
+    setIsRetryingEnquiryId(id)
+    try {
+      const res = await fetch('/api/enquiries?action=retry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enquiryId: id, smtpPassword: smtpPasswordInput || undefined }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        const updated = enquiries.map(e =>
+          e.id === id
+            ? {
+                ...e,
+                email_notification_status: 'sent' as const,
+                email_sent_at: new Date().toISOString(),
+                email_error: null,
+                email_message_id: json.messageId,
+              }
+            : e
+        )
+        setEnquiries(updated)
+        saveStoredEnquiries(updated)
+        if (selectedEnquiry && selectedEnquiry.id === id) {
+          setSelectedEnquiry({
+            ...selectedEnquiry,
+            email_notification_status: 'sent',
+            email_error: null,
+            email_message_id: json.messageId,
+          })
+        }
+        alert('Email notification resent successfully to viju@leniva3d.com!')
+      } else {
+        const updated = enquiries.map(e =>
+          e.id === id
+            ? { ...e, email_notification_status: 'failed' as const, email_error: json.error || 'Retry failed' }
+            : e
+        )
+        setEnquiries(updated)
+        saveStoredEnquiries(updated)
+        if (selectedEnquiry && selectedEnquiry.id === id) {
+          setSelectedEnquiry({ ...selectedEnquiry, email_notification_status: 'failed', email_error: json.error || 'Retry failed' })
+        }
+        alert(`SMTP Retry Failed: ${json.error || 'Check SMTP configuration'}`)
+      }
+    } catch (err: any) {
+      alert(`SMTP Retry Error: ${err.message}`)
+    } finally {
+      setIsRetryingEnquiryId(null)
+    }
+  }
+
+  const handleTestSmtpConnection = async () => {
+    setIsTestingSmtp(true)
+    setSmtpTestResult(null)
+    try {
+      const res = await fetch('/api/enquiries?action=test_smtp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          smtpPassword: smtpPasswordInput || undefined,
+          smtpPort: smtpServerPort,
+          testRecipient: smtpTestRecipient || 'roiprojects012@gmail.com',
+        }),
+      })
+      const json = await res.json()
+      setSmtpTestResult(json)
+    } catch (err: any) {
+      setSmtpTestResult({
+        success: false,
+        error: err.message || 'Network request failed',
+        logs: [`[${new Date().toISOString()}] Network request failed: ${err.message}`],
+      })
+    } finally {
+      setIsTestingSmtp(false)
+    }
+  }
+
+  const handleExportEnquiriesCsv = () => {
+    if (!enquiries.length) {
+      alert('No enquiries to export.')
+      return
+    }
+    const headers = [
+      'Enquiry ID',
+      'Submitted Date',
+      'Submitted Time',
+      'Customer Name',
+      'Email',
+      'Phone',
+      'Company Name',
+      'City',
+      'Enquiry Type',
+      'Product / Service',
+      'Subject',
+      'Message',
+      'Source Page',
+      'Source URL',
+      'Status',
+      'Admin Notes',
+      'Follow-Up Date',
+      'Email Notification Status',
+      'Email Sent At',
+    ]
+
+    const csvRows = [headers.join(',')]
+
+    enquiries.forEach(e => {
+      const row = [
+        `"${e.enquiry_number || e.id}"`,
+        `"${e.submitted_date || ''}"`,
+        `"${e.submitted_time || ''}"`,
+        `"${(e.customer_name || '').replace(/"/g, '""')}"`,
+        `"${(e.email || '').replace(/"/g, '""')}"`,
+        `"${(e.phone || '').replace(/"/g, '""')}"`,
+        `"${(e.company_name || '').replace(/"/g, '""')}"`,
+        `"${(e.city || '').replace(/"/g, '""')}"`,
+        `"${(e.enquiry_type || '').replace(/"/g, '""')}"`,
+        `"${(e.product_service_name || '').replace(/"/g, '""')}"`,
+        `"${(e.subject || '').replace(/"/g, '""')}"`,
+        `"${(e.message || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`,
+        `"${(e.source_page || '').replace(/"/g, '""')}"`,
+        `"${(e.source_url || '').replace(/"/g, '""')}"`,
+        `"${e.status || 'New'}"`,
+        `"${(e.admin_notes || '').replace(/"/g, '""')}"`,
+        `"${e.follow_up_date || ''}"`,
+        `"${e.email_notification_status || 'pending'}"`,
+        `"${e.email_sent_at || ''}"`,
+      ]
+      csvRows.push(row.join(','))
+    })
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvRows.join('\n'))
+    const link = document.createElement('a')
+    link.setAttribute('href', csvContent)
+    link.setAttribute('download', `leniva_enquiries_${new Date().toISOString().slice(0, 10)}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  // ----------------------------------------------------
   // AUTHENTICATED DASHBOARD (FULL CONTROL SUITE)
   // ----------------------------------------------------
   if (visualEditorTarget) {
@@ -1629,6 +1889,32 @@ export default function AdminPage() {
         {/* Master Sidebar Navigation */}
         <aside className="w-full md:w-64 shrink-0 space-y-3">
           <nav className="bg-white rounded-2xl p-2 border border-slate-200 shadow-sm space-y-1">
+            <button
+              onClick={() => setActiveTab('enquiries')}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'enquiries'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm'
+                  : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <Inbox className="w-4 h-4" />
+                <span>Enquiry Management</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                {newEnquiriesCount > 0 && (
+                  <span className="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-rose-500 text-white animate-pulse">
+                    {newEnquiriesCount}
+                  </span>
+                )}
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
+                  activeTab === 'enquiries' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'
+                }`}>
+                  {enquiries.length}
+                </span>
+              </div>
+            </button>
+
             <button
               onClick={() => setActiveTab('quotes')}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
@@ -1940,6 +2226,737 @@ export default function AdminPage() {
                   </table>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* ====================================================
+              TAB 0: ENQUIRY MANAGEMENT (CENTRALIZED SMTP & LEADS)
+             ==================================================== */}
+          {activeTab === 'enquiries' && (
+            <div className="space-y-6">
+              {/* Header & Primary Actions */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-800">
+                        Centralized Lead Pipeline
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800">
+                        SMTP: viju@leniva3d.com
+                      </span>
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">Enquiry Management</h2>
+                    <p className="text-xs sm:text-sm text-slate-500">
+                      Real-time capture of every customer enquiry across all website pages with automated SMTP notifications.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={() => setShowSmtpDiagnostics(!showSmtpDiagnostics)}
+                      className={`inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        showSmtpDiagnostics
+                          ? 'bg-slate-900 text-white shadow-sm'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                      }`}
+                    >
+                      <Server className="w-3.5 h-3.5" />
+                      <span>{showSmtpDiagnostics ? 'Hide SMTP Diagnostics' : 'SMTP Server Diagnostics'}</span>
+                    </button>
+
+                    <button
+                      onClick={handleExportEnquiriesCsv}
+                      className="inline-flex items-center space-x-2 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Export CSV</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setEnquiries(getStoredEnquiries())
+                        pullCmsStateFromCloud().catch(() => null)
+                      }}
+                      className="inline-flex items-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-medium transition-colors cursor-pointer"
+                      title="Refresh inquiries"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Refresh</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* ─── SECTION A: ENQUIRY DASHBOARD (8 STATISTICS) ─── */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 pt-2">
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Total</span>
+                    <span className="text-xl font-black text-slate-900">{totalEnquiriesCount}</span>
+                    <span className="text-[10px] text-slate-400 block mt-0.5">All Inquiries</span>
+                  </div>
+
+                  <div className="p-3 bg-blue-50/70 rounded-xl border border-blue-200/80">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 block">New</span>
+                    <span className="text-xl font-black text-blue-700">{newEnquiriesCount}</span>
+                    <span className="text-[10px] text-blue-500 block mt-0.5">Unreviewed</span>
+                  </div>
+
+                  <div className="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200/80">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block">Today</span>
+                    <span className="text-xl font-black text-emerald-700">{todayEnquiriesCount}</span>
+                    <span className="text-[10px] text-emerald-500 block mt-0.5">Received Today</span>
+                  </div>
+
+                  <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-200/80">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 block">Pending</span>
+                    <span className="text-xl font-black text-amber-700">{pendingEnquiriesCount}</span>
+                    <span className="text-[10px] text-amber-500 block mt-0.5">Action Needed</span>
+                  </div>
+
+                  <div className="p-3 bg-purple-50/70 rounded-xl border border-purple-200/80">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-purple-700 block">Contacted</span>
+                    <span className="text-xl font-black text-purple-700">{contactedEnquiriesCount}</span>
+                    <span className="text-[10px] text-purple-500 block mt-0.5">Followed Up</span>
+                  </div>
+
+                  <div className="p-3 bg-teal-50/70 rounded-xl border border-teal-200/80">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700 block">Converted</span>
+                    <span className="text-xl font-black text-teal-700">{convertedEnquiriesCount}</span>
+                    <span className="text-[10px] text-teal-500 block mt-0.5">Deal Won</span>
+                  </div>
+
+                  <div className="p-3 bg-slate-100 rounded-xl border border-slate-200">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 block">Closed</span>
+                    <span className="text-xl font-black text-slate-700">{closedEnquiriesCount}</span>
+                    <span className="text-[10px] text-slate-400 block mt-0.5">Completed</span>
+                  </div>
+
+                  <div className="p-3 bg-rose-50/70 rounded-xl border border-rose-200/80">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-rose-700 block">Email Failed</span>
+                    <span className="text-xl font-black text-rose-700">{emailFailuresCount}</span>
+                    <span className="text-[10px] text-rose-500 block mt-0.5">Needs Retry</span>
+                  </div>
+                </div>
+
+                {/* ─── SMTP DIAGNOSTICS & VERIFICATION PANEL ─── */}
+                {showSmtpDiagnostics && (
+                  <div className="mt-4 p-5 bg-slate-900 text-white rounded-2xl border border-slate-800 space-y-4 animate-fade-in">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                      <div>
+                        <h4 className="text-sm font-bold text-white flex items-center space-x-2">
+                          <Server className="w-4 h-4 text-blue-400" />
+                          <span>SMTP Email Notification Infrastructure</span>
+                        </h4>
+                        <p className="text-xs text-slate-400">
+                          Automated email relay for incoming inquiries on <code className="text-blue-300">ns1.sslsecure.co.in</code>
+                        </p>
+                      </div>
+
+                      {/* Domain Authentication Verification Badges */}
+                      <div className="flex flex-wrap items-center gap-2 text-[10px]">
+                        <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                          SPF: Authorized (zoho & leniva3d.com)
+                        </span>
+                        <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                          DKIM: Configured
+                        </span>
+                        <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                          DMARC: Monitored
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                      <div className="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700/60 space-y-1.5">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">SMTP Host & Port</div>
+                        <div className="font-mono text-slate-200">Host: {smtpServerHost}</div>
+                        <div className="font-mono text-slate-200">Port: {smtpServerPort} ({smtpServerPort === 465 ? 'SSL/TLS' : 'STARTTLS'})</div>
+                        <div className="font-mono text-slate-200">Auth User: viju@leniva3d.com</div>
+                      </div>
+
+                      <div className="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700/60 space-y-1.5">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Email Routing</div>
+                        <div className="text-slate-200">Recipient: <strong className="text-emerald-400">{smtpReceiverEmail}</strong></div>
+                        <div className="text-slate-200">Sender Name: <strong>Leniva 3D Website</strong></div>
+                        <div className="text-slate-200">Reply-To: <strong>Customer Email</strong></div>
+                      </div>
+
+                      <div className="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700/60 space-y-2">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">SMTP Password Config</div>
+                        <div className="relative">
+                          <input
+                            type={showSmtpPassword ? 'text' : 'password'}
+                            value={smtpPasswordInput}
+                            onChange={e => setSmtpPasswordInput(e.target.value)}
+                            placeholder="Enter / update SMTP password..."
+                            className="w-full text-xs px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-blue-500 pr-8"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowSmtpPassword(!showSmtpPassword)}
+                            className="absolute right-2 top-2 text-slate-400 hover:text-white"
+                          >
+                            {showSmtpPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
+                        <div className="text-[10px] text-slate-400">
+                          Supports environment variable <code className="text-blue-300">SMTP_PASSWORD</code> or manual override.
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Test Email Trigger Action */}
+                    <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex-1 space-y-1">
+                        <div className="text-xs font-bold text-white flex items-center space-x-2">
+                          <Send className="w-3.5 h-3.5 text-blue-400" />
+                          <span>Mandatory Real SMTP Connection & Delivery Test</span>
+                        </div>
+                        <div className="text-xs text-slate-400">
+                          Dispatches test verification message to test mailbox:
+                          <input
+                            type="email"
+                            value={smtpTestRecipient}
+                            onChange={e => setSmtpTestRecipient(e.target.value)}
+                            className="ml-2 text-xs px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-blue-500 w-52"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2 shrink-0">
+                        <select
+                          value={smtpServerPort}
+                          onChange={e => setSmtpServerPort(Number(e.target.value))}
+                          className="text-xs px-2.5 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white focus:outline-none"
+                        >
+                          <option value={465}>Port 465 (SSL/TLS)</option>
+                          <option value={587}>Port 587 (STARTTLS)</option>
+                        </select>
+
+                        <button
+                          onClick={handleTestSmtpConnection}
+                          disabled={isTestingSmtp}
+                          className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer disabled:opacity-50"
+                        >
+                          {isTestingSmtp ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              <span>Testing Connection...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Send className="w-3.5 h-3.5" />
+                              <span>Send SMTP Test Email</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Live Test Diagnostic Output */}
+                    {smtpTestResult && (
+                      <div className={`p-4 rounded-xl text-xs border ${
+                        smtpTestResult.success
+                          ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-200'
+                          : 'bg-rose-950/40 border-rose-500/40 text-rose-200'
+                      }`}>
+                        <div className="font-bold flex items-center space-x-2 mb-1.5">
+                          {smtpTestResult.success ? (
+                            <>
+                              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                              <span>SMTP Test Succeeded! Message ID: {smtpTestResult.messageId}</span>
+                            </>
+                          ) : (
+                            <>
+                              <AlertCircle className="w-4 h-4 text-rose-400" />
+                              <span>SMTP Test Notice: {smtpTestResult.error}</span>
+                            </>
+                          )}
+                        </div>
+                        {smtpTestResult.logs && smtpTestResult.logs.length > 0 && (
+                          <div className="bg-black/50 p-2.5 rounded font-mono text-[11px] text-slate-300 space-y-0.5 mt-2">
+                            {smtpTestResult.logs.map((log, idx) => (
+                              <div key={idx}>{log}</div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* ─── SEARCH & MULTI-FILTER BAR ─── */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+                <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+                  {/* Text search */}
+                  <div className="relative flex-1 max-w-md">
+                    <input
+                      type="text"
+                      value={enquirySearchInput}
+                      onChange={e => setEnquirySearchInput(e.target.value)}
+                      placeholder="Search by customer name, email, phone, company, or requirement..."
+                      className="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+                  </div>
+
+                  {/* Dropdown Filters */}
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    {/* Product filter */}
+                    <select
+                      value={enquiryProductFilter}
+                      onChange={e => setEnquiryProductFilter(e.target.value)}
+                      className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">All Products / Services ({enquiries.length})</option>
+                      {uniqueEnquiryProducts.map(p => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
+
+                    {/* Source filter */}
+                    <select
+                      value={enquirySourceFilter}
+                      onChange={e => setEnquirySourceFilter(e.target.value)}
+                      className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">All Enquiry Sources</option>
+                      {uniqueEnquirySources.map(s => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+
+                    {/* Date filter */}
+                    <div className="flex items-center space-x-1 border border-slate-200 rounded-lg px-2 py-1 bg-white">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                      <input
+                        type="date"
+                        value={enquiryDateFilter}
+                        onChange={e => setEnquiryDateFilter(e.target.value)}
+                        className="text-xs text-slate-700 bg-transparent focus:outline-none"
+                        title="Filter by submission date"
+                      />
+                      {enquiryDateFilter && (
+                        <button
+                          onClick={() => setEnquiryDateFilter('')}
+                          className="text-slate-400 hover:text-slate-600 ml-1 text-xs"
+                          title="Clear date filter"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Email Status filter */}
+                    <select
+                      value={enquiryEmailFilter}
+                      onChange={e => setEnquiryEmailFilter(e.target.value as any)}
+                      className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">All Email States</option>
+                      <option value="sent">SMTP Accepted</option>
+                      <option value="pending">Email Pending</option>
+                      <option value="failed">Email Failed / Retry</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Status Tabs */}
+                <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100">
+                  <span className="text-[11px] font-semibold text-slate-400 mr-2">Status:</span>
+                  {(['all', 'New', 'Contacted', 'Pending', 'Converted', 'Closed'] as const).map(st => {
+                    const count = st === 'all' ? enquiries.length : enquiries.filter(e => e.status === st).length
+                    const isActive = enquiryStatusFilter === st
+                    return (
+                      <button
+                        key={st}
+                        onClick={() => setEnquiryStatusFilter(st)}
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                          isActive
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {st === 'all' ? 'All Inquiries' : st}
+                        <span className={`ml-1.5 text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                          isActive ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-600'
+                        }`}>
+                          {count}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* ─── SECTION B: ENQUIRY TABLE ─── */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                  <div className="text-xs font-bold text-slate-700">
+                    Showing <span className="text-blue-600 font-extrabold">{filteredEnquiries.length}</span> of {enquiries.length} enquiries
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-slate-600">
+                    <thead className="bg-slate-50 text-[11px] font-bold text-slate-700 uppercase tracking-wider border-b border-slate-200">
+                      <tr>
+                        <th className="py-3 px-3.5">Enquiry ID</th>
+                        <th className="py-3 px-3.5">Name</th>
+                        <th className="py-3 px-3.5">Contact</th>
+                        <th className="py-3 px-3.5">Enquiry Source</th>
+                        <th className="py-3 px-3.5">Product / Service</th>
+                        <th className="py-3 px-3.5">Date</th>
+                        <th className="py-3 px-3.5">Status</th>
+                        <th className="py-3 px-3.5">Email Notification</th>
+                        <th className="py-3 px-3.5 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredEnquiries.length === 0 ? (
+                        <tr>
+                          <td colSpan={9} className="py-12 text-center text-slate-400">
+                            No enquiries found matching your active filters.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredEnquiries.map(e => {
+                          const statusColor =
+                            e.status === 'New'
+                              ? 'bg-blue-50 text-blue-700 border-blue-200'
+                              : e.status === 'Contacted'
+                              ? 'bg-purple-50 text-purple-700 border-purple-200'
+                              : e.status === 'Pending'
+                              ? 'bg-amber-50 text-amber-700 border-amber-200'
+                              : e.status === 'Converted'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-slate-100 text-slate-600 border-slate-200'
+
+                          return (
+                            <tr key={e.id} className="hover:bg-slate-50/80 transition-colors">
+                              {/* Enquiry ID */}
+                              <td className="py-3 px-3.5 font-mono font-bold text-slate-900 whitespace-nowrap">
+                                <span className="bg-slate-100 px-2 py-0.5 rounded text-blue-600">
+                                  {e.enquiry_number || `LEN${String(e.id).slice(-4)}`}
+                                </span>
+                              </td>
+
+                              {/* Customer Name */}
+                              <td className="py-3 px-3.5">
+                                <div className="font-bold text-slate-900">{e.customer_name}</div>
+                                {e.company_name && (
+                                  <div className="text-[11px] text-slate-500 truncate max-w-[140px]">{e.company_name}</div>
+                                )}
+                              </td>
+
+                              {/* Contact */}
+                              <td className="py-3 px-3.5">
+                                <a href={`tel:${e.phone}`} className="font-mono text-slate-900 hover:text-blue-600 block">
+                                  {e.phone || '—'}
+                                </a>
+                                <a href={`mailto:${e.email}`} className="text-[11px] text-slate-500 hover:text-blue-600 truncate block max-w-[160px]">
+                                  {e.email || '—'}
+                                </a>
+                              </td>
+
+                              {/* Enquiry Source */}
+                              <td className="py-3 px-3.5">
+                                <div className="text-slate-800 font-medium truncate max-w-[150px]" title={e.source_page}>
+                                  {e.source_page || 'Website'}
+                                </div>
+                                <span className="text-[10px] text-slate-400 capitalize">{e.enquiry_type || 'Product Enquiry'}</span>
+                              </td>
+
+                              {/* Product / Service */}
+                              <td className="py-3 px-3.5">
+                                <span className="font-semibold text-blue-700 block truncate max-w-[180px]" title={e.product_service_name}>
+                                  {e.product_service_name}
+                                </span>
+                              </td>
+
+                              {/* Date */}
+                              <td className="py-3 px-3.5 whitespace-nowrap">
+                                <div className="font-semibold text-slate-900">
+                                  {e.submitted_date || new Date(e.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                                </div>
+                                <div className="text-[11px] font-mono text-slate-400">
+                                  {e.submitted_time || new Date(e.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                                </div>
+                              </td>
+
+                              {/* Status */}
+                              <td className="py-3 px-3.5 whitespace-nowrap">
+                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${statusColor}`}>
+                                  {e.status}
+                                </span>
+                              </td>
+
+                              {/* Email Notification Status */}
+                              <td className="py-3 px-3.5 whitespace-nowrap">
+                                {e.email_notification_status === 'sent' ? (
+                                  <span className="inline-flex items-center space-x-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                    <span>SMTP Accepted</span>
+                                  </span>
+                                ) : e.email_notification_status === 'pending' ? (
+                                  <span className="inline-flex items-center space-x-1 text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                                    <Clock className="w-3 h-3 text-amber-600" />
+                                    <span>Pending</span>
+                                  </span>
+                                ) : (
+                                  <div className="flex items-center space-x-1.5">
+                                    <span className="inline-flex items-center space-x-1 text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200" title={e.email_error || 'SMTP delivery failed'}>
+                                      <AlertCircle className="w-3 h-3 text-rose-600" />
+                                      <span>Failed</span>
+                                    </span>
+                                    <button
+                                      onClick={() => handleRetryEmail(e.id)}
+                                      disabled={isRetryingEnquiryId === e.id}
+                                      className="p-1 text-slate-500 hover:text-blue-600 rounded bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                                      title="Retry sending notification to viju@leniva3d.com"
+                                    >
+                                      <RefreshCw className={`w-3 h-3 ${isRetryingEnquiryId === e.id ? 'animate-spin text-blue-600' : ''}`} />
+                                    </button>
+                                  </div>
+                                )}
+                              </td>
+
+                              {/* Action */}
+                              <td className="py-3 px-3.5 text-right whitespace-nowrap">
+                                <button
+                                  onClick={() => {
+                                    setSelectedEnquiry(e)
+                                    setEnquiryAdminNotes(e.admin_notes || '')
+                                    setEnquiryFollowUpDate(e.follow_up_date || '')
+                                  }}
+                                  className="inline-flex items-center space-x-1 px-3 py-1.5 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                  <span>View</span>
+                                </button>
+                              </td>
+                            </tr>
+                          )
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* ─── SECTION C: VIEW COMPLETE ENQUIRY MODAL ─── */}
+              {selectedEnquiry && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
+                  <div
+                    className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 max-h-[90vh] flex flex-col"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    {/* Modal Header */}
+                    <div className="flex items-center justify-between px-6 py-4 bg-slate-900 text-white shrink-0">
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-blue-600 text-white">
+                            {selectedEnquiry.enquiry_number || `LEN${String(selectedEnquiry.id).slice(-4)}`}
+                          </span>
+                          <span className="text-xs uppercase tracking-wider text-slate-300">
+                            {selectedEnquiry.enquiry_type}
+                          </span>
+                        </div>
+                        <h3 className="text-lg font-bold mt-0.5">{selectedEnquiry.customer_name}</h3>
+                      </div>
+                      <button
+                        onClick={() => setSelectedEnquiry(null)}
+                        className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    {/* Modal Body */}
+                    <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs text-slate-700">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Customer Details */}
+                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-2.5">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 pb-1.5">
+                            Customer Profile
+                          </h4>
+                          <div>
+                            <span className="text-slate-400 block text-[11px]">Full Name:</span>
+                            <strong className="text-slate-900 text-sm">{selectedEnquiry.customer_name}</strong>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block text-[11px]">Official Email:</span>
+                            <a href={`mailto:${selectedEnquiry.email}`} className="text-blue-600 hover:underline font-medium text-xs">
+                              {selectedEnquiry.email || 'Not provided'}
+                            </a>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block text-[11px]">Phone / Mobile:</span>
+                            <a href={`tel:${selectedEnquiry.phone}`} className="text-slate-900 hover:text-blue-600 font-mono font-bold text-xs">
+                              {selectedEnquiry.phone || 'Not provided'}
+                            </a>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block text-[11px]">Company Name:</span>
+                            <span className="text-slate-800">{selectedEnquiry.company_name || 'Individual / Studio'}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block text-[11px]">City / Location:</span>
+                            <span className="text-slate-800">{selectedEnquiry.city || 'Not Specified'}</span>
+                          </div>
+                        </div>
+
+                        {/* Workflow Management */}
+                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-3">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 pb-1.5">
+                            Admin Status & Workflow
+                          </h4>
+                          <div>
+                            <span className="text-slate-400 block text-[11px] mb-1.5">Update Enquiry Status:</span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {(['New', 'Contacted', 'Pending', 'Converted', 'Closed'] as const).map(st => (
+                                <button
+                                  key={st}
+                                  onClick={() => handleUpdateEnquiryStatus(selectedEnquiry.id, st)}
+                                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                    selectedEnquiry.status === st
+                                      ? 'bg-blue-600 text-white shadow-xs'
+                                      : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                                  }`}
+                                >
+                                  {st}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="pt-2">
+                            <span className="text-slate-400 block text-[11px] mb-1">Follow-up Date:</span>
+                            <input
+                              type="date"
+                              value={enquiryFollowUpDate}
+                              onChange={e => setEnquiryFollowUpDate(e.target.value)}
+                              className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          {/* Email Notification Status */}
+                          <div className="pt-2 border-t border-slate-200">
+                            <span className="text-slate-400 block text-[11px] mb-1">Email Delivery to viju@leniva3d.com:</span>
+                            <div className="flex items-center justify-between bg-white p-2 rounded-lg border border-slate-200">
+                              <div>
+                                {selectedEnquiry.email_notification_status === 'sent' ? (
+                                  <span className="font-bold text-emerald-600">✓ Accepted by SMTP</span>
+                                ) : selectedEnquiry.email_notification_status === 'pending' ? (
+                                  <span className="font-bold text-amber-600">⏳ Pending Delivery</span>
+                                ) : (
+                                  <span className="font-bold text-rose-600">✕ Delivery Failed</span>
+                                )}
+                                {selectedEnquiry.email_sent_at && (
+                                  <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                                    {new Date(selectedEnquiry.email_sent_at).toLocaleString()}
+                                  </div>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => handleRetryEmail(selectedEnquiry.id)}
+                                disabled={isRetryingEnquiryId === selectedEnquiry.id}
+                                className="px-2.5 py-1 bg-slate-900 hover:bg-blue-600 text-white rounded text-[11px] font-bold transition-colors cursor-pointer"
+                              >
+                                {isRetryingEnquiryId === selectedEnquiry.id ? 'Sending...' : 'Retry Email'}
+                              </button>
+                            </div>
+                            {selectedEnquiry.email_error && (
+                              <p className="text-[11px] text-rose-600 mt-1 font-mono">{selectedEnquiry.email_error}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Requirement & Message Box */}
+                      <div className="space-y-2">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                          Enquiry Requirement & Message
+                        </h4>
+                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-2">
+                          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
+                            <div>
+                              <span className="text-slate-400 text-[11px] mr-1">Product Interested In:</span>
+                              <strong className="text-blue-700 text-sm">{selectedEnquiry.product_service_name}</strong>
+                            </div>
+                            <div>
+                              <span className="text-slate-400 text-[11px] mr-1">Subject:</span>
+                              <span className="font-semibold text-slate-800">{selectedEnquiry.subject}</span>
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 text-[11px] block mb-1">Customer Message / Technical Specifications:</span>
+                            <div className="p-3 bg-white rounded-lg border border-slate-200 text-slate-800 whitespace-pre-wrap leading-relaxed">
+                              {selectedEnquiry.message || 'No additional message was provided.'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Source & Submission Context */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 text-[11px]">
+                        <div>
+                          <span className="text-slate-400 block">Submitted From Page:</span>
+                          <strong className="text-slate-800">{selectedEnquiry.source_page || 'Website'}</strong>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block">Date & Time:</span>
+                          <span className="text-slate-800 font-mono">
+                            {selectedEnquiry.submitted_date} at {selectedEnquiry.submitted_time}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block">Page URL:</span>
+                          <a href={selectedEnquiry.source_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate block">
+                            {selectedEnquiry.source_url || '—'}
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Internal Admin Notes Textarea */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
+                          Internal Admin Notes
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={enquiryAdminNotes}
+                          onChange={e => setEnquiryAdminNotes(e.target.value)}
+                          placeholder="Add internal sales engineer notes, discussion summaries, quote numbers..."
+                          className="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed"
+                        />
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => handleSaveEnquiryNotes(selectedEnquiry.id)}
+                            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-xs"
+                          >
+                            Save Notes & Follow-up
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Modal Footer */}
+                    <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
+                      <div className="text-[11px] text-slate-400">
+                        Record ID: <span className="font-mono">{selectedEnquiry.id}</span>
+                      </div>
+                      <button
+                        onClick={() => setSelectedEnquiry(null)}
+                        className="px-5 py-1.5 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-slate-800 transition-colors"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

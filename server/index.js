@@ -3,6 +3,7 @@ import cors from 'cors'
 import multer from 'multer'
 import crypto from 'crypto'
 import dotenv from 'dotenv'
+import nodemailer from 'nodemailer'
 import pool from './db.js'
 
 dotenv.config()
@@ -569,6 +570,292 @@ app.delete('/api/contacts/:id', async (req, res) => {
     res.json({ success: true })
   } catch (err) {
     res.status(500).json({ error: err.message })
+  }
+})
+
+// ====================================================================
+// 9.5 ENQUIRY MANAGEMENT & SMTP NOTIFICATION SYSTEM
+// ====================================================================
+const SMTP_CONFIG = {
+  host: process.env.SMTP_HOST || 'ns1.sslsecure.co.in',
+  port: Number(process.env.SMTP_PORT || 465),
+  secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : Number(process.env.SMTP_PORT || 465) === 465,
+  user: process.env.SMTP_USER || 'viju@leniva3d.com',
+  pass: process.env.SMTP_PASSWORD || '',
+  fromEmail: process.env.SMTP_FROM_EMAIL || 'viju@leniva3d.com',
+  fromName: process.env.SMTP_FROM_NAME || 'Leniva 3D Website',
+  receiverEmail: process.env.ENQUIRY_RECEIVER_EMAIL || 'viju@leniva3d.com',
+  testEmail: process.env.SMTP_TEST_EMAIL || 'roiprojects012@gmail.com',
+}
+
+// Ensure enquiries table exists in PostgreSQL
+async function initEnquiriesTable() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS enquiries (
+        id SERIAL PRIMARY KEY,
+        enquiry_number VARCHAR(100) UNIQUE NOT NULL,
+        customer_name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        phone VARCHAR(50),
+        company_name VARCHAR(255),
+        city VARCHAR(100),
+        enquiry_type VARCHAR(100) DEFAULT 'Product Enquiry',
+        product_service_name VARCHAR(255),
+        subject VARCHAR(255),
+        message TEXT,
+        source_page VARCHAR(255),
+        source_url TEXT,
+        status VARCHAR(50) DEFAULT 'New',
+        admin_notes TEXT,
+        follow_up_date VARCHAR(50),
+        email_notification_status VARCHAR(50) DEFAULT 'pending',
+        email_error TEXT,
+        email_message_id VARCHAR(255),
+        email_sent_at TIMESTAMP WITH TIME ZONE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_enquiries_status ON enquiries(status);
+      CREATE INDEX IF NOT EXISTS idx_enquiries_email ON enquiries(email);
+      CREATE INDEX IF NOT EXISTS idx_enquiries_created_at ON enquiries(created_at);
+    `)
+  } catch (err) {
+    // If table creation fails on connection error, log gracefully
+    console.warn('Enquiries table initialization notice:', err.message)
+  }
+}
+initEnquiriesTable().catch(() => null)
+
+function getServerTransporter(customPass) {
+  const pass = customPass !== undefined ? customPass : SMTP_CONFIG.pass
+  return nodemailer.createTransport({
+    host: SMTP_CONFIG.host,
+    port: SMTP_CONFIG.port,
+    secure: SMTP_CONFIG.secure,
+    auth: pass ? { user: SMTP_CONFIG.user, pass } : undefined,
+    tls: { rejectUnauthorized: true, minVersion: 'TLSv1.2' },
+    connectionTimeout: 12000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+  })
+}
+
+// GET all enquiries
+app.get('/api/enquiries', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM enquiries ORDER BY created_at DESC')
+    const list = result.rows
+    res.json({
+      success: true,
+      enquiries: list,
+      stats: {
+        total: list.length,
+        new: list.filter(e => e.status === 'New').length,
+        pending: list.filter(e => e.status === 'Pending').length,
+        contacted: list.filter(e => e.status === 'Contacted').length,
+        converted: list.filter(e => e.status === 'Converted').length,
+        closed: list.filter(e => e.status === 'Closed').length,
+        emailFailures: list.filter(e => e.email_notification_status === 'failed').length,
+      }
+    })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// POST new enquiry
+app.post('/api/enquiries', async (req, res) => {
+  try {
+    const b = req.body
+    const name = String(b.customer_name || b.name || b.fullName || 'Valued Visitor').trim()
+    const email = String(b.email || '').trim()
+    const phone = String(b.phone || b.mobile || '').trim()
+    const company = String(b.company_name || b.company || '').trim()
+    const city = String(b.city || '').trim()
+    const type = String(b.enquiry_type || b.type || 'Product Enquiry').trim()
+    const product = String(b.product_service_name || b.productOrService || b.serviceOrProduct || b.product || b.service || 'Leniva 3D').trim()
+    const subject = String(b.subject || `Enquiry for ${product}`).trim()
+    const message = String(b.message || '').trim()
+    const sourcePage = String(b.source_page || b.source || 'Website').trim()
+    const sourceUrl = String(b.source_url || '').trim()
+    const customPass = b.smtpPassword
+
+    const idNum = b.id || Date.now()
+    const enquiryNumber = b.enquiry_number || `LEN${String(idNum).slice(-4)}`
+
+    // Save in PostgreSQL first
+    let savedEnquiry = null
+    try {
+      const dbRes = await pool.query(`
+        INSERT INTO enquiries (
+          enquiry_number, customer_name, email, phone, company_name, city,
+          enquiry_type, product_service_name, subject, message, source_page, source_url,
+          status, email_notification_status
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'New', 'pending')
+        RETURNING *;
+      `, [
+        enquiryNumber, name, email, phone, company, city,
+        type, product, subject, message, sourcePage, sourceUrl
+      ])
+      savedEnquiry = dbRes.rows[0]
+    } catch (dbErr) {
+      console.warn('DB enquiry insertion notice:', dbErr.message)
+    }
+
+    // Attempt SMTP delivery
+    let emailStatus = 'pending'
+    let emailError = null
+    let messageId = null
+
+    try {
+      const transporter = getServerTransporter(customPass)
+      const adminUrl = `${req.protocol}://${req.get('host')}/admin`
+
+      const emailSubject = `New Customer Enquiry – ${product} – Leniva 3D`
+      const emailPlain = `LENIVA 3D – NEW WEBSITE ENQUIRY\n\nCustomer: ${name}\nEmail: ${email}\nPhone: ${phone}\nCompany: ${company}\nCity: ${city}\n\nEnquiry Type: ${type}\nProduct: ${product}\nSubject: ${subject}\nMessage: ${message}\n\nSubmitted From: ${sourcePage}\nView in Admin: ${adminUrl}`
+
+      const info = await transporter.sendMail({
+        from: `"${SMTP_CONFIG.fromName}" <${SMTP_CONFIG.fromEmail}>`,
+        to: SMTP_CONFIG.receiverEmail,
+        replyTo: email || undefined,
+        subject: emailSubject,
+        text: emailPlain,
+      })
+
+      emailStatus = 'sent'
+      messageId = info.messageId
+
+      if (savedEnquiry?.id) {
+        await pool.query(`
+          UPDATE enquiries SET
+            email_notification_status = 'sent',
+            email_sent_at = CURRENT_TIMESTAMP,
+            email_message_id = $1
+          WHERE id = $2;
+        `, [messageId, savedEnquiry.id]).catch(() => null)
+      }
+    } catch (err) {
+      emailStatus = 'failed'
+      emailError = err.message
+      if (savedEnquiry?.id) {
+        await pool.query(`
+          UPDATE enquiries SET
+            email_notification_status = 'failed',
+            email_error = $1
+          WHERE id = $2;
+        `, [emailError, savedEnquiry.id]).catch(() => null)
+      }
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Thank you for contacting Leniva 3D. Your enquiry has been submitted successfully. Our team will get back to you shortly.',
+      enquiry: savedEnquiry || { id: idNum, enquiry_number: enquiryNumber, customer_name: name, email, phone, product_service_name: product },
+      email_notification_status: emailStatus,
+      email_error: emailError,
+      messageId,
+    })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// PUT update enquiry status & notes
+app.put('/api/enquiries/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+    const { status, admin_notes, follow_up_date } = req.body
+
+    const result = await pool.query(`
+      UPDATE enquiries SET
+        status = COALESCE($1, status),
+        admin_notes = COALESCE($2, admin_notes),
+        follow_up_date = COALESCE($3, follow_up_date),
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $4 OR enquiry_number = $4
+      RETURNING *;
+    `, [status, admin_notes, follow_up_date, id])
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Enquiry not found' })
+    }
+    res.json({ success: true, enquiry: result.rows[0] })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// POST test SMTP connection and send test message to roiprojects012@gmail.com
+app.post('/api/enquiries/test-smtp', async (req, res) => {
+  const { smtpPassword, testRecipient } = req.body
+  const recipient = testRecipient || SMTP_CONFIG.testEmail
+  const logs = []
+  const log = m => logs.push(`[${new Date().toISOString()}] ${m}`)
+
+  log(`Testing SMTP to ${recipient} via ${SMTP_CONFIG.host}:${SMTP_CONFIG.port}`)
+  try {
+    const transporter = getServerTransporter(smtpPassword)
+    await transporter.verify()
+    log('SMTP connection and TLS verification succeeded.')
+
+    const info = await transporter.sendMail({
+      from: `"${SMTP_CONFIG.fromName}" <${SMTP_CONFIG.fromEmail}>`,
+      to: recipient,
+      subject: 'Leniva 3D – SMTP Email Integration Test',
+      text: `Hello Team,\n\nThis is an automated test email from the Leniva 3D website.\nThe purpose of this email is to confirm that the website's SMTP email configuration is working correctly.\n\nOnce verified, customer enquiries submitted through the website will automatically be forwarded to:\n${SMTP_CONFIG.receiverEmail}\n\nAll enquiries will also be saved and displayed in the Admin Enquiry Management section.\n\nRegards,\nLeniva 3D Website Team`,
+    })
+
+    log(`Test email accepted by SMTP server. Message ID: ${info.messageId}`)
+    res.json({
+      success: true,
+      message: `Test email sent to ${recipient}`,
+      messageId: info.messageId,
+      logs,
+    })
+  } catch (err) {
+    log(`SMTP Test Error: ${err.message}`)
+    res.json({
+      success: false,
+      error: err.message,
+      logs,
+    })
+  }
+})
+
+// POST retry sending enquiry email
+app.post('/api/enquiries/retry/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+    const { smtpPassword } = req.body
+    const result = await pool.query('SELECT * FROM enquiries WHERE id = $1 OR enquiry_number = $1', [id])
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Enquiry not found' })
+    }
+    const enquiry = result.rows[0]
+    const transporter = getServerTransporter(smtpPassword)
+
+    const info = await transporter.sendMail({
+      from: `"${SMTP_CONFIG.fromName}" <${SMTP_CONFIG.fromEmail}>`,
+      to: SMTP_CONFIG.receiverEmail,
+      replyTo: enquiry.email || undefined,
+      subject: `New Customer Enquiry – ${enquiry.product_service_name || 'Leniva 3D'} – Leniva 3D`,
+      text: `Customer: ${enquiry.customer_name}\nEmail: ${enquiry.email}\nPhone: ${enquiry.phone}\nCompany: ${enquiry.company_name}\nCity: ${enquiry.city}\nType: ${enquiry.enquiry_type}\nProduct: ${enquiry.product_service_name}\nMessage: ${enquiry.message}`,
+    })
+
+    await pool.query(`
+      UPDATE enquiries SET
+        email_notification_status = 'sent',
+        email_sent_at = CURRENT_TIMESTAMP,
+        email_message_id = $1,
+        email_error = NULL
+      WHERE id = $2;
+    `, [info.messageId, enquiry.id])
+
+    res.json({ success: true, messageId: info.messageId })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
   }
 })
 

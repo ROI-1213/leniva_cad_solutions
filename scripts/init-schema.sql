@@ -161,6 +161,36 @@ CREATE TABLE IF NOT EXISTS contact_messages (
 
 CREATE INDEX IF NOT EXISTS idx_contact_status ON contact_messages(status);
 
+-- 9.5. Centralized Customer Enquiries (All Website Forms & Automatic SMTP Tracking)
+CREATE TABLE IF NOT EXISTS enquiries (
+    id SERIAL PRIMARY KEY,
+    enquiry_number VARCHAR(100) UNIQUE NOT NULL,
+    customer_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(50),
+    company_name VARCHAR(255),
+    city VARCHAR(100),
+    enquiry_type VARCHAR(100) DEFAULT 'Product Enquiry',
+    product_service_name VARCHAR(255),
+    subject VARCHAR(255),
+    message TEXT,
+    source_page VARCHAR(255),
+    source_url TEXT,
+    status VARCHAR(50) DEFAULT 'New',
+    admin_notes TEXT,
+    follow_up_date VARCHAR(50),
+    email_notification_status VARCHAR(50) DEFAULT 'pending',
+    email_error TEXT,
+    email_message_id VARCHAR(255),
+    email_sent_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_enquiries_status ON enquiries(status);
+CREATE INDEX IF NOT EXISTS idx_enquiries_email ON enquiries(email);
+CREATE INDEX IF NOT EXISTS idx_enquiries_created_at ON enquiries(created_at);
+
 -- 10. Orders (Store & Shop E-Commerce)
 CREATE TABLE IF NOT EXISTS orders (
     id SERIAL PRIMARY KEY,

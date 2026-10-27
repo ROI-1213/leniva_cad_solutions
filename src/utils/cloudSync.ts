@@ -19,6 +19,7 @@ export const SYNCED_CMS_KEYS = [
   'leniva_admin_password',
   'leniva_admin_quotes',
   'leniva_admin_contacts',
+  'leniva_admin_enquiries',
   'filament_product_gold',
   'filament_product_grey_silver',
 ] as const
@@ -35,6 +36,7 @@ const ADMIN_CONTENT_CHECK_KEYS = [
   'leniva_admin_password',
   'leniva_admin_quotes',
   'leniva_admin_contacts',
+  'leniva_admin_enquiries',
 ] as const
 
 const COMPACT_INLINE_KEYS = [
@@ -48,6 +50,7 @@ const COMPACT_INLINE_KEYS = [
   'leniva_navigation_config',
   'leniva_admin_quotes',
   'leniva_admin_contacts',
+  'leniva_admin_enquiries',
 ] as const
 
 const SYNCED_KEY_SET = new Set<string>(SYNCED_CMS_KEYS)
@@ -421,8 +424,353 @@ export function saveStoredContacts(contacts: StoredContactRecord[]): void {
   }
 }
 
+// ─── Centralized Enquiry Record Definition ──────────────────────────────────
+export interface StoredEnquiryRecord {
+  id: number
+  enquiry_number: string
+  customer_name: string
+  email: string
+  phone: string
+  company_name?: string
+  city?: string
+  enquiry_type: string
+  product_service_name: string
+  subject?: string
+  message?: string
+  source_page?: string
+  source_url?: string
+  status: 'New' | 'Contacted' | 'Pending' | 'Converted' | 'Closed'
+  admin_notes?: string
+  follow_up_date?: string
+  email_notification_status: 'sent' | 'pending' | 'failed' | 'retrying'
+  email_error?: string | null
+  email_message_id?: string | null
+  email_sent_at?: string | null
+  submitted_date?: string
+  submitted_time?: string
+  created_at: string
+  updated_at?: string
+}
+
+export const DEFAULT_INITIAL_ENQUIRIES: StoredEnquiryRecord[] = [
+  {
+    id: 1001,
+    enquiry_number: 'LEN001',
+    customer_name: 'Rahul Sharma',
+    email: 'rahul.sharma@aerodesign.in',
+    phone: '9876543210',
+    company_name: 'Aero Design Tech',
+    city: 'Bengaluru',
+    enquiry_type: 'Product Enquiry',
+    product_service_name: 'ARES Commander',
+    subject: 'Product Pricing and Demo Request',
+    message: 'I would like to know more about the product specifications, pricing, and availability.',
+    source_page: 'ARES Commander Product Page',
+    source_url: 'https://www.leniva3d.com/products/ares-commander',
+    status: 'New',
+    admin_notes: 'Requested perpetual license quote and 30-day evaluation walkthrough.',
+    follow_up_date: '2026-10-29',
+    email_notification_status: 'sent',
+    email_sent_at: '2026-10-27T08:30:00.000Z',
+    submitted_date: '27 Oct 2026',
+    submitted_time: '02:00 PM',
+    created_at: '2026-10-27T08:30:00.000Z',
+  },
+  {
+    id: 1002,
+    enquiry_number: 'LEN002',
+    customer_name: 'Priya Rao',
+    email: 'priya.rao@automotiveinnovations.com',
+    phone: '9876543211',
+    company_name: 'Automotive Innovations',
+    city: 'Pune',
+    enquiry_type: 'Contact Enquiry',
+    product_service_name: 'General Solutions & 3D Scanners',
+    subject: '3D Scanning & Reverse Engineering Consultation',
+    message: 'Seeking handheld 3D scanning demo for casting inspection and CAD model generation.',
+    source_page: 'Contact Us',
+    source_url: 'https://www.leniva3d.com/contact',
+    status: 'Pending',
+    admin_notes: 'Assigned to technical sales engineer.',
+    follow_up_date: '2026-10-28',
+    email_notification_status: 'sent',
+    email_sent_at: '2026-10-27T07:15:00.000Z',
+    submitted_date: '27 Oct 2026',
+    submitted_time: '12:45 PM',
+    created_at: '2026-10-27T07:15:00.000Z',
+  },
+]
+
+export function getStoredEnquiries(): StoredEnquiryRecord[] {
+  try {
+    const raw = rawGetItem('leniva_admin_enquiries')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return DEFAULT_INITIAL_ENQUIRIES
+}
+
+export function saveStoredEnquiries(enquiries: StoredEnquiryRecord[]): void {
+  try {
+    window.localStorage.setItem('leniva_admin_enquiries', JSON.stringify(enquiries))
+  } catch {
+    // ignore
+  }
+}
+
 let lastEnquirySig = ''
 let lastEnquiryTs = 0
+
+// ─── Centralized Enquiry Submission Service ─────────────────────────────────
+export async function submitCentralizedEnquiry(payload: {
+  fullName?: string
+  name?: string
+  customer_name?: string
+  email: string
+  phone?: string
+  mobile?: string
+  company?: string
+  company_name?: string
+  city?: string
+  productOrService?: string
+  product_service_name?: string
+  quantity?: string
+  application?: string
+  timeline?: string
+  subject?: string
+  message?: string
+  source?: string
+  source_page?: string
+  source_url?: string
+  enquiryType?: 'quote' | 'demo' | 'consultation' | 'trial' | 'contact' | string
+  enquiry_type?: string
+}): Promise<{ success: boolean; message: string; enquiry: StoredEnquiryRecord }> {
+  const customerName = (payload.customer_name || payload.fullName || payload.name || 'Valued Customer').trim()
+  const email = (payload.email || '').trim()
+  const phone = (payload.phone || payload.mobile || '').trim()
+  const company = (payload.company_name || payload.company || '').trim()
+  const city = (payload.city || '').trim()
+
+  // Prevent duplicate submissions within 4 seconds
+  const sig = `${customerName.toLowerCase()}|${email.toLowerCase()}|${phone}`
+  const nowCheck = Date.now()
+  if (sig && sig !== '||' && sig === lastEnquirySig && nowCheck - lastEnquiryTs < 4000) {
+    const existingList = getStoredEnquiries()
+    return {
+      success: true,
+      message: 'Thank you for contacting Leniva 3D. Your enquiry has been submitted successfully. Our team will get back to you shortly.',
+      enquiry: existingList[0] || ({} as any),
+    }
+  }
+  lastEnquirySig = sig
+  lastEnquiryTs = nowCheck
+
+  // Pull latest cloud state so multi-device enquiries don't collide
+  try {
+    await Promise.race([
+      pullCmsStateFromCloud(),
+      new Promise(resolve => setTimeout(resolve, 800)),
+    ])
+  } catch {
+    // ignore
+  }
+
+  // Derive source page and contextual product name
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
+  const currentTitle = typeof document !== 'undefined' ? document.title.split('|')[0].split('–')[0].trim() : ''
+  
+  const sourcePage = payload.source_page || payload.source || currentTitle || 'Website'
+  const sourceUrl = payload.source_url || (typeof window !== 'undefined' ? window.location.href : '')
+
+  let productName = payload.product_service_name || payload.productOrService || ''
+  if (!productName || productName === 'Website Enquiry' || productName === 'General') {
+    if (currentPath.includes('ares-commander')) productName = 'ARES Commander'
+    else if (currentPath.includes('ares-standard')) productName = 'ARES Standard'
+    else if (currentPath.includes('ares-mechanical')) productName = 'ARES Mechanical'
+    else if (currentPath.includes('ares-electrical')) productName = 'ARES Electrical'
+    else if (currentPath.includes('ares-kudo')) productName = 'ARES Kudo'
+    else if (currentPath.includes('ares-touch')) productName = 'ARES Touch'
+    else if (currentPath.includes('sketchup-pro-advanced')) productName = 'SketchUp Pro Advanced'
+    else if (currentPath.includes('sketchup-studio')) productName = 'SketchUp Studio'
+    else if (currentPath.includes('sketchup-pro-scan')) productName = 'SketchUp Pro + 3D Scanner'
+    else if (currentPath.includes('sketchup-pro')) productName = 'SketchUp Pro'
+    else if (currentPath.includes('enscape')) productName = 'Enscape Real-Time Rendering'
+    else if (currentPath.includes('vray') || currentPath.includes('v-ray')) productName = 'Chaos V-Ray'
+    else if (currentPath.includes('corona')) productName = 'Chaos Corona'
+    else if (currentPath.includes('eka-f1-16k')) productName = 'Eka F1 16K 3D Printer'
+    else if (currentPath.includes('eka-gt-max')) productName = 'Eka GT Max 3D Printer'
+    else if (currentPath.includes('einscan')) productName = 'EinScan 3D Scanner'
+    else if (currentPath.includes('devok')) productName = 'Devok Dental 3D Printer'
+    else if (currentPath.includes('filaments')) productName = 'Industrial 3D Filaments'
+    else if (currentPath.includes('services')) productName = '3D Printing & Scanning Engineering Services'
+    else if (currentPath.includes('contact')) productName = 'General Enquiry / Leniva Support'
+    else productName = currentTitle || 'Leniva 3D CAD & Additive Solutions'
+  }
+
+  // Detect enquiry type
+  let detectedType = payload.enquiry_type || payload.enquiryType || 'Product Enquiry'
+  const combined = `${productName} ${payload.subject || ''} ${sourcePage} ${payload.message || ''}`.toLowerCase()
+  if (!payload.enquiry_type && !payload.enquiryType) {
+    if (combined.includes('demo') || combined.includes('demonstration')) {
+      detectedType = 'Demo Request'
+    } else if (combined.includes('consultation') || combined.includes('engineer') || combined.includes('specialist')) {
+      detectedType = 'Engineering Consultation'
+    } else if (combined.includes('trial') || combined.includes('evaluation')) {
+      detectedType = 'Free Trial'
+    } else if (combined.includes('quote') || combined.includes('rfq') || combined.includes('pricing') || combined.includes('cost')) {
+      detectedType = 'Quote / RFQ'
+    } else if (sourcePage.toLowerCase().includes('contact')) {
+      detectedType = 'Contact Form'
+    }
+  }
+
+  const now = new Date()
+  const uniqueId = Math.floor(Date.now() / 100) % 100000000
+  const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+  const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+  const enquiryNumber = `LEN${String(uniqueId).slice(-4)}`
+
+  const newEnquiry: StoredEnquiryRecord = {
+    id: uniqueId,
+    enquiry_number: enquiryNumber,
+    customer_name: customerName,
+    email: email,
+    phone: phone,
+    company_name: company,
+    city: city,
+    enquiry_type: detectedType,
+    product_service_name: productName,
+    subject: (payload.subject || `${detectedType} for ${productName}`).trim(),
+    message: (payload.message || '').trim(),
+    source_page: sourcePage,
+    source_url: sourceUrl,
+    status: 'New',
+    admin_notes: payload.quantity ? `Quantity: ${payload.quantity}` : '',
+    follow_up_date: '',
+    email_notification_status: 'pending',
+    email_error: null,
+    email_message_id: null,
+    email_sent_at: null,
+    submitted_date: dateStr,
+    submitted_time: timeStr,
+    created_at: now.toISOString(),
+    updated_at: now.toISOString(),
+  }
+
+  // Also construct legacy mirrored quote and contact records for backward compatibility
+  const newQuote: StoredQuoteRecord = {
+    id: uniqueId,
+    name: customerName,
+    email: email,
+    phone: phone,
+    company: company,
+    service_or_product: productName,
+    quantity: (payload.quantity || '1').trim(),
+    timeline: (payload.timeline || payload.application || 'Immediate').trim(),
+    message: (payload.message || '').trim(),
+    status: 'pending',
+    created_at: now.toISOString(),
+    notes: `Submitted via ${sourcePage}`,
+    enquiry_type: detectedType as any,
+  }
+
+  const newContact: StoredContactRecord = {
+    id: uniqueId,
+    name: customerName,
+    email: email,
+    phone: phone,
+    subject: (payload.subject || `${productName}${company ? ` - ${company}` : ''}`).trim(),
+    message: (payload.message || `Requirement: ${productName}`).trim(),
+    status: 'unread',
+    created_at: now.toISOString(),
+    notes: company ? `Company: ${company} | Source: ${sourcePage}` : `Source: ${sourcePage}`,
+    enquiry_type: detectedType as any,
+  }
+
+  // 1. SAVE LOCALLY IMMEDIATELY (DATABASE & CLIENT STORAGE GUARANTEE)
+  const currentEnquiries = getStoredEnquiries()
+  const updatedEnquiries = [newEnquiry, ...currentEnquiries.filter(e => e.id !== uniqueId)]
+  saveStoredEnquiries(updatedEnquiries)
+
+  const currentQuotes = getStoredQuotes()
+  const updatedQuotes = [newQuote, ...currentQuotes.filter(q => q.id !== uniqueId)]
+  saveStoredQuotes(updatedQuotes)
+
+  const currentContacts = getStoredContacts()
+  const updatedContacts = [newContact, ...currentContacts.filter(c => c.id !== uniqueId)]
+  saveStoredContacts(updatedContacts)
+
+  rawSetItem(UPDATED_AT_KEY, String(Date.now()))
+  dispatchAllCmsUpdatedEvents()
+
+  // 2. DISPATCH ASYNCHRONOUS BACKEND API & SMTP NOTIFICATION
+  fetch('/api/enquiries', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id: uniqueId,
+      enquiry_number: enquiryNumber,
+      customer_name: customerName,
+      email,
+      phone,
+      company_name: company,
+      city,
+      enquiry_type: detectedType,
+      product_service_name: productName,
+      subject: newEnquiry.subject,
+      message: newEnquiry.message,
+      source_page: sourcePage,
+      source_url: sourceUrl,
+    }),
+  })
+    .then(async res => {
+      if (res.ok) {
+        const json = await res.json()
+        const refreshed = getStoredEnquiries()
+        const match = refreshed.find(e => e.id === uniqueId)
+        if (match) {
+          match.email_notification_status = json.email_notification_status || 'sent'
+          match.email_sent_at = json.enquiry?.email_sent_at || new Date().toISOString()
+          match.email_message_id = json.messageId || null
+          match.email_error = json.email_error || null
+          saveStoredEnquiries(refreshed)
+          dispatchAllCmsUpdatedEvents()
+        }
+      } else {
+        const refreshed = getStoredEnquiries()
+        const match = refreshed.find(e => e.id === uniqueId)
+        if (match) {
+          match.email_notification_status = 'failed'
+          match.email_error = `HTTP ${res.status}: Server error`
+          saveStoredEnquiries(refreshed)
+        }
+      }
+    })
+    .catch(err => {
+      const refreshed = getStoredEnquiries()
+      const match = refreshed.find(e => e.id === uniqueId)
+      if (match) {
+        match.email_notification_status = 'failed'
+        match.email_error = err.message || 'Offline'
+        saveStoredEnquiries(refreshed)
+      }
+    })
+
+  // Trigger cloud sync to propagate enquiry across all admin browsers
+  pushCmsStateToCloud({ isEnquirySubmission: true }).catch(() => false)
+
+  return {
+    success: true,
+    message: 'Thank you for contacting Leniva 3D. Your enquiry has been submitted successfully. Our team will get back to you shortly.',
+    enquiry: newEnquiry,
+  }
+}
 
 export async function recordCustomerEnquiry(payload: {
   fullName: string
@@ -439,121 +787,8 @@ export async function recordCustomerEnquiry(payload: {
   enquiryType?: 'quote' | 'demo' | 'consultation' | 'trial' | 'contact'
 }): Promise<boolean> {
   if (typeof window === 'undefined') return false
-
-  const sig = `${(payload.fullName || '').trim().toLowerCase()}|${(payload.email || '').trim().toLowerCase()}|${(payload.phone || '').trim()}`
-  const nowCheck = Date.now()
-  if (sig && sig !== '||' && sig === lastEnquirySig && nowCheck - lastEnquiryTs < 4000) {
-    return true
-  }
-  lastEnquirySig = sig
-  lastEnquiryTs = nowCheck
-
-  // Pull latest cloud state first so we append to the most up-to-date list
-  try {
-    await Promise.race([
-      pullCmsStateFromCloud(),
-      new Promise(resolve => setTimeout(resolve, 1200)),
-    ])
-  } catch {
-    // ignore
-  }
-
-  const nowIso = new Date().toISOString()
-  const uniqueId = Math.floor(Date.now() / 100) % 100000000
-
-  // Intelligently classify enquiry type if not explicitly supplied
-  let detectedType: 'quote' | 'demo' | 'consultation' | 'trial' | 'contact' = payload.enquiryType || 'quote'
-  const combined = `${payload.productOrService || ''} ${payload.subject || ''} ${payload.source || ''} ${payload.message || ''}`.toLowerCase()
-  if (!payload.enquiryType) {
-    if (combined.includes('demo') || combined.includes('demonstration')) {
-      detectedType = 'demo'
-    } else if (combined.includes('consultation') || combined.includes('engineer') || combined.includes('specialist') || combined.includes('technical call')) {
-      detectedType = 'consultation'
-    } else if (combined.includes('trial') || combined.includes('evaluation')) {
-      detectedType = 'trial'
-    } else if (payload.source?.toLowerCase().includes('contact')) {
-      detectedType = 'contact'
-    }
-  }
-
-  const newQuote: StoredQuoteRecord = {
-    id: uniqueId,
-    name: (payload.fullName || 'Customer').trim(),
-    email: (payload.email || '').trim(),
-    phone: (payload.phone || '').trim(),
-    company: (payload.company || '').trim(),
-    service_or_product: (payload.productOrService || payload.subject || 'General Enquiry').trim(),
-    quantity: (payload.quantity || '1').trim(),
-    timeline: (payload.timeline || payload.application || 'Immediate').trim(),
-    message: (payload.message || '').trim(),
-    status: 'pending',
-    created_at: nowIso,
-    notes: payload.source ? `Submitted via ${payload.source}` : '',
-    enquiry_type: detectedType,
-  }
-
-  const newContact: StoredContactRecord = {
-    id: uniqueId,
-    name: (payload.fullName || 'Customer').trim(),
-    email: (payload.email || '').trim(),
-    phone: (payload.phone || '').trim(),
-    subject: (
-      payload.subject ||
-      `${payload.productOrService || 'Product / Service Enquiry'}${payload.company ? ` - ${payload.company}` : ''}`
-    ).trim(),
-    message: (
-      payload.message ||
-      `Requirement: ${payload.productOrService || 'General'} | Qty: ${payload.quantity || '1'}${payload.application ? ` | Application: ${payload.application}` : ''}`
-    ).trim(),
-    status: 'unread',
-    created_at: nowIso,
-    notes: payload.company ? `Company: ${payload.company}` : (payload.source ? `Source: ${payload.source}` : ''),
-    enquiry_type: detectedType,
-  }
-
-  const currentQuotes = getStoredQuotes()
-  const updatedQuotes = [newQuote, ...currentQuotes.filter(q => q.id !== uniqueId)]
-  rawSetItem('leniva_admin_quotes', JSON.stringify(updatedQuotes))
-
-  const currentContacts = getStoredContacts()
-  const updatedContacts = [newContact, ...currentContacts.filter(c => c.id !== uniqueId)]
-  rawSetItem('leniva_admin_contacts', JSON.stringify(updatedContacts))
-
-  const now = Date.now()
-  rawSetItem(UPDATED_AT_KEY, String(now))
-
-  // Also attempt legacy PostgreSQL API endpoints in parallel if available
-  fetch('/api/quotes', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      fullName: newQuote.name,
-      company: newQuote.company,
-      email: newQuote.email,
-      phone: newQuote.phone,
-      productOrService: newQuote.service_or_product,
-      quantity: newQuote.quantity,
-      application: newQuote.timeline,
-      message: newQuote.message,
-    }),
-  }).catch(() => null)
-
-  fetch('/api/contacts', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      name: newContact.name,
-      email: newContact.email,
-      phone: newContact.phone,
-      subject: newContact.subject,
-      message: newContact.message,
-    }),
-  }).catch(() => null)
-
-  // Push to Cloud CMS immediately
-  await pushCmsStateToCloud({ isEnquirySubmission: true }).catch(() => false)
-  dispatchAllCmsUpdatedEvents()
-  return true
+  const res = await submitCentralizedEnquiry(payload)
+  return res.success
 }
 
 async function fetchBytebinBlob(bytebinKey: string): Promise<Record<string, string | null> | null> {
@@ -749,7 +984,7 @@ export async function pullCmsStateFromCloud(forceApply = false): Promise<boolean
             } catch {
               // fallback
             }
-          } else if (k === 'leniva_admin_contacts') {
+          } else if (k === 'leniva_admin_contacts' || k === 'leniva_admin_enquiries') {
             try {
               const localArr = localVal ? JSON.parse(localVal) : []
               const remoteArr = remoteVal ? JSON.parse(remoteVal) : []
@@ -952,6 +1187,7 @@ function installGlobalEnquiryFormListener(): void {
         let email = ''
         let phone = ''
         let company = ''
+        let city = ''
         let productOrService = ''
         let quantity = ''
         let application = ''
@@ -975,13 +1211,15 @@ function installGlobalEnquiryFormListener(): void {
             fullName = val
           } else if (!company && /company|organization|organisation|institution|firm|studio|business/.test(descriptor)) {
             company = val
+          } else if (!city && /city|town|location|district|state/.test(descriptor)) {
+            city = val
           } else if (el.tagName === 'TEXTAREA' || /message|requirement|detail|note|comment|cover/.test(descriptor)) {
             if (!message) message = val
           } else if (!quantity && /quantity|qty|license|seat|unit/.test(descriptor)) {
             quantity = val
           } else if (!productOrService && /product|service|plan|model|position|role|subject|interest|category/.test(descriptor)) {
             productOrService = val
-          } else if (!application && /application|industry|timeline|area|preference|host|country|city/.test(descriptor)) {
+          } else if (!application && /application|industry|timeline|area|preference|host|country/.test(descriptor)) {
             application = val
           }
         }
@@ -990,16 +1228,18 @@ function installGlobalEnquiryFormListener(): void {
         if (!email && !phone) return
 
         const pageTitle = (typeof document !== 'undefined' ? document.title.split('|')[0].split('–')[0].trim() : '') || 'Website Enquiry'
-        recordCustomerEnquiry({
+        submitCentralizedEnquiry({
           fullName: fullName || 'Website Visitor',
           email,
           phone,
           company,
+          city,
           productOrService: productOrService || pageTitle,
           quantity: quantity || '1',
           application: application || 'Immediate',
           message,
-          source: pageTitle,
+          source_page: pageTitle,
+          source_url: typeof window !== 'undefined' ? window.location.href : '',
         }).catch(() => false)
       } catch {
         // ignore

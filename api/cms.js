@@ -175,7 +175,7 @@ export default async function handler(req, res) {
         } else if (typeof v === 'string' && v.length > 0) {
           if (
             body.isEnquirySubmission &&
-            (k === 'leniva_admin_quotes' || k === 'leniva_admin_contacts') &&
+            (k === 'leniva_admin_quotes' || k === 'leniva_admin_contacts' || k === 'leniva_admin_enquiries') &&
             mergedKeys[k]
           ) {
             try {
@@ -229,6 +229,7 @@ export default async function handler(req, res) {
         'leniva_navigation_config',
         'leniva_admin_quotes',
         'leniva_admin_contacts',
+        'leniva_admin_enquiries',
       ]
       for (const k of compactKeyNames) {
         if (k in mergedKeys) {
