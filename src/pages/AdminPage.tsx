@@ -847,18 +847,82 @@ export default function AdminPage() {
         setQuotes(storedQuotes)
       }
 
-      // Load Contacts from Cloud CMS / localStorage (+ merge any DB rows if present)
+      // Load and automatically unify any Contact messages directly into Enquiries and Quotes
       const storedContacts = getStoredContacts()
-      if (Array.isArray(contactsVal) && contactsVal.length > 0) {
-        const contactMap = new Map<number, ContactMessage>()
-        for (const c of [...storedContacts, ...contactsVal]) {
-          if (c && c.id != null) contactMap.set(Number(c.id), c)
+      const allContactItems = [
+        ...storedContacts,
+        ...(Array.isArray(contactsVal) ? contactsVal : []),
+      ]
+      if (allContactItems.length > 0) {
+        const currentEnqs = getStoredEnquiries()
+        const currentQts = getStoredQuotes()
+        let enqsChanged = false
+        let qtsChanged = false
+
+        for (const c of allContactItems) {
+          if (!c || !c.id) continue
+          const existingEnq = currentEnqs.find(e => e.id === Number(c.id) || (e.email === c.email && e.customer_name === c.name))
+          if (!existingEnq) {
+            const dateStr = c.created_at ? new Date(c.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''
+            const timeStr = c.created_at ? new Date(c.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : ''
+            currentEnqs.unshift({
+              id: Number(c.id),
+              enquiry_number: `LEN${String(c.id).slice(-4)}`,
+              customer_name: c.name,
+              email: c.email,
+              phone: c.phone || '',
+              company_name: (c as any).company || '',
+              city: (c as any).city || '',
+              enquiry_type: 'Contact Form',
+              product_service_name: c.subject || 'General Enquiry',
+              subject: c.subject || 'Contact Us Enquiry',
+              message: c.message || '',
+              source_page: 'Contact Us',
+              source_url: '/contact',
+              status: c.status === 'resolved' || c.status === 'replied' ? 'Closed' : 'New',
+              admin_notes: (c as any).notes || '',
+              follow_up_date: '',
+              email_notification_status: 'sent',
+              email_error: null,
+              email_message_id: null,
+              email_sent_at: c.created_at || null,
+              submitted_date: dateStr,
+              submitted_time: timeStr,
+              created_at: c.created_at || new Date().toISOString(),
+              updated_at: c.created_at || new Date().toISOString(),
+            })
+            enqsChanged = true
+          }
+
+          const existingQt = currentQts.find(q => q.id === Number(c.id) || (q.email === c.email && q.name === c.name))
+          if (!existingQt) {
+            currentQts.unshift({
+              id: Number(c.id),
+              name: c.name,
+              email: c.email,
+              phone: c.phone || '',
+              company: (c as any).company || '',
+              service_or_product: c.subject || 'General Enquiry',
+              quantity: '1',
+              timeline: 'Immediate',
+              message: c.message || '',
+              status: c.status === 'resolved' || c.status === 'replied' ? 'completed' : 'pending',
+              created_at: c.created_at || new Date().toISOString(),
+              notes: (c as any).notes || `Submitted via Contact Us`,
+              enquiry_type: 'contact' as any,
+            })
+            qtsChanged = true
+          }
         }
-        const mergedContacts = Array.from(contactMap.values()).sort((a, b) => Number(b.id) - Number(a.id))
-        setContacts(mergedContacts)
-        saveStoredContacts(mergedContacts)
-      } else {
-        setContacts(storedContacts)
+
+        if (enqsChanged) {
+          saveStoredEnquiries(currentEnqs)
+          setEnquiries(currentEnqs)
+        }
+        if (qtsChanged) {
+          saveStoredQuotes(currentQts)
+          setQuotes(currentQts)
+        }
       }
 
       if (Array.isArray(usersVal) && usersVal.length > 0) {
@@ -1934,23 +1998,6 @@ export default function AdminPage() {
                 activeTab === 'quotes' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'
               }`}>
                 {quotes.length}
-              </span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('contacts')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
-                activeTab === 'contacts' ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <MessageSquare className="w-4 h-4" />
-                <span>Contact Inquiries</span>
-              </div>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
-                activeTab === 'contacts' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'
-              }`}>
-                {contacts.length}
               </span>
             </button>
 
@@ -3546,175 +3593,7 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* ====================================================
-              TAB 3: CONTACT INQUIRIES
-             ==================================================== */}
-          {activeTab === 'contacts' && (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-lg font-black text-slate-900">Contact Form Inquiries</h3>
-                  <p className="text-xs text-slate-500">Manage status &amp; notes for each message in <code>contact_messages</code></p>
-                </div>
-                <div className="text-xs font-mono text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
-                  {contacts.length} total messages
-                </div>
-              </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider bg-slate-50/50">
-                      <th className="py-3 px-3">ID</th>
-                      <th className="py-3 px-3">Contact</th>
-                      <th className="py-3 px-3">Subject</th>
-                      <th className="py-3 px-3">Message Preview</th>
-                      <th className="py-3 px-3">Date</th>
-                      <th className="py-3 px-3">Status</th>
-                      <th className="py-3 px-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {contacts.map(c => (
-                      <tr key={c.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="py-3 px-3 font-mono font-bold text-slate-400">#{c.id}</td>
-                        <td className="py-3 px-3">
-                          <div className="font-bold text-slate-900">{c.name}</div>
-                          <div className="text-[11px] text-slate-500">{c.email}</div>
-                          {c.phone && <div className="text-[11px] text-slate-400 font-mono">{c.phone}</div>}
-                        </td>
-                        <td className="py-3 px-3 font-semibold text-blue-700">{c.subject}</td>
-                        <td className="py-3 px-3 text-slate-600 max-w-xs truncate">{c.message}</td>
-                        <td className="py-3 px-3 text-slate-600 font-mono text-[11px] whitespace-nowrap">
-                          <div className="font-bold text-slate-800">
-                            {c.created_at ? new Date(c.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
-                          </div>
-                          <div className="text-[10px] text-slate-400">
-                            {c.created_at ? new Date(c.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true }) : ''}
-                          </div>
-                        </td>
-                        <td className="py-3 px-3">
-                          <select
-                            value={c.status}
-                            onChange={e => handleUpdateContactStatus(c.id, e.target.value)}
-                            className="text-xs font-bold rounded-lg border border-slate-200 bg-white px-2 py-1 cursor-pointer focus:ring-1 focus:ring-blue-500"
-                          >
-                            <option value="unread">Unread</option>
-                            <option value="read">Read</option>
-                            <option value="replied">Replied</option>
-                            <option value="resolved">Resolved</option>
-                          </select>
-                        </td>
-                        <td className="py-3 px-3 text-right space-x-2">
-                          <button
-                            onClick={() => {
-                              setSelectedContact(c)
-                              setContactNotesInput((c as any).notes || '')
-                            }}
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
-                            title="View details & add notes"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteContact(c.id)}
-                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
-                            title="Delete message"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* Contact Message Detail Modal */}
-          {selectedContact && (
-            <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-              <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200">
-                <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                  <h4 className="text-base font-black text-slate-900">
-                    Contact #{selectedContact.id}
-                  </h4>
-                  <button
-                    onClick={() => setSelectedContact(null)}
-                    className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                    aria-label="Close modal"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <div className="space-y-3 text-xs">
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Submitted Date & Time</span>
-                    <strong className="text-slate-900 font-mono text-xs">
-                      {selectedContact.created_at
-                        ? new Date(selectedContact.created_at).toLocaleString('en-GB', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: true,
-                          })
-                        : 'N/A'}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span className="text-slate-500 block">From:</span>
-                    <strong className="text-sm text-slate-900">{selectedContact.name}</strong>
-                    <span className="text-slate-500 ml-2">({selectedContact.email})</span>
-                    {selectedContact.phone && <span className="text-slate-400 ml-2 font-mono">{selectedContact.phone}</span>}
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block">Subject:</span>
-                    <strong className="text-blue-700">{selectedContact.subject}</strong>
-                  </div>
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <span className="text-slate-500 block mb-1 font-bold">Message:</span>
-                    <p className="text-slate-700 leading-relaxed font-normal">{selectedContact.message}</p>
-                  </div>
-                  <div>
-                    <label className="block text-slate-700 font-bold mb-1">Admin Notes / Reply Reference</label>
-                    <textarea
-                      rows={3}
-                      value={contactNotesInput}
-                      onChange={e => setContactNotesInput(e.target.value)}
-                      placeholder="e.g. Replied via email on 28 Sep. Referred to sales team."
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-2 flex justify-between">
-                  <button
-                    onClick={() => handleUpdateContactStatus(selectedContact.id, selectedContact.status, contactNotesInput)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold cursor-pointer"
-                  >
-                    Save Notes
-                  </button>
-                  <button
-                    onClick={() => { handleUpdateContactStatus(selectedContact.id, 'replied'); setSelectedContact(null) }}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold cursor-pointer"
-                  >
-                    Mark Replied & Close
-                  </button>
-                  <button
-                    onClick={() => setSelectedContact(null)}
-                    className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold cursor-pointer"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
 
           {/* ====================================================

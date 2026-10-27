@@ -788,6 +788,23 @@ export async function submitCentralizedEnquiry(payload: {
     }),
   }).catch(() => null)
 
+  // Also persist to PostgreSQL /api/quotes endpoint
+  fetch('/api/quotes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id: uniqueId,
+      name: customerName,
+      email,
+      phone,
+      company,
+      serviceOrProduct: productName,
+      quantity: payload.quantity || '1',
+      timeline: payload.timeline || payload.application || 'Immediate',
+      message: newEnquiry.message,
+    }),
+  }).catch(() => null)
+
   // Trigger cloud sync to propagate enquiry across all admin browsers
   pushCmsStateToCloud({ isEnquirySubmission: true }).catch(() => false)
 
