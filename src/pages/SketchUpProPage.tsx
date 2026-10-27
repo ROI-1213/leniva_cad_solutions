@@ -212,9 +212,14 @@ export const SketchUpProPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           {/* Left Text Column */}
           <div className="lg:col-span-6 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#005F9E] text-xs font-bold tracking-wide">
-              <Sparkles className="w-3.5 h-3.5 text-[#005F9E]" />
-              <span>{sketchupProData.hero.eyebrow}</span>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <div className="h-11 sm:h-12 px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center justify-center">
+                <img src="/images/brands/sketchup.png" alt="Trimble SketchUp" className="h-full w-auto max-w-[140px] sm:max-w-[160px] object-contain" />
+              </div>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-[#005F9E] text-xs font-bold tracking-wide">
+                <Sparkles className="w-3.5 h-3.5 text-[#005F9E]" />
+                <span>{sketchupProData.hero.eyebrow}</span>
+              </div>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-[1.1]">

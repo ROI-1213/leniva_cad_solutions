@@ -183,11 +183,11 @@ export const AresElectricalPage: React.FC = () => {
               className="lg:col-span-7 space-y-6"
             >
               <div className="flex flex-wrap items-center gap-2.5">
-                <div className="h-8 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 shadow-2xs flex items-center justify-center">
-                  <img src="/images/brands/ares-cad.png" alt="ARES CAD" className="h-full w-auto max-w-[85px] object-contain" />
+                <div className="h-11 sm:h-12 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 shadow-xs flex items-center justify-center">
+                  <img src="/images/brands/ares-cad.png" alt="ARES CAD" className="h-full w-auto max-w-[130px] sm:max-w-[150px] object-contain" />
                 </div>
-                <div className="h-8 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 shadow-2xs flex items-center justify-center">
-                  <img src="/images/brands/grabert.png" alt="Graebert" className="h-full w-auto max-w-[85px] object-contain" />
+                <div className="h-11 sm:h-12 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 shadow-xs flex items-center justify-center">
+                  <img src="/images/brands/grabert.png" alt="Graebert" className="h-full w-auto max-w-[130px] sm:max-w-[150px] object-contain" />
                 </div>
                 <div className="inline-flex items-center space-x-2.5 px-3.5 py-1.5 rounded-full bg-blue-950/80 border border-blue-500/30 text-blue-400 text-xs font-semibold uppercase tracking-wider">
                   <Sparkles className="w-3.5 h-3.5 text-blue-400" />

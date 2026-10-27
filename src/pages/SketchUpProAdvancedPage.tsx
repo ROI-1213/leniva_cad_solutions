@@ -171,6 +171,9 @@ export default function SketchUpProAdvancedPage() {
             <div className="space-y-6">
               {/* Badges row */}
               <div className="flex flex-wrap items-center gap-3">
+                <div className="h-11 sm:h-12 px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 shadow-xs flex items-center justify-center">
+                  <img src="/images/brands/sketchup.png" alt="Trimble SketchUp" className="h-full w-auto max-w-[140px] sm:max-w-[160px] object-contain" />
+                </div>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-semibold text-white/90 tracking-widest uppercase">
                   {d.hero.eyebrow}
                 </span>

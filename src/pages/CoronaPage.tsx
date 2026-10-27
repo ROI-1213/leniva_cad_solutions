@@ -252,8 +252,8 @@ export const CoronaPage: React.FC = () => {
             {/* Left Content Column */}
             <div className="lg:col-span-6 space-y-6">
               <div className="flex flex-wrap items-center gap-2.5">
-                <div className="h-8 px-2.5 py-1 rounded-lg bg-white border border-slate-200 shadow-2xs flex items-center justify-center">
-                  <img src="/images/brands/chaos.jpg" alt="Chaos" className="h-full w-auto max-w-[80px] object-contain" />
+                <div className="h-11 sm:h-12 px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center justify-center">
+                  <img src="/images/brands/chaos.jpg" alt="Chaos" className="h-full w-auto max-w-[130px] sm:max-w-[150px] object-contain" />
                 </div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 border border-red-200/80 text-red-700 text-xs font-mono font-bold tracking-wide uppercase">
                   <span className="w-2 h-2 rounded-full bg-red-600"></span>

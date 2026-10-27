@@ -333,8 +333,8 @@ export const VRayPage: React.FC = () => {
             className="lg:col-span-6 space-y-6"
           >
             <div className="flex flex-wrap items-center gap-2.5">
-              <div className="h-8 px-2.5 py-1 rounded-lg bg-white border border-slate-200 shadow-2xs flex items-center justify-center">
-                <img src="/images/brands/chaos.jpg" alt="Chaos" className="h-full w-auto max-w-[80px] object-contain" />
+              <div className="h-11 sm:h-12 px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center justify-center">
+                <img src="/images/brands/chaos.jpg" alt="Chaos" className="h-full w-auto max-w-[130px] sm:max-w-[150px] object-contain" />
               </div>
               <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200">
                 <span className="flex h-2 w-2 rounded-full bg-blue-600 animate-pulse" />

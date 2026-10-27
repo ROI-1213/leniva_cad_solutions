@@ -294,11 +294,11 @@ export const AresCommanderPage: React.FC = () => {
             {/* Left Content Column */}
             <div className="lg:col-span-6 space-y-6">
               <div className="flex flex-wrap items-center gap-2.5">
-                <div className="h-8 px-2.5 py-1 rounded-lg bg-white border border-slate-200 shadow-2xs flex items-center justify-center">
-                  <img data-cad-path="hero.brandLogo1" src={(data.hero as any).brandLogo1 || '/images/brands/grabert.png'} alt="Graebert" className="h-full w-auto max-w-[85px] object-contain" />
+                <div className="h-11 sm:h-12 px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center justify-center">
+                  <img data-cad-path="hero.brandLogo1" src={(data.hero as any).brandLogo1 || '/images/brands/grabert.png'} alt="Graebert" className="h-full w-auto max-w-[130px] sm:max-w-[150px] object-contain" />
                 </div>
-                <div className="h-8 px-2.5 py-1 rounded-lg bg-white border border-slate-200 shadow-2xs flex items-center justify-center">
-                  <img data-cad-path="hero.brandLogo2" src={(data.hero as any).brandLogo2 || '/images/brands/ares-cad.png'} alt="ARES CAD" className="h-full w-auto max-w-[85px] object-contain" />
+                <div className="h-11 sm:h-12 px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center justify-center">
+                  <img data-cad-path="hero.brandLogo2" src={(data.hero as any).brandLogo2 || '/images/brands/ares-cad.png'} alt="ARES CAD" className="h-full w-auto max-w-[130px] sm:max-w-[150px] object-contain" />
                 </div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold tracking-wide">
                   <Sparkles className="w-3.5 h-3.5" />

@@ -291,6 +291,12 @@ export const AresTouchPage: React.FC = () => {
             {/* Left Content */}
             <div className="lg:col-span-7 space-y-6">
               <div className="flex flex-wrap items-center gap-2.5">
+                <div className="h-11 sm:h-12 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 shadow-xs flex items-center justify-center">
+                  <img src="/images/brands/ares-cad.png" alt="ARES CAD" className="h-full w-auto max-w-[130px] sm:max-w-[150px] object-contain" />
+                </div>
+                <div className="h-11 sm:h-12 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 shadow-xs flex items-center justify-center">
+                  <img src="/images/brands/grabert.png" alt="Graebert" className="h-full w-auto max-w-[130px] sm:max-w-[150px] object-contain" />
+                </div>
                 <span className="px-3 py-1 rounded-full bg-sky-500/20 border border-sky-400/30 text-sky-300 text-xs font-bold uppercase tracking-widest">
                   {data.hero.eyebrow}
                 </span>

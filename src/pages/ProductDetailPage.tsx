@@ -309,7 +309,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
                       <img
                         src={logoSrc}
                         alt={product.brand}
-                        className="h-8 w-auto object-contain"
+                        className="h-11 sm:h-12 w-auto max-w-[150px] object-contain"
                         loading="lazy"
                       />
                     ) : (

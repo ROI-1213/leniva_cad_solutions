@@ -190,18 +190,18 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({ forcedSl
             {isCadSoftware && (
               <div className="flex flex-wrap items-center gap-2.5 pt-1">
                 <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Authorized Brand Portfolio:</span>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="h-7 px-2 py-0.5 rounded bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-                    <img src="/images/brands/grabert.png" alt="Graebert" className="h-full w-auto max-w-[70px] object-contain" />
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <div className="h-10 sm:h-11 px-3 py-1 rounded-xl bg-white/20 backdrop-blur-sm border border-white/25 shadow-xs flex items-center justify-center">
+                    <img src="/images/brands/grabert.png" alt="Graebert" className="h-full w-auto max-w-[110px] sm:max-w-[130px] object-contain" />
                   </div>
-                  <div className="h-7 px-2 py-0.5 rounded bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-                    <img src="/images/brands/ares-cad.png" alt="ARES" className="h-full w-auto max-w-[70px] object-contain" />
+                  <div className="h-10 sm:h-11 px-3 py-1 rounded-xl bg-white/20 backdrop-blur-sm border border-white/25 shadow-xs flex items-center justify-center">
+                    <img src="/images/brands/ares-cad.png" alt="ARES" className="h-full w-auto max-w-[110px] sm:max-w-[130px] object-contain" />
                   </div>
-                  <div className="h-7 px-2 py-0.5 rounded bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-                    <img src="/images/brands/sketchup.png" alt="Trimble SketchUp" className="h-full w-auto max-w-[75px] object-contain" />
+                  <div className="h-10 sm:h-11 px-3 py-1 rounded-xl bg-white/20 backdrop-blur-sm border border-white/25 shadow-xs flex items-center justify-center">
+                    <img src="/images/brands/sketchup.png" alt="Trimble SketchUp" className="h-full w-auto max-w-[115px] sm:max-w-[135px] object-contain" />
                   </div>
-                  <div className="h-7 px-2 py-0.5 rounded bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-                    <img src="/images/brands/chaos.jpg" alt="Chaos" className="h-full w-auto max-w-[65px] object-contain" />
+                  <div className="h-10 sm:h-11 px-3 py-1 rounded-xl bg-white/20 backdrop-blur-sm border border-white/25 shadow-xs flex items-center justify-center">
+                    <img src="/images/brands/chaos.jpg" alt="Chaos" className="h-full w-auto max-w-[105px] sm:max-w-[125px] object-contain" />
                   </div>
                 </div>
               </div>

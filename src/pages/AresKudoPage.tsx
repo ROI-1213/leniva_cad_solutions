@@ -323,9 +323,17 @@ export const AresKudoPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Left Content */}
             <div className="lg:col-span-6 space-y-6">
-              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-400/30 text-blue-300 text-xs font-bold tracking-wide uppercase">
-                <Cloud className="w-3.5 h-3.5 text-blue-400" />
-                <span>{data.hero.eyebrow}</span>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <div className="h-11 sm:h-12 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 shadow-xs flex items-center justify-center">
+                  <img src="/images/brands/ares-cad.png" alt="ARES CAD" className="h-full w-auto max-w-[130px] sm:max-w-[150px] object-contain" />
+                </div>
+                <div className="h-11 sm:h-12 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 shadow-xs flex items-center justify-center">
+                  <img src="/images/brands/grabert.png" alt="Graebert" className="h-full w-auto max-w-[130px] sm:max-w-[150px] object-contain" />
+                </div>
+                <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-400/30 text-blue-300 text-xs font-bold tracking-wide uppercase">
+                  <Cloud className="w-3.5 h-3.5 text-blue-400" />
+                  <span>{data.hero.eyebrow}</span>
+                </div>
               </div>
 
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">

@@ -69,10 +69,10 @@ const ProductCardImageSlideshow: React.FC<{
       {/* Top Header Bar: Brand Partner Tag (Left) & Active Model Name (Right) - Never Collide */}
       <div className="absolute top-2.5 inset-x-2.5 z-10 flex items-center justify-between gap-1.5 pointer-events-none">
         {brandLogo ? (
-          <div className="flex items-center space-x-1.5 bg-white/95 backdrop-blur-xs px-2 py-0.5 rounded-md border border-slate-200/90 shadow-2xs min-w-0 max-w-[58%]">
-            <img src={brandLogo} alt="Brand" className="h-3.5 w-auto max-w-[48px] object-contain shrink-0" />
+          <div className="flex items-center space-x-2 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-lg border border-slate-200/90 shadow-xs min-w-0 max-w-[65%]">
+            <img src={brandLogo} alt="Brand" className="h-5 sm:h-6 w-auto max-w-[85px] sm:max-w-[100px] object-contain shrink-0" />
             {brandPartnerText && (
-              <span className="text-[10px] font-bold text-slate-800 truncate leading-none">{brandPartnerText}</span>
+              <span className="text-[11px] font-bold text-slate-800 truncate leading-none">{brandPartnerText}</span>
             )}
           </div>
         ) : categoryTag ? (
