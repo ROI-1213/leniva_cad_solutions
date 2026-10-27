@@ -168,7 +168,12 @@ export const Header: React.FC = () => {
   }
 
   return (
-    <header ref={headerRef} className="w-full sticky top-0 z-50 transition-all duration-300">
+    <header
+      ref={headerRef}
+      className={`w-full sticky top-0 z-50 transition-all duration-300 ${
+        isScrolled ? 'bg-white/95 backdrop-blur-md shadow-md' : 'bg-slate-50'
+      }`}
+    >
       {/* Dynamic Top Announcement Notice from Admin */}
       {liveSiteSettings.bannerNotice && (
         <div

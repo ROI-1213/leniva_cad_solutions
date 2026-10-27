@@ -386,7 +386,7 @@ export const ProductsPage: React.FC = () => {
            ==================================================== */}
         <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-5">
           {/* Top Bar: Search & Select Dropdowns */}
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 sm:gap-4">
             {/* Search Input */}
             <div className="relative w-full lg:w-96">
               <input
@@ -400,15 +400,15 @@ export const ProductsPage: React.FC = () => {
             </div>
 
             {/* Filter Dropdowns and Sorting */}
-            <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end text-xs">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full lg:w-auto text-xs">
               {/* Section Filter Dropdown */}
-              <div className="flex items-center space-x-1.5">
-                <Printer className="w-3.5 h-3.5 text-slate-400" />
-                <span className="font-semibold text-slate-500">Section:</span>
+              <div className="flex items-center space-x-1.5 w-full sm:w-auto min-w-0">
+                <Printer className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span className="font-semibold text-slate-500 shrink-0">Section:</span>
                 <select
                   value={selectedSection}
                   onChange={(e) => setSelectedSection(e.target.value)}
-                  className="px-3 py-2 border border-slate-300 rounded-lg outline-hidden bg-white font-medium text-slate-800 cursor-pointer"
+                  className="flex-1 sm:flex-initial min-w-0 max-w-full px-3 py-2 border border-slate-300 rounded-lg outline-hidden bg-white font-medium text-slate-800 cursor-pointer truncate"
                 >
                   <option value="all">All 3D Printer Sections ({total3DPrintersCount} printers)</option>
                   <option value="fdm">FDM 3D Printers (Pratham Series) (8)</option>
@@ -418,29 +418,31 @@ export const ProductsPage: React.FC = () => {
               </div>
 
               {/* Sort By Dropdown */}
-              <div className="flex items-center space-x-1.5">
-                <span className="font-semibold text-slate-500">Sort:</span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
-                  className="px-3 py-2 border border-slate-300 rounded-lg outline-hidden bg-white font-medium text-slate-800 cursor-pointer"
-                >
-                  <option value="featured">Featured First</option>
-                  <option value="name-asc">Name: A to Z</option>
-                  <option value="name-desc">Name: Z to A</option>
-                </select>
-              </div>
+              <div className="flex items-center justify-between sm:justify-start space-x-2 w-full sm:w-auto">
+                <div className="flex items-center space-x-1.5">
+                  <span className="font-semibold text-slate-500 shrink-0">Sort:</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as any)}
+                    className="px-3 py-2 border border-slate-300 rounded-lg outline-hidden bg-white font-medium text-slate-800 cursor-pointer"
+                  >
+                    <option value="featured">Featured First</option>
+                    <option value="name-asc">Name: A to Z</option>
+                    <option value="name-desc">Name: Z to A</option>
+                  </select>
+                </div>
 
-              {(selectedSection !== 'all' || searchQuery) && (
-                <button
-                  onClick={resetFilters}
-                  className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center space-x-1 cursor-pointer"
-                  title="Reset all filters"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span className="text-[11px] font-semibold">Reset</span>
-                </button>
-              )}
+                {(selectedSection !== 'all' || searchQuery) && (
+                  <button
+                    onClick={resetFilters}
+                    className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center space-x-1 cursor-pointer shrink-0 ml-auto sm:ml-0"
+                    title="Reset all filters"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span className="text-[11px] font-semibold">Reset</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
