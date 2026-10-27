@@ -733,91 +733,93 @@ export const Header: React.FC = () => {
           </div>
         </div>
 
-        {/* MOBILE & TABLET HORIZONTAL RIBBON BAR (Ensures all ribbon options are viewable & accessible on mobile) */}
-        <div className="lg:hidden max-w-7xl mx-auto mt-1.5 bg-white/95 rounded-xl border border-slate-200/90 px-2 py-1.5 shadow-xs">
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar whitespace-nowrap">
-            <Link
-              to="/"
-              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
-                location.pathname === '/' ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <Home className="w-3.5 h-3.5 shrink-0" />
-              <span>Home</span>
-            </Link>
-            <Link
-              to="/about"
-              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
-                location.pathname === '/about' ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <User className="w-3.5 h-3.5 shrink-0" />
-              <span>About Us</span>
-            </Link>
-            <Link
-              to="/products/cad-software"
-              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
-                location.pathname.startsWith('/products/cad-software') || location.pathname.includes('ares') || location.pathname.includes('sketchup') || location.pathname.includes('enscape') || location.pathname.includes('vray') || location.pathname.includes('corona')
-                  ? 'bg-red-600 text-white'
-                  : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <Layers className="w-3.5 h-3.5 shrink-0" />
-              <span>CAD Software</span>
-            </Link>
-            <Link
-              to="/products"
-              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
-                location.pathname === '/products' ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <Printer className="w-3.5 h-3.5 shrink-0" />
-              <span>3D Printers</span>
-            </Link>
-            <Link
-              to="/products/3d-scanners"
-              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
-                location.pathname.includes('scanner') ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <Scan className="w-3.5 h-3.5 shrink-0" />
-              <span>3D Scanners</span>
-            </Link>
-            <Link
-              to="/shop"
-              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
-                location.pathname.startsWith('/shop') ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <ShoppingCart className="w-3.5 h-3.5 shrink-0" />
-              <span>Shop</span>
-            </Link>
-            <Link
-              to="/blog"
-              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
-                location.pathname.startsWith('/blog') ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <BookOpen className="w-3.5 h-3.5 shrink-0" />
-              <span>Blogs</span>
-            </Link>
-            <Link
-              to="/contact"
-              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
-                location.pathname === '/contact' ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <PhoneCall className="w-3.5 h-3.5 shrink-0" />
-              <span>Contact</span>
-            </Link>
-            <button
-              onClick={() => openQuoteModal('Product Demo Request')}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-extrabold bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-2xs shrink-0 cursor-pointer"
-            >
-              <span>Request a Demo</span>
-            </button>
+        {/* MOBILE & TABLET HORIZONTAL RIBBON BAR (Hidden on home page as requested to allow hero banner to expand into full view) */}
+        {location.pathname !== '/' && (
+          <div className="lg:hidden max-w-7xl mx-auto mt-1.5 bg-white/95 rounded-xl border border-slate-200/90 px-2 py-1.5 shadow-xs">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar whitespace-nowrap">
+              <Link
+                to="/"
+                className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
+                  location.pathname === '/' ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                <Home className="w-3.5 h-3.5 shrink-0" />
+                <span>Home</span>
+              </Link>
+              <Link
+                to="/about"
+                className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
+                  location.pathname === '/about' ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                <User className="w-3.5 h-3.5 shrink-0" />
+                <span>About Us</span>
+              </Link>
+              <Link
+                to="/products/cad-software"
+                className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
+                  location.pathname.startsWith('/products/cad-software') || location.pathname.includes('ares') || location.pathname.includes('sketchup') || location.pathname.includes('enscape') || location.pathname.includes('vray') || location.pathname.includes('corona')
+                    ? 'bg-red-600 text-white'
+                    : 'text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5 shrink-0" />
+                <span>CAD Software</span>
+              </Link>
+              <Link
+                to="/products"
+                className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
+                  location.pathname === '/products' ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                <Printer className="w-3.5 h-3.5 shrink-0" />
+                <span>3D Printers</span>
+              </Link>
+              <Link
+                to="/products/3d-scanners"
+                className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
+                  location.pathname.includes('scanner') ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                <Scan className="w-3.5 h-3.5 shrink-0" />
+                <span>3D Scanners</span>
+              </Link>
+              <Link
+                to="/shop"
+                className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
+                  location.pathname.startsWith('/shop') ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                <ShoppingCart className="w-3.5 h-3.5 shrink-0" />
+                <span>Shop</span>
+              </Link>
+              <Link
+                to="/blog"
+                className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
+                  location.pathname.startsWith('/blog') ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                <span>Blogs</span>
+              </Link>
+              <Link
+                to="/contact"
+                className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors shrink-0 ${
+                  location.pathname === '/contact' ? 'bg-red-600 text-white' : 'text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                <PhoneCall className="w-3.5 h-3.5 shrink-0" />
+                <span>Contact</span>
+              </Link>
+              <button
+                onClick={() => openQuoteModal('Product Demo Request')}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-extrabold bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-2xs shrink-0 cursor-pointer"
+              >
+                <span>Request a Demo</span>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* 3. MOBILE RESPONSIVE FORMAL DRAWER (Slides smoothly from the Right) */}

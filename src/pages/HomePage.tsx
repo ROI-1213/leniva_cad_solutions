@@ -219,17 +219,17 @@ export const HomePage: React.FC = () => {
           SECTION 1: HERO SHOWCASE CAROUSEL BANNER (WHITE BACKGROUND)
          ==================================================== */}
       <section 
-        className="relative bg-white text-slate-900 pt-4 pb-8 lg:pb-12 overflow-hidden"
+        className="relative bg-white text-slate-900 pt-1.5 sm:pt-4 pb-6 sm:pb-8 lg:pb-12 overflow-hidden"
       >
-        <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div className="relative z-20 max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 space-y-5 sm:space-y-8">
           {/* Main Panoramic Hero Showcase Carousel with Curved Edges */}
           <div 
             className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg border border-slate-200/90 bg-white group select-none touch-pan-y"
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
-            {/* Slides container with exact 3:1 HD banner aspect ratio */}
-            <div className="relative w-full aspect-[1024/341] bg-white">
+            {/* Slides container with expanded mobile presence and 3:1 HD desktop ratio */}
+            <div className="relative w-full aspect-[16/10] sm:aspect-[1024/341] min-h-[215px] sm:min-h-0 bg-white">
               {slides.map((slide, index) => {
                 const isActive = index === currentSlide
                 return (
@@ -242,7 +242,7 @@ export const HomePage: React.FC = () => {
                     <img
                       src={slide.image || DEFAULT_HERO_BANNERS[index % DEFAULT_HERO_BANNERS.length] || FALLBACK_PUBLIC_HERO_BANNERS[index % FALLBACK_PUBLIC_HERO_BANNERS.length]}
                       alt={slide.alt || slide.title || 'Leniva CAD Solutions'}
-                      className="w-full h-full object-cover bg-white select-none"
+                      className="w-full h-full object-cover object-center bg-white select-none"
                       loading={index === 0 ? 'eager' : 'lazy'}
                       decoding="sync"
                       onError={(e) => {
