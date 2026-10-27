@@ -225,7 +225,7 @@ export default function AdminPage() {
   const [smtpServerHost] = useState('ns1.sslsecure.co.in')
   const [smtpServerPort, setSmtpServerPort] = useState(465)
   const [smtpReceiverEmail] = useState('viju@leniva3d.com')
-  const [smtpTestRecipient, setSmtpTestRecipient] = useState('roiprojects012@gmail.com')
+  const [smtpTestRecipient, setSmtpTestRecipient] = useState('viju@leniva3d.com')
   const [smtpPasswordInput, setSmtpPasswordInput] = useState('')
   const [showSmtpPassword, setShowSmtpPassword] = useState(false)
   const [showSmtpDiagnostics, setShowSmtpDiagnostics] = useState(false)
@@ -1710,7 +1710,7 @@ export default function AdminPage() {
         body: JSON.stringify({
           smtpPassword: smtpPasswordInput || undefined,
           smtpPort: smtpServerPort,
-          testRecipient: smtpTestRecipient || 'roiprojects012@gmail.com',
+          testRecipient: smtpTestRecipient || 'viju@leniva3d.com',
         }),
       })
       const json = await res.json()

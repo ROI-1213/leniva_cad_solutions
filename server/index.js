@@ -585,7 +585,7 @@ const SMTP_CONFIG = {
   fromEmail: process.env.SMTP_FROM_EMAIL || 'viju@leniva3d.com',
   fromName: process.env.SMTP_FROM_NAME || 'Leniva 3D Website',
   receiverEmail: process.env.ENQUIRY_RECEIVER_EMAIL || 'viju@leniva3d.com',
-  testEmail: process.env.SMTP_TEST_EMAIL || 'roiprojects012@gmail.com',
+  testEmail: process.env.SMTP_TEST_EMAIL || 'viju@leniva3d.com',
 }
 
 // Ensure enquiries table exists in PostgreSQL
@@ -787,7 +787,7 @@ app.put('/api/enquiries/:id', async (req, res) => {
   }
 })
 
-// POST test SMTP connection and send test message to roiprojects012@gmail.com
+// POST test SMTP connection and send test message to viju@leniva3d.com
 app.post('/api/enquiries/test-smtp', async (req, res) => {
   const { smtpPassword, testRecipient } = req.body
   const recipient = testRecipient || SMTP_CONFIG.testEmail

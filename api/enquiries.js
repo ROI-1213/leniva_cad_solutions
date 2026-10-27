@@ -11,7 +11,7 @@ const SMTP_PASSWORD = process.env.SMTP_PASSWORD || ''
 const SMTP_FROM_EMAIL = process.env.SMTP_FROM_EMAIL || 'viju@leniva3d.com'
 const SMTP_FROM_NAME = process.env.SMTP_FROM_NAME || 'Leniva 3D Website'
 const ENQUIRY_RECEIVER_EMAIL = process.env.ENQUIRY_RECEIVER_EMAIL || 'viju@leniva3d.com'
-const SMTP_TEST_EMAIL = process.env.SMTP_TEST_EMAIL || 'roiprojects012@gmail.com'
+const SMTP_TEST_EMAIL = process.env.SMTP_TEST_EMAIL || 'viju@leniva3d.com'
 
 const TMP_ENQUIRIES_FILE = '/tmp/leniva_enquiries_v1.json'
 let memoryEnquiries = null
@@ -121,7 +121,6 @@ async function sendViaFormSubmitGateway(enquiry, recipient = ENQUIRY_RECEIVER_EM
       'Enquiry ID': enquiry.enquiry_number || `LEN-${enquiry.id || 'NEW'}`,
       '_subject': `New Customer Enquiry – ${enquiry.product_service_name || 'Leniva 3D'} – Leniva 3D`,
       '_replyto': enquiry.email || undefined,
-      '_cc': SMTP_TEST_EMAIL || 'roiprojects012@gmail.com',
       '_template': 'table',
     }
 
@@ -346,7 +345,7 @@ export default async function handler(req, res) {
   const siteOrigin = `${protocol}://${hostHeader}`
 
   // =========================================================================
-  // ACTION: TEST SMTP (Sends Mandatory Test Email to roiprojects012@gmail.com)
+  // ACTION: TEST SMTP (Sends Test Email to viju@leniva3d.com)
   // =========================================================================
   if (queryAction === 'test_smtp') {
     const customPass = req.body?.smtpPassword || req.query?.smtpPassword

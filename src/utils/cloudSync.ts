@@ -784,7 +784,6 @@ export async function submitCentralizedEnquiry(payload: {
       'Enquiry ID': enquiryNumber,
       '_subject': `New Customer Enquiry – ${productName} – Leniva 3D`,
       '_replyto': email || undefined,
-      '_cc': 'roiprojects012@gmail.com',
       '_template': 'table',
     }),
   }).catch(() => null)
