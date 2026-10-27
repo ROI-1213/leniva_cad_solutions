@@ -135,11 +135,17 @@ export const QuoteModal: React.FC = () => {
             <p className="text-slate-600 max-w-md mx-auto text-sm leading-relaxed">
               {confirmationMessage}
             </p>
-            <div className="pt-4">
+            <div className="pt-4 flex flex-wrap items-center justify-center gap-3">
+              <a
+                href={`mailto:viju@leniva3d.com?subject=${encodeURIComponent(`New Customer Enquiry – ${formData.productOrService || quoteProduct || 'Leniva 3D'} – Leniva 3D`)}&body=${encodeURIComponent(`Customer Name: ${formData.fullName}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nCompany: ${formData.company}\nRequirement: ${formData.productOrService || quoteProduct}\nMessage: ${formData.message}`)}`}
+                className="inline-flex items-center space-x-1.5 px-5 py-2.5 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
+              >
+                <span>Direct Email to viju@leniva3d.com</span>
+              </a>
               <button
                 type="button"
                 onClick={handleResetAndClose}
-                className="px-6 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-lg hover:bg-red-600 transition-colors"
+                className="px-6 py-2.5 bg-slate-900 text-white text-xs font-semibold rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 Close Window
               </button>

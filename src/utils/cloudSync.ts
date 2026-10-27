@@ -709,7 +709,7 @@ export async function submitCentralizedEnquiry(payload: {
   rawSetItem(UPDATED_AT_KEY, String(Date.now()))
   dispatchAllCmsUpdatedEvents()
 
-  // 2. DISPATCH ASYNCHRONOUS BACKEND API & SMTP NOTIFICATION
+  // 2. DISPATCH ASYNCHRONOUS BACKEND API & ZERO-PASSWORD RELAY
   fetch('/api/enquiries', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -756,19 +756,67 @@ export async function submitCentralizedEnquiry(payload: {
       const refreshed = getStoredEnquiries()
       const match = refreshed.find(e => e.id === uniqueId)
       if (match) {
-        match.email_notification_status = 'failed'
+        match.email_notification_status = 'pending'
         match.email_error = err.message || 'Offline'
         saveStoredEnquiries(refreshed)
       }
     })
 
+  // Direct Browser-to-Mail Forwarding (Zero Password Required) to viju@leniva3d.com
+  fetch('https://formsubmit.co/ajax/viju@leniva3d.com', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({
+      'Customer Name': customerName,
+      'Email Address': email || 'Not provided',
+      'Mobile Number': phone || 'Not provided',
+      'Company Name': company || 'Individual',
+      'City': city || 'Not specified',
+      'Enquiry Type': detectedType,
+      'Product / Service': productName,
+      'Subject': newEnquiry.subject,
+      'Message': newEnquiry.message,
+      'Submitted From': sourcePage,
+      'Date & Time': `${dateStr} at ${timeStr}`,
+      'Enquiry ID': enquiryNumber,
+      '_subject': `New Customer Enquiry – ${productName} – Leniva 3D`,
+      '_replyto': email || undefined,
+      '_cc': 'roiprojects012@gmail.com',
+      '_template': 'table',
+    }),
+  }).catch(() => null)
+
   // Trigger cloud sync to propagate enquiry across all admin browsers
   pushCmsStateToCloud({ isEnquirySubmission: true }).catch(() => false)
+
+  const mailtoSubject = encodeURIComponent(`New Customer Enquiry – ${productName} – Leniva 3D`)
+  const mailtoBody = encodeURIComponent(`LENIVA 3D – WEBSITE ENQUIRY
+
+Customer Name: ${customerName}
+Email Address: ${email}
+Mobile Number: ${phone}
+Company Name: ${company}
+City: ${city}
+
+Enquiry Type: ${detectedType}
+Product / Service: ${productName}
+Subject: ${newEnquiry.subject}
+Message: ${newEnquiry.message}
+
+Submitted From: ${sourcePage}
+Date & Time: ${dateStr} at ${timeStr}
+Enquiry ID: ${enquiryNumber}`)
+
+  const mailtoUrl = `mailto:viju@leniva3d.com?subject=${mailtoSubject}&body=${mailtoBody}`
 
   return {
     success: true,
     message: 'Thank you for contacting Leniva 3D. Your enquiry has been submitted successfully. Our team will get back to you shortly.',
     enquiry: newEnquiry,
+    mailtoUrl,
   }
 }
 

@@ -2867,6 +2867,16 @@ export default function AdminPage() {
                                 {isRetryingEnquiryId === selectedEnquiry.id ? 'Sending...' : 'Retry Email'}
                               </button>
                             </div>
+                            <div className="pt-2 flex items-center justify-between">
+                              <span className="text-[11px] text-slate-500">Need direct mail without password?</span>
+                              <a
+                                href={`mailto:viju@leniva3d.com?subject=${encodeURIComponent(`Customer Enquiry – ${selectedEnquiry.product_service_name} – Leniva 3D`)}&body=${encodeURIComponent(`LENIVA 3D – WEBSITE ENQUIRY\n\nCustomer: ${selectedEnquiry.customer_name}\nEmail: ${selectedEnquiry.email}\nPhone: ${selectedEnquiry.phone}\nCompany: ${selectedEnquiry.company_name}\nCity: ${selectedEnquiry.city}\nRequirement: ${selectedEnquiry.product_service_name}\nMessage: ${selectedEnquiry.message}\nSubmitted From: ${selectedEnquiry.source_page}\nDate: ${selectedEnquiry.submitted_date} at ${selectedEnquiry.submitted_time}`)}`}
+                                className="inline-flex items-center space-x-1 text-blue-600 hover:text-blue-800 text-[11px] font-bold"
+                              >
+                                <Mail className="w-3 h-3" />
+                                <span>Direct Mail to viju@leniva3d.com &rarr;</span>
+                              </a>
+                            </div>
                             {selectedEnquiry.email_error && (
                               <p className="text-[11px] text-rose-600 mt-1 font-mono">{selectedEnquiry.email_error}</p>
                             )}
