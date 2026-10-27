@@ -95,7 +95,7 @@ export function dispatchAllCmsUpdatedEvents() {
 
 function isOnAdminRoute(): boolean {
   if (typeof window === 'undefined') return false
-  return window.location.pathname.startsWith('/admin')
+  return window.location.pathname === '/admin' || window.location.pathname === '/admin/'
 }
 
 function installStorageInterceptor() {

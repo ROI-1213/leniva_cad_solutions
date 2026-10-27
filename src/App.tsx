@@ -162,7 +162,7 @@ class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
 
 export default function App() {
   const location = useLocation()
-  const isAdminRoute = location.pathname.startsWith('/admin')
+  const isAdminRoute = location.pathname === '/admin' || location.pathname === '/admin/'
   const [cloudSyncVersion, setCloudSyncVersion] = useState(0)
 
   useEffect(() => {
@@ -582,9 +582,12 @@ export default function App() {
             <Route path="/wishlist" element={<WishlistPage />} />
             <Route path="/my-account" element={<MyAccountPage />} />
 
-            {/* 10. Admin Console (PostgreSQL Native Management) */}
+            {/* 10. Admin Console (Accessible ONLY via /admin) */}
             <Route path="/admin" element={<AdminPage />} />
-            <Route path="/admin/*" element={<AdminPage />} />
+            <Route path="/admin/" element={<AdminPage />} />
+            {/* Block /admin/login or any other subroutes from displaying the admin page */}
+            <Route path="/admin/login" element={<Navigate to="/" replace />} />
+            <Route path="/admin/*" element={<Navigate to="/" replace />} />
 
             {/* 11. Fallback redirect */}
             <Route path="*" element={<Navigate to="/" replace />} />
