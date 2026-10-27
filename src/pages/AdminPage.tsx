@@ -46,6 +46,9 @@ import {
   Phone,
   MapPin,
   Calendar,
+  Clock,
+  ArrowLeft,
+  User,
 } from 'lucide-react'
 import { ShopAndNavigationEditor } from '../components/admin/ShopAndNavigationEditor'
 import { CadVisualPageEditor } from '../components/admin/CadVisualPageEditor'
@@ -1885,7 +1888,9 @@ export default function AdminPage() {
       </header>
 
       {/* Main Admin Content Container */}
-      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col md:flex-row gap-6 min-w-0">
+      <div className={`mx-auto w-full px-3 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col md:flex-row gap-6 min-w-0 transition-all ${
+        activeTab === 'enquiries' || activeTab === 'quotes' ? 'max-w-[1750px]' : 'max-w-7xl'
+      }`}>
         {/* Master Sidebar Navigation */}
         <aside className="w-full md:w-64 shrink-0 space-y-3">
           <nav className="bg-white rounded-2xl p-2 border border-slate-200 shadow-sm space-y-1">
@@ -2635,7 +2640,15 @@ export default function AdminPage() {
                               : 'bg-slate-100 text-slate-600 border-slate-200'
 
                           return (
-                            <tr key={e.id} className="hover:bg-slate-50/80 transition-colors">
+                            <tr
+                              key={e.id}
+                              onClick={() => {
+                                setSelectedEnquiry(e)
+                                setEnquiryAdminNotes(e.admin_notes || '')
+                                setEnquiryFollowUpDate(e.follow_up_date || '')
+                              }}
+                              className="hover:bg-blue-50/60 transition-colors cursor-pointer"
+                            >
                               {/* Enquiry ID */}
                               <td className="py-3 px-3.5 font-mono font-bold text-slate-900 whitespace-nowrap">
                                 <span className="bg-slate-100 px-2 py-0.5 rounded text-blue-600">
@@ -2652,7 +2665,7 @@ export default function AdminPage() {
                               </td>
 
                               {/* Contact */}
-                              <td className="py-3 px-3.5">
+                              <td className="py-3 px-3.5" onClick={ev => ev.stopPropagation()}>
                                 <a href={`tel:${e.phone}`} className="font-mono text-slate-900 hover:text-blue-600 block">
                                   {e.phone || '—'}
                                 </a>
@@ -2694,7 +2707,7 @@ export default function AdminPage() {
                               </td>
 
                               {/* Email Notification Status */}
-                              <td className="py-3 px-3.5 whitespace-nowrap">
+                              <td className="py-3 px-3.5 whitespace-nowrap" onClick={ev => ev.stopPropagation()}>
                                 {e.email_notification_status === 'sent' ? (
                                   <span className="inline-flex items-center space-x-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                                     <CheckCircle2 className="w-3 h-3 text-emerald-600" />
@@ -2724,7 +2737,7 @@ export default function AdminPage() {
                               </td>
 
                               {/* Action */}
-                              <td className="py-3 px-3.5 text-right whitespace-nowrap">
+                              <td className="py-3 px-3.5 text-right whitespace-nowrap" onClick={ev => ev.stopPropagation()}>
                                 <button
                                   onClick={() => {
                                     setSelectedEnquiry(e)
@@ -2734,7 +2747,7 @@ export default function AdminPage() {
                                   className="inline-flex items-center space-x-1 px-3 py-1.5 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-2xs"
                                 >
                                   <Eye className="w-3.5 h-3.5" />
-                                  <span>View</span>
+                                  <span>View Full Page</span>
                                 </button>
                               </td>
                             </tr>
@@ -2746,224 +2759,294 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* ─── SECTION C: VIEW COMPLETE ENQUIRY MODAL ─── */}
+              {/* ─── FULL-PAGE ENQUIRY VIEW ─── */}
               {selectedEnquiry && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
-                  <div
-                    className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 max-h-[90vh] flex flex-col"
-                    onClick={e => e.stopPropagation()}
-                  >
-                    {/* Modal Header */}
-                    <div className="flex items-center justify-between px-6 py-4 bg-slate-900 text-white shrink-0">
+                <div className="fixed inset-0 z-50 bg-slate-100 overflow-y-auto flex flex-col animate-fade-in">
+                  {/* Sticky Top Header Bar */}
+                  <div className="sticky top-0 z-20 bg-slate-900 text-white px-4 sm:px-8 py-4 shadow-md flex items-center justify-between border-b border-slate-800">
+                    <div className="flex items-center space-x-3 sm:space-x-4">
+                      <button
+                        onClick={() => setSelectedEnquiry(null)}
+                        className="inline-flex items-center space-x-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer border border-slate-700"
+                        title="Back to Enquiry List"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span className="hidden sm:inline">Back to Enquiry List</span>
+                        <span className="sm:hidden">Back</span>
+                      </button>
+                      <div className="h-6 w-px bg-slate-700 hidden sm:block" />
                       <div>
                         <div className="flex items-center space-x-2">
                           <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-blue-600 text-white">
                             {selectedEnquiry.enquiry_number || `LEN${String(selectedEnquiry.id).slice(-4)}`}
                           </span>
-                          <span className="text-xs uppercase tracking-wider text-slate-300">
+                          <span className="text-xs uppercase tracking-wider text-slate-300 font-semibold">
                             {selectedEnquiry.enquiry_type}
                           </span>
+                          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                            selectedEnquiry.status === 'New'
+                              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                              : selectedEnquiry.status === 'Contacted'
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                              : selectedEnquiry.status === 'Converted'
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                              : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                          }`}>
+                            {selectedEnquiry.status || 'New'}
+                          </span>
                         </div>
-                        <h3 className="text-lg font-bold mt-0.5">{selectedEnquiry.customer_name}</h3>
+                        <h2 className="text-base sm:text-lg font-bold text-white mt-0.5 truncate max-w-md sm:max-w-xl">
+                          {selectedEnquiry.customer_name} {selectedEnquiry.company_name ? `— ${selectedEnquiry.company_name}` : ''}
+                        </h2>
                       </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => window.print()}
+                        className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium cursor-pointer transition-colors"
+                        title="Print this Enquiry"
+                      >
+                        <Printer className="w-3.5 h-3.5 text-slate-300" />
+                        <span className="hidden sm:inline">Print / Save PDF</span>
+                      </button>
                       <button
                         onClick={() => setSelectedEnquiry(null)}
-                        className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                        aria-label="Close"
                       >
                         <X className="w-5 h-5" />
                       </button>
                     </div>
+                  </div>
 
-                    {/* Modal Body */}
-                    <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs text-slate-700">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Customer Details */}
-                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-2.5">
-                          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 pb-1.5">
-                            Customer Profile
-                          </h4>
+                  {/* Full Page Content */}
+                  <div className="max-w-6xl mx-auto w-full p-4 sm:p-8 space-y-6 flex-1">
+                    {/* Top Row: Customer Profile + Admin Workflow */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Customer Details Card */}
+                      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-2">
+                            <User className="w-4 h-4 text-blue-600" />
+                            <span>Customer Profile & Contact</span>
+                          </h3>
+                          <span className="text-[11px] font-mono text-slate-400">ID #{selectedEnquiry.id}</span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                           <div>
-                            <span className="text-slate-400 block text-[11px]">Full Name:</span>
-                            <strong className="text-slate-900 text-sm">{selectedEnquiry.customer_name}</strong>
+                            <span className="text-slate-400 block text-[11px] font-medium">Full Name</span>
+                            <strong className="text-slate-900 text-sm block mt-0.5">{selectedEnquiry.customer_name}</strong>
                           </div>
                           <div>
-                            <span className="text-slate-400 block text-[11px]">Official Email:</span>
-                            <a href={`mailto:${selectedEnquiry.email}`} className="text-blue-600 hover:underline font-medium text-xs">
+                            <span className="text-slate-400 block text-[11px] font-medium">Company / Organization</span>
+                            <span className="text-slate-800 font-semibold block mt-0.5">{selectedEnquiry.company_name || 'Individual / Freelance'}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block text-[11px] font-medium">Email Address</span>
+                            <a href={`mailto:${selectedEnquiry.email}`} className="text-blue-600 hover:underline font-semibold block mt-0.5">
                               {selectedEnquiry.email || 'Not provided'}
                             </a>
                           </div>
                           <div>
-                            <span className="text-slate-400 block text-[11px]">Phone / Mobile:</span>
-                            <a href={`tel:${selectedEnquiry.phone}`} className="text-slate-900 hover:text-blue-600 font-mono font-bold text-xs">
-                              {selectedEnquiry.phone || 'Not provided'}
-                            </a>
-                          </div>
-                          <div>
-                            <span className="text-slate-400 block text-[11px]">Company Name:</span>
-                            <span className="text-slate-800">{selectedEnquiry.company_name || 'Individual / Studio'}</span>
-                          </div>
-                          <div>
-                            <span className="text-slate-400 block text-[11px]">City / Location:</span>
-                            <span className="text-slate-800">{selectedEnquiry.city || 'Not Specified'}</span>
-                          </div>
-                        </div>
-
-                        {/* Workflow Management */}
-                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-3">
-                          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 pb-1.5">
-                            Admin Status & Workflow
-                          </h4>
-                          <div>
-                            <span className="text-slate-400 block text-[11px] mb-1.5">Update Enquiry Status:</span>
-                            <div className="flex flex-wrap gap-1.5">
-                              {(['New', 'Contacted', 'Pending', 'Converted', 'Closed'] as const).map(st => (
-                                <button
-                                  key={st}
-                                  onClick={() => handleUpdateEnquiryStatus(selectedEnquiry.id, st)}
-                                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                                    selectedEnquiry.status === st
-                                      ? 'bg-blue-600 text-white shadow-xs'
-                                      : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
-                                  }`}
-                                >
-                                  {st}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="pt-2">
-                            <span className="text-slate-400 block text-[11px] mb-1">Follow-up Date:</span>
-                            <input
-                              type="date"
-                              value={enquiryFollowUpDate}
-                              onChange={e => setEnquiryFollowUpDate(e.target.value)}
-                              className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
-
-                          {/* Email Notification Status */}
-                          <div className="pt-2 border-t border-slate-200">
-                            <span className="text-slate-400 block text-[11px] mb-1">Email Delivery to viju@leniva3d.com:</span>
-                            <div className="flex items-center justify-between bg-white p-2 rounded-lg border border-slate-200">
-                              <div>
-                                {selectedEnquiry.email_notification_status === 'sent' ? (
-                                  <span className="font-bold text-emerald-600">✓ Accepted by SMTP</span>
-                                ) : selectedEnquiry.email_notification_status === 'pending' ? (
-                                  <span className="font-bold text-amber-600">⏳ Pending Delivery</span>
-                                ) : (
-                                  <span className="font-bold text-rose-600">✕ Delivery Failed</span>
-                                )}
-                                {selectedEnquiry.email_sent_at && (
-                                  <div className="text-[10px] text-slate-400 font-mono mt-0.5">
-                                    {new Date(selectedEnquiry.email_sent_at).toLocaleString()}
-                                  </div>
-                                )}
-                              </div>
-                              <button
-                                onClick={() => handleRetryEmail(selectedEnquiry.id)}
-                                disabled={isRetryingEnquiryId === selectedEnquiry.id}
-                                className="px-2.5 py-1 bg-slate-900 hover:bg-blue-600 text-white rounded text-[11px] font-bold transition-colors cursor-pointer"
-                              >
-                                {isRetryingEnquiryId === selectedEnquiry.id ? 'Sending...' : 'Retry Email'}
-                              </button>
-                            </div>
-                            <div className="pt-2 flex items-center justify-between">
-                              <span className="text-[11px] text-slate-500">Need direct mail without password?</span>
-                              <a
-                                href={`mailto:viju@leniva3d.com?subject=${encodeURIComponent(`Customer Enquiry – ${selectedEnquiry.product_service_name} – Leniva 3D`)}&body=${encodeURIComponent(`LENIVA 3D – WEBSITE ENQUIRY\n\nCustomer: ${selectedEnquiry.customer_name}\nEmail: ${selectedEnquiry.email}\nPhone: ${selectedEnquiry.phone}\nCompany: ${selectedEnquiry.company_name}\nCity: ${selectedEnquiry.city}\nRequirement: ${selectedEnquiry.product_service_name}\nMessage: ${selectedEnquiry.message}\nSubmitted From: ${selectedEnquiry.source_page}\nDate: ${selectedEnquiry.submitted_date} at ${selectedEnquiry.submitted_time}`)}`}
-                                className="inline-flex items-center space-x-1 text-blue-600 hover:text-blue-800 text-[11px] font-bold"
-                              >
-                                <Mail className="w-3 h-3" />
-                                <span>Direct Mail to viju@leniva3d.com &rarr;</span>
+                            <span className="text-slate-400 block text-[11px] font-medium">Phone / WhatsApp</span>
+                            {selectedEnquiry.phone ? (
+                              <a href={`tel:${selectedEnquiry.phone}`} className="text-slate-900 hover:text-blue-600 font-mono font-bold block mt-0.5">
+                                {selectedEnquiry.phone}
                               </a>
-                            </div>
-                            {selectedEnquiry.email_error && (
-                              <p className="text-[11px] text-rose-600 mt-1 font-mono">{selectedEnquiry.email_error}</p>
+                            ) : (
+                              <span className="text-slate-400 italic block mt-0.5">Not provided</span>
                             )}
                           </div>
-                        </div>
-                      </div>
-
-                      {/* Requirement & Message Box */}
-                      <div className="space-y-2">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                          Enquiry Requirement & Message
-                        </h4>
-                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-2">
-                          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
-                            <div>
-                              <span className="text-slate-400 text-[11px] mr-1">Product Interested In:</span>
-                              <strong className="text-blue-700 text-sm">{selectedEnquiry.product_service_name}</strong>
-                            </div>
-                            <div>
-                              <span className="text-slate-400 text-[11px] mr-1">Subject:</span>
-                              <span className="font-semibold text-slate-800">{selectedEnquiry.subject}</span>
-                            </div>
+                          <div>
+                            <span className="text-slate-400 block text-[11px] font-medium">City / Location</span>
+                            <span className="text-slate-800 font-medium block mt-0.5">{selectedEnquiry.city || 'Not Specified'}</span>
                           </div>
                           <div>
-                            <span className="text-slate-400 text-[11px] block mb-1">Customer Message / Technical Specifications:</span>
-                            <div className="p-3 bg-white rounded-lg border border-slate-200 text-slate-800 whitespace-pre-wrap leading-relaxed">
-                              {selectedEnquiry.message || 'No additional message was provided.'}
-                            </div>
+                            <span className="text-slate-400 block text-[11px] font-medium">Submission Source</span>
+                            <span className="text-slate-800 font-medium block mt-0.5">{selectedEnquiry.source_page || 'Website'}</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Source & Submission Context */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 text-[11px]">
-                        <div>
-                          <span className="text-slate-400 block">Submitted From Page:</span>
-                          <strong className="text-slate-800">{selectedEnquiry.source_page || 'Website'}</strong>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block">Date & Time:</span>
-                          <span className="text-slate-800 font-mono">
-                            {selectedEnquiry.submitted_date} at {selectedEnquiry.submitted_time}
+                      {/* Admin Status & Workflow Card */}
+                      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-2">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                            <span>Status & Lead Workflow</span>
+                          </h3>
+                          <span className="text-[11px] font-medium text-slate-400">
+                            {selectedEnquiry.submitted_date} {selectedEnquiry.submitted_time}
                           </span>
                         </div>
-                        <div>
-                          <span className="text-slate-400 block">Page URL:</span>
-                          <a href={selectedEnquiry.source_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate block">
-                            {selectedEnquiry.source_url || '—'}
-                          </a>
-                        </div>
-                      </div>
 
-                      {/* Internal Admin Notes Textarea */}
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
-                          Internal Admin Notes
-                        </label>
-                        <textarea
-                          rows={3}
-                          value={enquiryAdminNotes}
-                          onChange={e => setEnquiryAdminNotes(e.target.value)}
-                          placeholder="Add internal sales engineer notes, discussion summaries, quote numbers..."
-                          className="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed"
-                        />
-                        <div className="flex justify-end">
-                          <button
-                            onClick={() => handleSaveEnquiryNotes(selectedEnquiry.id)}
-                            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-xs"
-                          >
-                            Save Notes & Follow-up
-                          </button>
+                        <div>
+                          <label className="text-slate-500 block text-[11px] font-bold uppercase tracking-wider mb-2">
+                            Update Status:
+                          </label>
+                          <div className="flex flex-wrap gap-2">
+                            {(['New', 'Contacted', 'Pending', 'Converted', 'Closed'] as const).map(st => (
+                              <button
+                                key={st}
+                                onClick={() => handleUpdateEnquiryStatus(selectedEnquiry.id, st)}
+                                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                  selectedEnquiry.status === st
+                                    ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-600 ring-offset-2'
+                                    : 'bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100'
+                                }`}
+                              >
+                                {st}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="pt-2">
+                          <label className="text-slate-500 block text-[11px] font-bold uppercase tracking-wider mb-1.5">
+                            Follow-up Date:
+                          </label>
+                          <input
+                            type="date"
+                            value={enquiryFollowUpDate}
+                            onChange={e => setEnquiryFollowUpDate(e.target.value)}
+                            className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                          />
+                        </div>
+
+                        {/* Email Notification Status */}
+                        <div className="pt-2 border-t border-slate-100">
+                          <span className="text-slate-500 block text-[11px] font-bold uppercase tracking-wider mb-1.5">
+                            Notification Email to viju@leniva3d.com:
+                          </span>
+                          <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <div>
+                              {selectedEnquiry.email_notification_status === 'sent' ? (
+                                <span className="inline-flex items-center space-x-1.5 text-xs font-bold text-emerald-700">
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                  <span>Accepted by SMTP Server</span>
+                                </span>
+                              ) : selectedEnquiry.email_notification_status === 'pending' ? (
+                                <span className="inline-flex items-center space-x-1.5 text-xs font-bold text-amber-700">
+                                  <Clock className="w-4 h-4 text-amber-600" />
+                                  <span>Pending SMTP Dispatch</span>
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center space-x-1.5 text-xs font-bold text-rose-700">
+                                  <AlertCircle className="w-4 h-4 text-rose-600" />
+                                  <span>SMTP Delivery Failed</span>
+                                </span>
+                              )}
+                              {selectedEnquiry.email_sent_at && (
+                                <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                                  Timestamp: {new Date(selectedEnquiry.email_sent_at).toLocaleString()}
+                                </div>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => handleRetryEmail(selectedEnquiry.id)}
+                              disabled={isRetryingEnquiryId === selectedEnquiry.id}
+                              className="inline-flex items-center space-x-1 px-3 py-1.5 bg-slate-900 hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                            >
+                              <RefreshCw className={`w-3 h-3 ${isRetryingEnquiryId === selectedEnquiry.id ? 'animate-spin' : ''}`} />
+                              <span>{isRetryingEnquiryId === selectedEnquiry.id ? 'Sending...' : 'Retry Email'}</span>
+                            </button>
+                          </div>
+                          {selectedEnquiry.email_error && (
+                            <p className="text-[11px] text-rose-600 mt-2 font-mono bg-rose-50 p-2 rounded-lg border border-rose-200">
+                              Error: {selectedEnquiry.email_error}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
 
-                    {/* Modal Footer */}
-                    <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
-                      <div className="text-[11px] text-slate-400">
-                        Record ID: <span className="font-mono">{selectedEnquiry.id}</span>
+                    {/* Middle Card: Product & Message */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-3 flex items-center space-x-2">
+                        <Package className="w-4 h-4 text-blue-600" />
+                        <span>Enquiry Requirement & Customer Message</span>
+                      </h3>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200/80">
+                        <div>
+                          <span className="text-slate-400 text-[11px] font-medium block">Product / Service of Interest</span>
+                          <strong className="text-blue-700 text-base font-bold block mt-0.5">
+                            {selectedEnquiry.product_service_name}
+                          </strong>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[11px] font-medium block">Subject</span>
+                          <span className="font-semibold text-slate-800 text-sm block mt-0.5">
+                            {selectedEnquiry.subject || 'Standard Enquiry'}
+                          </span>
+                        </div>
                       </div>
-                      <button
-                        onClick={() => setSelectedEnquiry(null)}
-                        className="px-5 py-1.5 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-slate-800 transition-colors"
-                      >
-                        Close
-                      </button>
+
+                      <div>
+                        <span className="text-slate-500 text-xs font-bold uppercase tracking-wider block mb-2">
+                          Customer Message / Technical Specifications:
+                        </span>
+                        <div className="p-5 bg-slate-50 rounded-xl border border-slate-200 text-slate-800 text-sm whitespace-pre-wrap leading-relaxed min-h-[120px]">
+                          {selectedEnquiry.message || 'No additional message was provided by the customer.'}
+                        </div>
+                      </div>
+
+                      {/* Source Link & Context */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200/70 text-xs text-slate-500">
+                        <div>
+                          <span>Source URL: </span>
+                          <a
+                            href={selectedEnquiry.source_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline font-mono text-[11px]"
+                          >
+                            {selectedEnquiry.source_url || 'N/A'}
+                          </a>
+                        </div>
+                        <a
+                          href={`mailto:viju@leniva3d.com?subject=${encodeURIComponent(`Customer Enquiry – ${selectedEnquiry.product_service_name} – Leniva 3D`)}&body=${encodeURIComponent(`LENIVA 3D – WEBSITE ENQUIRY\n\nCustomer: ${selectedEnquiry.customer_name}\nEmail: ${selectedEnquiry.email}\nPhone: ${selectedEnquiry.phone}\nCompany: ${selectedEnquiry.company_name}\nCity: ${selectedEnquiry.city}\nRequirement: ${selectedEnquiry.product_service_name}\nMessage: ${selectedEnquiry.message}\nSubmitted From: ${selectedEnquiry.source_page}\nDate: ${selectedEnquiry.submitted_date} at ${selectedEnquiry.submitted_time}`)}`}
+                          className="inline-flex items-center space-x-1.5 text-blue-600 hover:text-blue-800 text-xs font-bold"
+                        >
+                          <Mail className="w-3.5 h-3.5" />
+                          <span>Direct Forward to viju@leniva3d.com &rarr;</span>
+                        </a>
+                      </div>
+                    </div>
+
+                    {/* Bottom Card: Internal Admin Notes */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-2">
+                          <FileText className="w-4 h-4 text-blue-600" />
+                          <span>Internal Admin & Sales Notes</span>
+                        </label>
+                        <span className="text-[11px] text-slate-400">Notes are visible to admins only</span>
+                      </div>
+                      <textarea
+                        rows={4}
+                        value={enquiryAdminNotes}
+                        onChange={e => setEnquiryAdminNotes(e.target.value)}
+                        placeholder="Add internal notes on customer conversation, quotation shared, follow-up status, demo arrangements..."
+                        className="w-full text-sm p-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed bg-slate-50 focus:bg-white transition-colors"
+                      />
+                      <div className="flex items-center justify-between pt-2">
+                        <button
+                          onClick={() => setSelectedEnquiry(null)}
+                          className="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-100 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          &larr; Back to List
+                        </button>
+                        <button
+                          onClick={() => handleSaveEnquiryNotes(selectedEnquiry.id)}
+                          className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-md inline-flex items-center space-x-1.5"
+                        >
+                          <Save className="w-4 h-4" />
+                          <span>Save Notes & Follow-up</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -3198,14 +3281,15 @@ export default function AdminPage() {
                                   setSelectedQuote(q)
                                   setQuoteNotesInput(q.notes || '')
                                 }}
-                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
-                                title="Inspect details & notes"
+                                className="inline-flex items-center space-x-1 px-2.5 py-1 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-colors cursor-pointer text-xs font-bold border border-blue-200"
+                                title="Inspect full page details"
                               >
-                                <Eye className="w-4 h-4" />
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>Full Page</span>
                               </button>
                               <button
                                 onClick={() => handleDeleteQuote(q.id)}
-                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors cursor-pointer inline-flex items-center"
                                 title="Delete quote"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -3221,29 +3305,119 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* Quote Modal with Internal Notes Editing */}
+          {/* ====================================================
+              FULL-PAGE QUOTE & RFQ VIEW
+             ==================================================== */}
           {selectedQuote && (
-            <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-              <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200">
-                <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                  <h4 className="text-base font-black text-slate-900">
-                    Inquiry #{selectedQuote.id}
-                  </h4>
+            <div className="fixed inset-0 z-50 bg-slate-100 overflow-y-auto flex flex-col animate-fade-in">
+              {/* Sticky Top Header Bar */}
+              <div className="sticky top-0 z-20 bg-slate-900 text-white px-4 sm:px-8 py-4 shadow-md flex items-center justify-between border-b border-slate-800">
+                <div className="flex items-center space-x-3 sm:space-x-4">
                   <button
                     onClick={() => setSelectedQuote(null)}
-                    className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                    aria-label="Close modal"
+                    className="inline-flex items-center space-x-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer border border-slate-700"
+                    title="Back to Quotes List"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span className="hidden sm:inline">Back to Quotes List</span>
+                    <span className="sm:hidden">Back</span>
+                  </button>
+                  <div className="h-6 w-px bg-slate-700 hidden sm:block" />
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-blue-600 text-white">
+                        Quote #{selectedQuote.id}
+                      </span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                        {getEnquiryType(selectedQuote)}
+                      </span>
+                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
+                        selectedQuote.status === 'quoted'
+                          ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                          : selectedQuote.status === 'completed'
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                          : selectedQuote.status === 'in_review'
+                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                          : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                      }`}>
+                        {selectedQuote.status ? selectedQuote.status.replace('_', ' ').toUpperCase() : 'PENDING'}
+                      </span>
+                    </div>
+                    <h2 className="text-base sm:text-lg font-bold text-white mt-0.5 truncate max-w-md sm:max-w-xl">
+                      {selectedQuote.name} {selectedQuote.company ? `(${selectedQuote.company})` : ''}
+                    </h2>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => window.print()}
+                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium cursor-pointer transition-colors"
+                    title="Print Quote Details"
+                  >
+                    <Printer className="w-3.5 h-3.5 text-slate-300" />
+                    <span className="hidden sm:inline">Print / Save PDF</span>
+                  </button>
+                  <button
+                    onClick={() => setSelectedQuote(null)}
+                    className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                    aria-label="Close"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
+              </div>
 
-                <div className="space-y-3 text-xs">
-                  {/* Submission Date & Type Highlight */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Submitted Date & Time</span>
-                      <strong className="text-slate-900 font-mono text-xs">
+              {/* Full Page Body */}
+              <div className="max-w-6xl mx-auto w-full p-4 sm:p-8 space-y-6 flex-1">
+                {/* Top Row: Client Profile + Quote Status Workflow */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Client Profile Card */}
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-2">
+                        <User className="w-4 h-4 text-blue-600" />
+                        <span>Client Profile & Contact</span>
+                      </h3>
+                      <span className="text-[11px] font-mono text-slate-400">Quote #{selectedQuote.id}</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <span className="text-slate-400 block text-[11px] font-medium">Client / Contact Person</span>
+                        <strong className="text-slate-900 text-sm block mt-0.5">{selectedQuote.name}</strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[11px] font-medium">Company / Organization</span>
+                        <span className="text-slate-800 font-semibold block mt-0.5">{selectedQuote.company || 'Independent / Freelance'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[11px] font-medium">Email Address</span>
+                        <a href={`mailto:${selectedQuote.email}`} className="text-blue-600 hover:underline font-semibold block mt-0.5">
+                          {selectedQuote.email}
+                        </a>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[11px] font-medium">Phone / WhatsApp</span>
+                        {selectedQuote.phone ? (
+                          <a href={`tel:${selectedQuote.phone}`} className="text-slate-900 hover:text-blue-600 font-mono font-bold block mt-0.5">
+                            {selectedQuote.phone}
+                          </a>
+                        ) : (
+                          <span className="text-slate-400 italic block mt-0.5">Not provided</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Status & Timing Card */}
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>Status & RFQ Timeline</span>
+                      </h3>
+                      <span className="text-[11px] font-medium text-slate-400">
                         {selectedQuote.created_at
                           ? new Date(selectedQuote.created_at).toLocaleString('en-GB', {
                               day: '2-digit',
@@ -3254,84 +3428,119 @@ export default function AdminPage() {
                               hour12: true,
                             })
                           : 'N/A'}
-                      </strong>
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Enquiry Type</span>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-blue-100 text-blue-800">
-                        {getEnquiryType(selectedQuote)}
                       </span>
                     </div>
-                  </div>
 
-                  <div>
-                    <span className="text-slate-500 block">Client:</span>
-                    <strong className="text-sm text-slate-900">{selectedQuote.name} ({selectedQuote.company || 'Independent'})</strong>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <span className="text-slate-500 block">Email:</span>
-                      <strong className="text-slate-800">
-                        <a href={`mailto:${selectedQuote.email}`} className="hover:underline text-blue-600">
-                          {selectedQuote.email}
-                        </a>
-                      </strong>
+                      <label className="text-slate-500 block text-[11px] font-bold uppercase tracking-wider mb-2">
+                        Quotation Status:
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { key: 'pending', label: 'Pending' },
+                          { key: 'in_review', label: 'In Review' },
+                          { key: 'quoted', label: 'Quoted' },
+                          { key: 'completed', label: 'Completed' },
+                        ].map(st => (
+                          <button
+                            key={st.key}
+                            onClick={() => handleUpdateQuoteStatus(selectedQuote.id, st.key, quoteNotesInput)}
+                            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                              selectedQuote.status === st.key
+                                ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-600 ring-offset-2'
+                                : 'bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100'
+                            }`}
+                          >
+                            {st.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-slate-500 block">Phone:</span>
-                      <strong className="text-slate-800">
-                        {selectedQuote.phone ? (
-                          <a href={`tel:${selectedQuote.phone}`} className="hover:underline text-blue-600">
-                            {selectedQuote.phone}
-                          </a>
-                        ) : 'N/A'}
-                      </strong>
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block">Requested Product / Service:</span>
-                    <strong className="text-slate-800">{selectedQuote.service_or_product}</strong>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <span className="text-slate-500 block">Quantity:</span>
-                      <strong className="text-slate-800">{selectedQuote.quantity || '1'}</strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 block">Timeline / Urgency:</span>
-                      <strong className="text-slate-800">{selectedQuote.timeline || 'Immediate'}</strong>
-                    </div>
-                  </div>
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <span className="text-slate-500 block mb-1 font-bold">Client Requirement & Message:</span>
-                    <p className="text-slate-700 leading-relaxed font-normal whitespace-pre-wrap">{selectedQuote.message || 'No additional message provided.'}</p>
-                  </div>
 
-                  <div>
-                    <label className="block text-slate-700 font-bold mb-1">Admin Internal Notes / Quotation Follow-up</label>
-                    <textarea
-                      rows={3}
-                      value={quoteNotesInput}
-                      onChange={e => setQuoteNotesInput(e.target.value)}
-                      placeholder="e.g. Sent official quote + GST on 28th Sep. Scheduled demo call."
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500"
-                    />
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <span className="text-slate-400 block text-[11px] font-medium">Quantity Requested</span>
+                        <strong className="text-slate-900 text-sm block mt-0.5">{selectedQuote.quantity || '1 unit'}</strong>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <span className="text-slate-400 block text-[11px] font-medium">Required Timeline</span>
+                        <strong className="text-slate-900 text-sm block mt-0.5">{selectedQuote.timeline || 'Immediate'}</strong>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="pt-2 flex justify-between">
-                  <button
-                    onClick={() => handleUpdateQuoteStatus(selectedQuote.id, selectedQuote.status, quoteNotesInput)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold cursor-pointer"
-                  >
-                    Save Notes & Status
-                  </button>
-                  <button
-                    onClick={() => setSelectedQuote(null)}
-                    className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold cursor-pointer"
-                  >
-                    Close
-                  </button>
+                {/* Middle Card: Requested Product & Client Requirements */}
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-3 flex items-center space-x-2">
+                    <Package className="w-4 h-4 text-blue-600" />
+                    <span>Requested Product / Solution</span>
+                  </h3>
+
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80">
+                    <span className="text-slate-400 text-[11px] font-medium block">Product / Service Specification</span>
+                    <strong className="text-blue-700 text-lg font-bold block mt-0.5">
+                      {selectedQuote.service_or_product}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-500 text-xs font-bold uppercase tracking-wider block mb-2">
+                      Client Requirement & Technical Message:
+                    </span>
+                    <div className="p-5 bg-slate-50 rounded-xl border border-slate-200 text-slate-800 text-sm whitespace-pre-wrap leading-relaxed min-h-[120px]">
+                      {selectedQuote.message || 'No additional message was provided with this quote request.'}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200/70 text-xs text-slate-500">
+                    <div>
+                      <span>Reply directly to client: </span>
+                      <a href={`mailto:${selectedQuote.email}`} className="text-blue-600 hover:underline font-semibold">
+                        {selectedQuote.email}
+                      </a>
+                    </div>
+                    <a
+                      href={`mailto:${selectedQuote.email}?subject=${encodeURIComponent(`Official Quote – ${selectedQuote.service_or_product} – Leniva CAD Solutions`)}&body=${encodeURIComponent(`Dear ${selectedQuote.name},\n\nThank you for reaching out to Leniva CAD Solutions regarding ${selectedQuote.service_or_product}.\n\n`)}`}
+                      className="inline-flex items-center space-x-1.5 text-blue-600 hover:text-blue-800 text-xs font-bold"
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                      <span>Compose Email in Mail Client &rarr;</span>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Bottom Card: Internal Notes */}
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-2">
+                      <FileText className="w-4 h-4 text-blue-600" />
+                      <span>Internal Admin Notes / Quotation Follow-up</span>
+                    </label>
+                    <span className="text-[11px] text-slate-400">Notes are visible to admins only</span>
+                  </div>
+                  <textarea
+                    rows={4}
+                    value={quoteNotesInput}
+                    onChange={e => setQuoteNotesInput(e.target.value)}
+                    placeholder="e.g. Sent official quote + GST on 28th Sep. Scheduled demo call with engineer..."
+                    className="w-full text-sm p-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed bg-slate-50 focus:bg-white transition-colors"
+                  />
+                  <div className="flex items-center justify-between pt-2">
+                    <button
+                      onClick={() => setSelectedQuote(null)}
+                      className="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-100 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      &larr; Back to List
+                    </button>
+                    <button
+                      onClick={() => handleUpdateQuoteStatus(selectedQuote.id, selectedQuote.status, quoteNotesInput)}
+                      className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-md inline-flex items-center space-x-1.5"
+                    >
+                      <Save className="w-4 h-4" />
+                      <span>Save Notes & Status</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
