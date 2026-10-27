@@ -113,9 +113,11 @@ export const Header: React.FC = () => {
   // Track scroll for sticky shadow
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20)
+      const scrollY = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0
+      setIsScrolled(scrollY > 15)
     }
-    window.addEventListener('scroll', handleScroll)
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
@@ -166,17 +168,27 @@ export const Header: React.FC = () => {
   }
 
   return (
-    <header ref={headerRef} className="w-full relative z-40 bg-slate-50">
+    <header ref={headerRef} className="w-full sticky top-0 z-50 transition-all duration-300">
       {/* Dynamic Top Announcement Notice from Admin */}
       {liveSiteSettings.bannerNotice && (
-        <div className="bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white text-[11px] sm:text-xs py-1.5 px-4 text-center font-medium tracking-wide flex items-center justify-center gap-2 shadow-inner">
+        <div
+          className={`bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white text-[11px] sm:text-xs text-center font-medium tracking-wide flex items-center justify-center gap-2 shadow-inner transition-all duration-300 overflow-hidden ${
+            isScrolled ? 'max-h-0 py-0 opacity-0 pointer-events-none' : 'max-h-12 py-1.5 px-4 opacity-100'
+          }`}
+        >
           <span className="inline-block w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
           <span>{liveSiteSettings.bannerNotice}</span>
         </div>
       )}
 
       {/* 1. TOP UTILITY STRIP (Light matching user mockup) */}
-      <div className="border-b border-slate-200/70 text-xs text-slate-600 py-1.5 px-3 sm:px-6 lg:px-8">
+      <div
+        className={`transition-all duration-300 overflow-hidden bg-slate-50 ${
+          isScrolled
+            ? 'max-h-0 py-0 opacity-0 pointer-events-none border-transparent'
+            : 'max-h-16 py-1.5 px-3 sm:px-6 lg:px-8 border-b border-slate-200/70 text-xs text-slate-600'
+        }`}
+      >
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 overflow-x-auto no-scrollbar whitespace-nowrap">
           {/* Left contact info */}
           <div className="flex items-center space-x-3 sm:space-x-5 text-[11px] sm:text-xs shrink-0">
@@ -224,7 +236,7 @@ export const Header: React.FC = () => {
       </div>
 
       {/* 2. STICKY WHITE NAVBAR (Pins cleanly to top upon scroll) */}
-      <div className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+      <div className={`w-full transition-all duration-300 ${
         isScrolled 
           ? 'bg-white/95 backdrop-blur-md shadow-lg shadow-slate-900/10 border-b border-slate-200/80 py-1.5' 
           : 'bg-slate-50/95 py-2 sm:py-2.5'
