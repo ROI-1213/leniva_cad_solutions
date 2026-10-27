@@ -1082,22 +1082,7 @@ export const Header: React.FC = () => {
                   )}
                 </div>
 
-                {/* 3. 3D Scanners */}
-                <Link
-                  to="/products/3d-scanners"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
-                    location.pathname.includes('scanner') ? 'bg-red-50 text-red-600 font-bold' : 'text-slate-800 hover:bg-slate-50 font-semibold'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <Scan className={`w-4 h-4 ${location.pathname.includes('scanner') ? 'text-red-600' : 'text-slate-500'}`} />
-                    <span className="text-sm">3D Scanners</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-300" />
-                </Link>
-
-                {/* 4. Shop Accordion */}
+                {/* 3. Shop Accordion */}
                 <div className="rounded-xl overflow-hidden">
                   <button
                     onClick={() => toggleMobileSection('shop')}
@@ -1109,7 +1094,7 @@ export const Header: React.FC = () => {
                   >
                     <div className="flex items-center space-x-3">
                       <ShoppingCart className={`w-4 h-4 ${expandedMobileSection === 'shop' ? 'text-red-600' : 'text-slate-500'}`} />
-                      <span className="text-sm">Shop ({navConfig.shopDropdown.bannerTitle})</span>
+                      <span className="text-sm">Shop</span>
                     </div>
                     <ChevronDown
                       className={`w-4 h-4 transition-transform duration-200 ${
@@ -1154,7 +1139,7 @@ export const Header: React.FC = () => {
                   )}
                 </div>
 
-                {/* 5. Blogs */}
+                {/* 4. Blogs */}
                 <Link
                   to="/blog"
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -1164,12 +1149,12 @@ export const Header: React.FC = () => {
                 >
                   <div className="flex items-center space-x-3">
                     <BookOpen className={`w-4 h-4 ${location.pathname.startsWith('/blog') ? 'text-red-600' : 'text-slate-500'}`} />
-                    <span className="text-sm">Blogs & Technical Articles</span>
+                    <span className="text-sm">Blogs</span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-300" />
                 </Link>
 
-                {/* 6. Contact */}
+                {/* 5. Contact */}
                 <Link
                   to="/contact"
                   onClick={() => setIsMobileMenuOpen(false)}
