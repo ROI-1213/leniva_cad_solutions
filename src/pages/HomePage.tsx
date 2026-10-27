@@ -385,16 +385,16 @@ export const HomePage: React.FC = () => {
                 </div>
               ))}
             </div>
-            <div className="pt-2 sm:pt-4 flex flex-wrap items-center gap-3 sm:gap-4">
+            <div className="pt-2 sm:pt-4 flex flex-row items-center gap-2.5 sm:gap-4">
               <Link
                 to={homeContent.companyIntro.btnExploreLink}
-                className="px-6 sm:px-7 py-3 sm:py-3.5 bg-slate-950 hover:bg-red-600 text-white text-xs sm:text-sm font-bold rounded-xl transition-all shadow-sm"
+                className="flex-1 sm:flex-initial px-4 sm:px-7 py-3 sm:py-3.5 bg-slate-950 hover:bg-red-600 text-white text-xs sm:text-sm font-bold rounded-xl transition-all shadow-sm text-center whitespace-nowrap"
               >
                 {homeContent.companyIntro.btnExploreText}
               </Link>
               <Link
                 to={homeContent.companyIntro.btnContactLink}
-                className="px-6 sm:px-7 py-3 sm:py-3.5 border border-slate-300 hover:border-slate-800 text-slate-900 text-xs sm:text-sm font-bold rounded-xl transition-all bg-white shadow-2xs"
+                className="flex-1 sm:flex-initial px-4 sm:px-7 py-3 sm:py-3.5 border border-slate-300 hover:border-slate-800 text-slate-900 text-xs sm:text-sm font-bold rounded-xl transition-all bg-white shadow-2xs text-center whitespace-nowrap"
               >
                 {homeContent.companyIntro.btnContactText}
               </Link>
