@@ -155,7 +155,7 @@ export const CoronaPage: React.FC = () => {
       }
       setIsSubmitted(true)
     } catch (err) {
-      setFormError('There was an issue submitting your enquiry. Please contact sales directly at contact@lenivacadsolution.in')
+      setFormError('There was an issue submitting your enquiry. Please contact sales directly at viju@leniva3d.com')
     } finally {
       setIsSubmitting(false)
     }

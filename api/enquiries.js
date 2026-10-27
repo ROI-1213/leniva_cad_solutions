@@ -122,6 +122,7 @@ async function sendViaFormSubmitGateway(enquiry, recipient = ENQUIRY_RECEIVER_EM
       '_subject': `New Customer Enquiry – ${enquiry.product_service_name || 'Leniva 3D'} – Leniva 3D`,
       '_replyto': enquiry.email || undefined,
       '_template': 'table',
+      '_captcha': 'false',
     }
 
     const res = await fetch(url, {

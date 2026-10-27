@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { siteConfig } from '../data/siteConfig'
 import { useApp } from '../context/AppContext'
+import { recordCustomerEnquiry } from '../utils/cloudSync'
 
 export const Footer: React.FC = () => {
   const { liveSiteSettings } = useApp()
@@ -23,6 +24,15 @@ export const Footer: React.FC = () => {
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (newsletterEmail) {
+      recordCustomerEnquiry({
+        fullName: 'Newsletter Subscriber',
+        email: newsletterEmail,
+        productOrService: 'Newsletter Subscription (Technical Briefing)',
+        subject: 'New Newsletter Subscriber – Technical Briefing',
+        message: `Subscriber Email: ${newsletterEmail}\nSubscribed to engineering whitepapers and material selection insights.`,
+        source: 'Website Footer Newsletter',
+        enquiryType: 'contact',
+      }).catch(() => false)
       setNewsletterSubmitted(true)
       setNewsletterEmail('')
     }

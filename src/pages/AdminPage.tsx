@@ -798,6 +798,7 @@ export default function AdminPage() {
         statsRes,
         quotesRes,
         contactsRes,
+        enquiriesRes,
         prodsRes,
         blogsRes,
         usersRes,
@@ -806,6 +807,7 @@ export default function AdminPage() {
         safeFetchJson('/api/stats'),
         safeFetchJson('/api/quotes'),
         safeFetchJson('/api/contacts'),
+        safeFetchJson('/api/enquiries'),
         safeFetchJson('/api/products'),
         safeFetchJson('/api/blogs'),
         safeFetchJson('/api/admin/users'),
@@ -815,6 +817,7 @@ export default function AdminPage() {
       const statsVal = statsRes.status === 'fulfilled' ? statsRes.value : null
       const quotesVal = quotesRes.status === 'fulfilled' ? quotesRes.value : null
       const contactsVal = contactsRes.status === 'fulfilled' ? contactsRes.value : null
+      const enquiriesVal = enquiriesRes.status === 'fulfilled' ? enquiriesRes.value : null
       const prodsVal = prodsRes.status === 'fulfilled' ? prodsRes.value : null
       const blogsVal = blogsRes.status === 'fulfilled' ? blogsRes.value : null
       const usersVal = usersRes.status === 'fulfilled' ? usersRes.value : null
@@ -925,6 +928,57 @@ export default function AdminPage() {
         }
       }
 
+      // Load and unify any server-stored Enquiries from PostgreSQL
+      const remoteEnquiriesList = Array.isArray(enquiriesVal)
+        ? enquiriesVal
+        : Array.isArray((enquiriesVal as any)?.enquiries)
+        ? (enquiriesVal as any).enquiries
+        : []
+
+      if (remoteEnquiriesList.length > 0) {
+        const curEnqs = getStoredEnquiries()
+        const curQts = getStoredQuotes()
+        let anyNewEnq = false
+        let anyNewQt = false
+
+        for (const re of remoteEnquiriesList) {
+          if (!re || !re.id) continue
+          const existingE = curEnqs.find(e => e.id === Number(re.id) || (re.email && e.email === re.email && e.customer_name === (re.customer_name || re.name)))
+          if (!existingE) {
+            curEnqs.unshift(re)
+            anyNewEnq = true
+          }
+          const existingQ = curQts.find(q => q.id === Number(re.id) || (re.email && q.email === re.email && q.name === (re.customer_name || re.name)))
+          if (!existingQ) {
+            curQts.unshift({
+              id: Number(re.id),
+              name: re.customer_name || re.name || 'Valued Customer',
+              email: re.email || '',
+              phone: re.phone || '',
+              company: re.company_name || re.company || '',
+              service_or_product: re.product_service_name || re.productOrService || 'Customer Enquiry',
+              quantity: '1',
+              timeline: 'Immediate',
+              message: re.message || '',
+              status: re.status === 'Closed' ? 'completed' : 'pending',
+              created_at: re.created_at || new Date().toISOString(),
+              notes: re.admin_notes || `Enquiry Number: ${re.enquiry_number || ''}`,
+              enquiry_type: (re.enquiry_type || 'quote') as any,
+            })
+            anyNewQt = true
+          }
+        }
+
+        if (anyNewEnq) {
+          saveStoredEnquiries(curEnqs)
+          setEnquiries(curEnqs)
+        }
+        if (anyNewQt) {
+          saveStoredQuotes(curQts)
+          setQuotes(curQts)
+        }
+      }
+
       if (Array.isArray(usersVal) && usersVal.length > 0) {
         const primaryAdmin = usersVal.find((u: any) => u.username === 'admin') || usersVal[0]
         setAdminUsers([primaryAdmin])
@@ -985,6 +1039,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     const syncLocalAdminStates = () => {
+      setEnquiries(getStoredEnquiries())
       setQuotes(getStoredQuotes())
       setContacts(getStoredContacts())
       setProductsList(getStoredProductsCatalog())
@@ -1003,7 +1058,11 @@ export default function AdminPage() {
       }
     }
     window.addEventListener('leniva_cloud_cms_synced', syncLocalAdminStates)
-    return () => window.removeEventListener('leniva_cloud_cms_synced', syncLocalAdminStates)
+    window.addEventListener('storage', syncLocalAdminStates)
+    return () => {
+      window.removeEventListener('leniva_cloud_cms_synced', syncLocalAdminStates)
+      window.removeEventListener('storage', syncLocalAdminStates)
+    }
   }, [])
 
   // Quote operations

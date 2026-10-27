@@ -13,6 +13,7 @@ import {
   Award,
   BookOpen,
 } from 'lucide-react'
+import { recordCustomerEnquiry } from '../utils/cloudSync'
 
 interface JobOpening {
   id: string
@@ -88,6 +89,16 @@ export const CareersPage: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    recordCustomerEnquiry({
+      fullName: formData.fullName,
+      email: formData.email,
+      phone: formData.phone,
+      productOrService: `Job Application – ${selectedJob || 'Graduate Engineer'}`,
+      subject: `Job Application: ${selectedJob} – ${formData.fullName}`,
+      message: `Applicant Name: ${formData.fullName}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nDegree / Branch: ${formData.degree}\nCollege / University: ${formData.college || 'N/A'}\nResume Link: ${formData.resumeUrl}\nCandidate Statement: ${formData.message || 'N/A'}`,
+      source: 'Careers & Opportunities Page',
+      enquiryType: 'consultation',
+    }).catch(() => false)
     setSubmitted(true)
   }
 

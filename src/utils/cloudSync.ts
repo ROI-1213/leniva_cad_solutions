@@ -785,6 +785,7 @@ export async function submitCentralizedEnquiry(payload: {
       '_subject': `New Customer Enquiry – ${productName} – Leniva 3D`,
       '_replyto': email || undefined,
       '_template': 'table',
+      '_captcha': 'false',
     }),
   }).catch(() => null)
 

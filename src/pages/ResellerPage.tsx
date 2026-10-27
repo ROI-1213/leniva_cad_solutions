@@ -1,8 +1,42 @@
 import React, { useState } from 'react'
 import { CheckCircle2, ShieldCheck, TrendingUp, Users } from 'lucide-react'
+import { recordCustomerEnquiry } from '../utils/cloudSync'
 
 export const ResellerPage: React.FC = () => {
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [formData, setFormData] = useState({
+    companyName: '',
+    contactPerson: '',
+    email: '',
+    phone: '',
+    cityState: '',
+    portfolio: '',
+    territory: 'Western India (Maharashtra, Gujarat, Goa)',
+  })
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSubmitting(true)
+    try {
+      await recordCustomerEnquiry({
+        fullName: formData.contactPerson,
+        company: formData.companyName,
+        email: formData.email,
+        phone: formData.phone,
+        productOrService: `Channel Partner Application (${formData.territory})`,
+        subject: `Channel Partner Application – ${formData.companyName} (${formData.cityState})`,
+        message: `Existing Portfolio: ${formData.portfolio || 'N/A'}\nTerritory: ${formData.territory}\nLocation: ${formData.cityState}`,
+        source: 'Channel Partner Ecosystem Page',
+        enquiryType: 'consultation',
+      })
+    } catch {
+      // ignore
+    } finally {
+      setSubmitting(false)
+      setSubmitted(true)
+    }
+  }
 
   return (
     <div className="bg-slate-50 min-h-screen py-10 space-y-12">
@@ -64,45 +98,87 @@ export const ResellerPage: React.FC = () => {
             </div>
           ) : (
             <form
-              onSubmit={e => {
-                e.preventDefault()
-                setSubmitted(true)
-              }}
+              onSubmit={handleSubmit}
               className="space-y-4 text-xs"
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Company Legal Name *</label>
-                  <input type="text" required placeholder="Company Name Pvt Ltd" className="w-full p-2.5 border rounded-xl outline-none" />
+                  <input
+                    type="text"
+                    required
+                    value={formData.companyName}
+                    onChange={e => setFormData({ ...formData, companyName: e.target.value })}
+                    placeholder="Company Name Pvt Ltd"
+                    className="w-full p-2.5 border rounded-xl outline-none"
+                  />
                 </div>
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Primary Contact Person *</label>
-                  <input type="text" required placeholder="Full Name & Designation" className="w-full p-2.5 border rounded-xl outline-none" />
+                  <input
+                    type="text"
+                    required
+                    value={formData.contactPerson}
+                    onChange={e => setFormData({ ...formData, contactPerson: e.target.value })}
+                    placeholder="Full Name & Designation"
+                    className="w-full p-2.5 border rounded-xl outline-none"
+                  />
                 </div>
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Business Email *</label>
-                  <input type="email" required placeholder="partner@company.com" className="w-full p-2.5 border rounded-xl outline-none" />
+                  <input
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="partner@company.com"
+                    className="w-full p-2.5 border rounded-xl outline-none"
+                  />
                 </div>
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Phone / WhatsApp *</label>
-                  <input type="tel" required placeholder="+91 98765 43210" className="w-full p-2.5 border rounded-xl outline-none" />
+                  <input
+                    type="tel"
+                    required
+                    value={formData.phone}
+                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="+91 98765 43210"
+                    className="w-full p-2.5 border rounded-xl outline-none"
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">City & State *</label>
-                  <input type="text" required placeholder="e.g. Ahmedabad, Gujarat" className="w-full p-2.5 border rounded-xl outline-none" />
+                  <input
+                    type="text"
+                    required
+                    value={formData.cityState}
+                    onChange={e => setFormData({ ...formData, cityState: e.target.value })}
+                    placeholder="e.g. Ahmedabad, Gujarat"
+                    className="w-full p-2.5 border rounded-xl outline-none"
+                  />
                 </div>
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Existing Product Portfolio</label>
-                  <input type="text" placeholder="e.g. CNC tooling, industrial software, etc." className="w-full p-2.5 border rounded-xl outline-none" />
+                  <input
+                    type="text"
+                    value={formData.portfolio}
+                    onChange={e => setFormData({ ...formData, portfolio: e.target.value })}
+                    placeholder="e.g. CNC tooling, industrial software, etc."
+                    className="w-full p-2.5 border rounded-xl outline-none"
+                  />
                 </div>
               </div>
 
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">Territory of Interest</label>
-                <select className="w-full p-2.5 border rounded-xl outline-none bg-white">
+                <select
+                  value={formData.territory}
+                  onChange={e => setFormData({ ...formData, territory: e.target.value })}
+                  className="w-full p-2.5 border rounded-xl outline-none bg-white"
+                >
                   <option>Western India (Maharashtra, Gujarat, Goa)</option>
                   <option>Northern India (Delhi NCR, Haryana, Punjab, UP)</option>
                   <option>Southern India (Karnataka, Tamil Nadu, Telangana)</option>
@@ -113,9 +189,10 @@ export const ResellerPage: React.FC = () => {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs shadow transition-colors"
+                disabled={submitting}
+                className="w-full py-3 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs shadow transition-colors cursor-pointer"
               >
-                Submit Partner Application
+                {submitting ? 'Submitting Application...' : 'Submit Partner Application'}
               </button>
             </form>
           )}

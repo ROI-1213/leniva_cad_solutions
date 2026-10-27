@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckCircle2, ArrowLeft } from 'lucide-react'
 import { useApp } from '../context/AppContext'
+import { recordCustomerEnquiry } from '../utils/cloudSync'
 
 export const CheckoutPage: React.FC = () => {
   const { cartItems, clearCart } = useApp()
@@ -25,6 +26,18 @@ export const CheckoutPage: React.FC = () => {
 
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault()
+    const itemsSummary = cartItems.map(i => `${i.name} (Qty: ${i.quantity})`).join(', ')
+    recordCustomerEnquiry({
+      fullName: formData.fullName,
+      company: formData.company,
+      email: formData.email,
+      phone: formData.phone,
+      productOrService: `Shop Order: ${itemsSummary || 'Standard Consumables'}`,
+      subject: `New Store Purchase Order – ${formData.company || formData.fullName}`,
+      message: `Purchase Order Summary:\nItems: ${itemsSummary}\nShipping Address: ${formData.address}, ${formData.city}, ${formData.state} - ${formData.pincode}\nGST Number: ${formData.gstNumber || 'Not provided'}\nPayment Preference: ${formData.paymentMethod}`,
+      source: 'Online Checkout Page',
+      enquiryType: 'quote',
+    }).catch(() => false)
     setOrderPlaced(true)
     clearCart()
   }

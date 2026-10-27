@@ -1849,7 +1849,7 @@ export const ScannersCategoryPage: React.FC = () => {
               <div className="pt-4 text-xs text-slate-500 flex items-center space-x-4">
                 <span>Direct Hotline: <strong className="text-slate-800">+91 93282 30200</strong></span>
                 <span>•</span>
-                <span>Email: <strong className="text-slate-800">info@lenivacads.com</strong></span>
+                <span>Email: <strong className="text-slate-800">viju@leniva3d.com</strong></span>
               </div>
             </div>
 

@@ -2403,9 +2403,7 @@ export const Pratham3RapidPage: React.FC = () => {
                 <span>Email Enquiries</span>
               </div>
               <div className="text-slate-600 space-y-0.5">
-                <div>Sales: <a href="mailto:sales@make3d.in" className="text-red-600 hover:underline">sales@make3d.in</a></div>
-                <div>General: <a href="mailto:info@make3d.in" className="text-red-600 hover:underline">info@make3d.in</a></div>
-                <div>Support: <a href="mailto:support@make3d.in" className="text-red-600 hover:underline">support@make3d.in</a></div>
+                <div>Sales &amp; Technical Enquiries: <a href="mailto:viju@leniva3d.com" className="text-red-600 hover:underline">viju@leniva3d.com</a></div>
               </div>
             </div>
 

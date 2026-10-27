@@ -474,6 +474,31 @@ app.post('/api/quotes', async (req, res) => {
       JSON.stringify(fileAttachments || []),
     ])
 
+    // Mirror into enquiries table for unified Enquiry Management
+    try {
+      const enqNum = `LEN${String(Date.now()).slice(-4)}`
+      await pool.query(`
+        INSERT INTO enquiries (
+          enquiry_number, customer_name, email, phone, company_name, city,
+          enquiry_type, product_service_name, subject, message, source_page,
+          status, email_notification_status
+        )
+        VALUES ($1, $2, $3, $4, $5, '', 'Quote / RFQ', $6, $7, $8, 'Website Quote Form', 'New', 'pending')
+        ON CONFLICT DO NOTHING;
+      `, [
+        enqNum,
+        name || 'Valued Visitor',
+        email || '',
+        phone || '',
+        company || '',
+        product,
+        `Quote Request for ${product}`,
+        message || `Quantity: ${quantity || '1'}, Timeline: ${timeline || 'Standard'}`,
+      ])
+    } catch {
+      // ignore
+    }
+
     res.status(201).json({ success: true, quote: result.rows[0] })
   } catch (err) {
     res.status(500).json({ error: err.message })
@@ -537,6 +562,30 @@ app.post('/api/contacts', async (req, res) => {
       subject || 'General Inquiry',
       message || '',
     ])
+
+    // Mirror into enquiries table for unified Enquiry Management
+    try {
+      const enqNum = `LEN${String(Date.now()).slice(-4)}`
+      await pool.query(`
+        INSERT INTO enquiries (
+          enquiry_number, customer_name, email, phone, company_name, city,
+          enquiry_type, product_service_name, subject, message, source_page,
+          status, email_notification_status
+        )
+        VALUES ($1, $2, $3, $4, '', '', 'Contact Enquiry', 'Leniva 3D Support', $5, $6, 'Contact Form', 'New', 'pending')
+        ON CONFLICT DO NOTHING;
+      `, [
+        enqNum,
+        name || 'Valued Visitor',
+        email || '',
+        phone || '',
+        subject || 'General Inquiry',
+        message || '',
+      ])
+    } catch {
+      // ignore
+    }
+
     res.status(201).json({ success: true, contact: result.rows[0] })
   } catch (err) {
     res.status(500).json({ error: err.message })

@@ -179,7 +179,7 @@ export const AresCommanderPage: React.FC = () => {
       }
       setIsSubmitted(true)
     } catch {
-      setFormError('There was an issue submitting your enquiry. Please email sales@lenivacadsolution.in directly.')
+      setFormError('There was an issue submitting your enquiry. Please email viju@leniva3d.com directly.')
     } finally {
       setIsSubmitting(false)
     }
