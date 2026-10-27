@@ -166,7 +166,7 @@ export const Header: React.FC = () => {
   }
 
   return (
-    <header ref={headerRef} className="w-full bg-slate-50/95 backdrop-blur-md z-50 sticky top-0 transition-all">
+    <header ref={headerRef} className="w-full relative z-40 bg-slate-50">
       {/* Dynamic Top Announcement Notice from Admin */}
       {liveSiteSettings.bannerNotice && (
         <div className="bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white text-[11px] sm:text-xs py-1.5 px-4 text-center font-medium tracking-wide flex items-center justify-center gap-2 shadow-inner">
@@ -223,11 +223,16 @@ export const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. MAIN NAVIGATION BAR (CURVED EDGES) */}
-      <div className="w-full px-3 sm:px-6 lg:px-8 py-2 sm:py-2.5">
-        <div className={`max-w-7xl mx-auto bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 px-3.5 sm:px-5 lg:px-6 py-2 sm:py-2.5 flex items-center justify-between relative transition-all ${
-          isScrolled ? 'shadow-xl shadow-slate-900/10 border-slate-300' : 'shadow-md'
-        }`}>
+      {/* 2. STICKY WHITE NAVBAR (Pins cleanly to top upon scroll) */}
+      <div className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+        isScrolled 
+          ? 'bg-white/95 backdrop-blur-md shadow-lg shadow-slate-900/10 border-b border-slate-200/80 py-1.5' 
+          : 'bg-slate-50/95 py-2 sm:py-2.5'
+      }`}>
+        <div className="w-full px-3 sm:px-6 lg:px-8">
+          <div className={`max-w-7xl mx-auto bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 px-3.5 sm:px-5 lg:px-6 py-2 sm:py-2.5 flex items-center justify-between relative transition-all ${
+            isScrolled ? 'shadow-lg shadow-slate-900/10 border-slate-300' : 'shadow-md'
+          }`}>
           {/* Brand Logo & Slogan */}
           <div className="flex items-center shrink-0 mr-2 xl:mr-4">
             <Link to="/" className="flex items-center group">
@@ -842,6 +847,7 @@ export const Header: React.FC = () => {
             </button>
           </div>
         </div>
+      </div>
       </div>
 
       {/* 3. MOBILE RESPONSIVE FORMAL DRAWER (Mounted via React Portal directly into document.body to guarantee 100% visibility at any scroll depth, footer, or section) */}
