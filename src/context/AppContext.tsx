@@ -174,6 +174,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const target = (e.target as HTMLElement)?.closest('a, button') as HTMLElement | null
       if (!target) return
 
+      // CRITICAL: NEVER intercept clicks inside QuoteModal or inside any form!
+      if (target.closest('[data-leniva-quote-modal="true"], [data-leniva-handled="true"], form, [role="dialog"]')) return
+
       const pathname = window.location.pathname.toLowerCase()
       const isCadRoute =
         pathname.includes('ares') ||

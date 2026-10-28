@@ -89,8 +89,19 @@ export const QuoteModal: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e && e.preventDefault) e.preventDefault()
+    if (isSubmitting) return
+
+    if (!formData.fullName?.trim()) {
+      alert('Please enter your full name')
+      return
+    }
+    if (!formData.email?.trim() && !formData.phone?.trim()) {
+      alert('Please enter your email address or phone number')
+      return
+    }
+
     setIsSubmitting(true)
     try {
       await submitQuote({
@@ -135,10 +146,12 @@ export const QuoteModal: React.FC = () => {
 
   return createPortal(
     <div
+      data-leniva-quote-modal="true"
       className="fixed inset-0 z-[99999] flex items-center justify-center p-2.5 sm:p-4 md:p-6 bg-slate-950/75 backdrop-blur-sm animate-fade-in"
       onClick={handleResetAndClose}
     >
       <div 
+        data-leniva-quote-modal="true"
         className="relative w-full max-w-2xl max-h-[92dvh] sm:max-h-[90vh] bg-white rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-slate-200/90 my-auto"
         onClick={e => e.stopPropagation()}
       >
@@ -185,7 +198,9 @@ export const QuoteModal: React.FC = () => {
         ) : (
           <form
             onSubmit={handleSubmit}
+            noValidate
             data-leniva-handled="true"
+            data-leniva-quote-modal="true"
             className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3.5 sm:space-y-4 overscroll-contain"
           >
             <p className="text-xs text-slate-500 leading-relaxed">
@@ -404,6 +419,11 @@ export const QuoteModal: React.FC = () => {
                 </button>
                 <button
                   type="submit"
+                  onClick={(e) => {
+                    if (!isSubmitting) {
+                      handleSubmit(e)
+                    }
+                  }}
                   disabled={isSubmitting}
                   className="flex-1 sm:flex-initial inline-flex items-center justify-center space-x-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                 >
