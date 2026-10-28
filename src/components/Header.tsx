@@ -194,19 +194,21 @@ export const Header: React.FC = () => {
             : 'max-h-16 py-1.5 px-3 sm:px-6 lg:px-8 border-b border-slate-200/70 text-xs text-slate-600'
         }`}
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 overflow-x-auto no-scrollbar whitespace-nowrap">
-          {/* Left contact info */}
-          <div className="flex items-center space-x-3 sm:space-x-5 text-[11px] sm:text-xs shrink-0">
-            <a
-              href={`mailto:${liveSiteSettings.email}`}
-              className="flex items-center space-x-1.5 text-slate-600 hover:text-red-600 transition-colors shrink-0"
-            >
-              <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-              <span>{liveSiteSettings.email}</span>
-            </a>
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 sm:gap-4 w-full">
+          {/* Email on the left */}
+          <a
+            href={`mailto:${liveSiteSettings.email}`}
+            className="flex items-center space-x-1.5 text-slate-600 hover:text-red-600 transition-colors shrink-0 text-[11px] sm:text-xs"
+          >
+            <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+            <span className="truncate max-w-[170px] sm:max-w-none">{liveSiteSettings.email}</span>
+          </a>
+
+          {/* Right end on mobile / grouped with email on desktop */}
+          <div className="flex items-center space-x-3 sm:space-x-5 text-[11px] sm:text-xs shrink-0 ml-auto md:ml-0">
             <a
               href={`tel:${liveSiteSettings.phone}`}
-              className="flex items-center space-x-1.5 text-slate-600 hover:text-red-600 transition-colors shrink-0"
+              className="flex items-center space-x-1.5 text-slate-700 font-semibold md:font-normal md:text-slate-600 hover:text-red-600 transition-colors shrink-0"
             >
               <Phone className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span>{liveSiteSettings.phone}</span>
@@ -219,7 +221,7 @@ export const Header: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Links & Social Icons */}
+          {/* Right Links & Social Icons (Desktop only) */}
           <div className="hidden md:flex items-center space-x-3 sm:space-x-4 text-[11px] sm:text-xs text-slate-600 shrink-0">
             <Link to="/warranty" className="flex items-center space-x-1 text-slate-600 hover:text-red-600 transition-colors shrink-0">
               <ShieldCheck className="w-3.5 h-3.5 text-slate-500 shrink-0" />
