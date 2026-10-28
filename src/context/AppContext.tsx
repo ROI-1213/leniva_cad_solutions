@@ -298,17 +298,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const prodOrSvc = data.productOrService || quoteProduct || 'General Quotation / Demo Enquiry'
       let detectedType = data.enquiryType
-      if (!detectedType) {
-        const text = `${prodOrSvc} ${data.source || ''}`.toLowerCase()
-        if (text.includes('demo') || text.includes('demonstration')) {
-          detectedType = 'demo'
-        } else if (text.includes('consultation') || text.includes('engineer') || text.includes('technical call') || text.includes('specialist')) {
-          detectedType = 'consultation'
-        } else if (text.includes('trial') || text.includes('evaluation')) {
-          detectedType = 'trial'
-        } else {
-          detectedType = 'quote'
-        }
+      const text = `${prodOrSvc} ${data.source || ''} ${data.message || ''}`.toLowerCase()
+      if (text.includes('trial') || text.includes('trail') || text.includes('evaluation') || text.includes('30-day') || text.includes('30 day')) {
+        detectedType = 'trial'
+      } else if (text.includes('demo') || text.includes('demonstration')) {
+        detectedType = 'demo'
+      } else if (text.includes('consultation') || text.includes('engineer') || text.includes('technical call') || text.includes('specialist')) {
+        detectedType = 'consultation'
+      } else if (!detectedType) {
+        detectedType = 'quote'
       }
 
       await recordCustomerEnquiry({
@@ -320,7 +318,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         quantity: data.quantity || '1',
         application: data.application || 'Immediate',
         message: data.message,
-        source: data.source || (detectedType === 'demo' ? 'Product Demo Request' : detectedType === 'consultation' ? 'Engineering Consultation' : 'Quote Request'),
+        source: data.source || (
+          detectedType === 'trial'
+            ? 'Free Trial Request'
+            : detectedType === 'demo'
+            ? 'Product Demo Request'
+            : detectedType === 'consultation'
+            ? 'Engineering Consultation'
+            : 'Quote Request'
+        ),
         enquiryType: detectedType,
       })
     } catch (e) {

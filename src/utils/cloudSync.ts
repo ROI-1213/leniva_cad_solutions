@@ -613,21 +613,53 @@ export async function submitCentralizedEnquiry(payload: {
     else productName = currentTitle || 'Leniva 3D CAD & Additive Solutions'
   }
 
-  // Detect enquiry type
-  let detectedType = payload.enquiry_type || payload.enquiryType || 'Product Enquiry'
-  const combined = `${productName} ${payload.subject || ''} ${sourcePage} ${payload.message || ''}`.toLowerCase()
-  if (!payload.enquiry_type && !payload.enquiryType) {
-    if (combined.includes('demo') || combined.includes('demonstration')) {
-      detectedType = 'Demo Request'
-    } else if (combined.includes('consultation') || combined.includes('engineer') || combined.includes('specialist')) {
-      detectedType = 'Engineering Consultation'
-    } else if (combined.includes('trial') || combined.includes('evaluation')) {
-      detectedType = 'Free Trial'
-    } else if (combined.includes('quote') || combined.includes('rfq') || combined.includes('pricing') || combined.includes('cost')) {
-      detectedType = 'Quote / RFQ'
-    } else if (sourcePage.toLowerCase().includes('contact')) {
-      detectedType = 'Contact Form'
-    }
+  // Detect enquiry type with high precision
+  const combined = `${productName} ${payload.subject || ''} ${sourcePage} ${payload.message || ''} ${payload.enquiryType || ''} ${payload.enquiry_type || ''}`.toLowerCase()
+  let detectedType = 'Quote / RFQ'
+  let normalizedQuoteType: 'trial' | 'demo' | 'consultation' | 'contact' | 'quote' = 'quote'
+
+  if (
+    payload.enquiryType === 'trial' ||
+    payload.enquiry_type === 'trial' ||
+    combined.includes('trial') ||
+    combined.includes('trail') ||
+    combined.includes('evaluation') ||
+    combined.includes('30-day') ||
+    combined.includes('30 day')
+  ) {
+    detectedType = 'Free Trial'
+    normalizedQuoteType = 'trial'
+  } else if (
+    payload.enquiryType === 'demo' ||
+    payload.enquiry_type === 'demo' ||
+    combined.includes('demo') ||
+    combined.includes('demonstration')
+  ) {
+    detectedType = 'Demo Request'
+    normalizedQuoteType = 'demo'
+  } else if (
+    payload.enquiryType === 'consultation' ||
+    payload.enquiry_type === 'consultation' ||
+    combined.includes('consultation') ||
+    combined.includes('engineer') ||
+    combined.includes('specialist') ||
+    combined.includes('technical call')
+  ) {
+    detectedType = 'Engineering Consultation'
+    normalizedQuoteType = 'consultation'
+  } else if (
+    payload.enquiryType === 'contact' ||
+    payload.enquiry_type === 'contact' ||
+    sourcePage.toLowerCase().includes('contact') ||
+    combined.includes('contact form') ||
+    combined.includes('contact message') ||
+    combined.includes('contact us')
+  ) {
+    detectedType = 'Contact Form'
+    normalizedQuoteType = 'contact'
+  } else if (payload.enquiry_type && payload.enquiry_type !== 'quote' && payload.enquiry_type !== 'Product Enquiry') {
+    detectedType = payload.enquiry_type
+    normalizedQuoteType = 'quote'
   }
 
   const now = new Date()
@@ -677,7 +709,7 @@ export async function submitCentralizedEnquiry(payload: {
     status: 'pending',
     created_at: now.toISOString(),
     notes: `Submitted via ${sourcePage}`,
-    enquiry_type: detectedType as any,
+    enquiry_type: normalizedQuoteType as any,
   }
 
   const newContact: StoredContactRecord = {
@@ -690,7 +722,7 @@ export async function submitCentralizedEnquiry(payload: {
     status: 'unread',
     created_at: now.toISOString(),
     notes: company ? `Company: ${company} | Source: ${sourcePage}` : `Source: ${sourcePage}`,
-    enquiry_type: detectedType as any,
+    enquiry_type: normalizedQuoteType as any,
   }
 
   // 1. SAVE LOCALLY IMMEDIATELY (DATABASE & CLIENT STORAGE GUARANTEE)

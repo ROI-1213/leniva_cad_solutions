@@ -40,37 +40,50 @@ export const QuoteModal: React.FC = () => {
   if (typeof document === 'undefined') return null
 
   const isBrochureRequest = /\bbrochure\b/i.test(quoteProduct || '')
-  const isDemoRequest = !isBrochureRequest && /\bdemo\b|demonstration/i.test(quoteProduct || '')
+  const isTrialRequest =
+    !isBrochureRequest &&
+    /\btrial\b|\btrail\b|evaluation|30-day|30 day|free trial/i.test(quoteProduct || '')
+  const isDemoRequest =
+    !isBrochureRequest &&
+    !isTrialRequest &&
+    /\bdemo\b|demonstration/i.test(quoteProduct || '')
   const isConsultationRequest =
     !isBrochureRequest &&
+    !isTrialRequest &&
     !isDemoRequest &&
-    /\bconsultation\b|schedule.*engineer|talk to.*expert|technical call/i.test(quoteProduct || '')
+    /\bconsultation\b|schedule.*engineer|talk to.*expert|technical call|consult/i.test(quoteProduct || '')
 
   const modalBadge = isBrochureRequest
     ? 'Official Brochure & Technical Datasheet'
-    : isDemoRequest
-      ? 'Official Demo Request'
-      : isConsultationRequest
-        ? 'Engineering Consultation'
-        : 'Official Inquiry'
+    : isTrialRequest
+      ? 'Official Free Trial Request'
+      : isDemoRequest
+        ? 'Official Demo Request'
+        : isConsultationRequest
+          ? 'Engineering Consultation'
+          : 'Official Inquiry'
 
   const modalHeading = 'ENQUIRE NOW'
 
   const modalIntro = isBrochureRequest
     ? 'Please provide your details below to receive the complete official CAD software brochure, technical datasheet, and licensing documentation.'
-    : isDemoRequest
-      ? 'Please provide your details below to schedule a live product demonstration with our application engineers.'
-      : isConsultationRequest
-        ? 'Please share your technical requirements below to schedule an engineering consultation with our specialists.'
-        : 'Please provide your project requirements below. Our application engineers review all inquiries to ensure the most cost-effective hardware, software, and service configuration.'
+    : isTrialRequest
+      ? 'Please provide your details below to activate your free trial license with complete installation guidance and support from our application engineers.'
+      : isDemoRequest
+        ? 'Please provide your details below to schedule a live product demonstration with our application engineers.'
+        : isConsultationRequest
+          ? 'Please share your technical requirements below to schedule an engineering consultation with our specialists.'
+          : 'Please provide your project requirements below. Our application engineers review all inquiries to ensure the most cost-effective hardware, software, and service configuration.'
 
   const submitButtonText = isBrochureRequest
     ? 'Request & Download Brochure'
-    : isDemoRequest
-      ? 'Submit Demo Request'
-      : isConsultationRequest
-        ? 'Schedule Consultation'
-        : 'Submit Enquiry'
+    : isTrialRequest
+      ? 'Request Free Trial'
+      : isDemoRequest
+        ? 'Submit Demo Request'
+        : isConsultationRequest
+          ? 'Schedule Consultation'
+          : 'Submit Enquiry'
 
   const confirmationHeading = 'Enquiry Submitted Successfully'
 
@@ -110,23 +123,29 @@ export const QuoteModal: React.FC = () => {
     }
 
     // 2. Dispatch background persistence and cloud/mail relay to viju@leniva3d.com and Admin
+    const combinedContent = `${formData.productOrService || quoteProduct || ''} ${formData.message || ''}`
+    const derivedEnquiryType: 'trial' | 'demo' | 'consultation' | 'quote' =
+      isTrialRequest || /\btrial\b|\btrail\b|evaluation|30-day|30 day|free trial/i.test(combinedContent)
+        ? 'trial'
+        : isDemoRequest || /\bdemo\b|demonstration/i.test(combinedContent)
+        ? 'demo'
+        : isConsultationRequest || /\bconsultation\b|schedule.*engineer|technical call|specialist/i.test(combinedContent)
+        ? 'consultation'
+        : 'quote'
+
     submitQuote({
       ...formData,
       productOrService: formData.productOrService || quoteProduct || 'General CAD / Product Enquiry',
       source: isBrochureRequest
         ? 'CAD Software Brochure Download Enquiry'
-        : isDemoRequest
+        : derivedEnquiryType === 'trial'
+        ? 'Free Trial Request'
+        : derivedEnquiryType === 'demo'
         ? 'Product Demonstration Request'
-        : isConsultationRequest
+        : derivedEnquiryType === 'consultation'
         ? 'Engineering Consultation Request'
         : 'Quote Request Form',
-      enquiryType: isBrochureRequest
-        ? 'quote'
-        : isDemoRequest
-        ? 'demo'
-        : isConsultationRequest
-        ? 'consultation'
-        : 'quote',
+      enquiryType: derivedEnquiryType,
     }).catch(err => {
       console.warn('Background quote submit error:', err)
     })

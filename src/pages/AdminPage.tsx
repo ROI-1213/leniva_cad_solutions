@@ -221,6 +221,7 @@ export default function AdminPage() {
   const [selectedEnquiry, setSelectedEnquiry] = useState<StoredEnquiryRecord | null>(null)
   const [enquirySearchInput, setEnquirySearchInput] = useState('')
   const [enquiryStatusFilter, setEnquiryStatusFilter] = useState<'all' | 'New' | 'Contacted' | 'Pending' | 'Converted' | 'Closed'>('all')
+  const [enquiryTypeFilter, setEnquiryTypeFilter] = useState<'all' | 'trial' | 'demo' | 'consultation' | 'contact' | 'quote'>('all')
   const [enquiryProductFilter, setEnquiryProductFilter] = useState('all')
   const [enquirySourceFilter, setEnquirySourceFilter] = useState('all')
   const [enquiryDateFilter, setEnquiryDateFilter] = useState('')
@@ -1643,13 +1644,66 @@ export default function AdminPage() {
     )
   })
 
-  const getEnquiryType = (q: QuoteRequest): 'quote' | 'demo' | 'consultation' | 'trial' | 'contact' => {
-    if ((q as any).enquiry_type) return (q as any).enquiry_type
-    const text = `${q.service_or_product || ''} ${q.notes || ''} ${q.message || ''}`.toLowerCase()
-    if (text.includes('demo') || text.includes('demonstration')) return 'demo'
-    if (text.includes('consultation') || text.includes('engineer') || text.includes('technical call') || text.includes('specialist')) return 'consultation'
-    if (text.includes('trial') || text.includes('evaluation')) return 'trial'
-    if (text.includes('contact form') || text.includes('contact message') || text.includes('general inquiry')) return 'contact'
+  const getEnquiryType = (q: QuoteRequest | any): 'quote' | 'demo' | 'consultation' | 'trial' | 'contact' => {
+    if (!q) return 'quote'
+    const rawType = String((q as any).enquiry_type || (q as any).enquiryType || '').trim().toLowerCase()
+    const text = `${q.service_or_product || (q as any).product_service_name || ''} ${q.notes || ''} ${q.message || ''} ${(q as any).subject || ''} ${(q as any).source || ''} ${(q as any).source_page || ''}`.toLowerCase()
+
+    // 1. Free Trial / Evaluation / Trail (Priority: Content text & explicit type)
+    if (
+      rawType === 'trial' ||
+      rawType === 'free trial' ||
+      rawType.includes('trial') ||
+      rawType.includes('trail') ||
+      text.includes('trial') ||
+      text.includes('trail') ||
+      text.includes('evaluation') ||
+      text.includes('30-day') ||
+      text.includes('30 day') ||
+      text.includes('14-day') ||
+      text.includes('14 day')
+    ) {
+      return 'trial'
+    }
+
+    // 2. Demo Request / Demonstration
+    if (
+      rawType === 'demo' ||
+      rawType === 'demo request' ||
+      rawType.includes('demo') ||
+      text.includes('demo') ||
+      text.includes('demonstration')
+    ) {
+      return 'demo'
+    }
+
+    // 3. Engineering Consultation
+    if (
+      rawType === 'consultation' ||
+      rawType === 'engineering consultation' ||
+      rawType.includes('consult') ||
+      text.includes('consultation') ||
+      text.includes('engineer') ||
+      text.includes('technical call') ||
+      text.includes('specialist')
+    ) {
+      return 'consultation'
+    }
+
+    // 4. Contact Form / General Inquiry
+    if (
+      rawType === 'contact' ||
+      rawType === 'contact form' ||
+      rawType.includes('contact') ||
+      text.includes('contact form') ||
+      text.includes('contact message') ||
+      text.includes('general inquiry') ||
+      text.includes('general enquiry') ||
+      text.includes('contact us')
+    ) {
+      return 'contact'
+    }
+
     return 'quote'
   }
 
@@ -1720,6 +1774,7 @@ export default function AdminPage() {
 
   const filteredEnquiries = enquiries.filter(e => {
     if (enquiryStatusFilter !== 'all' && e.status !== enquiryStatusFilter) return false
+    if (enquiryTypeFilter !== 'all' && getEnquiryType(e as any) !== enquiryTypeFilter) return false
     if (enquiryProductFilter !== 'all' && e.product_service_name !== enquiryProductFilter) return false
     if (enquirySourceFilter !== 'all' && e.source_page !== enquirySourceFilter) return false
     if (enquiryEmailFilter !== 'all' && e.email_notification_status !== enquiryEmailFilter) return false
@@ -2663,6 +2718,20 @@ export default function AdminPage() {
                       )}
                     </div>
 
+                    {/* Enquiry Type filter */}
+                    <select
+                      value={enquiryTypeFilter}
+                      onChange={e => setEnquiryTypeFilter(e.target.value as any)}
+                      className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">All Request Types ({enquiries.length})</option>
+                      <option value="trial">Free Trials ({enquiries.filter(e => getEnquiryType(e as any) === 'trial').length})</option>
+                      <option value="demo">Demo Requests ({enquiries.filter(e => getEnquiryType(e as any) === 'demo').length})</option>
+                      <option value="consultation">Consultations ({enquiries.filter(e => getEnquiryType(e as any) === 'consultation').length})</option>
+                      <option value="quote">Quotes & RFQs ({enquiries.filter(e => getEnquiryType(e as any) === 'quote').length})</option>
+                      <option value="contact">Contact Form ({enquiries.filter(e => getEnquiryType(e as any) === 'contact').length})</option>
+                    </select>
+
                     {/* Email Status filter */}
                     <select
                       value={enquiryEmailFilter}
@@ -2788,7 +2857,44 @@ export default function AdminPage() {
                                 <div className="text-slate-800 font-medium truncate max-w-[150px]" title={e.source_page}>
                                   {e.source_page || 'Website'}
                                 </div>
-                                <span className="text-[10px] text-slate-400 capitalize">{e.enquiry_type || 'Product Enquiry'}</span>
+                                <div className="mt-0.5">
+                                  {(() => {
+                                    const enqType = getEnquiryType(e as any)
+                                    if (enqType === 'trial') {
+                                      return (
+                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                          Free Trial
+                                        </span>
+                                      )
+                                    }
+                                    if (enqType === 'demo') {
+                                      return (
+                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-purple-100 text-purple-700 border border-purple-200">
+                                          Demo Request
+                                        </span>
+                                      )
+                                    }
+                                    if (enqType === 'consultation') {
+                                      return (
+                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-indigo-100 text-indigo-700 border border-indigo-200">
+                                          Consultation
+                                        </span>
+                                      )
+                                    }
+                                    if (enqType === 'contact') {
+                                      return (
+                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                                          Contact Form
+                                        </span>
+                                      )
+                                    }
+                                    return (
+                                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-100 text-blue-700 border border-blue-200">
+                                        Quote / RFQ
+                                      </span>
+                                    )
+                                  })()}
+                                </div>
                               </td>
 
                               {/* Product / Service */}
@@ -3448,8 +3554,26 @@ export default function AdminPage() {
                       <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-blue-600 text-white">
                         Quote #{selectedQuote.id}
                       </span>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                        {getEnquiryType(selectedQuote)}
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${
+                        getEnquiryType(selectedQuote) === 'trial'
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                          : getEnquiryType(selectedQuote) === 'demo'
+                          ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                          : getEnquiryType(selectedQuote) === 'consultation'
+                          ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                          : getEnquiryType(selectedQuote) === 'contact'
+                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                          : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                      }`}>
+                        {getEnquiryType(selectedQuote) === 'trial'
+                          ? 'Free Trial'
+                          : getEnquiryType(selectedQuote) === 'demo'
+                          ? 'Demo Request'
+                          : getEnquiryType(selectedQuote) === 'consultation'
+                          ? 'Consultation'
+                          : getEnquiryType(selectedQuote) === 'contact'
+                          ? 'Contact Form'
+                          : 'Quote / RFQ'}
                       </span>
                       <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
                         selectedQuote.status === 'quoted'
