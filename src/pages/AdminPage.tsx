@@ -49,6 +49,9 @@ import {
   Clock,
   ArrowLeft,
   User,
+  Maximize2,
+  Minimize2,
+  PanelLeft,
 } from 'lucide-react'
 import { ShopAndNavigationEditor } from '../components/admin/ShopAndNavigationEditor'
 import { CadVisualPageEditor } from '../components/admin/CadVisualPageEditor'
@@ -182,6 +185,7 @@ export default function AdminPage() {
     | 'scanners_visual_edit'
 
   const [activeTab, setActiveTab] = useState<AdminTab>('enquiries')
+  const [isEnquiryFullPage, setIsEnquiryFullPage] = useState(true)
   const [visualEditorTarget, setVisualEditorTarget] = useState<{
     category: VisualEditorCategory
     productKey: string
@@ -2012,13 +2016,21 @@ export default function AdminPage() {
 
       {/* Main Admin Content Container */}
       <div className={`mx-auto w-full px-3 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col md:flex-row gap-6 min-w-0 transition-all ${
-        activeTab === 'enquiries' || activeTab === 'quotes' ? 'max-w-[1750px]' : 'max-w-7xl'
+        (activeTab === 'enquiries' || activeTab === 'quotes') && isEnquiryFullPage
+          ? 'max-w-none'
+          : activeTab === 'enquiries' || activeTab === 'quotes'
+          ? 'max-w-[1750px]'
+          : 'max-w-7xl'
       }`}>
-        {/* Master Sidebar Navigation */}
+        {/* Master Sidebar Navigation (Hidden in Full-Page Mode for Enquiries / Quotes) */}
+        {!((activeTab === 'enquiries' || activeTab === 'quotes') && isEnquiryFullPage) && (
         <aside className="w-full md:w-64 shrink-0 space-y-3">
           <nav className="bg-white rounded-2xl p-2 border border-slate-200 shadow-sm space-y-1">
             <button
-              onClick={() => setActiveTab('enquiries')}
+              onClick={() => {
+                setActiveTab('enquiries')
+                setIsEnquiryFullPage(true)
+              }}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'enquiries'
                   ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm'
@@ -2044,7 +2056,10 @@ export default function AdminPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('quotes')}
+              onClick={() => {
+                setActiveTab('quotes')
+                setIsEnquiryFullPage(true)
+              }}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
                 activeTab === 'quotes' ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-slate-100'
               }`}
@@ -2196,9 +2211,99 @@ export default function AdminPage() {
           </nav>
 
         </aside>
+        )}
 
         {/* Master Content Area */}
         <main className="flex-1 min-w-0 space-y-6">
+          {/* Top Full-Page Navigation Header for Enquiries & Quotes */}
+          {(activeTab === 'enquiries' || activeTab === 'quotes') && (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 flex flex-wrap items-center justify-between gap-3 animate-fade-in">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => {
+                    setActiveTab('enquiries')
+                    setIsEnquiryFullPage(true)
+                  }}
+                  className={`inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === 'enquiries'
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  <Inbox className="w-4 h-4" />
+                  <span>Enquiry Management</span>
+                  {newEnquiriesCount > 0 && (
+                    <span className="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-rose-500 text-white animate-pulse">
+                      {newEnquiriesCount}
+                    </span>
+                  )}
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
+                    activeTab === 'enquiries' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'
+                  }`}>
+                    {enquiries.length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setActiveTab('quotes')
+                    setIsEnquiryFullPage(true)
+                  }}
+                  className={`inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === 'quotes'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Quotes &amp; RFQs</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
+                    activeTab === 'quotes' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'
+                  }`}>
+                    {quotes.length}
+                  </span>
+                </button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => setIsEnquiryFullPage(!isEnquiryFullPage)}
+                  className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors cursor-pointer border border-slate-200"
+                  title={isEnquiryFullPage ? 'Show Admin Sidebar' : 'Expand to Full Page'}
+                >
+                  <PanelLeft className="w-4 h-4 text-blue-600" />
+                  <span>{isEnquiryFullPage ? 'Show Sidebar' : 'Full Page Mode'}</span>
+                </button>
+
+                <div className="flex items-center space-x-1 pl-2 border-l border-slate-200">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider hidden sm:inline">Module:</span>
+                  <select
+                    value={activeTab}
+                    onChange={(e) => {
+                      const tab = e.target.value as AdminTab
+                      setActiveTab(tab)
+                      if (tab !== 'enquiries' && tab !== 'quotes') {
+                        setIsEnquiryFullPage(false)
+                      }
+                    }}
+                    className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 cursor-pointer"
+                  >
+                    <option value="enquiries">📥 Enquiry Management</option>
+                    <option value="quotes">📄 Quotes &amp; RFQs</option>
+                    <option value="blogs">✍️ Engineering Blogs</option>
+                    <option value="home_content">🏠 Home Page Editor</option>
+                    <option value="about_content">ℹ️ About Us Editor</option>
+                    <option value="shop_editor">🛒 Shop &amp; Dropdowns Editor</option>
+                    <option value="site_settings">⚙️ Site &amp; CMS Settings</option>
+                    <option value="users">👤 Admin Account</option>
+                    <option value="cad_visual_edit">📐 CAD Software Edit</option>
+                    <option value="printers_visual_edit">🖨️ 3D Printers Edit</option>
+                    <option value="scanners_visual_edit">📷 3D Scanners Edit</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
           {/* ====================================================
               TAB 1: OVERVIEW & DASHBOARD
              ==================================================== */}
