@@ -1970,8 +1970,20 @@ export default function AdminPage() {
     <div className="min-h-screen bg-slate-100 flex flex-col font-inter overflow-x-hidden w-full">
       {/* Top Admin Navbar */}
       <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+        <div className={`mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between transition-all ${
+          (activeTab === 'enquiries' || activeTab === 'quotes') && isEnquiryFullPage ? 'w-full max-w-none' : 'max-w-7xl'
+        }`}>
           <div className="flex items-center space-x-3">
+            {((activeTab === 'enquiries' || activeTab === 'quotes') && isEnquiryFullPage) && (
+              <button
+                onClick={() => setIsEnquiryFullPage(false)}
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm active:scale-95 mr-1"
+                title="Back to Admin Menu / Show Sidebar"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>← Back to Menu</span>
+              </button>
+            )}
             <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-black text-sm">
               L
             </div>
@@ -2218,7 +2230,33 @@ export default function AdminPage() {
           {/* Top Full-Page Navigation Header for Enquiries & Quotes */}
           {(activeTab === 'enquiries' || activeTab === 'quotes') && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 flex flex-wrap items-center justify-between gap-3 animate-fade-in">
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+                {/* 1. Primary Back Button to return to menu & select another page */}
+                <button
+                  onClick={() => {
+                    setIsEnquiryFullPage(false)
+                  }}
+                  className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-black bg-slate-900 hover:bg-blue-600 text-white shadow-sm transition-all cursor-pointer group active:scale-95 border border-slate-800"
+                  title="Return to the Admin Menu / Sidebar to select another page"
+                >
+                  <ArrowLeft className="w-4 h-4 text-blue-400 group-hover:text-white group-hover:-translate-x-1 transition-transform" />
+                  <span>← Back to Menu (Select Page)</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsEnquiryFullPage(false)
+                    setActiveTab('dashboard')
+                  }}
+                  className="inline-flex items-center space-x-1.5 px-3 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer border border-slate-200"
+                  title="Return directly to Admin Dashboard overview"
+                >
+                  <Home className="w-4 h-4 text-slate-500" />
+                  <span>Dashboard</span>
+                </button>
+
+                <div className="h-6 w-px bg-slate-200 hidden sm:block" />
+
                 <button
                   onClick={() => {
                     setActiveTab('enquiries')
@@ -2268,15 +2306,15 @@ export default function AdminPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => setIsEnquiryFullPage(!isEnquiryFullPage)}
-                  className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors cursor-pointer border border-slate-200"
+                  className="inline-flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors cursor-pointer border border-slate-200"
                   title={isEnquiryFullPage ? 'Show Admin Sidebar' : 'Expand to Full Page'}
                 >
                   <PanelLeft className="w-4 h-4 text-blue-600" />
                   <span>{isEnquiryFullPage ? 'Show Sidebar' : 'Full Page Mode'}</span>
                 </button>
 
-                <div className="flex items-center space-x-1 pl-2 border-l border-slate-200">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider hidden sm:inline">Module:</span>
+                <div className="flex items-center space-x-1.5 pl-2 border-l border-slate-200">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider hidden sm:inline">Go to Page:</span>
                   <select
                     value={activeTab}
                     onChange={(e) => {
@@ -2286,8 +2324,9 @@ export default function AdminPage() {
                         setIsEnquiryFullPage(false)
                       }
                     }}
-                    className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 cursor-pointer"
+                    className="px-3 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   >
+                    <option value="dashboard">📊 Dashboard Overview</option>
                     <option value="enquiries">📥 Enquiry Management</option>
                     <option value="quotes">📄 Quotes &amp; RFQs</option>
                     <option value="blogs">✍️ Engineering Blogs</option>
@@ -2469,6 +2508,17 @@ export default function AdminPage() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
+                    {isEnquiryFullPage && (
+                      <button
+                        onClick={() => setIsEnquiryFullPage(false)}
+                        className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-slate-900 hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer group"
+                        title="Back to Admin Menu (Show Sidebar to select another page)"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5 text-blue-400 group-hover:text-white group-hover:-translate-x-0.5 transition-transform" />
+                        <span>← Back to Menu</span>
+                      </button>
+                    )}
+
                     <button
                       onClick={() => setShowSmtpDiagnostics(!showSmtpDiagnostics)}
                       className={`inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -3276,6 +3326,17 @@ export default function AdminPage() {
                   <p className="text-xs text-slate-500">Real-time inquiries from Quotes, Live Demos, Engineering Consultations, and Free Trial requests</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
+                  {isEnquiryFullPage && (
+                    <button
+                      onClick={() => setIsEnquiryFullPage(false)}
+                      className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer group"
+                      title="Back to Admin Menu (Show Sidebar to select another page)"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5 text-blue-400 group-hover:text-white group-hover:-translate-x-0.5 transition-transform" />
+                      <span>← Back to Menu</span>
+                    </button>
+                  )}
+
                   <div className="relative">
                     <input
                       type="text"
