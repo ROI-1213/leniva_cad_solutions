@@ -939,7 +939,7 @@ export const GoldPlaPage: React.FC<GoldPageProps> = ({ customData }) => {
                 <span>Thank you! Your review has been submitted successfully.</span>
               </div>
             )}
-            <form onSubmit={handleSubmitReview} className="space-y-3 max-w-xl text-xs">
+            <form onSubmit={handleSubmitReview} data-leniva-handled="true" className="space-y-3 max-w-xl text-xs">
               <div>
                 <label className="block text-slate-600 font-semibold mb-1">Your Rating</label>
                 <div className="flex items-center space-x-1 text-amber-400">
