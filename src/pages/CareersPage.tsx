@@ -352,7 +352,7 @@ export const CareersPage: React.FC = () => {
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+                <form onSubmit={handleSubmit} data-leniva-handled="true" className="space-y-3.5 text-xs">
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">
                       Full Name <span className="text-red-500">*</span>

@@ -1283,7 +1283,7 @@ export const SketchUpProScanPage: React.FC = () => {
                     </p>
                   </div>
                 ) : (
-                  <form onSubmit={handleSubmitEnquiry} className="space-y-4">
+                  <form onSubmit={handleSubmitEnquiry} data-leniva-handled="true" className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold text-slate-700 mb-1">Full Name *</label>

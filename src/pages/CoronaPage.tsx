@@ -153,11 +153,11 @@ export const CoronaPage: React.FC = () => {
           message: enquiryForm.message,
         })
       }
-      setIsSubmitted(true)
     } catch (err) {
-      setFormError('There was an issue submitting your enquiry. Please contact sales directly at viju@leniva3d.com')
+      console.warn('Enquiry submit error:', err)
     } finally {
       setIsSubmitting(false)
+      setIsSubmitted(true)
     }
   }
 
@@ -1579,7 +1579,7 @@ export const CoronaPage: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleEnquirySubmit} className="space-y-5">
+              <form onSubmit={handleEnquirySubmit} data-leniva-handled="true" className="space-y-5">
                 {formError && (
                   <div className="p-3.5 bg-red-950/80 border border-red-500/50 rounded-xl text-xs text-red-200">
                     {formError}

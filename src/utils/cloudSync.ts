@@ -110,7 +110,7 @@ function installStorageInterceptor() {
     rawSetItem(key, value)
     if (!isApplyingRemoteSync && SYNCED_KEY_SET.has(key)) {
       explicitlyResetKeys.delete(key)
-      if (isOnAdminRoute() || key === 'leniva_admin_quotes' || key === 'leniva_admin_contacts') {
+      if (isOnAdminRoute() || key === 'leniva_admin_quotes' || key === 'leniva_admin_contacts' || key === 'leniva_admin_enquiries') {
         const now = Date.now()
         rawSetItem(UPDATED_AT_KEY, String(now))
         scheduleCloudPush()
@@ -557,10 +557,10 @@ export async function submitCentralizedEnquiry(payload: {
   const company = (payload.company_name || payload.company || '').trim()
   const city = (payload.city || '').trim()
 
-  // Prevent duplicate submissions within 4 seconds
+  // Prevent accidental double clicks within 500ms
   const sig = `${customerName.toLowerCase()}|${email.toLowerCase()}|${phone}`
   const nowCheck = Date.now()
-  if (sig && sig !== '||' && sig === lastEnquirySig && nowCheck - lastEnquiryTs < 4000) {
+  if (sig && sig !== '||' && sig === lastEnquirySig && nowCheck - lastEnquiryTs < 500) {
     const existingList = getStoredEnquiries()
     return {
       success: true,
@@ -1242,6 +1242,7 @@ function installGlobalEnquiryFormListener(): void {
         if (isOnAdminRoute()) return
         const form = e.target as HTMLFormElement | null
         if (!form || form.tagName !== 'FORM') return
+        if (form.hasAttribute('data-leniva-handled') || (form as any).__leniva_handled) return
 
         const elements = Array.from(
           form.querySelectorAll('input, select, textarea')

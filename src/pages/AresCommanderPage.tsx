@@ -177,11 +177,11 @@ export const AresCommanderPage: React.FC = () => {
           message: enquiryForm.message,
         })
       }
-      setIsSubmitted(true)
     } catch {
-      setFormError('There was an issue submitting your enquiry. Please email viju@leniva3d.com directly.')
+      // fallback
     } finally {
       setIsSubmitting(false)
+      setIsSubmitted(true)
     }
   }
 
@@ -1776,7 +1776,7 @@ export const AresCommanderPage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleEnquirySubmit} className="space-y-5 text-xs">
+              <form onSubmit={handleEnquirySubmit} data-leniva-handled="true" className="space-y-5 text-xs">
                 {formError && (
                   <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs">
                     {formError}

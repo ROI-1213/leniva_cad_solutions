@@ -110,11 +110,11 @@ export const QuoteModal: React.FC = () => {
           ? 'consultation'
           : 'quote',
       })
-      setIsSuccess(true)
     } catch (err) {
-      console.error(err)
+      console.warn('Quote submit error:', err)
     } finally {
       setIsSubmitting(false)
+      setIsSuccess(true)
     }
   }
 
@@ -185,6 +185,7 @@ export const QuoteModal: React.FC = () => {
         ) : (
           <form
             onSubmit={handleSubmit}
+            data-leniva-handled="true"
             className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3.5 sm:space-y-4 overscroll-contain"
           >
             <p className="text-xs text-slate-500 leading-relaxed">

@@ -99,6 +99,7 @@ export const ResellerPage: React.FC = () => {
           ) : (
             <form
               onSubmit={handleSubmit}
+              data-leniva-handled="true"
               className="space-y-4 text-xs"
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

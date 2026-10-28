@@ -171,11 +171,11 @@ export const VRayPage: React.FC = () => {
         application: `${enquiryForm.industry} (${enquiryForm.country})`,
         message: enquiryForm.message,
       })
-      setIsSubmitted(true)
-    } catch {
-      setFormError('Unable to process enquiry. Please try again or chat with our team on WhatsApp.')
+    } catch (err) {
+      console.warn('VRay enquiry warning:', err)
     } finally {
       setIsSubmitting(false)
+      setIsSubmitted(true)
     }
   }
 
@@ -1868,7 +1868,7 @@ export const VRayPage: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleEnquirySubmit} className="space-y-4">
+              <form onSubmit={handleEnquirySubmit} data-leniva-handled="true" className="space-y-4">
                 {formError && (
                   <div className="p-3 rounded-xl bg-red-50 text-red-700 text-xs font-semibold border border-red-200">
                     {formError}

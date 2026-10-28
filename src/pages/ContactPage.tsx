@@ -186,7 +186,7 @@ export const ContactPage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} data-leniva-handled="true" className="space-y-4">
                 <h3 className="text-lg font-bold text-slate-950">Send an Official Enquiry</h3>
                 <p className="text-xs text-slate-500">
                   Fill in your technical details below to request quotations, schedules, or technical datasheets.

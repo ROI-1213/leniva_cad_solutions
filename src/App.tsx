@@ -163,15 +163,6 @@ class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
 export default function App() {
   const location = useLocation()
   const isAdminRoute = location.pathname === '/admin' || location.pathname === '/admin/'
-  const [cloudSyncVersion, setCloudSyncVersion] = useState(0)
-
-  useEffect(() => {
-    const handleCloudSynced = () => {
-      setCloudSyncVersion(v => v + 1)
-    }
-    window.addEventListener('leniva_cloud_cms_synced', handleCloudSynced)
-    return () => window.removeEventListener('leniva_cloud_cms_synced', handleCloudSynced)
-  }, [])
 
   return (
     <AppProvider>
@@ -180,7 +171,7 @@ export default function App() {
         <GlobalVisualPageOverridesApplier pathname={location.pathname} />
         {!isAdminRoute && <Header />}
 
-        <main className="flex-1" key={isAdminRoute ? 'admin' : `public-${cloudSyncVersion}`}>
+        <main className="flex-1">
           <AppErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <Routes>

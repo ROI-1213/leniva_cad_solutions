@@ -663,7 +663,7 @@ export const EkaF116kPage: React.FC = () => {
                     </button>
                   </div>
                 ) : (
-                  <form onSubmit={handleFormSubmit} className="space-y-4">
+                  <form onSubmit={handleFormSubmit} data-leniva-handled="true" className="space-y-4">
                     <h3 className="text-lg font-black text-slate-950">
                       Request Quote &amp; Free Wax Sample
                     </h3>
