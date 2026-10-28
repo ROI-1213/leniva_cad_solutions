@@ -90,26 +90,25 @@ export const AresStandardPage: React.FC = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setFormSubmitting(true)
+    setFormSubmitted(true)
+    setFormSubmitting(false)
     try {
-      await recordCustomerEnquiry({
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        company: formData.company,
-        productOrService: `ARES Standard (${formData.licenses} Licenses, ${formData.preference})`,
-        quantity: formData.licenses,
-        application: formData.workflow,
-        message: formData.message || `Workflow: ${formData.workflow} | Term: ${formData.preference}`,
-        source: 'ARES Standard Consultation Form',
-        enquiryType: 'quote',
-      })
-    } catch (err) {
-      console.warn('Form submission error:', err)
-    } finally {
-      setFormSubmitting(false)
-      setFormSubmitted(true)
+      window.alert('Enquiry Submitted Successfully!')
+    } catch {
+      // ignore
     }
+    recordCustomerEnquiry({
+      fullName: formData.fullName,
+      email: formData.email,
+      phone: formData.phone,
+      company: formData.company,
+      productOrService: `ARES Standard (${formData.licenses} Licenses, ${formData.preference})`,
+      quantity: formData.licenses,
+      application: formData.workflow,
+      message: formData.message || `Workflow: ${formData.workflow} | Term: ${formData.preference}`,
+      source: 'ARES Standard Consultation Form',
+      enquiryType: 'quote',
+    }).catch(err => console.warn('Form submission error:', err))
   }
 
   const filteredFaqs =

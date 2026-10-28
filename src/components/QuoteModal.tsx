@@ -89,44 +89,53 @@ export const QuoteModal: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = async (e?: React.FormEvent) => {
+  const handleSubmit = (e?: React.FormEvent) => {
     if (e && e.preventDefault) e.preventDefault()
     if (isSubmitting) return
 
-    if (!formData.fullName?.trim()) {
-      alert('Please enter your full name')
+    const name = (formData.fullName || '').trim()
+    const email = (formData.email || '').trim()
+    const phone = (formData.phone || '').trim()
+
+    if (!name) {
+      alert('Please enter your Full Name')
       return
     }
-    if (!formData.email?.trim() && !formData.phone?.trim()) {
-      alert('Please enter your email address or phone number')
+    if (!email && !phone) {
+      alert('Please enter your Corporate Email or Phone Number')
       return
     }
 
-    setIsSubmitting(true)
+    // 1. Immediately activate success state & show browser pop-up message
+    setIsSuccess(true)
+    setIsSubmitting(false)
     try {
-      await submitQuote({
-        ...formData,
-        source: isBrochureRequest
-          ? 'CAD Software Brochure Download Enquiry'
-          : isDemoRequest
-          ? 'Product Demonstration Request'
-          : isConsultationRequest
-          ? 'Engineering Consultation Request'
-          : 'Quote Request Form',
-        enquiryType: isBrochureRequest
-          ? 'quote'
-          : isDemoRequest
-          ? 'demo'
-          : isConsultationRequest
-          ? 'consultation'
-          : 'quote',
-      })
-    } catch (err) {
-      console.warn('Quote submit error:', err)
-    } finally {
-      setIsSubmitting(false)
-      setIsSuccess(true)
+      window.alert('Enquiry Submitted Successfully!')
+    } catch {
+      // ignore
     }
+
+    // 2. Dispatch background persistence and cloud/mail relay to viju@leniva3d.com and Admin
+    submitQuote({
+      ...formData,
+      productOrService: formData.productOrService || quoteProduct || 'General CAD / Product Enquiry',
+      source: isBrochureRequest
+        ? 'CAD Software Brochure Download Enquiry'
+        : isDemoRequest
+        ? 'Product Demonstration Request'
+        : isConsultationRequest
+        ? 'Engineering Consultation Request'
+        : 'Quote Request Form',
+      enquiryType: isBrochureRequest
+        ? 'quote'
+        : isDemoRequest
+        ? 'demo'
+        : isConsultationRequest
+        ? 'consultation'
+        : 'quote',
+    }).catch(err => {
+      console.warn('Background quote submit error:', err)
+    })
   }
 
   const handleResetAndClose = () => {
@@ -172,10 +181,13 @@ export const QuoteModal: React.FC = () => {
 
         {isSuccess ? (
           <div className="p-6 sm:p-8 text-center space-y-4 overflow-y-auto max-h-[85dvh]">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10" />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center animate-bounce">
+              <CheckCircle className="w-10 h-10 sm:w-12 sm:h-12 text-emerald-600" />
             </div>
-            <h4 className="text-xl sm:text-2xl font-bold text-slate-900">{confirmationHeading}</h4>
+            <div className="inline-block px-3.5 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-black uppercase tracking-wider">
+              Enquiry Submitted Successfully
+            </div>
+            <h4 className="text-xl sm:text-2xl font-black text-slate-900">Enquiry Submitted Successfully!</h4>
             <p className="text-slate-600 max-w-md mx-auto text-xs sm:text-sm leading-relaxed">
               {confirmationMessage}
             </p>
