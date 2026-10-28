@@ -1168,42 +1168,6 @@ export const Header: React.FC = () => {
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-300" />
                 </Link>
-
-                {/* 7. Warranty & Support */}
-                <Link
-                  to="/warranty"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
-                    location.pathname === '/warranty' ? 'bg-red-50 text-red-600 font-bold' : 'text-slate-800 hover:bg-slate-50 font-semibold'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <ShieldCheck className={`w-4 h-4 ${location.pathname === '/warranty' ? 'text-red-600' : 'text-slate-500'}`} />
-                    <span className="text-sm">Warranty & Support</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-300" />
-                </Link>
-
-                {/* 8. Wishlist */}
-                <Link
-                  to="/wishlist"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
-                    location.pathname === '/wishlist' ? 'bg-red-50 text-red-600 font-bold' : 'text-slate-800 hover:bg-slate-50 font-semibold'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <Heart className={`w-4 h-4 ${location.pathname === '/wishlist' ? 'text-red-600' : 'text-slate-500'}`} />
-                    <span className="text-sm">Saved Wishlist</span>
-                  </div>
-                  {wishlistCount > 0 ? (
-                    <span className="px-2 py-0.5 text-xs font-bold bg-red-600 text-white rounded-full">
-                      {wishlistCount}
-                    </span>
-                  ) : (
-                    <ChevronRight className="w-4 h-4 text-slate-300" />
-                  )}
-                </Link>
               </div>
             </div>
 
