@@ -211,7 +211,7 @@ export const Header: React.FC = () => {
               <Phone className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span>{liveSiteSettings.phone}</span>
             </a>
-            <div className="flex items-center space-x-1.5 text-slate-600 shrink-0">
+            <div className="hidden md:flex items-center space-x-1.5 text-slate-600 shrink-0">
               <span className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-300 flex items-center justify-center shrink-0">
                 <Target className="w-2.5 h-2.5 text-emerald-600" />
               </span>
@@ -220,7 +220,7 @@ export const Header: React.FC = () => {
           </div>
 
           {/* Right Links & Social Icons */}
-          <div className="flex items-center space-x-3 sm:space-x-4 text-[11px] sm:text-xs text-slate-600 shrink-0">
+          <div className="hidden md:flex items-center space-x-3 sm:space-x-4 text-[11px] sm:text-xs text-slate-600 shrink-0">
             <Link to="/warranty" className="flex items-center space-x-1 text-slate-600 hover:text-red-600 transition-colors shrink-0">
               <ShieldCheck className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span>Warranty & Support</span>
