@@ -213,8 +213,21 @@ export const Footer: React.FC = () => {
 
         {/* Bottom Strip: Copyright & Social */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <div>
-            © {new Date().getFullYear()} <strong className="text-slate-300 font-semibold">{liveSiteSettings.companyName || siteConfig.name}</strong>. All rights reserved. Built for professional additive manufacturing, CAD engineering & metrology.
+          <div className="space-y-1.5 text-center sm:text-left">
+            <div>
+              © {new Date().getFullYear()} <strong className="text-slate-300 font-semibold">{liveSiteSettings.companyName || siteConfig.name}</strong>. All rights reserved. Built for professional additive manufacturing, CAD engineering & metrology.
+            </div>
+            <div>
+              <a
+                href="https://wa.me/919945379333"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold text-red-400 hover:text-red-300 transition-colors tracking-wide hover:underline inline-flex items-center space-x-1"
+                title="Chat with ROI INFOTECH on WhatsApp (+91 99453 79333)"
+              >
+                <span>DEVELOPED BY ROI INFOTECH</span>
+              </a>
+            </div>
           </div>
 
           <div className="flex items-center space-x-4">
