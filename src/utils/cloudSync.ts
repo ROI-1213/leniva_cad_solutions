@@ -623,6 +623,7 @@ export async function submitCentralizedEnquiry(payload: {
     payload.enquiry_type === 'trial' ||
     combined.includes('trial') ||
     combined.includes('trail') ||
+    combined.includes('try') ||
     combined.includes('evaluation') ||
     combined.includes('30-day') ||
     combined.includes('30 day')

@@ -1647,16 +1647,18 @@ export default function AdminPage() {
   const getEnquiryType = (q: QuoteRequest | any): 'quote' | 'demo' | 'consultation' | 'trial' | 'contact' => {
     if (!q) return 'quote'
     const rawType = String((q as any).enquiry_type || (q as any).enquiryType || '').trim().toLowerCase()
-    const text = `${q.service_or_product || (q as any).product_service_name || ''} ${q.notes || ''} ${q.message || ''} ${(q as any).subject || ''} ${(q as any).source || ''} ${(q as any).source_page || ''}`.toLowerCase()
+    const text = `${q.service_or_product || ''} ${(q as any).product_service_name || ''} ${(q as any).productOrService || ''} ${(q as any).product || ''} ${(q as any).requirement || ''} ${(q as any).title || ''} ${q.notes || ''} ${q.message || ''} ${(q as any).subject || ''} ${(q as any).source || ''} ${(q as any).source_page || ''} ${(q as any).application || ''} ${(q as any).name || ''} ${(q as any).customer_name || ''} ${(q as any).company || ''} ${(q as any).company_name || ''}`.toLowerCase()
 
-    // 1. Free Trial / Evaluation / Trail (Priority: Content text & explicit type)
+    // 1. Free Trial / Evaluation / Trail / Free Try (Priority: Content text & explicit type)
     if (
       rawType === 'trial' ||
       rawType === 'free trial' ||
       rawType.includes('trial') ||
       rawType.includes('trail') ||
+      rawType.includes('try') ||
       text.includes('trial') ||
       text.includes('trail') ||
+      text.includes('free try') ||
       text.includes('evaluation') ||
       text.includes('30-day') ||
       text.includes('30 day') ||

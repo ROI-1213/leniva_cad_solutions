@@ -299,7 +299,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const prodOrSvc = data.productOrService || quoteProduct || 'General Quotation / Demo Enquiry'
       let detectedType = data.enquiryType
       const text = `${prodOrSvc} ${data.source || ''} ${data.message || ''}`.toLowerCase()
-      if (text.includes('trial') || text.includes('trail') || text.includes('evaluation') || text.includes('30-day') || text.includes('30 day')) {
+      if (text.includes('trial') || text.includes('trail') || text.includes('try') || text.includes('evaluation') || text.includes('30-day') || text.includes('30 day')) {
         detectedType = 'trial'
       } else if (text.includes('demo') || text.includes('demonstration')) {
         detectedType = 'demo'
