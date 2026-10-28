@@ -1730,8 +1730,8 @@ export const AresCommanderPage: React.FC = () => {
             <span className="text-xs font-mono uppercase tracking-widest text-blue-400 font-bold block">
               Official Indian Sales & Licensing Desk
             </span>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
-              Find the Right ARES Commander License for Your Team
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight uppercase">
+              ENQUIRE NOW
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl mx-auto">
               Whether you are an individual CAD professional, design studio, or enterprise engineering organization, contact Leniva CAD Solutions for verified commercial quotations, multi-seat discounts, and licensing options.

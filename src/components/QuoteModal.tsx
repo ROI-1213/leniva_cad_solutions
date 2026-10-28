@@ -54,13 +54,7 @@ export const QuoteModal: React.FC = () => {
         ? 'Engineering Consultation'
         : 'Official Inquiry'
 
-  const modalHeading = isBrochureRequest
-    ? 'Download Official Product Brochure'
-    : isDemoRequest
-      ? 'Request a Product Demonstration'
-      : isConsultationRequest
-        ? 'Schedule an Engineering Consultation'
-        : 'Request an Engineering Quotation'
+  const modalHeading = 'ENQUIRE NOW'
 
   const modalIntro = isBrochureRequest
     ? 'Please provide your details below to receive the complete official CAD software brochure, technical datasheet, and licensing documentation.'
@@ -76,7 +70,7 @@ export const QuoteModal: React.FC = () => {
       ? 'Submit Demo Request'
       : isConsultationRequest
         ? 'Schedule Consultation'
-        : 'Submit Quote Request'
+        : 'Submit Enquiry'
 
   const confirmationHeading = 'Enquiry Submitted Successfully'
 

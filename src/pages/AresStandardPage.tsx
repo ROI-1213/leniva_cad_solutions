@@ -1136,8 +1136,8 @@ export const AresStandardPage: React.FC = () => {
             <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">
               Sales Consultation
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-              Talk to Our CAD Software Team
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight uppercase">
+              ENQUIRE NOW
             </h2>
             <p className="mt-3 text-slate-600 text-sm max-w-xl mx-auto">
               Tell us about your drafting requirements and our team can help you explore the appropriate ARES licensing and product options.

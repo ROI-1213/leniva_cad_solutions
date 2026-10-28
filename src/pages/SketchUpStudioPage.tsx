@@ -1381,8 +1381,8 @@ export const SketchUpStudioPage: React.FC = () => {
             {/* Right form */}
             <div className="lg:col-span-7">
               <div className="bg-white text-slate-900 p-8 sm:p-10 rounded-3xl shadow-2xl border border-slate-200">
-                <h3 className="text-2xl font-black text-slate-950 mb-2">
-                  Request Commercial Quote & Demo
+                <h3 className="text-2xl font-black text-slate-950 mb-2 uppercase tracking-tight">
+                  ENQUIRE NOW
                 </h3>
                 <p className="text-xs text-slate-600 mb-6">
                   Fill in your project requirements below to receive a personalized quote for SketchUp Studio.
