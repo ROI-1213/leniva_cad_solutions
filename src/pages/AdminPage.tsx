@@ -1939,7 +1939,7 @@ export default function AdminPage() {
         key="cad_visual_edit"
         initialCategory="cad"
         initialProductKey="ares_commander"
-        onExitToDashboard={() => setActiveTab('quotes')}
+        onExitToDashboard={() => setActiveTab('dashboard')}
       />
     )
   }
@@ -1950,7 +1950,7 @@ export default function AdminPage() {
         key="printers_visual_edit"
         initialCategory="printers"
         initialProductKey="pratham_mini"
-        onExitToDashboard={() => setActiveTab('quotes')}
+        onExitToDashboard={() => setActiveTab('dashboard')}
       />
     )
   }
@@ -1961,7 +1961,7 @@ export default function AdminPage() {
         key="scanners_visual_edit"
         initialCategory="scanners"
         initialProductKey="devok_mt"
-        onExitToDashboard={() => setActiveTab('quotes')}
+        onExitToDashboard={() => setActiveTab('dashboard')}
       />
     )
   }
@@ -1971,10 +1971,10 @@ export default function AdminPage() {
       {/* Top Admin Navbar */}
       <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40">
         <div className={`mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between transition-all ${
-          (activeTab === 'enquiries' || activeTab === 'quotes') && isEnquiryFullPage ? 'w-full max-w-none' : 'max-w-7xl'
+          activeTab === 'enquiries' && isEnquiryFullPage ? 'w-full max-w-none' : 'max-w-7xl'
         }`}>
           <div className="flex items-center space-x-3">
-            {((activeTab === 'enquiries' || activeTab === 'quotes') && isEnquiryFullPage) && (
+            {(activeTab === 'enquiries' && isEnquiryFullPage) && (
               <button
                 onClick={() => setIsEnquiryFullPage(false)}
                 className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm active:scale-95 mr-1"
@@ -2028,14 +2028,14 @@ export default function AdminPage() {
 
       {/* Main Admin Content Container */}
       <div className={`mx-auto w-full px-3 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col md:flex-row gap-6 min-w-0 transition-all ${
-        (activeTab === 'enquiries' || activeTab === 'quotes') && isEnquiryFullPage
+        activeTab === 'enquiries' && isEnquiryFullPage
           ? 'max-w-none'
-          : activeTab === 'enquiries' || activeTab === 'quotes'
+          : activeTab === 'enquiries'
           ? 'max-w-[1750px]'
           : 'max-w-7xl'
       }`}>
-        {/* Master Sidebar Navigation (Hidden in Full-Page Mode for Enquiries / Quotes) */}
-        {!((activeTab === 'enquiries' || activeTab === 'quotes') && isEnquiryFullPage) && (
+        {/* Master Sidebar Navigation (Hidden in Full-Page Mode for Enquiries) */}
+        {!(activeTab === 'enquiries' && isEnquiryFullPage) && (
         <aside className="w-full md:w-64 shrink-0 space-y-3">
           <nav className="bg-white rounded-2xl p-2 border border-slate-200 shadow-sm space-y-1">
             <button
@@ -2065,26 +2065,6 @@ export default function AdminPage() {
                   {enquiries.length}
                 </span>
               </div>
-            </button>
-
-            <button
-              onClick={() => {
-                setActiveTab('quotes')
-                setIsEnquiryFullPage(true)
-              }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
-                activeTab === 'quotes' ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <FileText className="w-4 h-4" />
-                <span>Quotes & RFQs</span>
-              </div>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
-                activeTab === 'quotes' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'
-              }`}>
-                {quotes.length}
-              </span>
             </button>
 
             <button
@@ -2227,8 +2207,8 @@ export default function AdminPage() {
 
         {/* Master Content Area */}
         <main className="flex-1 min-w-0 space-y-6">
-          {/* Top Full-Page Navigation Header for Enquiries & Quotes */}
-          {(activeTab === 'enquiries' || activeTab === 'quotes') && (
+          {/* Top Full-Page Navigation Header for Enquiries */}
+          {activeTab === 'enquiries' && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 flex flex-wrap items-center justify-between gap-3 animate-fade-in">
               <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
                 {/* 1. Primary Back Button to return to menu & select another page */}
@@ -2281,26 +2261,6 @@ export default function AdminPage() {
                     {enquiries.length}
                   </span>
                 </button>
-
-                <button
-                  onClick={() => {
-                    setActiveTab('quotes')
-                    setIsEnquiryFullPage(true)
-                  }}
-                  className={`inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    activeTab === 'quotes'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
-                  <FileText className="w-4 h-4" />
-                  <span>Quotes &amp; RFQs</span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                    activeTab === 'quotes' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'
-                  }`}>
-                    {quotes.length}
-                  </span>
-                </button>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -2320,7 +2280,7 @@ export default function AdminPage() {
                     onChange={(e) => {
                       const tab = e.target.value as AdminTab
                       setActiveTab(tab)
-                      if (tab !== 'enquiries' && tab !== 'quotes') {
+                      if (tab !== 'enquiries') {
                         setIsEnquiryFullPage(false)
                       }
                     }}
@@ -2328,7 +2288,6 @@ export default function AdminPage() {
                   >
                     <option value="dashboard">📊 Dashboard Overview</option>
                     <option value="enquiries">📥 Enquiry Management</option>
-                    <option value="quotes">📄 Quotes &amp; RFQs</option>
                     <option value="blogs">✍️ Engineering Blogs</option>
                     <option value="home_content">🏠 Home Page Editor</option>
                     <option value="about_content">ℹ️ About Us Editor</option>
@@ -2350,16 +2309,19 @@ export default function AdminPage() {
             <div className="space-y-6">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div
-                  onClick={() => setActiveTab('quotes')}
+                  onClick={() => {
+                    setActiveTab('enquiries')
+                    setIsEnquiryFullPage(true)
+                  }}
                   className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-blue-400 transition-all"
                 >
                   <div>
-                    <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Quotes</div>
-                    <div className="text-2xl font-black text-slate-900 mt-1">{quotes.length}</div>
-                    <div className="text-[10px] text-blue-600 font-semibold mt-1">Customer RFQs →</div>
+                    <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Enquiries</div>
+                    <div className="text-2xl font-black text-slate-900 mt-1">{enquiries.length}</div>
+                    <div className="text-[10px] text-blue-600 font-semibold mt-1">Enquiry Management →</div>
                   </div>
                   <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                    <FileText className="w-5 h-5" />
+                    <Inbox className="w-5 h-5" />
                   </div>
                 </div>
 
@@ -2415,10 +2377,13 @@ export default function AdminPage() {
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
-                      onClick={() => setActiveTab('quotes')}
+                      onClick={() => {
+                        setActiveTab('enquiries')
+                        setIsEnquiryFullPage(true)
+                      }}
                       className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
                     >
-                      View All Quotes ({quotes.length})
+                      View All Enquiries ({enquiries.length})
                     </button>
                     <button
                       onClick={() => setActiveTab('contacts')}
@@ -3159,512 +3124,6 @@ export default function AdminPage() {
               )}
             </div>
           )}
-
-          {/* ====================================================
-              TAB 2: QUOTES & RFQS
-             ==================================================== */}
-          {activeTab === 'quotes' && (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
-              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-lg font-black text-slate-900">Customer Inquiries, Quotes & Consultations</h3>
-                  <p className="text-xs text-slate-500">Real-time inquiries from Quotes, Live Demos, Engineering Consultations, and Free Trial requests</p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  {isEnquiryFullPage && (
-                    <button
-                      onClick={() => setIsEnquiryFullPage(false)}
-                      className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer group"
-                      title="Back to Admin Menu (Show Sidebar to select another page)"
-                    >
-                      <ArrowLeft className="w-3.5 h-3.5 text-blue-400 group-hover:text-white group-hover:-translate-x-0.5 transition-transform" />
-                      <span>← Back to Menu</span>
-                    </button>
-                  )}
-
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={quoteSearchInput}
-                      onChange={e => setQuoteSearchInput(e.target.value)}
-                      placeholder="Search inquiries..."
-                      className="text-xs pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-48 sm:w-56"
-                    />
-                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
-                    {quoteSearchInput && (
-                      <button
-                        onClick={() => setQuoteSearchInput('')}
-                        className="absolute right-2 top-2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
-                        aria-label="Clear search"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-                  <select
-                    value={quoteFilter}
-                    onChange={e => setQuoteFilter(e.target.value)}
-                    className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 bg-white"
-                  >
-                    <option value="all">All Statuses ({quotes.length})</option>
-                    <option value="pending">Pending</option>
-                    <option value="in_review">In Review</option>
-                    <option value="quoted">Quoted</option>
-                    <option value="completed">Completed</option>
-                  </select>
-                  <button
-                    onClick={handleExportQuotesCsv}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
-                    title="Export currently filtered inquiries to CSV"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Export CSV</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Enquiry Type Filter Pills */}
-              <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-100">
-                <button
-                  onClick={() => setQuoteEnquiryTypeFilter('all')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                    quoteEnquiryTypeFilter === 'all'
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  All Inquiries ({quotes.length})
-                </button>
-                <button
-                  onClick={() => setQuoteEnquiryTypeFilter('quote')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                    quoteEnquiryTypeFilter === 'quote'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
-                  }`}
-                >
-                  Quotes & RFQs ({quotes.filter(q => getEnquiryType(q) === 'quote').length})
-                </button>
-                <button
-                  onClick={() => setQuoteEnquiryTypeFilter('demo')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                    quoteEnquiryTypeFilter === 'demo'
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-purple-50 text-purple-700 hover:bg-purple-100'
-                  }`}
-                >
-                  Demo Requests ({quotes.filter(q => getEnquiryType(q) === 'demo').length})
-                </button>
-                <button
-                  onClick={() => setQuoteEnquiryTypeFilter('consultation')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                    quoteEnquiryTypeFilter === 'consultation'
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
-                  }`}
-                >
-                  Engineering Consultations ({quotes.filter(q => getEnquiryType(q) === 'consultation').length})
-                </button>
-                <button
-                  onClick={() => setQuoteEnquiryTypeFilter('trial')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                    quoteEnquiryTypeFilter === 'trial'
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                  }`}
-                >
-                  Free Trials ({quotes.filter(q => getEnquiryType(q) === 'trial').length})
-                </button>
-                <button
-                  onClick={() => setQuoteEnquiryTypeFilter('contact')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                    quoteEnquiryTypeFilter === 'contact'
-                      ? 'bg-amber-600 text-white'
-                      : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
-                  }`}
-                >
-                  Contact Form ({quotes.filter(q => getEnquiryType(q) === 'contact').length})
-                </button>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider bg-slate-50/50">
-                      <th className="py-3 px-3">ID</th>
-                      <th className="py-3 px-3">Submitted Date</th>
-                      <th className="py-3 px-3">Type</th>
-                      <th className="py-3 px-3">Client & Company</th>
-                      <th className="py-3 px-3">Contact</th>
-                      <th className="py-3 px-3">Product / Requirement</th>
-                      <th className="py-3 px-3">Quantity & Timeline</th>
-                      <th className="py-3 px-3">Status</th>
-                      <th className="py-3 px-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredQuotes.length === 0 ? (
-                      <tr>
-                        <td colSpan={9} className="py-8 text-center text-slate-400 font-medium">
-                          No inquiries found matching your filters.
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredQuotes.map(q => {
-                        const type = getEnquiryType(q)
-                        return (
-                          <tr key={q.id} className="hover:bg-slate-50 transition-colors">
-                            <td className="py-3 px-3 font-mono font-bold text-slate-400">#{q.id}</td>
-                            <td className="py-3 px-3 text-slate-600 font-mono text-[11px] whitespace-nowrap">
-                              <div className="font-bold text-slate-800">
-                                {q.created_at ? new Date(q.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
-                              </div>
-                              <div className="text-[10px] text-slate-400">
-                                {q.created_at ? new Date(q.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true }) : ''}
-                              </div>
-                            </td>
-                            <td className="py-3 px-3 whitespace-nowrap">
-                              {type === 'demo' && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-200">
-                                  Demo Request
-                                </span>
-                              )}
-                              {type === 'consultation' && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 border border-indigo-200">
-                                  Consultation
-                                </span>
-                              )}
-                              {type === 'trial' && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
-                                  Free Trial
-                                </span>
-                              )}
-                              {type === 'contact' && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">
-                                  Contact Form
-                                </span>
-                              )}
-                              {type === 'quote' && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200">
-                                  Quote / RFQ
-                                </span>
-                              )}
-                            </td>
-                            <td className="py-3 px-3">
-                              <div className="font-bold text-slate-900">{q.name}</div>
-                              <div className="text-[11px] text-slate-500">{q.company || 'Individual'}</div>
-                            </td>
-                            <td className="py-3 px-3 text-slate-600">
-                              <div>
-                                <a href={`mailto:${q.email}`} className="hover:text-blue-600 hover:underline">
-                                  {q.email}
-                                </a>
-                              </div>
-                              {q.phone && (
-                                <div className="text-[11px] text-slate-400 font-mono">
-                                  <a href={`tel:${q.phone}`} className="hover:text-blue-600">
-                                    {q.phone}
-                                  </a>
-                                </div>
-                              )}
-                            </td>
-                            <td className="py-3 px-3">
-                              <div className="font-semibold text-slate-800">{q.service_or_product}</div>
-                              {q.message && (
-                                <div className="text-[11px] text-slate-500 max-w-xs truncate" title={q.message}>
-                                  {q.message}
-                                </div>
-                              )}
-                            </td>
-                            <td className="py-3 px-3 text-slate-600">
-                              <div>Qty: {q.quantity}</div>
-                              <div className="text-[11px] text-slate-400">{q.timeline}</div>
-                            </td>
-                            <td className="py-3 px-3">
-                              <select
-                                value={q.status}
-                                onChange={e => handleUpdateQuoteStatus(q.id, e.target.value)}
-                                className="text-xs font-bold rounded-lg border border-slate-200 bg-white px-2 py-1 cursor-pointer focus:ring-1 focus:ring-blue-500"
-                              >
-                                <option value="pending">Pending</option>
-                                <option value="in_review">In Review</option>
-                                <option value="quoted">Quoted</option>
-                                <option value="completed">Completed</option>
-                              </select>
-                            </td>
-                            <td className="py-3 px-3 text-right space-x-2 whitespace-nowrap">
-                              <button
-                                onClick={() => {
-                                  setSelectedQuote(q)
-                                  setQuoteNotesInput(q.notes || '')
-                                }}
-                                className="inline-flex items-center space-x-1 px-2.5 py-1 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-colors cursor-pointer text-xs font-bold border border-blue-200"
-                                title="Inspect full page details"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                                <span>Full Page</span>
-                              </button>
-                              <button
-                                onClick={() => handleDeleteQuote(q.id)}
-                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors cursor-pointer inline-flex items-center"
-                                title="Delete quote"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </td>
-                          </tr>
-                        )
-                      })
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* ====================================================
-              FULL-PAGE QUOTE & RFQ VIEW
-             ==================================================== */}
-          {selectedQuote && (
-            <div className="fixed inset-0 z-50 bg-slate-100 overflow-y-auto flex flex-col animate-fade-in">
-              {/* Sticky Top Header Bar */}
-              <div className="sticky top-0 z-20 bg-slate-900 text-white px-4 sm:px-8 py-4 shadow-md flex items-center justify-between border-b border-slate-800">
-                <div className="flex items-center space-x-3 sm:space-x-4">
-                  <button
-                    onClick={() => setSelectedQuote(null)}
-                    className="inline-flex items-center space-x-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer border border-slate-700"
-                    title="Back to Quotes List"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    <span className="hidden sm:inline">Back to Quotes List</span>
-                    <span className="sm:hidden">Back</span>
-                  </button>
-                  <div className="h-6 w-px bg-slate-700 hidden sm:block" />
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-blue-600 text-white">
-                        Quote #{selectedQuote.id}
-                      </span>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                        {getEnquiryType(selectedQuote)}
-                      </span>
-                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
-                        selectedQuote.status === 'quoted'
-                          ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                          : selectedQuote.status === 'completed'
-                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                          : selectedQuote.status === 'in_review'
-                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                          : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                      }`}>
-                        {selectedQuote.status ? selectedQuote.status.replace('_', ' ').toUpperCase() : 'PENDING'}
-                      </span>
-                    </div>
-                    <h2 className="text-base sm:text-lg font-bold text-white mt-0.5 truncate max-w-md sm:max-w-xl">
-                      {selectedQuote.name} {selectedQuote.company ? `(${selectedQuote.company})` : ''}
-                    </h2>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => window.print()}
-                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium cursor-pointer transition-colors"
-                    title="Print Quote Details"
-                  >
-                    <Printer className="w-3.5 h-3.5 text-slate-300" />
-                    <span className="hidden sm:inline">Print / Save PDF</span>
-                  </button>
-                  <button
-                    onClick={() => setSelectedQuote(null)}
-                    className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-                    aria-label="Close"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Full Page Body */}
-              <div className="max-w-6xl mx-auto w-full p-4 sm:p-8 space-y-6 flex-1">
-                {/* Top Row: Client Profile + Quote Status Workflow */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Client Profile Card */}
-                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-2">
-                        <User className="w-4 h-4 text-blue-600" />
-                        <span>Client Profile & Contact</span>
-                      </h3>
-                      <span className="text-[11px] font-mono text-slate-400">Quote #{selectedQuote.id}</span>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                      <div>
-                        <span className="text-slate-400 block text-[11px] font-medium">Client / Contact Person</span>
-                        <strong className="text-slate-900 text-sm block mt-0.5">{selectedQuote.name}</strong>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block text-[11px] font-medium">Company / Organization</span>
-                        <span className="text-slate-800 font-semibold block mt-0.5">{selectedQuote.company || 'Independent / Freelance'}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block text-[11px] font-medium">Email Address</span>
-                        <a href={`mailto:${selectedQuote.email}`} className="text-blue-600 hover:underline font-semibold block mt-0.5">
-                          {selectedQuote.email}
-                        </a>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block text-[11px] font-medium">Phone / WhatsApp</span>
-                        {selectedQuote.phone ? (
-                          <a href={`tel:${selectedQuote.phone}`} className="text-slate-900 hover:text-blue-600 font-mono font-bold block mt-0.5">
-                            {selectedQuote.phone}
-                          </a>
-                        ) : (
-                          <span className="text-slate-400 italic block mt-0.5">Not provided</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Status & Timing Card */}
-                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                        <span>Status & RFQ Timeline</span>
-                      </h3>
-                      <span className="text-[11px] font-medium text-slate-400">
-                        {selectedQuote.created_at
-                          ? new Date(selectedQuote.created_at).toLocaleString('en-GB', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              hour12: true,
-                            })
-                          : 'N/A'}
-                      </span>
-                    </div>
-
-                    <div>
-                      <label className="text-slate-500 block text-[11px] font-bold uppercase tracking-wider mb-2">
-                        Quotation Status:
-                      </label>
-                      <div className="flex flex-wrap gap-2">
-                        {[
-                          { key: 'pending', label: 'Pending' },
-                          { key: 'in_review', label: 'In Review' },
-                          { key: 'quoted', label: 'Quoted' },
-                          { key: 'completed', label: 'Completed' },
-                        ].map(st => (
-                          <button
-                            key={st.key}
-                            onClick={() => handleUpdateQuoteStatus(selectedQuote.id, st.key, quoteNotesInput)}
-                            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                              selectedQuote.status === st.key
-                                ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-600 ring-offset-2'
-                                : 'bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100'
-                            }`}
-                          >
-                            {st.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3 pt-2">
-                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                        <span className="text-slate-400 block text-[11px] font-medium">Quantity Requested</span>
-                        <strong className="text-slate-900 text-sm block mt-0.5">{selectedQuote.quantity || '1 unit'}</strong>
-                      </div>
-                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                        <span className="text-slate-400 block text-[11px] font-medium">Required Timeline</span>
-                        <strong className="text-slate-900 text-sm block mt-0.5">{selectedQuote.timeline || 'Immediate'}</strong>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Middle Card: Requested Product & Client Requirements */}
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-3 flex items-center space-x-2">
-                    <Package className="w-4 h-4 text-blue-600" />
-                    <span>Requested Product / Solution</span>
-                  </h3>
-
-                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80">
-                    <span className="text-slate-400 text-[11px] font-medium block">Product / Service Specification</span>
-                    <strong className="text-blue-700 text-lg font-bold block mt-0.5">
-                      {selectedQuote.service_or_product}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span className="text-slate-500 text-xs font-bold uppercase tracking-wider block mb-2">
-                      Client Requirement & Technical Message:
-                    </span>
-                    <div className="p-5 bg-slate-50 rounded-xl border border-slate-200 text-slate-800 text-sm whitespace-pre-wrap leading-relaxed min-h-[120px]">
-                      {selectedQuote.message || 'No additional message was provided with this quote request.'}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200/70 text-xs text-slate-500">
-                    <div>
-                      <span>Reply directly to client: </span>
-                      <a href={`mailto:${selectedQuote.email}`} className="text-blue-600 hover:underline font-semibold">
-                        {selectedQuote.email}
-                      </a>
-                    </div>
-                    <a
-                      href={`mailto:${selectedQuote.email}?subject=${encodeURIComponent(`Official Quote – ${selectedQuote.service_or_product} – Leniva CAD Solutions`)}&body=${encodeURIComponent(`Dear ${selectedQuote.name},\n\nThank you for reaching out to Leniva CAD Solutions regarding ${selectedQuote.service_or_product}.\n\n`)}`}
-                      className="inline-flex items-center space-x-1.5 text-blue-600 hover:text-blue-800 text-xs font-bold"
-                    >
-                      <Mail className="w-3.5 h-3.5" />
-                      <span>Compose Email in Mail Client &rarr;</span>
-                    </a>
-                  </div>
-                </div>
-
-                {/* Bottom Card: Internal Notes */}
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-2">
-                      <FileText className="w-4 h-4 text-blue-600" />
-                      <span>Internal Admin Notes / Quotation Follow-up</span>
-                    </label>
-                    <span className="text-[11px] text-slate-400">Notes are visible to admins only</span>
-                  </div>
-                  <textarea
-                    rows={4}
-                    value={quoteNotesInput}
-                    onChange={e => setQuoteNotesInput(e.target.value)}
-                    placeholder="e.g. Sent official quote + GST on 28th Sep. Scheduled demo call with engineer..."
-                    className="w-full text-sm p-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed bg-slate-50 focus:bg-white transition-colors"
-                  />
-                  <div className="flex items-center justify-between pt-2">
-                    <button
-                      onClick={() => setSelectedQuote(null)}
-                      className="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-100 rounded-xl text-xs font-bold transition-colors cursor-pointer"
-                    >
-                      &larr; Back to List
-                    </button>
-                    <button
-                      onClick={() => handleUpdateQuoteStatus(selectedQuote.id, selectedQuote.status, quoteNotesInput)}
-                      className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-md inline-flex items-center space-x-1.5"
-                    >
-                      <Save className="w-4 h-4" />
-                      <span>Save Notes & Status</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-
-
 
           {/* ====================================================
               TAB 4: PRODUCTS CATALOG (FULL CRUD)
