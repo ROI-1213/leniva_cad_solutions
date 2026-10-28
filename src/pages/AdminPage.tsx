@@ -2053,18 +2053,11 @@ export default function AdminPage() {
                 <Inbox className="w-4 h-4" />
                 <span>Enquiry Management</span>
               </div>
-              <div className="flex items-center space-x-1">
-                {newEnquiriesCount > 0 && (
-                  <span className="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-rose-500 text-white animate-pulse">
-                    {newEnquiriesCount}
-                  </span>
-                )}
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                  activeTab === 'enquiries' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'
-                }`}>
-                  {enquiries.length}
-                </span>
-              </div>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
+                activeTab === 'enquiries' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'
+              }`}>
+                {enquiries.length}
+              </span>
             </button>
 
             <button
@@ -2250,11 +2243,6 @@ export default function AdminPage() {
                 >
                   <Inbox className="w-4 h-4" />
                   <span>Enquiry Management</span>
-                  {newEnquiriesCount > 0 && (
-                    <span className="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-rose-500 text-white animate-pulse">
-                      {newEnquiriesCount}
-                    </span>
-                  )}
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
                     activeTab === 'enquiries' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'
                   }`}>
