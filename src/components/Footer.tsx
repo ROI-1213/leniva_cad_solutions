@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
 import {
   Phone,
@@ -8,79 +8,17 @@ import {
   Instagram,
   Youtube,
   Facebook,
-  CheckCircle,
-  Send,
   Menu,
 } from 'lucide-react'
 import { siteConfig } from '../data/siteConfig'
 import { useApp } from '../context/AppContext'
-import { recordCustomerEnquiry } from '../utils/cloudSync'
 
 export const Footer: React.FC = () => {
   const { liveSiteSettings } = useApp()
-  const [newsletterEmail, setNewsletterEmail] = useState('')
-  const [newsletterSubmitted, setNewsletterSubmitted] = useState(false)
-
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (newsletterEmail) {
-      recordCustomerEnquiry({
-        fullName: 'Newsletter Subscriber',
-        email: newsletterEmail,
-        productOrService: 'Newsletter Subscription (Technical Briefing)',
-        subject: 'New Newsletter Subscriber – Technical Briefing',
-        message: `Subscriber Email: ${newsletterEmail}\nSubscribed to engineering whitepapers and material selection insights.`,
-        source: 'Website Footer Newsletter',
-        enquiryType: 'contact',
-      }).catch(() => false)
-      setNewsletterSubmitted(true)
-      setNewsletterEmail('')
-    }
-  }
 
   return (
     <footer className="bg-slate-950 text-slate-300 pt-10 sm:pt-12 pb-10 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
-        {/* Top Newsletter & Advisory Banner */}
-        <div className="bg-slate-900/90 rounded-2xl p-6 sm:p-7 border border-slate-800 mb-8 sm:mb-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-          <div className="lg:col-span-7 space-y-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-red-400">Engineering Briefing</span>
-            <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-              Stay Ahead with Additive Manufacturing & CAD Trends
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-400">
-              Receive technical whitepapers, material selection charts, and software release notices directly from our engineering team.
-            </p>
-          </div>
-
-          <div className="lg:col-span-5">
-            {newsletterSubmitted ? (
-              <div className="flex items-center space-x-2 text-emerald-400 text-sm font-semibold bg-emerald-950/60 border border-emerald-800 p-3 rounded-xl">
-                <CheckCircle className="w-5 h-5" />
-                <span>Thank you for subscribing to Leniva Engineering Insights!</span>
-              </div>
-            ) : (
-              <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-2">
-                <input
-                  type="email"
-                  required
-                  value={newsletterEmail}
-                  onChange={e => setNewsletterEmail(e.target.value)}
-                  placeholder="Enter corporate email address..."
-                  className="flex-1 px-4 py-2.5 text-xs bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-red-500"
-                />
-                <button
-                  type="submit"
-                  className="inline-flex items-center justify-center space-x-1.5 px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg transition-colors shrink-0"
-                >
-                  <span>Subscribe</span>
-                  <Send className="w-3.5 h-3.5" />
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
-
         {/* Brand Bar */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-8 mb-8 border-b border-slate-800">
           <Link to="/" className="inline-flex items-center">
