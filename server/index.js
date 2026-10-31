@@ -4,12 +4,15 @@ import multer from 'multer'
 import crypto from 'crypto'
 import dotenv from 'dotenv'
 import nodemailer from 'nodemailer'
+import path from 'path'
+import fs from 'fs'
+import { fileURLToPath } from 'url'
 import pool from './db.js'
 
 dotenv.config()
 
 const app = express()
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 8175
 
 app.use(cors())
 app.use(express.json({ limit: '50mb' }))
@@ -1257,12 +1260,31 @@ app.post('/api/admin/query', async (req, res) => {
 })
 
 // ====================================================================
+// STATIC ASSET SERVING & SPA FALLBACK (FULL-STACK PRODUCTION SUPPORT)
+// ====================================================================
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const distPath = path.resolve(__dirname, '../dist')
+
+if (fs.existsSync(distPath)) {
+  console.log(`[Static] Serving frontend static assets from: ${distPath}`)
+  app.use(express.static(distPath))
+
+  // Any non-API route returns index.html for React SPA routing (Express 4 & 5 compatible)
+  app.use((req, res, next) => {
+    if (req.method !== 'GET') return next()
+    if (req.path.startsWith('/api')) return next()
+    res.sendFile(path.join(distPath, 'index.html'))
+  })
+}
+
+// ====================================================================
 // START SERVER
 // ====================================================================
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`=======================================================`)
-  console.log(`Leniva CAD Solutions PostgreSQL API Server`)
-  console.log(`Listening on http://localhost:${PORT}`)
+  console.log(`Leniva CAD Solutions Web & API Server`)
+  console.log(`Listening on http://0.0.0.0:${PORT} (Port: ${PORT})`)
   console.log(`Connected to PostgreSQL: 127.0.0.1:5432/leniv698 (localhost)`)
   console.log(`Zero Supabase - 100% Native PostgreSQL Backend & Storage`)
   console.log(`=======================================================`)
