@@ -1278,9 +1278,21 @@ if (fs.existsSync(distPath)) {
   app.use((req, res, next) => {
     if (req.method !== 'GET') return next()
     if (req.path.startsWith('/api')) return next()
+    // Do not serve HTML for missing static assets or files with extensions
+    if (req.path.startsWith('/assets/') || path.extname(req.path)) {
+      return res.status(404).end()
+    }
     res.sendFile(path.join(distPath, 'index.html'))
   })
 }
+
+// Process-level crash prevention guards
+process.on('uncaughtException', (err) => {
+  console.error('[Leniva Server] Uncaught Exception:', err)
+})
+process.on('unhandledRejection', (reason) => {
+  console.error('[Leniva Server] Unhandled Rejection:', reason)
+})
 
 // ====================================================================
 // START SERVER

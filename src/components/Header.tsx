@@ -195,24 +195,27 @@ export const Header: React.FC = () => {
         }`}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 sm:gap-4 w-full">
-          {/* Email on the left */}
-          <a
-            href={`mailto:${liveSiteSettings.email}`}
-            className="flex items-center space-x-1.5 text-slate-600 hover:text-red-600 transition-colors shrink-0 text-[11px] sm:text-xs"
-          >
-            <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-            <span className="truncate max-w-[170px] sm:max-w-none">{liveSiteSettings.email}</span>
-          </a>
+          {/* Contact info: Full width with email on left & phone on right on mobile; neatly grouped on desktop */}
+          <div className="flex items-center justify-between md:justify-start w-full md:w-auto space-x-3 sm:space-x-5 text-[11px] sm:text-xs">
+            {/* Email */}
+            <a
+              href={`mailto:${liveSiteSettings.email}`}
+              className="flex items-center space-x-1.5 text-slate-600 hover:text-red-600 transition-colors shrink-0"
+            >
+              <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+              <span className="truncate max-w-[170px] sm:max-w-none">{liveSiteSettings.email}</span>
+            </a>
 
-          {/* Right end on mobile / grouped with email on desktop */}
-          <div className="flex items-center space-x-3 sm:space-x-5 text-[11px] sm:text-xs shrink-0 ml-auto md:ml-0">
+            {/* Phone (pushed to far right end on mobile) */}
             <a
               href={`tel:${liveSiteSettings.phone}`}
-              className="flex items-center space-x-1.5 text-slate-700 font-semibold md:font-normal md:text-slate-600 hover:text-red-600 transition-colors shrink-0"
+              className="flex items-center space-x-1.5 text-slate-700 font-semibold md:font-normal md:text-slate-600 hover:text-red-600 transition-colors shrink-0 ml-auto md:ml-0"
             >
               <Phone className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span>{liveSiteSettings.phone}</span>
             </a>
+
+            {/* Technical Support (Desktop only - hidden on mobile) */}
             <div className="hidden md:flex items-center space-x-1.5 text-slate-600 shrink-0">
               <span className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-300 flex items-center justify-center shrink-0">
                 <Target className="w-2.5 h-2.5 text-emerald-600" />
@@ -221,7 +224,7 @@ export const Header: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Links & Social Icons (Desktop only) */}
+          {/* Right Links & Social Icons (Desktop only - hidden on mobile) */}
           <div className="hidden md:flex items-center space-x-3 sm:space-x-4 text-[11px] sm:text-xs text-slate-600 shrink-0">
             <Link to="/warranty" className="flex items-center space-x-1 text-slate-600 hover:text-red-600 transition-colors shrink-0">
               <ShieldCheck className="w-3.5 h-3.5 text-slate-500 shrink-0" />

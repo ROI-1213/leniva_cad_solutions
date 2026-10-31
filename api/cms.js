@@ -1,4 +1,6 @@
 import fs from 'fs'
+import os from 'os'
+import path from 'path'
 
 const RESTFUL_OBJECT_ID = 'ff808181a09d98f701a1436dd2b96f43'
 const RESTFUL_URL = `https://api.restful-api.dev/objects/${RESTFUL_OBJECT_ID}`
@@ -6,7 +8,7 @@ const NTFY_TOPIC = 'leniva_cad_cms_prod_v3'
 const NTFY_POST_URL = `https://ntfy.sh/${NTFY_TOPIC}`
 const NTFY_POLL_URL = `https://ntfy.sh/${NTFY_TOPIC}/json?poll=1&since=all`
 const BYTEBIN_POST_URL = 'https://bytebin.lucko.me/post'
-const TMP_CACHE_FILE = '/tmp/leniva_cms_state_v3.json'
+const TMP_CACHE_FILE = path.join(os.tmpdir(), 'leniva_cms_state_v3.json')
 
 let memoryCache = null
 
