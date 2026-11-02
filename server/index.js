@@ -410,22 +410,30 @@ app.put('/api/blogs/:id', async (req, res) => {
     const result = await pool.query(`
       UPDATE blogs SET
         title = COALESCE($1, title),
-        category = COALESCE($2, category),
-        image = COALESCE($3, image),
-        excerpt = COALESCE($4, excerpt),
-        content = COALESCE($5, content),
-        published = COALESCE($6, published),
-        tags = COALESCE($7, tags),
+        slug = COALESCE($2, slug),
+        category = COALESCE($3, category),
+        image = COALESCE($4, image),
+        excerpt = COALESCE($5, excerpt),
+        content = COALESCE($6, content),
+        published = COALESCE($7, published),
+        read_time = COALESCE($8, read_time),
+        date = COALESCE($9, date),
+        author = COALESCE($10, author),
+        tags = COALESCE($11, tags),
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $8
+      WHERE id = $12
       RETURNING *;
     `, [
       b.title,
+      b.slug,
       b.category,
       b.image,
       b.excerpt,
       b.content,
-      b.published,
+      b.published !== undefined ? b.published : null,
+      b.read_time,
+      b.date,
+      b.author ? JSON.stringify(typeof b.author === 'string' ? { name: b.author, role: b.author_role || '' } : b.author) : null,
       b.tags ? JSON.stringify(b.tags) : null,
       id,
     ])
