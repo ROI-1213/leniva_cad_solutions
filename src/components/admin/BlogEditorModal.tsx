@@ -122,6 +122,18 @@ Traditional CAD licensing and isolated desktop files create bottlenecks between 
   },
 ]
 
+const normalizeTagsArray = (rawTags: any): string[] => {
+  if (Array.isArray(rawTags)) {
+    const list = rawTags.map(t => (typeof t === 'string' ? t : (t?.name || String(t || '')))).map(s => s.trim()).filter(Boolean)
+    return list.length > 0 ? list : ['3D Printing', 'CAD', 'Engineering']
+  }
+  if (typeof rawTags === 'string' && rawTags.trim()) {
+    const list = rawTags.split(',').map((s: string) => s.trim()).filter(Boolean)
+    return list.length > 0 ? list : ['3D Printing', 'CAD', 'Engineering']
+  }
+  return ['3D Printing', 'CAD', 'Engineering']
+}
+
 export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
   isOpen,
   initialBlog,
@@ -152,7 +164,7 @@ export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
     image: initialBlog?.image || '/images/blogs/blog-reverse-engineering.jpg',
     excerpt: initialBlog?.excerpt || '',
     content: initialBlog?.content || '',
-    tags: initialBlog?.tags && initialBlog.tags.length > 0 ? initialBlog.tags : ['3D Printing', 'CAD', 'Engineering'],
+    tags: normalizeTagsArray(initialBlog?.tags),
     published: initialBlog?.published !== false,
   }))
 
@@ -170,7 +182,7 @@ export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
         image: initialBlog.image || '/images/blogs/blog-reverse-engineering.jpg',
         excerpt: initialBlog.excerpt || '',
         content: initialBlog.content || '',
-        tags: initialBlog.tags && initialBlog.tags.length > 0 ? initialBlog.tags : ['3D Printing', 'CAD', 'Engineering'],
+        tags: normalizeTagsArray(initialBlog.tags),
         published: initialBlog.published !== false,
       })
       setSlugManuallyEdited(Boolean(initialBlog.slug))
@@ -225,10 +237,11 @@ export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
   const handleAddTag = (tagToAdd?: string) => {
     const val = (tagToAdd || tagInput).trim().replace(/^#/, '')
     if (!val) return
-    if (!form.tags?.includes(val)) {
+    const currentTags = Array.isArray(form.tags) ? form.tags : []
+    if (!currentTags.includes(val)) {
       setForm(prev => ({
         ...prev,
-        tags: [...(prev.tags || []), val],
+        tags: [...(Array.isArray(prev.tags) ? prev.tags : []), val],
       }))
     }
     setTagInput('')
@@ -237,7 +250,7 @@ export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
   const handleRemoveTag = (tagToRemove: string) => {
     setForm(prev => ({
       ...prev,
-      tags: (prev.tags || []).filter(t => t !== tagToRemove),
+      tags: (Array.isArray(prev.tags) ? prev.tags : []).filter(t => t !== tagToRemove),
     }))
   }
 
@@ -672,23 +685,26 @@ export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
                   Topic Tags & Keywords
                 </label>
                 <div className="flex flex-wrap items-center gap-1.5 min-h-[32px]">
-                  {(form.tags || []).map(tag => (
-                    <span
-                      key={tag}
-                      className="inline-flex items-center space-x-1 px-2.5 py-1 bg-white border border-slate-300 text-slate-800 rounded-lg text-xs font-semibold shadow-2xs"
-                    >
-                      <Tag className="w-3 h-3 text-slate-400" />
-                      <span>{tag}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveTag(tag)}
-                        className="text-slate-400 hover:text-red-500 p-0.5 cursor-pointer ml-1"
-                        aria-label={`Remove tag ${tag}`}
+                  {(Array.isArray(form.tags) ? form.tags : []).map((tag, tIdx) => {
+                    const tagStr = typeof tag === 'string' ? tag : (tag && typeof tag === 'object' ? (tag.name || JSON.stringify(tag)) : String(tag || ''))
+                    return (
+                      <span
+                        key={`tag-badge-${tIdx}-${tagStr}`}
+                        className="inline-flex items-center space-x-1 px-2.5 py-1 bg-white border border-slate-300 text-slate-800 rounded-lg text-xs font-semibold shadow-2xs"
                       >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
+                        <Tag className="w-3 h-3 text-slate-400" />
+                        <span>{tagStr}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTag(tagStr)}
+                          className="text-slate-400 hover:text-red-500 p-0.5 cursor-pointer ml-1"
+                          aria-label={`Remove tag ${tagStr}`}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    )
+                  })}
                   <div className="flex items-center space-x-1">
                     <input
                       type="text"
@@ -1007,17 +1023,20 @@ export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
                     />
 
                     {/* Tags */}
-                    {form.tags && form.tags.length > 0 && (
+                    {Array.isArray(form.tags) && form.tags.length > 0 && (
                       <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center gap-1.5">
                         <span className="text-[11px] font-bold text-slate-400 flex items-center space-x-1 mr-1">
                           <Tag className="w-3 h-3" />
                           <span>Tags:</span>
                         </span>
-                        {form.tags.map(t => (
-                          <span key={t} className="px-2.5 py-0.5 bg-slate-100 text-slate-700 text-[11px] font-medium rounded-lg">
-                            #{t}
-                          </span>
-                        ))}
+                        {form.tags.map((t, idx) => {
+                          const tagStr = typeof t === 'string' ? t : (t && typeof t === 'object' ? (t.name || JSON.stringify(t)) : String(t || ''))
+                          return (
+                            <span key={`preview-tag-${idx}-${tagStr}`} className="px-2.5 py-0.5 bg-slate-100 text-slate-700 text-[11px] font-medium rounded-lg">
+                              #{tagStr}
+                            </span>
+                          )
+                        })}
                       </div>
                     )}
                   </article>

@@ -74,7 +74,24 @@ export function getBlogAuthorRole(author: any, author_role?: any): string {
 export function normalizeBlogItem(raw: any): BlogPostItem {
   const authorName = getBlogAuthorName(raw?.author)
   const authorRole = getBlogAuthorRole(raw?.author, raw?.author_role)
-  const tags = Array.isArray(raw?.tags) ? raw.tags.map((t: any) => String(t)) : [String(raw?.category || '3D Printing')]
+  
+  // Safely extract tags as string[]
+  let safeTags: string[] = []
+  if (Array.isArray(raw?.tags)) {
+    safeTags = raw.tags
+      .map((t: any) => (typeof t === 'string' ? t : (t?.name || String(t || ''))))
+      .map((s: string) => s.trim())
+      .filter(Boolean)
+  } else if (typeof raw?.tags === 'string' && raw.tags.trim()) {
+    safeTags = raw.tags
+      .split(',')
+      .map((s: string) => s.trim())
+      .filter(Boolean)
+  }
+  if (safeTags.length === 0) {
+    safeTags = [String(raw?.category || '3D Printing')]
+  }
+
   return {
     id: String(raw?.id || `blog-${Date.now()}`),
     slug: String(raw?.slug || raw?.id || 'article'),
@@ -88,7 +105,7 @@ export function normalizeBlogItem(raw: any): BlogPostItem {
     published: raw?.published !== false,
     author: authorName,
     author_role: authorRole,
-    tags,
+    tags: safeTags,
   }
 }
 

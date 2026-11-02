@@ -106,6 +106,7 @@ class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
         try {
           const keysToCheck = [
             'leniva_admin_products_catalog',
+            'leniva_admin_blogs_catalog',
             'leniva_cad_software_edits',
             'leniva_custom_cad_products',
             'leniva_home_content',
@@ -115,7 +116,10 @@ class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
             const raw = localStorage.getItem(k)
             if (raw) {
               try {
-                JSON.parse(raw)
+                const parsed = JSON.parse(raw)
+                if (k === 'leniva_admin_blogs_catalog' && !Array.isArray(parsed)) {
+                  localStorage.removeItem(k)
+                }
               } catch {
                 localStorage.removeItem(k)
               }
@@ -143,15 +147,29 @@ class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
             <p className="text-sm text-slate-600">
               A new update was deployed. Please refresh to load the latest version.
             </p>
-            <button
-              onClick={() => {
-                sessionStorage.removeItem('leniva_chunk_reload')
-                window.location.reload()
-              }}
-              className="px-6 py-2.5 bg-red-600 text-white text-sm font-bold rounded-xl shadow-md hover:bg-red-700 transition-all cursor-pointer"
-            >
-              Refresh Page
-            </button>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-2">
+              <button
+                onClick={() => {
+                  sessionStorage.removeItem('leniva_chunk_reload')
+                  window.location.reload()
+                }}
+                className="w-full sm:w-auto px-6 py-2.5 bg-red-600 text-white text-sm font-bold rounded-xl shadow-md hover:bg-red-700 transition-all cursor-pointer"
+              >
+                Refresh Page
+              </button>
+              <button
+                onClick={() => {
+                  sessionStorage.clear()
+                  try {
+                    localStorage.removeItem('leniva_admin_blogs_catalog')
+                  } catch (e) {}
+                  window.location.reload()
+                }}
+                className="w-full sm:w-auto px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+              >
+                Clear Cache & Reload
+              </button>
+            </div>
           </div>
         </div>
       )

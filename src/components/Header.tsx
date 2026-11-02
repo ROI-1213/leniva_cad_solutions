@@ -194,52 +194,52 @@ export const Header: React.FC = () => {
             : 'max-h-16 py-1.5 px-3 sm:px-6 lg:px-8 border-b border-slate-200/70 text-xs text-slate-600'
         }`}
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 sm:gap-4 w-full">
-          {/* Contact info: Full width with email on left & phone on right on mobile; neatly grouped on desktop */}
-          <div className="flex items-center justify-between md:justify-start w-full md:w-auto space-x-3 sm:space-x-5 text-[11px] sm:text-xs">
-            {/* Email */}
-            <a
-              href={`mailto:${liveSiteSettings.email}`}
-              className="flex items-center space-x-1.5 text-slate-600 hover:text-red-600 transition-colors shrink-0"
-            >
-              <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-              <span className="truncate max-w-[170px] sm:max-w-none">{liveSiteSettings.email}</span>
-            </a>
+        <div className="max-w-7xl mx-auto flex items-center justify-between w-full text-[11px] sm:text-xs">
+          {/* Email on far left */}
+          <a
+            href={`mailto:${liveSiteSettings.email}`}
+            className="flex items-center space-x-1.5 text-slate-600 hover:text-red-600 transition-colors shrink-0"
+          >
+            <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+            <span className="truncate max-w-[170px] sm:max-w-none">{liveSiteSettings.email}</span>
+          </a>
 
-            {/* Phone (pushed to far right end on mobile) */}
+          {/* Technical Support (Desktop only - hidden on mobile) */}
+          <div className="hidden md:flex items-center space-x-1.5 text-slate-600 shrink-0">
+            <span className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-300 flex items-center justify-center shrink-0">
+              <Target className="w-2.5 h-2.5 text-emerald-600" />
+            </span>
+            <span>Technical Support: <strong className="text-slate-800 font-semibold">{liveSiteSettings.secondaryPhone || siteConfig.supportPhone}</strong></span>
+          </div>
+
+          {/* Right side: Phone (visible on far right end on mobile) + Desktop extra links */}
+          <div className="flex items-center space-x-3 sm:space-x-4 shrink-0">
+            {/* Phone (pushed to far right on mobile) */}
             <a
               href={`tel:${liveSiteSettings.phone}`}
-              className="flex items-center space-x-1.5 text-slate-700 font-semibold md:font-normal md:text-slate-600 hover:text-red-600 transition-colors shrink-0 ml-auto md:ml-0"
+              className="flex items-center space-x-1.5 text-slate-700 font-semibold md:font-normal md:text-slate-600 hover:text-red-600 transition-colors shrink-0"
             >
               <Phone className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span>{liveSiteSettings.phone}</span>
             </a>
 
-            {/* Technical Support (Desktop only - hidden on mobile) */}
-            <div className="hidden md:flex items-center space-x-1.5 text-slate-600 shrink-0">
-              <span className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-300 flex items-center justify-center shrink-0">
-                <Target className="w-2.5 h-2.5 text-emerald-600" />
-              </span>
-              <span>Technical Support: <strong className="text-slate-800 font-semibold">{liveSiteSettings.secondaryPhone || siteConfig.supportPhone}</strong></span>
-            </div>
-          </div>
-
-          {/* Right Links & Social Icons (Desktop only - hidden on mobile) */}
-          <div className="hidden md:flex items-center space-x-3 sm:space-x-4 text-[11px] sm:text-xs text-slate-600 shrink-0">
-            <Link to="/warranty" className="flex items-center space-x-1 text-slate-600 hover:text-red-600 transition-colors shrink-0">
-              <ShieldCheck className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-              <span>Warranty & Support</span>
-            </Link>
-            <div className="flex items-center space-x-2 text-slate-500 shrink-0">
-              <a href={siteConfig.social.linkedin} target="_blank" rel="noopener noreferrer" className="p-0.5 hover:text-[#0077b5] transition-colors" aria-label="LinkedIn">
-                <Linkedin className="w-3.5 h-3.5 text-[#0077b5]" />
-              </a>
-              <a href={siteConfig.social.youtube} target="_blank" rel="noopener noreferrer" className="p-0.5 hover:text-[#ff0000] transition-colors" aria-label="YouTube">
-                <Youtube className="w-3.5 h-3.5 text-[#ff0000]" />
-              </a>
-              <a href={siteConfig.social.instagram} target="_blank" rel="noopener noreferrer" className="p-0.5 hover:text-[#e1306c] transition-colors" aria-label="Instagram">
-                <Instagram className="w-3.5 h-3.5 text-[#e1306c]" />
-              </a>
+            {/* Desktop only links */}
+            <div className="hidden md:flex items-center space-x-3 sm:space-x-4 text-slate-600">
+              <Link to="/warranty" className="flex items-center space-x-1 text-slate-600 hover:text-red-600 transition-colors shrink-0">
+                <ShieldCheck className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                <span>Warranty & Support</span>
+              </Link>
+              <div className="flex items-center space-x-2 text-slate-500 shrink-0">
+                <a href={siteConfig.social.linkedin} target="_blank" rel="noopener noreferrer" className="p-0.5 hover:text-[#0077b5] transition-colors" aria-label="LinkedIn">
+                  <Linkedin className="w-3.5 h-3.5 text-[#0077b5]" />
+                </a>
+                <a href={siteConfig.social.youtube} target="_blank" rel="noopener noreferrer" className="p-0.5 hover:text-[#ff0000] transition-colors" aria-label="YouTube">
+                  <Youtube className="w-3.5 h-3.5 text-[#ff0000]" />
+                </a>
+                <a href={siteConfig.social.instagram} target="_blank" rel="noopener noreferrer" className="p-0.5 hover:text-[#e1306c] transition-colors" aria-label="Instagram">
+                  <Instagram className="w-3.5 h-3.5 text-[#e1306c]" />
+                </a>
+              </div>
             </div>
           </div>
         </div>

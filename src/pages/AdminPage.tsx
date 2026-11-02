@@ -125,6 +125,68 @@ interface Stats {
   recentQuotes: any[]
 }
 
+interface TabErrorBoundaryProps {
+  tabName: string
+  onReset?: () => void
+  children: React.ReactNode
+}
+
+interface TabErrorBoundaryState {
+  hasError: boolean
+  error: Error | null
+}
+
+class TabErrorBoundary extends React.Component<TabErrorBoundaryProps, TabErrorBoundaryState> {
+  constructor(props: TabErrorBoundaryProps) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+
+  static getDerivedStateFromError(error: Error): TabErrorBoundaryState {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error(`TabErrorBoundary caught an error in [${this.props.tabName}]:`, error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="bg-white rounded-2xl border border-red-200 p-8 text-center max-w-xl mx-auto my-8 space-y-4 shadow-sm">
+          <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
+            <Layers className="w-6 h-6" />
+          </div>
+          <h3 className="font-bold text-slate-900 text-lg">Unable to load {this.props.tabName}</h3>
+          <p className="text-xs text-slate-500 font-mono bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-left overflow-x-auto">
+            {this.state.error?.message || 'An unexpected rendering error occurred.'}
+          </p>
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <button
+              onClick={() => this.setState({ hasError: false, error: null })}
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+            >
+              Try Again
+            </button>
+            {this.props.onReset && (
+              <button
+                onClick={() => {
+                  this.props.onReset?.()
+                  this.setState({ hasError: false, error: null })
+                }}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+              >
+                Reset to Factory Defaults
+              </button>
+            )}
+          </div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
 interface QuoteRequest {
   id: number
   name: string
@@ -2181,7 +2243,7 @@ export default function AdminPage() {
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
                 activeTab === 'blogs' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'
               }`}>
-                {blogsList.length}
+                {Array.isArray(blogsList) ? blogsList.length : 0}
               </span>
             </button>
 
@@ -6133,470 +6195,477 @@ export default function AdminPage() {
           {/* ====================================================
               TAB 6: BLOG ARTICLES (FULL CONTROL)
              ==================================================== */}
-          {activeTab === 'blogs' && (() => {
-            const safeBlogs = Array.isArray(blogsList) ? blogsList.map(normalizeBlogItem) : []
-            const uniqueCategories = Array.from(new Set(safeBlogs.map(b => b.category).filter(Boolean)))
-            const filteredBlogs = safeBlogs.filter(b => {
-              if (blogCategoryFilter !== 'all' && b.category !== blogCategoryFilter) return false
-              if (blogSearchQuery.trim()) {
-                const q = blogSearchQuery.toLowerCase()
-                const inTitle = String(b.title || '').toLowerCase().includes(q)
-                const inSlug = String(b.slug || '').toLowerCase().includes(q)
-                const inCategory = String(b.category || '').toLowerCase().includes(q)
-                const inAuthor = getBlogAuthorName(b.author).toLowerCase().includes(q)
-                const inExcerpt = String(b.excerpt || '').toLowerCase().includes(q)
-                const inTags = Array.isArray(b.tags) && b.tags.some(t => typeof t === 'string' && t.toLowerCase().includes(q))
-                return inTitle || inSlug || inCategory || inAuthor || inExcerpt || inTags
-              }
-              return true
-            })
+          {activeTab === 'blogs' && (
+            <TabErrorBoundary tabName="Engineering Articles & Blogs" onReset={handleResetBlogsCatalog}>
+              {(() => {
+                const safeBlogs = Array.isArray(blogsList) ? blogsList.map(normalizeBlogItem) : []
+                const uniqueCategories = Array.from(new Set(safeBlogs.map(b => b.category).filter(Boolean)))
+                const filteredBlogs = safeBlogs.filter(b => {
+                  if (blogCategoryFilter !== 'all' && b.category !== blogCategoryFilter) return false
+                  if (blogSearchQuery.trim()) {
+                    const q = blogSearchQuery.toLowerCase()
+                    const inTitle = String(b.title || '').toLowerCase().includes(q)
+                    const inSlug = String(b.slug || '').toLowerCase().includes(q)
+                    const inCategory = String(b.category || '').toLowerCase().includes(q)
+                    const inAuthor = getBlogAuthorName(b.author).toLowerCase().includes(q)
+                    const inExcerpt = String(b.excerpt || '').toLowerCase().includes(q)
+                    const inTags = Array.isArray(b.tags) && b.tags.some(t => typeof t === 'string' && t.toLowerCase().includes(q))
+                    return inTitle || inSlug || inCategory || inAuthor || inExcerpt || inTags
+                  }
+                  return true
+                })
 
-            const publishedCount = safeBlogs.filter(b => b.published !== false).length
-            const draftCount = safeBlogs.filter(b => b.published === false).length
+                const publishedCount = safeBlogs.filter(b => b.published !== false).length
+                const draftCount = safeBlogs.filter(b => b.published === false).length
 
-            return (
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 space-y-6">
-                {/* Success Notification Banner */}
-                {blogSuccessMsg && (
-                  <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-bold flex items-center justify-between shadow-2xs animate-in fade-in">
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>{blogSuccessMsg}</span>
-                    </div>
-                    <button
-                      onClick={() => setBlogSuccessMsg('')}
-                      className="p-1 text-emerald-600 hover:text-emerald-800 transition-colors cursor-pointer"
-                      aria-label="Dismiss alert"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-
-                {/* Header & Main Actions */}
-                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-2 border-b border-slate-100">
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <div className="p-2 bg-blue-100 text-blue-700 rounded-xl">
-                        <BookOpen className="w-5 h-5" />
+                return (
+                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 space-y-6">
+                    {/* Success Notification Banner */}
+                    {blogSuccessMsg && (
+                      <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-bold flex items-center justify-between shadow-2xs animate-in fade-in">
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>{blogSuccessMsg}</span>
+                        </div>
+                        <button
+                          onClick={() => setBlogSuccessMsg('')}
+                          className="p-1 text-emerald-600 hover:text-emerald-800 transition-colors cursor-pointer"
+                          aria-label="Dismiss alert"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
                       </div>
+                    )}
+
+                    {/* Header & Main Actions */}
+                    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-2 border-b border-slate-100">
                       <div>
                         <div className="flex items-center space-x-2">
-                          <h3 className="text-xl font-black text-slate-900 tracking-tight">Engineering Articles & Blogs</h3>
-                          <span className="px-2.5 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-black">
-                            {blogsList.length} Total
-                          </span>
+                          <div className="p-2 bg-blue-100 text-blue-700 rounded-xl">
+                            <BookOpen className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <h3 className="text-xl font-black text-slate-900 tracking-tight">Engineering Articles & Blogs</h3>
+                              <span className="px-2.5 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-black">
+                                {safeBlogs.length} Total
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              Publish new articles, edit live content, upload cover images, and preview cards & pages across desktop & mobile.
+                            </p>
+                          </div>
                         </div>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          Publish new articles, edit live content, upload cover images, and preview cards & pages across desktop & mobile.
-                        </p>
                       </div>
-                    </div>
-                  </div>
 
-                  <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
-                    <button
-                      onClick={handleResetBlogsCatalog}
-                      className="inline-flex items-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer transition-colors"
-                      title="Restore default engineering articles"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
-                      <span>Reset Defaults</span>
-                    </button>
-                    <a
-                      href="/blog"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer transition-colors"
-                      title="Open public blog hub in a new tab"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
-                      <span>View Live Hub</span>
-                    </a>
-                    <button
-                      onClick={() => {
-                        setActiveBlogForEdit(null)
-                        setIsBlogModalOpen(true)
-                      }}
-                      className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg cursor-pointer transition-all"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>+ Write New Article</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Metrics / Status Quick Bar */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                    <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider block">Total Articles</span>
-                    <strong className="text-lg font-black text-slate-900">{blogsList.length}</strong>
-                  </div>
-                  <div className="p-3 bg-emerald-50/60 border border-emerald-200/80 rounded-xl">
-                    <span className="text-[11px] text-emerald-600 font-bold uppercase tracking-wider block">Published & Live</span>
-                    <strong className="text-lg font-black text-emerald-700">{publishedCount}</strong>
-                  </div>
-                  <div className="p-3 bg-amber-50/60 border border-amber-200/80 rounded-xl">
-                    <span className="text-[11px] text-amber-600 font-bold uppercase tracking-wider block">Drafts</span>
-                    <strong className="text-lg font-black text-amber-700">{draftCount}</strong>
-                  </div>
-                  <div className="p-3 bg-purple-50/60 border border-purple-200/80 rounded-xl">
-                    <span className="text-[11px] text-purple-600 font-bold uppercase tracking-wider block">Categories</span>
-                    <strong className="text-lg font-black text-purple-700">{uniqueCategories.length}</strong>
-                  </div>
-                </div>
-
-                {/* Filter & Search Bar */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
-                  {/* Category Pills */}
-                  <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs">
-                    <button
-                      onClick={() => setBlogCategoryFilter('all')}
-                      className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                        blogCategoryFilter === 'all'
-                          ? 'bg-slate-900 text-white shadow-2xs'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      All ({blogsList.length})
-                    </button>
-                    {uniqueCategories.map(cat => (
-                      <button
-                        key={cat}
-                        onClick={() => setBlogCategoryFilter(cat)}
-                        className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                          blogCategoryFilter === cat
-                            ? 'bg-blue-600 text-white shadow-2xs'
-                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                        }`}
-                      >
-                        {cat} ({blogsList.filter(b => b.category === cat).length})
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Search and View Mode Switcher */}
-                  <div className="flex items-center space-x-2 shrink-0">
-                    <div className="relative w-full sm:w-60">
-                      <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <input
-                        type="text"
-                        placeholder="Search articles, tags..."
-                        value={blogSearchQuery}
-                        onChange={e => setBlogSearchQuery(e.target.value)}
-                        className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-blue-500 transition-colors"
-                      />
-                      {blogSearchQuery && (
+                      <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
                         <button
-                          onClick={() => setBlogSearchQuery('')}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                          onClick={handleResetBlogsCatalog}
+                          className="inline-flex items-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer transition-colors"
+                          title="Restore default engineering articles"
                         >
-                          <X className="w-3.5 h-3.5" />
+                          <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+                          <span>Reset Defaults</span>
                         </button>
-                      )}
-                    </div>
-
-                    <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-                      <button
-                        type="button"
-                        onClick={() => setBlogViewMode('cards')}
-                        className={`p-1.5 rounded-md transition-colors cursor-pointer ${
-                          blogViewMode === 'cards' ? 'bg-white text-blue-600 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
-                        }`}
-                        title="Cards View"
-                      >
-                        <LayoutGrid className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setBlogViewMode('table')}
-                        className={`p-1.5 rounded-md transition-colors cursor-pointer ${
-                          blogViewMode === 'table' ? 'bg-white text-blue-600 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
-                        }`}
-                        title="Table View"
-                      >
-                        <List className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Empty State */}
-                {filteredBlogs.length === 0 && (
-                  <div className="py-12 px-4 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300 space-y-3">
-                    <BookOpen className="w-10 h-10 text-slate-400 mx-auto" />
-                    <div>
-                      <h4 className="font-bold text-slate-800 text-sm">No articles match your filter or search</h4>
-                      <p className="text-xs text-slate-500 mt-1">Try resetting the search or create a new technical article.</p>
-                    </div>
-                    <div className="flex items-center justify-center space-x-2 pt-2">
-                      {(blogSearchQuery || blogCategoryFilter !== 'all') && (
+                        <a
+                          href="/blog"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer transition-colors"
+                          title="Open public blog hub in a new tab"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+                          <span>View Live Hub</span>
+                        </a>
                         <button
                           onClick={() => {
-                            setBlogSearchQuery('')
-                            setBlogCategoryFilter('all')
+                            setActiveBlogForEdit(null)
+                            setIsBlogModalOpen(true)
                           }}
-                          className="px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-xs font-bold cursor-pointer"
+                          className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg cursor-pointer transition-all"
                         >
-                          Clear Filters
+                          <Plus className="w-4 h-4" />
+                          <span>+ Write New Article</span>
                         </button>
-                      )}
-                      <button
-                        onClick={() => {
-                          setActiveBlogForEdit(null)
-                          setIsBlogModalOpen(true)
-                        }}
-                        className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold cursor-pointer"
-                      >
-                        + Write New Article
-                      </button>
+                      </div>
                     </div>
-                  </div>
-                )}
 
-                {/* CARDS VIEW */}
-                {blogViewMode === 'cards' && filteredBlogs.length > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {filteredBlogs.map(b => (
-                      <div
-                        key={b.id}
-                        className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md hover:border-blue-300 transition-all flex flex-col group"
-                      >
-                        {/* Image Banner */}
-                        <div className="relative aspect-[16/9] bg-slate-100 overflow-hidden">
-                          <img
-                            src={b.image || '/images/blogs/blog-reverse-engineering.jpg'}
-                            alt={b.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            onError={e => {
-                              const target = e.currentTarget
-                              target.src = '/images/blogs/blog-reverse-engineering.jpg'
-                            }}
-                          />
-                          <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-slate-900/80 backdrop-blur-xs text-white rounded-md">
-                            {b.category}
-                          </span>
+                    {/* Metrics / Status Quick Bar */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                      <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                        <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider block">Total Articles</span>
+                        <strong className="text-lg font-black text-slate-900">{safeBlogs.length}</strong>
+                      </div>
+                      <div className="p-3 bg-emerald-50/60 border border-emerald-200/80 rounded-xl">
+                        <span className="text-[11px] text-emerald-600 font-bold uppercase tracking-wider block">Published & Live</span>
+                        <strong className="text-lg font-black text-emerald-700">{publishedCount}</strong>
+                      </div>
+                      <div className="p-3 bg-amber-50/60 border border-amber-200/80 rounded-xl">
+                        <span className="text-[11px] text-amber-600 font-bold uppercase tracking-wider block">Drafts</span>
+                        <strong className="text-lg font-black text-amber-700">{draftCount}</strong>
+                      </div>
+                      <div className="p-3 bg-purple-50/60 border border-purple-200/80 rounded-xl">
+                        <span className="text-[11px] text-purple-600 font-bold uppercase tracking-wider block">Categories</span>
+                        <strong className="text-lg font-black text-purple-700">{uniqueCategories.length}</strong>
+                      </div>
+                    </div>
+
+                    {/* Filter & Search Bar */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+                      {/* Category Pills */}
+                      <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs">
+                        <button
+                          onClick={() => setBlogCategoryFilter('all')}
+                          className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                            blogCategoryFilter === 'all'
+                              ? 'bg-slate-900 text-white shadow-2xs'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          All ({safeBlogs.length})
+                        </button>
+                        {uniqueCategories.map(cat => (
                           <button
-                            onClick={() => handleToggleBlogPublish(b.id)}
-                            className={`absolute top-2.5 right-2.5 px-2 py-0.5 text-[10px] font-bold rounded-md backdrop-blur-xs cursor-pointer shadow-xs transition-colors ${
-                              b.published !== false
-                                ? 'bg-emerald-600/90 hover:bg-emerald-700 text-white'
-                                : 'bg-amber-600/90 hover:bg-amber-700 text-white'
+                            key={cat}
+                            onClick={() => setBlogCategoryFilter(cat)}
+                            className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                              blogCategoryFilter === cat
+                                ? 'bg-blue-600 text-white shadow-2xs'
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                             }`}
-                            title="Click to toggle published / draft status"
                           >
-                            {b.published !== false ? '✓ Published' : 'Draft'}
+                            {cat} ({safeBlogs.filter(b => b.category === cat).length})
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Search and View Mode Switcher */}
+                      <div className="flex items-center space-x-2 shrink-0">
+                        <div className="relative w-full sm:w-60">
+                          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                          <input
+                            type="text"
+                            placeholder="Search articles, tags..."
+                            value={blogSearchQuery}
+                            onChange={e => setBlogSearchQuery(e.target.value)}
+                            className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-blue-500 transition-colors"
+                          />
+                          {blogSearchQuery && (
+                            <button
+                              onClick={() => setBlogSearchQuery('')}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+                          <button
+                            type="button"
+                            onClick={() => setBlogViewMode('cards')}
+                            className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                              blogViewMode === 'cards' ? 'bg-white text-blue-600 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                            }`}
+                            title="Cards View"
+                          >
+                            <LayoutGrid className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBlogViewMode('table')}
+                            className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                              blogViewMode === 'table' ? 'bg-white text-blue-600 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                            }`}
+                            title="Table View"
+                          >
+                            <List className="w-3.5 h-3.5" />
                           </button>
                         </div>
+                      </div>
+                    </div>
 
-                        {/* Card Body */}
-                        <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
-                          <div className="space-y-2">
-                            <div className="flex items-center space-x-2 text-[11px] text-slate-400">
-                              <span className="flex items-center space-x-1">
-                                <Calendar className="w-3 h-3" />
-                                <span>{b.date}</span>
-                              </span>
-                              <span>•</span>
-                              <span className="flex items-center space-x-1">
-                                <Clock className="w-3 h-3" />
-                                <span>{b.read_time || '5 min read'}</span>
-                              </span>
-                            </div>
-
-                            <h4 className="font-bold text-slate-900 text-sm leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors">
-                              {b.title}
-                            </h4>
-
-                            <div className="text-[11px] font-mono text-slate-400 flex items-center space-x-1 truncate">
-                              <span>/blog/{b.slug}</span>
-                            </div>
-
-                            {b.excerpt && (
-                              <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                                {b.excerpt}
-                              </p>
-                            )}
-
-                            {/* Tags */}
-                            {b.tags && b.tags.length > 0 && (
-                              <div className="flex flex-wrap gap-1 pt-1">
-                                {b.tags.slice(0, 3).map(tag => (
-                                  <span key={tag} className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-medium rounded-md">
-                                    #{tag}
-                                  </span>
-                                ))}
-                                {b.tags.length > 3 && (
-                                  <span className="px-1.5 py-0.5 text-slate-400 text-[10px]">
-                                    +{b.tags.length - 3}
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Footer Action Strip */}
-                          <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                            <div className="text-[11px] text-slate-500 font-medium truncate max-w-[120px]">
-                              {getBlogAuthorName(b.author)}
-                            </div>
-
-                            <div className="flex items-center space-x-1">
-                              <button
-                                onClick={() => {
-                                  setActiveBlogForEdit(b)
-                                  setIsBlogModalOpen(true)
-                                }}
-                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-                                title="Edit full article"
-                              >
-                                <Edit className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={() => handleDuplicateBlog(b)}
-                                className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                                title="Duplicate / Use as template for new article"
-                              >
-                                <Copy className="w-3.5 h-3.5" />
-                              </button>
-                              <a
-                                href={`/blog/${b.slug}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                                title="View on live website"
-                              >
-                                <ExternalLink className="w-3.5 h-3.5" />
-                              </a>
-                              <button
-                                onClick={() => handleDeleteBlog(b.id)}
-                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                                title="Delete article"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
+                    {/* Empty State */}
+                    {filteredBlogs.length === 0 && (
+                      <div className="py-12 px-4 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300 space-y-3">
+                        <BookOpen className="w-10 h-10 text-slate-400 mx-auto" />
+                        <div>
+                          <h4 className="font-bold text-slate-800 text-sm">No articles match your filter or search</h4>
+                          <p className="text-xs text-slate-500 mt-1">Try resetting the search or create a new technical article.</p>
+                        </div>
+                        <div className="flex items-center justify-center space-x-2 pt-2">
+                          {(blogSearchQuery || blogCategoryFilter !== 'all') && (
+                            <button
+                              onClick={() => {
+                                setBlogSearchQuery('')
+                                setBlogCategoryFilter('all')
+                              }}
+                              className="px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-xs font-bold cursor-pointer"
+                            >
+                              Clear Filters
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              setActiveBlogForEdit(null)
+                              setIsBlogModalOpen(true)
+                            }}
+                            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold cursor-pointer"
+                          >
+                            + Write New Article
+                          </button>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    )}
 
-                {/* TABLE VIEW */}
-                {blogViewMode === 'table' && filteredBlogs.length > 0 && (
-                  <div className="overflow-x-auto rounded-xl border border-slate-200">
-                    <table className="w-full text-left text-xs">
-                      <thead>
-                        <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider bg-slate-50/80">
-                          <th className="py-3 px-3">Article</th>
-                          <th className="py-3 px-3">Category</th>
-                          <th className="py-3 px-3">Author & Date</th>
-                          <th className="py-3 px-3">Status</th>
-                          <th className="py-3 px-3 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
+                    {/* CARDS VIEW */}
+                    {blogViewMode === 'cards' && filteredBlogs.length > 0 && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                         {filteredBlogs.map(b => (
-                          <tr key={b.id} className="hover:bg-slate-50/80 transition-colors">
-                            <td className="py-3 px-3">
-                              <div className="flex items-center space-x-3">
-                                <img
-                                  src={b.image || '/images/blogs/blog-reverse-engineering.jpg'}
-                                  alt={b.title}
-                                  className="w-12 h-9 object-cover rounded-lg border border-slate-200 shrink-0"
-                                  onError={e => {
-                                    const target = e.currentTarget
-                                    target.src = '/images/blogs/blog-reverse-engineering.jpg'
-                                  }}
-                                />
-                                <div>
-                                  <div className="font-bold text-slate-900 line-clamp-1">{b.title}</div>
-                                  <div className="text-[11px] text-slate-400 font-mono">/blog/{b.slug}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="py-3 px-3">
-                              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-700">
+                          <div
+                            key={b.id}
+                            className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md hover:border-blue-300 transition-all flex flex-col group"
+                          >
+                            {/* Image Banner */}
+                            <div className="relative aspect-[16/9] bg-slate-100 overflow-hidden">
+                              <img
+                                src={b.image || '/images/blogs/blog-reverse-engineering.jpg'}
+                                alt={b.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                onError={e => {
+                                  const target = e.currentTarget
+                                  target.src = '/images/blogs/blog-reverse-engineering.jpg'
+                                }}
+                              />
+                              <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-slate-900/80 backdrop-blur-xs text-white rounded-md">
                                 {b.category}
                               </span>
-                            </td>
-                            <td className="py-3 px-3 text-slate-600">
-                              <div className="font-semibold text-slate-800">{getBlogAuthorName(b.author)}</div>
-                              <div className="text-[11px] text-slate-400">{b.date} • {b.read_time || '5 min read'}</div>
-                            </td>
-                            <td className="py-3 px-3">
                               <button
                                 onClick={() => handleToggleBlogPublish(b.id)}
-                                className={`px-2 py-0.5 rounded-full text-[10px] font-bold cursor-pointer transition-colors ${
+                                className={`absolute top-2.5 right-2.5 px-2 py-0.5 text-[10px] font-bold rounded-md backdrop-blur-xs cursor-pointer shadow-xs transition-colors ${
                                   b.published !== false
-                                    ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
-                                    : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                                    ? 'bg-emerald-600/90 hover:bg-emerald-700 text-white'
+                                    : 'bg-amber-600/90 hover:bg-amber-700 text-white'
                                 }`}
-                                title="Click to toggle"
+                                title="Click to toggle published / draft status"
                               >
                                 {b.published !== false ? '✓ Published' : 'Draft'}
                               </button>
-                            </td>
-                            <td className="py-3 px-3 text-right space-x-1 whitespace-nowrap">
-                              <button
-                                onClick={() => {
-                                  setActiveBlogForEdit(b)
-                                  setIsBlogModalOpen(true)
-                                }}
-                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-                                title="Edit article"
-                              >
-                                <Edit className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={() => handleDuplicateBlog(b)}
-                                className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                                title="Duplicate / Template"
-                              >
-                                <Copy className="w-3.5 h-3.5" />
-                              </button>
-                              <a
-                                href={`/blog/${b.slug}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                                title="View live"
-                              >
-                                <ExternalLink className="w-3.5 h-3.5" />
-                              </a>
-                              <button
-                                onClick={() => handleDeleteBlog(b.id)}
-                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                                title="Delete article"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                            </div>
 
-                {/* FULL-FEATURED ARTICLE CREATION & EDIT MODAL */}
-                <BlogEditorModal
-                  isOpen={isBlogModalOpen}
-                  initialBlog={activeBlogForEdit}
-                  existingCategories={uniqueCategories}
-                  onSave={handleSaveBlog}
-                  onClose={() => {
-                    setIsBlogModalOpen(false)
-                    setActiveBlogForEdit(null)
-                  }}
-                  onUploadImage={async (file, callback) => {
-                    handleDirectImageUpload(file, callback)
-                  }}
-                />
-              </div>
-            )
-          })()}
+                            {/* Card Body */}
+                            <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                              <div className="space-y-2">
+                                <div className="flex items-center space-x-2 text-[11px] text-slate-400">
+                                  <span className="flex items-center space-x-1">
+                                    <Calendar className="w-3 h-3" />
+                                    <span>{b.date}</span>
+                                  </span>
+                                  <span>•</span>
+                                  <span className="flex items-center space-x-1">
+                                    <Clock className="w-3 h-3" />
+                                    <span>{b.read_time || '5 min read'}</span>
+                                  </span>
+                                </div>
+
+                                <h4 className="font-bold text-slate-900 text-sm leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors">
+                                  {b.title}
+                                </h4>
+
+                                <div className="text-[11px] font-mono text-slate-400 flex items-center space-x-1 truncate">
+                                  <span>/blog/{b.slug}</span>
+                                </div>
+
+                                {b.excerpt && (
+                                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                                    {b.excerpt}
+                                  </p>
+                                )}
+
+                                {/* Tags */}
+                                {Array.isArray(b.tags) && b.tags.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 pt-1">
+                                    {b.tags.slice(0, 3).map((tag, tIdx) => {
+                                      const tagStr = typeof tag === 'string' ? tag : (tag && typeof tag === 'object' ? (tag.name || JSON.stringify(tag)) : String(tag || ''))
+                                      return (
+                                        <span key={`${b.id}-t-${tIdx}-${tagStr}`} className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-medium rounded-md">
+                                          #{tagStr}
+                                        </span>
+                                      )
+                                    })}
+                                    {b.tags.length > 3 && (
+                                      <span className="px-1.5 py-0.5 text-slate-400 text-[10px]">
+                                        +{b.tags.length - 3}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Footer Action Strip */}
+                              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                                <div className="text-[11px] text-slate-500 font-medium truncate max-w-[120px]">
+                                  {getBlogAuthorName(b.author)}
+                                </div>
+
+                                <div className="flex items-center space-x-1">
+                                  <button
+                                    onClick={() => {
+                                      setActiveBlogForEdit(b)
+                                      setIsBlogModalOpen(true)
+                                    }}
+                                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                                    title="Edit full article"
+                                  >
+                                    <Edit className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDuplicateBlog(b)}
+                                    className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                                    title="Duplicate / Use as template for new article"
+                                  >
+                                    <Copy className="w-3.5 h-3.5" />
+                                  </button>
+                                  <a
+                                    href={`/blog/${b.slug}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                                    title="View on live website"
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                  </a>
+                                  <button
+                                    onClick={() => handleDeleteBlog(b.id)}
+                                    className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                                    title="Delete article"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* TABLE VIEW */}
+                    {blogViewMode === 'table' && filteredBlogs.length > 0 && (
+                      <div className="overflow-x-auto rounded-xl border border-slate-200">
+                        <table className="w-full text-left text-xs">
+                          <thead>
+                            <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider bg-slate-50/80">
+                              <th className="py-3 px-3">Article</th>
+                              <th className="py-3 px-3">Category</th>
+                              <th className="py-3 px-3">Author & Date</th>
+                              <th className="py-3 px-3">Status</th>
+                              <th className="py-3 px-3 text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {filteredBlogs.map(b => (
+                              <tr key={b.id} className="hover:bg-slate-50/80 transition-colors">
+                                <td className="py-3 px-3">
+                                  <div className="flex items-center space-x-3">
+                                    <img
+                                      src={b.image || '/images/blogs/blog-reverse-engineering.jpg'}
+                                      alt={b.title}
+                                      className="w-12 h-9 object-cover rounded-lg border border-slate-200 shrink-0"
+                                      onError={e => {
+                                        const target = e.currentTarget
+                                        target.src = '/images/blogs/blog-reverse-engineering.jpg'
+                                      }}
+                                    />
+                                    <div>
+                                      <div className="font-bold text-slate-900 line-clamp-1">{b.title}</div>
+                                      <div className="text-[11px] text-slate-400 font-mono">/blog/{b.slug}</div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="py-3 px-3">
+                                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-700">
+                                    {b.category}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-3 text-slate-600">
+                                  <div className="font-semibold text-slate-800">{getBlogAuthorName(b.author)}</div>
+                                  <div className="text-[11px] text-slate-400">{b.date} • {b.read_time || '5 min read'}</div>
+                                </td>
+                                <td className="py-3 px-3">
+                                  <button
+                                    onClick={() => handleToggleBlogPublish(b.id)}
+                                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold cursor-pointer transition-colors ${
+                                      b.published !== false
+                                        ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                                        : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                                    }`}
+                                    title="Click to toggle"
+                                  >
+                                    {b.published !== false ? '✓ Published' : 'Draft'}
+                                  </button>
+                                </td>
+                                <td className="py-3 px-3 text-right space-x-1 whitespace-nowrap">
+                                  <button
+                                    onClick={() => {
+                                      setActiveBlogForEdit(b)
+                                      setIsBlogModalOpen(true)
+                                    }}
+                                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                                    title="Edit article"
+                                  >
+                                    <Edit className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDuplicateBlog(b)}
+                                    className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                                    title="Duplicate / Template"
+                                  >
+                                    <Copy className="w-3.5 h-3.5" />
+                                  </button>
+                                  <a
+                                    href={`/blog/${b.slug}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                                    title="View live"
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                  </a>
+                                  <button
+                                    onClick={() => handleDeleteBlog(b.id)}
+                                    className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                                    title="Delete article"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* FULL-FEATURED ARTICLE CREATION & EDIT MODAL */}
+                    <BlogEditorModal
+                      isOpen={isBlogModalOpen}
+                      initialBlog={activeBlogForEdit}
+                      existingCategories={uniqueCategories}
+                      onSave={handleSaveBlog}
+                      onClose={() => {
+                        setIsBlogModalOpen(false)
+                        setActiveBlogForEdit(null)
+                      }}
+                      onUploadImage={async (file, callback) => {
+                        handleDirectImageUpload(file, callback)
+                      }}
+                    />
+                  </div>
+                )
+              })()}
+            </TabErrorBoundary>
+          )}
 
           {/* ====================================================
               TAB: HOME PAGE CMS & VISUAL EDITOR
