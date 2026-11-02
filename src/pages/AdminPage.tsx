@@ -55,6 +55,7 @@ import {
   Copy,
   BookOpen,
   Tag,
+  LayoutGrid,
 } from 'lucide-react'
 import { BlogEditorModal } from '../components/admin/BlogEditorModal'
 import { ShopAndNavigationEditor } from '../components/admin/ShopAndNavigationEditor'
@@ -6648,19 +6649,21 @@ export default function AdminPage() {
                     )}
 
                     {/* FULL-FEATURED ARTICLE CREATION & EDIT MODAL */}
-                    <BlogEditorModal
-                      isOpen={isBlogModalOpen}
-                      initialBlog={activeBlogForEdit}
-                      existingCategories={uniqueCategories}
-                      onSave={handleSaveBlog}
-                      onClose={() => {
-                        setIsBlogModalOpen(false)
-                        setActiveBlogForEdit(null)
-                      }}
-                      onUploadImage={async (file, callback) => {
-                        handleDirectImageUpload(file, callback)
-                      }}
-                    />
+                    {isBlogModalOpen && (
+                      <BlogEditorModal
+                        isOpen={isBlogModalOpen}
+                        initialBlog={activeBlogForEdit}
+                        existingCategories={uniqueCategories}
+                        onSave={handleSaveBlog}
+                        onClose={() => {
+                          setIsBlogModalOpen(false)
+                          setActiveBlogForEdit(null)
+                        }}
+                        onUploadImage={async (file, callback) => {
+                          handleDirectImageUpload(file, callback)
+                        }}
+                      />
+                    )}
                   </div>
                 )
               })()}
