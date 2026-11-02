@@ -100,6 +100,9 @@ import {
   getStoredBlogItems,
   saveStoredBlogItems,
   resetStoredBlogItems,
+  getBlogAuthorName,
+  getBlogAuthorRole,
+  normalizeBlogItem,
 } from '../utils/blogCatalog'
 import {
   pullCmsStateFromCloud,
@@ -836,8 +839,9 @@ export default function AdminPage() {
 
       // Fallback blogs
       if (Array.isArray(blogsVal) && blogsVal.length > 0) {
-        setBlogsList(blogsVal)
-        saveStoredBlogItems(blogsVal)
+        const normalized = blogsVal.map(normalizeBlogItem)
+        setBlogsList(normalized)
+        saveStoredBlogItems(normalized)
       } else {
         const storedBlogs = getStoredBlogItems()
         setBlogsList(storedBlogs)
@@ -6130,24 +6134,25 @@ export default function AdminPage() {
               TAB 6: BLOG ARTICLES (FULL CONTROL)
              ==================================================== */}
           {activeTab === 'blogs' && (() => {
-            const uniqueCategories = Array.from(new Set(blogsList.map(b => b.category).filter(Boolean)))
-            const filteredBlogs = blogsList.filter(b => {
+            const safeBlogs = Array.isArray(blogsList) ? blogsList.map(normalizeBlogItem) : []
+            const uniqueCategories = Array.from(new Set(safeBlogs.map(b => b.category).filter(Boolean)))
+            const filteredBlogs = safeBlogs.filter(b => {
               if (blogCategoryFilter !== 'all' && b.category !== blogCategoryFilter) return false
               if (blogSearchQuery.trim()) {
                 const q = blogSearchQuery.toLowerCase()
-                const inTitle = b.title.toLowerCase().includes(q)
-                const inSlug = (b.slug || '').toLowerCase().includes(q)
-                const inCategory = (b.category || '').toLowerCase().includes(q)
-                const inAuthor = (b.author || '').toLowerCase().includes(q)
-                const inExcerpt = (b.excerpt || '').toLowerCase().includes(q)
-                const inTags = Array.isArray(b.tags) && b.tags.some(t => t.toLowerCase().includes(q))
+                const inTitle = String(b.title || '').toLowerCase().includes(q)
+                const inSlug = String(b.slug || '').toLowerCase().includes(q)
+                const inCategory = String(b.category || '').toLowerCase().includes(q)
+                const inAuthor = getBlogAuthorName(b.author).toLowerCase().includes(q)
+                const inExcerpt = String(b.excerpt || '').toLowerCase().includes(q)
+                const inTags = Array.isArray(b.tags) && b.tags.some(t => typeof t === 'string' && t.toLowerCase().includes(q))
                 return inTitle || inSlug || inCategory || inAuthor || inExcerpt || inTags
               }
               return true
             })
 
-            const publishedCount = blogsList.filter(b => b.published !== false).length
-            const draftCount = blogsList.filter(b => b.published === false).length
+            const publishedCount = safeBlogs.filter(b => b.published !== false).length
+            const draftCount = safeBlogs.filter(b => b.published === false).length
 
             return (
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 space-y-6">
@@ -6433,7 +6438,7 @@ export default function AdminPage() {
                           {/* Footer Action Strip */}
                           <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                             <div className="text-[11px] text-slate-500 font-medium truncate max-w-[120px]">
-                              {b.author || 'Editorial Team'}
+                              {getBlogAuthorName(b.author)}
                             </div>
 
                             <div className="flex items-center space-x-1">
@@ -6517,7 +6522,7 @@ export default function AdminPage() {
                               </span>
                             </td>
                             <td className="py-3 px-3 text-slate-600">
-                              <div className="font-semibold text-slate-800">{b.author || 'Editorial Team'}</div>
+                              <div className="font-semibold text-slate-800">{getBlogAuthorName(b.author)}</div>
                               <div className="text-[11px] text-slate-400">{b.date} • {b.read_time || '5 min read'}</div>
                             </td>
                             <td className="py-3 px-3">

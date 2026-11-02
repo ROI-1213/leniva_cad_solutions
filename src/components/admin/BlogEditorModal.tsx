@@ -20,7 +20,7 @@ import {
   ArrowRight,
   ChevronRight,
 } from 'lucide-react'
-import { BlogPostItem } from '../../utils/blogCatalog'
+import { BlogPostItem, getBlogAuthorName, getBlogAuthorRole } from '../../utils/blogCatalog'
 
 export interface BlogEditorModalProps {
   isOpen: boolean
@@ -147,8 +147,8 @@ export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
     category: initialBlog?.category || '3D Printing',
     read_time: initialBlog?.read_time || '5 min read',
     date: initialBlog?.date || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-    author: initialBlog?.author || 'Leniva Editorial Team',
-    author_role: initialBlog?.author_role || 'Additive Applications Specialist',
+    author: getBlogAuthorName(initialBlog?.author),
+    author_role: getBlogAuthorRole(initialBlog?.author, initialBlog?.author_role),
     image: initialBlog?.image || '/images/blogs/blog-reverse-engineering.jpg',
     excerpt: initialBlog?.excerpt || '',
     content: initialBlog?.content || '',
@@ -165,8 +165,8 @@ export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
         category: initialBlog.category || '3D Printing',
         read_time: initialBlog.read_time || '5 min read',
         date: initialBlog.date || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-        author: initialBlog.author || 'Leniva Editorial Team',
-        author_role: initialBlog.author_role || 'Additive Applications Specialist',
+        author: getBlogAuthorName(initialBlog.author),
+        author_role: getBlogAuthorRole(initialBlog.author, initialBlog.author_role),
         image: initialBlog.image || '/images/blogs/blog-reverse-engineering.jpg',
         excerpt: initialBlog.excerpt || '',
         content: initialBlog.content || '',

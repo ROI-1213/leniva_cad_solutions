@@ -58,22 +58,42 @@ export interface BlogPostItem {
   tags?: string[]
 }
 
+export function getBlogAuthorName(author: any): string {
+  if (!author) return 'Leniva Editorial Team'
+  if (typeof author === 'string') return author
+  if (typeof author === 'object' && typeof author.name === 'string') return author.name
+  return 'Leniva Editorial Team'
+}
+
+export function getBlogAuthorRole(author: any, author_role?: any): string {
+  if (typeof author_role === 'string' && author_role.trim()) return author_role
+  if (typeof author === 'object' && typeof author.role === 'string') return author.role
+  return 'Additive Application Specialists'
+}
+
+export function normalizeBlogItem(raw: any): BlogPostItem {
+  const authorName = getBlogAuthorName(raw?.author)
+  const authorRole = getBlogAuthorRole(raw?.author, raw?.author_role)
+  const tags = Array.isArray(raw?.tags) ? raw.tags.map((t: any) => String(t)) : [String(raw?.category || '3D Printing')]
+  return {
+    id: String(raw?.id || `blog-${Date.now()}`),
+    slug: String(raw?.slug || raw?.id || 'article'),
+    title: String(raw?.title || 'Untitled Technical Article'),
+    category: String(raw?.category || 'General'),
+    read_time: String(raw?.read_time || raw?.readTime || '5 min read'),
+    date: String(raw?.date || new Date().toISOString().split('T')[0]),
+    excerpt: String(raw?.excerpt || ''),
+    content: String(raw?.content || raw?.excerpt || ''),
+    image: resolveBlogImage(raw?.id || raw?.slug, raw?.image),
+    published: raw?.published !== false,
+    author: authorName,
+    author_role: authorRole,
+    tags,
+  }
+}
+
 export function buildDefaultBlogs(): BlogPostItem[] {
-  return fallbackBlogs.map(b => ({
-    id: b.id,
-    slug: b.slug,
-    title: b.title,
-    category: b.category,
-    read_time: b.readTime,
-    date: b.date,
-    excerpt: b.excerpt,
-    content: b.content,
-    image: resolveBlogImage(b.id, b.image),
-    published: true,
-    author: typeof b.author === 'string' ? b.author : (b.author?.name || 'Leniva Editorial Team'),
-    author_role: typeof b.author === 'object' ? (b.author?.role || 'Additive Application Specialists') : 'Additive Application Specialists',
-    tags: b.tags,
-  }))
+  return fallbackBlogs.map(b => normalizeBlogItem(b))
 }
 
 export function getStoredBlogItems(): BlogPostItem[] {
@@ -82,10 +102,7 @@ export function getStoredBlogItems(): BlogPostItem[] {
     if (raw) {
       const parsed = JSON.parse(raw)
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.map((item: BlogPostItem) => ({
-          ...item,
-          image: resolveBlogImage(item.id || item.slug, item.image),
-        }))
+        return parsed.map((item: any) => normalizeBlogItem(item))
       }
     }
   } catch (e) {
