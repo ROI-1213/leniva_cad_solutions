@@ -35,7 +35,6 @@ import {
   Download,
   FileText,
   Link as LinkIcon,
-  FileText,
   Eye,
   MessageSquare,
   Edit3,
