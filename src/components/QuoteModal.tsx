@@ -113,14 +113,9 @@ export const QuoteModal: React.FC = () => {
       return
     }
 
-    // 1. Immediately activate success state & show browser pop-up message
+    // 1. Immediately activate success state
     setIsSuccess(true)
     setIsSubmitting(false)
-    try {
-      window.alert('Enquiry Submitted Successfully!')
-    } catch {
-      // ignore
-    }
 
     // 2. Dispatch background persistence and cloud/mail relay to viju@leniva3d.com and Admin
     const combinedContent = `${formData.productOrService || quoteProduct || ''} ${formData.message || ''}`
@@ -204,17 +199,11 @@ export const QuoteModal: React.FC = () => {
             <p className="text-slate-600 max-w-md mx-auto text-xs sm:text-sm leading-relaxed">
               {confirmationMessage}
             </p>
-            <div className="pt-3 sm:pt-4 flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-3">
-              <a
-                href={`mailto:viju@leniva3d.com?subject=${encodeURIComponent(`New Customer Enquiry – ${formData.productOrService || quoteProduct || 'Leniva 3D'} – Leniva 3D`)}&body=${encodeURIComponent(`Customer Name: ${formData.fullName}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nCompany: ${formData.company}\nRequirement: ${formData.productOrService || quoteProduct}\nMessage: ${formData.message}`)}`}
-                className="w-full sm:w-auto inline-flex items-center justify-center space-x-1.5 px-5 py-2.5 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-sm text-center"
-              >
-                <span>Direct Email to viju@leniva3d.com</span>
-              </a>
+            <div className="pt-3 sm:pt-4 flex items-center justify-center">
               <button
                 type="button"
                 onClick={handleResetAndClose}
-                className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 text-white text-xs font-semibold rounded-xl hover:bg-slate-800 transition-colors cursor-pointer text-center"
+                className="w-full sm:w-auto px-8 py-3 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-all cursor-pointer text-center shadow-md active:scale-95"
               >
                 Close Window
               </button>
