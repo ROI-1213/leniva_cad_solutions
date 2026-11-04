@@ -30,13 +30,18 @@ ReactDOM.createRoot(rootElement).render(
   </React.StrictMode>,
 )
 
-// 2. Initialize Cloud CMS sync in the background (non-blocking, resilient)
-try {
-  initCloudCmsSync({ timeoutMs: 2000 }).catch(err => {
-    console.warn('Cloud CMS background sync non-fatal warning:', err)
+// 2. Initialize Cloud CMS sync when browser is idle (zero impact on initial paint)
+if (typeof window !== 'undefined') {
+  const scheduleSync = (window as any).requestIdleCallback || ((cb: any) => setTimeout(cb, 100))
+  scheduleSync(() => {
+    try {
+      initCloudCmsSync({ timeoutMs: 2000 }).catch(err => {
+        console.warn('Cloud CMS background sync non-fatal warning:', err)
+      })
+    } catch (err) {
+      console.warn('Failed to start Cloud CMS sync:', err)
+    }
   })
-} catch (err) {
-  console.warn('Failed to start Cloud CMS sync:', err)
 }
 
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, lazy, Suspense } from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import {
   ChevronRight,
@@ -17,30 +17,32 @@ import { Product } from '../types'
 import { getStoredProductsCatalog } from '../utils/productCatalog'
 import { ProductCard } from '../components/ProductCard'
 import { useApp } from '../context/AppContext'
-import PrathamDesktopPage from './PrathamDesktopPage'
-import PrathamMiniPage from './PrathamMiniPage'
-import Pratham3Page from './Pratham3Page'
-import EkaHtPage from './EkaHtPage'
-import EkaXlPage from './EkaXlPage'
-import EkaXlePage from './EkaXlePage'
-import EkaGtMaxPage from './EkaGtMaxPage'
-import EkaF116kPage from './EkaF116kPage'
-import Pratham5Page from './Pratham5Page'
-import Pratham6Page from './Pratham6Page'
-import PrathamX600Page from './PrathamX600Page'
-import PrathamX1000Page from './PrathamX1000Page'
-import Pratham3RapidPage from './Pratham3RapidPage'
-import EnscapePage from './EnscapePage'
-import VRayPage from './VRayPage'
-import CoronaPage from './CoronaPage'
-import SketchUpStudioPage from './SketchUpStudioPage'
-import SketchUpProScanPage from './SketchUpProScanPage'
-import AresMechanicalPage from './AresMechanicalPage'
-import AresElectricalPage from './AresElectricalPage'
-import AresStandardPage from './AresStandardPage'
-import AresCommanderPage from './AresCommanderPage'
-import AresKudoPage from './AresKudoPage'
-import AresTouchPage from './AresTouchPage'
+
+// Code-split all dedicated product pages so they only load when requested
+const PrathamDesktopPage = lazy(() => import('./PrathamDesktopPage'))
+const PrathamMiniPage = lazy(() => import('./PrathamMiniPage'))
+const Pratham3Page = lazy(() => import('./Pratham3Page'))
+const EkaHtPage = lazy(() => import('./EkaHtPage'))
+const EkaXlPage = lazy(() => import('./EkaXlPage'))
+const EkaXlePage = lazy(() => import('./EkaXlePage'))
+const EkaGtMaxPage = lazy(() => import('./EkaGtMaxPage'))
+const EkaF116kPage = lazy(() => import('./EkaF116kPage'))
+const Pratham5Page = lazy(() => import('./Pratham5Page'))
+const Pratham6Page = lazy(() => import('./Pratham6Page'))
+const PrathamX600Page = lazy(() => import('./PrathamX600Page'))
+const PrathamX1000Page = lazy(() => import('./PrathamX1000Page'))
+const Pratham3RapidPage = lazy(() => import('./Pratham3RapidPage'))
+const EnscapePage = lazy(() => import('./EnscapePage'))
+const VRayPage = lazy(() => import('./VRayPage'))
+const CoronaPage = lazy(() => import('./CoronaPage'))
+const SketchUpStudioPage = lazy(() => import('./SketchUpStudioPage'))
+const SketchUpProScanPage = lazy(() => import('./SketchUpProScanPage'))
+const AresMechanicalPage = lazy(() => import('./AresMechanicalPage'))
+const AresElectricalPage = lazy(() => import('./AresElectricalPage'))
+const AresStandardPage = lazy(() => import('./AresStandardPage'))
+const AresCommanderPage = lazy(() => import('./AresCommanderPage'))
+const AresKudoPage = lazy(() => import('./AresKudoPage'))
+const AresTouchPage = lazy(() => import('./AresTouchPage'))
 
 interface ProductDetailPageProps {
   forcedSlug?: string
@@ -91,80 +93,42 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
   }
 
   // Always render dedicated full-featured product pages so visual editor overrides & rich layouts match 100%
-  if (resolvedSlug === 'pratham-desktop') {
-    return <PrathamDesktopPage />
+  const renderDedicatedPage = () => {
+    if (resolvedSlug === 'pratham-desktop') return <PrathamDesktopPage />
+    if (resolvedSlug === 'pratham-mini') return <PrathamMiniPage />
+    if (resolvedSlug === 'pratham-3' || resolvedSlug === 'pratham-3-0') return <Pratham3Page />
+    if (resolvedSlug === 'pratham-5' || resolvedSlug === 'pratham-5-0') return <Pratham5Page />
+    if (resolvedSlug === 'pratham-6' || resolvedSlug === 'pratham-6-0') return <Pratham6Page />
+    if (resolvedSlug === 'pratham-x-600') return <PrathamX600Page />
+    if (resolvedSlug === 'pratham-x' || resolvedSlug === 'pratham-x-1000') return <PrathamX1000Page />
+    if (resolvedSlug === 'pratham-3-rapid') return <Pratham3RapidPage />
+    if (resolvedSlug === 'enscape' || resolvedSlug === 'enscape-3d' || resolvedSlug === 'chaos-enscape') return <EnscapePage />
+    if (resolvedSlug === 'vray' || resolvedSlug === 'v-ray' || resolvedSlug === 'chaos-vray' || resolvedSlug === 'chaos-v-ray') return <VRayPage />
+    if (resolvedSlug === 'corona' || resolvedSlug === 'chaos-corona' || resolvedSlug === 'chaos-corona-renderer') return <CoronaPage />
+    if (resolvedSlug === 'sketchup-studio' || resolvedSlug === 'sketchup_studio' || resolvedSlug === 'sketchupstudio') return <SketchUpStudioPage />
+    if (resolvedSlug === 'sketchup-scan' || resolvedSlug === 'sketchup-pro-scan' || resolvedSlug === 'sketchupproscan') return <SketchUpProScanPage />
+    if (resolvedSlug === 'ares-mechanical' || resolvedSlug === 'aresmechanical' || resolvedSlug === 'ares_mechanical') return <AresMechanicalPage />
+    if (resolvedSlug === 'ares-electrical' || resolvedSlug === 'areselectrical' || resolvedSlug === 'ares_electrical') return <AresElectricalPage />
+    if (resolvedSlug === 'ares-standard' || resolvedSlug === 'aresstandard' || resolvedSlug === 'ares_standard') return <AresStandardPage />
+    if (resolvedSlug === 'ares-commander' || resolvedSlug === 'arescommander' || resolvedSlug === 'ares_commander') return <AresCommanderPage />
+    if (resolvedSlug === 'ares-kudo' || resolvedSlug === 'areskudo' || resolvedSlug === 'ares_kudo') return <AresKudoPage />
+    if (resolvedSlug === 'ares-touch' || resolvedSlug === 'arestouch' || resolvedSlug === 'ares_touch') return <AresTouchPage />
+    if (resolvedSlug === 'ares-trinity' || resolvedSlug === 'arestrinity' || resolvedSlug === 'ares_trinity' || resolvedSlug.includes('trinity')) return <AresKudoPage />
+    if (resolvedSlug === 'eka-ht') return <EkaHtPage />
+    if (resolvedSlug === 'eka-xl' || resolvedSlug === 'eka-xl-2') return <EkaXlPage />
+    if (resolvedSlug === 'eka-xle') return <EkaXlePage />
+    if (resolvedSlug === 'eka-gt-max' || resolvedSlug === 'industrial-lcd-3d-printers-eka-gt-max') return <EkaGtMaxPage />
+    if (resolvedSlug === 'eka-f1-16k' || resolvedSlug === 'eka-f1-16k-industrial-lcd-jewelry-3d-printer') return <EkaF116kPage />
+    return null
   }
-  if (resolvedSlug === 'pratham-mini') {
-    return <PrathamMiniPage />
-  }
-  if (resolvedSlug === 'pratham-3' || resolvedSlug === 'pratham-3-0') {
-    return <Pratham3Page />
-  }
-  if (resolvedSlug === 'pratham-5' || resolvedSlug === 'pratham-5-0') {
-    return <Pratham5Page />
-  }
-  if (resolvedSlug === 'pratham-6' || resolvedSlug === 'pratham-6-0') {
-    return <Pratham6Page />
-  }
-  if (resolvedSlug === 'pratham-x-600') {
-    return <PrathamX600Page />
-  }
-  if (resolvedSlug === 'pratham-x' || resolvedSlug === 'pratham-x-1000') {
-    return <PrathamX1000Page />
-  }
-  if (resolvedSlug === 'pratham-3-rapid') {
-    return <Pratham3RapidPage />
-  }
-  if (resolvedSlug === 'enscape' || resolvedSlug === 'enscape-3d' || resolvedSlug === 'chaos-enscape') {
-    return <EnscapePage />
-  }
-  if (resolvedSlug === 'vray' || resolvedSlug === 'v-ray' || resolvedSlug === 'chaos-vray' || resolvedSlug === 'chaos-v-ray') {
-    return <VRayPage />
-  }
-  if (resolvedSlug === 'corona' || resolvedSlug === 'chaos-corona' || resolvedSlug === 'chaos-corona-renderer') {
-    return <CoronaPage />
-  }
-  if (resolvedSlug === 'sketchup-studio' || resolvedSlug === 'sketchup_studio' || resolvedSlug === 'sketchupstudio') {
-    return <SketchUpStudioPage />
-  }
-  if (resolvedSlug === 'sketchup-scan' || resolvedSlug === 'sketchup-pro-scan' || resolvedSlug === 'sketchupproscan') {
-    return <SketchUpProScanPage />
-  }
-  if (resolvedSlug === 'ares-mechanical' || resolvedSlug === 'aresmechanical' || resolvedSlug === 'ares_mechanical') {
-    return <AresMechanicalPage />
-  }
-  if (resolvedSlug === 'ares-electrical' || resolvedSlug === 'areselectrical' || resolvedSlug === 'ares_electrical') {
-    return <AresElectricalPage />
-  }
-  if (resolvedSlug === 'ares-standard' || resolvedSlug === 'aresstandard' || resolvedSlug === 'ares_standard') {
-    return <AresStandardPage />
-  }
-  if (resolvedSlug === 'ares-commander' || resolvedSlug === 'arescommander' || resolvedSlug === 'ares_commander') {
-    return <AresCommanderPage />
-  }
-  if (resolvedSlug === 'ares-kudo' || resolvedSlug === 'areskudo' || resolvedSlug === 'ares_kudo') {
-    return <AresKudoPage />
-  }
-  if (resolvedSlug === 'ares-touch' || resolvedSlug === 'arestouch' || resolvedSlug === 'ares_touch') {
-    return <AresTouchPage />
-  }
-  if (resolvedSlug === 'ares-trinity' || resolvedSlug === 'arestrinity' || resolvedSlug === 'ares_trinity' || resolvedSlug.includes('trinity')) {
-    return <AresKudoPage />
-  }
-  if (resolvedSlug === 'eka-ht') {
-    return <EkaHtPage />
-  }
-  if (resolvedSlug === 'eka-xl' || resolvedSlug === 'eka-xl-2') {
-    return <EkaXlPage />
-  }
-  if (resolvedSlug === 'eka-xle') {
-    return <EkaXlePage />
-  }
-  if (resolvedSlug === 'eka-gt-max' || resolvedSlug === 'industrial-lcd-3d-printers-eka-gt-max') {
-    return <EkaGtMaxPage />
-  }
-  if (resolvedSlug === 'eka-f1-16k' || resolvedSlug === 'eka-f1-16k-industrial-lcd-jewelry-3d-printer') {
-    return <EkaF116kPage />
+
+  const dedicated = renderDedicatedPage()
+  if (dedicated) {
+    return (
+      <Suspense fallback={<div className="min-h-[70vh] flex items-center justify-center bg-white"><div className="w-8 h-8 border-2 border-slate-200 border-t-red-600 rounded-full animate-spin" /></div>}>
+        {dedicated}
+      </Suspense>
+    )
   }
 
   // Find product by slug or id or alias

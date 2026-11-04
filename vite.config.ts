@@ -15,6 +15,7 @@ export default defineConfig({
         // Split vendor libs into separate cacheable chunks
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'framer-motion': ['framer-motion'],
           'icons': ['lucide-react'],
         },
       },

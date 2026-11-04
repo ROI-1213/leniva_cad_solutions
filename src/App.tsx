@@ -7,11 +7,11 @@ import WhatsAppButton from './components/WhatsAppButton'
 import QuoteModal from './components/QuoteModal'
 import SearchModal from './components/SearchModal'
 import ScrollToTop from './components/ScrollToTop'
-import AdminPage from './pages/AdminPage'
 import { GlobalVisualPageOverridesApplier } from './utils/cadVisualEditorStore'
+import HomePage from './pages/HomePage'
 
 // Lazy-loaded pages — each loads only when that route is visited
-const HomePage = lazy(() => import('./pages/HomePage'))
+const AdminPage = lazy(() => import('./pages/AdminPage'))
 const ProductsPage = lazy(() => import('./pages/ProductsPage'))
 const CategoryDetailPage = lazy(() => import('./pages/CategoryDetailPage'))
 const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage'))
