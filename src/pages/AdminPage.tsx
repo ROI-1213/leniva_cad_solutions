@@ -1611,29 +1611,6 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* Quick Auto-Fill Credentials Helper Box */}
-          <div className="p-3.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 rounded-2xl flex items-center justify-between text-xs shadow-2xs">
-            <div>
-              <p className="font-bold text-slate-800 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Administrator Access</span>
-              </p>
-              <p className="text-slate-600 font-mono text-[11px] mt-0.5">
-                User: <span className="font-bold text-blue-700">admin</span> &bull; Pass: <span className="font-bold text-blue-700">admin123</span>
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setUsernameInput('admin')
-                setPasswordInput('admin123')
-                setLoginError('')
-              }}
-              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl font-bold text-xs transition-all shadow-xs cursor-pointer"
-            >
-              Auto-Fill
-            </button>
-          </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
