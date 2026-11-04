@@ -240,7 +240,6 @@ export default function AdminPage() {
 
   type AdminTab =
     | 'enquiries'
-    | 'brochures'
     | 'dashboard'
     | 'quotes'
     | 'contacts'
@@ -294,8 +293,6 @@ export default function AdminPage() {
   const [enquirySearchInput, setEnquirySearchInput] = useState('')
   const [enquiryStatusFilter, setEnquiryStatusFilter] = useState<'all' | 'New' | 'Contacted' | 'Pending' | 'Converted' | 'Closed'>('all')
   const [enquiryTypeFilter, setEnquiryTypeFilter] = useState<'all' | 'trial' | 'demo' | 'consultation' | 'contact' | 'quote' | 'brochure'>('all')
-  const [brochureSearchInput, setBrochureSearchInput] = useState('')
-  const [brochureStatusFilter, setBrochureStatusFilter] = useState<'all' | 'New' | 'Contacted' | 'Pending' | 'Converted' | 'Closed'>('all')
   const [enquiryProductFilter, setEnquiryProductFilter] = useState('all')
   const [enquirySourceFilter, setEnquirySourceFilter] = useState('all')
   const [enquiryDateFilter, setEnquiryDateFilter] = useState('')
@@ -1935,30 +1932,6 @@ export default function AdminPage() {
   })
 
   const brochureEnquiries = enquiries.filter(e => getEnquiryType(e as any) === 'brochure')
-  const totalBrochuresCount = brochureEnquiries.length
-  const newBrochuresCount = brochureEnquiries.filter(e => e.status === 'New').length
-  const todayStr = new Date().toISOString().slice(0, 10)
-  const todayBrochuresCount = brochureEnquiries.filter(e => (e.created_at || '').slice(0, 10) === todayStr).length
-  const convertedBrochuresCount = brochureEnquiries.filter(e => e.status === 'Converted').length
-
-  const filteredBrochureEnquiries = brochureEnquiries.filter(e => {
-    if (brochureStatusFilter !== 'all' && e.status !== brochureStatusFilter) return false
-    if (brochureSearchInput.trim()) {
-      const q = brochureSearchInput.toLowerCase()
-      const match =
-        (e.customer_name || '').toLowerCase().includes(q) ||
-        (e.email || '').toLowerCase().includes(q) ||
-        (e.phone || '').toLowerCase().includes(q) ||
-        (e.company_name || '').toLowerCase().includes(q) ||
-        (e.city || '').toLowerCase().includes(q) ||
-        (e.product_service_name || '').toLowerCase().includes(q) ||
-        (e.subject || '').toLowerCase().includes(q) ||
-        (e.message || '').toLowerCase().includes(q) ||
-        (e.enquiry_number || '').toLowerCase().includes(q)
-      if (!match) return false
-    }
-    return true
-  })
 
   const handleDeleteEnquiry = async (id: number) => {
     if (!confirm('Are you sure you want to delete this enquiry?')) return
@@ -1968,54 +1941,6 @@ export default function AdminPage() {
     if (selectedEnquiry?.id === id) setSelectedEnquiry(null)
     fetch(`/api/enquiries?id=${id}`, { method: 'DELETE' }).catch(() => null)
     pushCmsStateToCloud({ isEnquirySubmission: true }).catch(() => false)
-  }
-
-  const handleExportBrochuresCsv = () => {
-    if (!brochureEnquiries.length) {
-      alert('No brochure requests to export.')
-      return
-    }
-    const headers = [
-      'Enquiry ID',
-      'Submitted Date',
-      'Submitted Time',
-      'Customer Name',
-      'Email',
-      'Phone',
-      'Company Name',
-      'City',
-      'Requested Brochure / Software',
-      'Status',
-      'Admin Notes',
-      'Message',
-      'Source Page',
-    ]
-    const csvRows = [headers.join(',')]
-    brochureEnquiries.forEach(e => {
-      const row = [
-        `"${e.enquiry_number || e.id}"`,
-        `"${e.submitted_date || (e.created_at ? e.created_at.slice(0, 10) : '')}"`,
-        `"${e.submitted_time || ''}"`,
-        `"${(e.customer_name || '').replace(/"/g, '""')}"`,
-        `"${(e.email || '').replace(/"/g, '""')}"`,
-        `"${(e.phone || '').replace(/"/g, '""')}"`,
-        `"${(e.company_name || '').replace(/"/g, '""')}"`,
-        `"${(e.city || '').replace(/"/g, '""')}"`,
-        `"${(e.product_service_name || '').replace(/"/g, '""')}"`,
-        `"${e.status || 'New'}"`,
-        `"${(e.admin_notes || '').replace(/"/g, '""')}"`,
-        `"${(e.message || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`,
-        `"${(e.source_page || '').replace(/"/g, '""')}"`,
-      ]
-      csvRows.push(row.join(','))
-    })
-    const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvRows.join('\n'))
-    const link = document.createElement('a')
-    link.setAttribute('href', csvContent)
-    link.setAttribute('download', `leniva_brochure_requests_${new Date().toISOString().slice(0, 10)}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
   }
 
   const handleUpdateEnquiryStatus = async (id: number, newStatus: StoredEnquiryRecord['status']) => {
@@ -2246,10 +2171,10 @@ export default function AdminPage() {
       {/* Top Admin Navbar */}
       <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40">
         <div className={`mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between transition-all ${
-          (activeTab === 'enquiries' || activeTab === 'quotes' || activeTab === 'brochures') && isEnquiryFullPage ? 'w-full max-w-none' : 'max-w-7xl'
+          (activeTab === 'enquiries' || activeTab === 'quotes') && isEnquiryFullPage ? 'w-full max-w-none' : 'max-w-7xl'
         }`}>
           <div className="flex items-center space-x-3">
-            {((activeTab === 'enquiries' || activeTab === 'quotes' || activeTab === 'brochures') && isEnquiryFullPage) && (
+            {((activeTab === 'enquiries' || activeTab === 'quotes') && isEnquiryFullPage) && (
               <button
                 onClick={() => setIsEnquiryFullPage(false)}
                 className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm active:scale-95 mr-1"
@@ -2303,14 +2228,14 @@ export default function AdminPage() {
 
       {/* Main Admin Content Container */}
       <div className={`mx-auto w-full px-3 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col md:flex-row gap-6 min-w-0 transition-all ${
-        (activeTab === 'enquiries' || activeTab === 'quotes' || activeTab === 'brochures') && isEnquiryFullPage
+        (activeTab === 'enquiries' || activeTab === 'quotes') && isEnquiryFullPage
           ? 'max-w-none'
-          : activeTab === 'enquiries' || activeTab === 'quotes' || activeTab === 'brochures'
+          : activeTab === 'enquiries' || activeTab === 'quotes'
           ? 'max-w-[1750px]'
           : 'max-w-7xl'
       }`}>
-        {/* Master Sidebar Navigation (Hidden in Full-Page Mode for Enquiries / Quotes / Brochures) */}
-        {!((activeTab === 'enquiries' || activeTab === 'quotes' || activeTab === 'brochures') && isEnquiryFullPage) && (
+        {/* Master Sidebar Navigation (Hidden in Full-Page Mode for Enquiries / Quotes) */}
+        {!((activeTab === 'enquiries' || activeTab === 'quotes') && isEnquiryFullPage) && (
         <aside className="w-full md:w-64 shrink-0 space-y-3">
           <nav className="bg-white rounded-2xl p-2 border border-slate-200 shadow-sm space-y-1">
             <button
@@ -2332,28 +2257,6 @@ export default function AdminPage() {
                 activeTab === 'enquiries' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'
               }`}>
                 {enquiries.length}
-              </span>
-            </button>
-
-            <button
-              onClick={() => {
-                setActiveTab('brochures')
-                setIsEnquiryFullPage(true)
-              }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === 'brochures'
-                  ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow-sm'
-                  : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <BookOpen className="w-4 h-4" />
-                <span>Brochure Requests</span>
-              </div>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                activeTab === 'brochures' ? 'bg-teal-800 text-teal-100' : 'bg-slate-200 text-slate-700'
-              }`}>
-                {totalBrochuresCount}
               </span>
             </button>
 
@@ -2517,8 +2420,8 @@ export default function AdminPage() {
 
         {/* Master Content Area */}
         <main className="flex-1 min-w-0 space-y-6">
-          {/* Top Full-Page Navigation Header for Enquiries, Quotes & Brochures */}
-          {(activeTab === 'enquiries' || activeTab === 'quotes' || activeTab === 'brochures') && (
+          {/* Top Full-Page Navigation Header for Enquiries & Quotes */}
+          {(activeTab === 'enquiries' || activeTab === 'quotes') && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 flex flex-wrap items-center justify-between gap-3 animate-fade-in">
               <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
                 {/* 1. Primary Back Button to return to menu & select another page */}
@@ -2569,26 +2472,6 @@ export default function AdminPage() {
 
                 <button
                   onClick={() => {
-                    setActiveTab('brochures')
-                    setIsEnquiryFullPage(true)
-                  }}
-                  className={`inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    activeTab === 'brochures'
-                      ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
-                  <BookOpen className="w-4 h-4" />
-                  <span>Brochure Requests</span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                    activeTab === 'brochures' ? 'bg-teal-800 text-teal-100' : 'bg-slate-200 text-slate-700'
-                  }`}>
-                    {totalBrochuresCount}
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => {
                     setActiveTab('quotes')
                     setIsEnquiryFullPage(true)
                   }}
@@ -2625,7 +2508,7 @@ export default function AdminPage() {
                     onChange={(e) => {
                       const tab = e.target.value as AdminTab
                       setActiveTab(tab)
-                      if (tab !== 'enquiries' && tab !== 'quotes' && tab !== 'brochures') {
+                      if (tab !== 'enquiries' && tab !== 'quotes') {
                         setIsEnquiryFullPage(false)
                       }
                     }}
@@ -2633,7 +2516,6 @@ export default function AdminPage() {
                   >
                     <option value="dashboard">📊 Dashboard Overview</option>
                     <option value="enquiries">📥 Enquiry Management</option>
-                    <option value="brochures">📖 Brochure Requests</option>
                     <option value="quotes">📄 Quotes &amp; RFQs</option>
                     <option value="blogs">✍️ Engineering Blogs</option>
                     <option value="home_content">🏠 Home Page Editor</option>
@@ -2731,15 +2613,6 @@ export default function AdminPage() {
                       className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
                     >
                       View All Enquiries ({enquiries.length})
-                    </button>
-                    <button
-                      onClick={() => {
-                        setActiveTab('brochures')
-                        setIsEnquiryFullPage(true)
-                      }}
-                      className="px-3 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
-                    >
-                      Brochure Requests ({totalBrochuresCount})
                     </button>
                     <button
                       onClick={() => {
@@ -3154,6 +3027,13 @@ export default function AdminPage() {
                                         </span>
                                       )
                                     }
+                                    if (enqType === 'brochure') {
+                                      return (
+                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-teal-100 text-teal-800 border border-teal-200">
+                                          Brochure
+                                        </span>
+                                      )
+                                    }
                                     if (enqType === 'contact') {
                                       return (
                                         <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-700 border border-amber-200">
@@ -3543,289 +3423,6 @@ export default function AdminPage() {
           )}
 
           {/* ====================================================
-              TAB: BROCHURE & TECHNICAL DATASHEET REQUESTS
-             ==================================================== */}
-          {activeTab === 'brochures' && (
-            <div className="space-y-6 animate-fade-in">
-              {/* Header & Actions */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-teal-100 text-teal-800 border border-teal-200">
-                        Brochure &amp; Datasheet Requests
-                      </span>
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                        Automated Delivery Pipeline
-                      </span>
-                    </div>
-                    <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">Brochure &amp; Technical Datasheet Inquiries</h2>
-                    <p className="text-xs sm:text-sm text-slate-500">
-                      Direct inquiries from customers requesting official product brochures, software catalogs, and technical datasheets.
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2">
-                    {isEnquiryFullPage && (
-                      <button
-                        onClick={() => setIsEnquiryFullPage(false)}
-                        className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-slate-900 hover:bg-teal-600 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer group"
-                        title="Back to Admin Menu (Show Sidebar)"
-                      >
-                        <ArrowLeft className="w-3.5 h-3.5 text-teal-400 group-hover:text-white group-hover:-translate-x-0.5 transition-transform" />
-                        <span>← Back to Menu</span>
-                      </button>
-                    )}
-
-                    <button
-                      onClick={handleExportBrochuresCsv}
-                      className="inline-flex items-center space-x-2 px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Export CSV</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setEnquiries(getStoredEnquiries())
-                        pullCmsStateFromCloud().catch(() => null)
-                      }}
-                      className="inline-flex items-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-medium transition-colors cursor-pointer"
-                      title="Refresh brochure inquiries"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
-                      <span>Refresh</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* ─── 4 STATS CARDS ─── */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                  <div className="p-3 bg-teal-50/70 rounded-xl border border-teal-200/80">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700 block">Total Requests</span>
-                    <span className="text-xl font-black text-teal-900">{totalBrochuresCount}</span>
-                    <span className="text-[10px] text-teal-600 block mt-0.5">All Brochures</span>
-                  </div>
-
-                  <div className="p-3 bg-blue-50/70 rounded-xl border border-blue-200/80">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 block">New / Unread</span>
-                    <span className="text-xl font-black text-blue-700">{newBrochuresCount}</span>
-                    <span className="text-[10px] text-blue-500 block mt-0.5">Pending Review</span>
-                  </div>
-
-                  <div className="p-3 bg-indigo-50/70 rounded-xl border border-indigo-200/80">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 block">Received Today</span>
-                    <span className="text-xl font-black text-indigo-700">{todayBrochuresCount}</span>
-                    <span className="text-[10px] text-indigo-500 block mt-0.5">Today's Leads</span>
-                  </div>
-
-                  <div className="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200/80">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block">Converted</span>
-                    <span className="text-xl font-black text-emerald-700">{convertedBrochuresCount}</span>
-                    <span className="text-[10px] text-emerald-600 block mt-0.5">Customers Contacted</span>
-                  </div>
-                </div>
-
-                {/* ─── SEARCH & FILTER CONTROLS ─── */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-3 border-t border-slate-100">
-                  <div className="relative flex-1 max-w-md">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      placeholder="Search by name, email, company, brochure or software..."
-                      value={brochureSearchInput}
-                      onChange={e => setBrochureSearchInput(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white transition-all"
-                    />
-                    {brochureSearchInput && (
-                      <button
-                        onClick={() => setBrochureSearchInput('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {(['all', 'New', 'Contacted', 'Pending', 'Converted', 'Closed'] as const).map(status => {
-                      const count =
-                        status === 'all'
-                          ? brochureEnquiries.length
-                          : brochureEnquiries.filter(e => e.status === status).length
-                      const isActive = brochureStatusFilter === status
-                      return (
-                        <button
-                          key={status}
-                          onClick={() => setBrochureStatusFilter(status)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                            isActive
-                              ? 'bg-teal-600 text-white shadow-sm'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                          }`}
-                        >
-                          {status === 'all' ? 'All' : status} ({count})
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* ─── BROCHURES TABLE ─── */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                  <div className="text-xs font-bold text-slate-700">
-                    Showing <span className="text-teal-600 font-extrabold">{filteredBrochureEnquiries.length}</span> of {brochureEnquiries.length} brochure requests
-                  </div>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs text-slate-600">
-                    <thead className="bg-slate-50 text-[11px] font-bold text-slate-700 uppercase tracking-wider border-b border-slate-200">
-                      <tr>
-                        <th className="py-3 px-3.5">ID</th>
-                        <th className="py-3 px-3.5">Customer &amp; Company</th>
-                        <th className="py-3 px-3.5">Contact Details</th>
-                        <th className="py-3 px-3.5">Requested Brochure</th>
-                        <th className="py-3 px-3.5">Date &amp; Time</th>
-                        <th className="py-3 px-3.5">Status</th>
-                        <th className="py-3 px-3.5 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredBrochureEnquiries.length === 0 ? (
-                        <tr>
-                          <td colSpan={7} className="py-12 text-center text-slate-400">
-                            No brochure requests found matching your filters.
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredBrochureEnquiries.map(e => {
-                          const statusColor =
-                            e.status === 'New'
-                              ? 'bg-blue-50 text-blue-700 border-blue-200'
-                              : e.status === 'Contacted'
-                              ? 'bg-purple-50 text-purple-700 border-purple-200'
-                              : e.status === 'Pending'
-                              ? 'bg-amber-50 text-amber-700 border-amber-200'
-                              : e.status === 'Converted'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : 'bg-slate-100 text-slate-600 border-slate-200'
-
-                          return (
-                            <tr
-                              key={e.id}
-                              onClick={() => {
-                                setSelectedEnquiry(e)
-                                setEnquiryAdminNotes(e.admin_notes || '')
-                                setEnquiryFollowUpDate(e.follow_up_date || '')
-                              }}
-                              className="hover:bg-teal-50/50 transition-colors cursor-pointer"
-                            >
-                              <td className="py-3 px-3.5 font-mono font-bold text-slate-900 whitespace-nowrap">
-                                <span className="bg-teal-50 text-teal-800 px-2 py-0.5 rounded border border-teal-200 font-bold">
-                                  {e.enquiry_number || `LEN${String(e.id).slice(-4)}`}
-                                </span>
-                              </td>
-                              <td className="py-3 px-3.5">
-                                <div className="font-bold text-slate-900">{e.customer_name}</div>
-                                <div className="text-[11px] text-slate-500">{e.company_name || 'Individual'}</div>
-                                {e.city && <div className="text-[10px] text-slate-400">{e.city}</div>}
-                              </td>
-                              <td className="py-3 px-3.5" onClick={ev => ev.stopPropagation()}>
-                                <div className="flex items-center space-x-1.5">
-                                  <a
-                                    href={`mailto:${e.email}`}
-                                    className="text-blue-600 hover:underline font-semibold"
-                                  >
-                                    {e.email || '—'}
-                                  </a>
-                                </div>
-                                {e.phone && (
-                                  <div className="flex items-center space-x-2 mt-0.5">
-                                    <a
-                                      href={`tel:${e.phone}`}
-                                      className="text-slate-700 font-mono text-[11px] hover:text-teal-600"
-                                    >
-                                      {e.phone}
-                                    </a>
-                                    <a
-                                      href={`https://wa.me/${e.phone.replace(/[^0-9]/g, '')}`}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="text-[10px] text-emerald-600 hover:underline font-bold"
-                                    >
-                                      WhatsApp
-                                    </a>
-                                  </div>
-                                )}
-                              </td>
-                              <td className="py-3 px-3.5">
-                                <div className="font-bold text-teal-900 flex items-center space-x-1.5">
-                                  <BookOpen className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-                                  <span>{e.product_service_name || 'Official Brochure'}</span>
-                                </div>
-                                <div className="text-[11px] text-slate-400 max-w-xs truncate mt-0.5">
-                                  {e.source_page || 'Brochure Download'}
-                                </div>
-                              </td>
-                              <td className="py-3 px-3.5 whitespace-nowrap">
-                                <div className="text-slate-800 font-mono text-[11px]">
-                                  {e.submitted_date || (e.created_at ? e.created_at.slice(0, 10) : '—')}
-                                </div>
-                                <div className="text-[10px] text-slate-400">
-                                  {e.submitted_time || (e.created_at ? new Date(e.created_at).toLocaleTimeString() : '')}
-                                </div>
-                              </td>
-                              <td className="py-3 px-3.5 whitespace-nowrap" onClick={ev => ev.stopPropagation()}>
-                                <select
-                                  value={e.status}
-                                  onChange={ev => handleUpdateEnquiryStatus(e.id, ev.target.value as any)}
-                                  className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase border cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-500 ${statusColor}`}
-                                >
-                                  <option value="New">New</option>
-                                  <option value="Contacted">Contacted</option>
-                                  <option value="Pending">Pending</option>
-                                  <option value="Converted">Converted</option>
-                                  <option value="Closed">Closed</option>
-                                </select>
-                              </td>
-                              <td className="py-3 px-3.5 text-right whitespace-nowrap" onClick={ev => ev.stopPropagation()}>
-                                <div className="inline-flex items-center space-x-1.5">
-                                  <button
-                                    onClick={() => {
-                                      setSelectedEnquiry(e)
-                                      setEnquiryAdminNotes(e.admin_notes || '')
-                                      setEnquiryFollowUpDate(e.follow_up_date || '')
-                                    }}
-                                    className="inline-flex items-center space-x-1 px-2.5 py-1 text-teal-700 bg-teal-50 hover:bg-teal-600 hover:text-white rounded-lg transition-colors cursor-pointer text-xs font-bold border border-teal-200"
-                                    title="View full details"
-                                  >
-                                    <Eye className="w-3.5 h-3.5" />
-                                    <span>View</span>
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteEnquiry(e.id)}
-                                    className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors cursor-pointer inline-flex items-center"
-                                    title="Delete brochure enquiry"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          )
-                        })
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ====================================================
               TAB 2: QUOTES & RFQS
              ==================================================== */}
           {activeTab === 'quotes' && (
@@ -4019,6 +3616,11 @@ export default function AdminPage() {
                                   Contact Form
                                 </span>
                               )}
+                              {type === 'brochure' && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800 border border-teal-200">
+                                  Brochure Request
+                                </span>
+                              )}
                               {type === 'quote' && (
                                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200">
                                   Quote / RFQ
@@ -4129,6 +3731,8 @@ export default function AdminPage() {
                           ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
                           : getEnquiryType(selectedQuote) === 'contact'
                           ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                          : getEnquiryType(selectedQuote) === 'brochure'
+                          ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
                           : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                       }`}>
                         {getEnquiryType(selectedQuote) === 'trial'
@@ -4139,6 +3743,8 @@ export default function AdminPage() {
                           ? 'Consultation'
                           : getEnquiryType(selectedQuote) === 'contact'
                           ? 'Contact Form'
+                          : getEnquiryType(selectedQuote) === 'brochure'
+                          ? 'Brochure Request'
                           : 'Quote / RFQ'}
                       </span>
                       <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
