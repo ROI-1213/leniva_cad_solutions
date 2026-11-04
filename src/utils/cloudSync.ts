@@ -42,6 +42,8 @@ const ADMIN_CONTENT_CHECK_KEYS = [
 const COMPACT_INLINE_KEYS = [
   'leniva_admin_password',
   'leniva_site_settings',
+  'leniva_admin_products_catalog',
+  'leniva_admin_blogs_catalog',
   'leniva_cad_software_edits',
   'leniva_cad_visual_published_v1',
   'leniva_custom_cad_products',
@@ -93,9 +95,25 @@ export function dispatchAllCmsUpdatedEvents() {
   }
 }
 
+let syncBroadcastChannel: BroadcastChannel | null = null
+try {
+  if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+    syncBroadcastChannel = new BroadcastChannel('leniva_cms_sync_channel')
+    syncBroadcastChannel.onmessage = (event) => {
+      if (event.data?.type === 'SYNC_NOW') {
+        pullCmsStateFromCloud(true).catch(() => false)
+      }
+    }
+  }
+} catch {
+  // ignore
+}
+
 function isOnAdminRoute(): boolean {
   if (typeof window === 'undefined') return false
-  return window.location.pathname === '/admin' || window.location.pathname === '/admin/'
+  const p = (window.location.pathname || '').toLowerCase()
+  const h = (window.location.hash || '').toLowerCase()
+  return p.includes('/admin') || h.includes('admin')
 }
 
 function installStorageInterceptor() {
@@ -110,7 +128,8 @@ function installStorageInterceptor() {
     rawSetItem(key, value)
     if (!isApplyingRemoteSync && SYNCED_KEY_SET.has(key)) {
       explicitlyResetKeys.delete(key)
-      if (isOnAdminRoute() || key === 'leniva_admin_quotes' || key === 'leniva_admin_contacts' || key === 'leniva_admin_enquiries') {
+      const isAdminActive = isOnAdminRoute() || rawGetItem('leniva_admin_auth') === 'true'
+      if (isAdminActive || key === 'leniva_admin_quotes' || key === 'leniva_admin_contacts' || key === 'leniva_admin_enquiries') {
         const now = Date.now()
         rawSetItem(UPDATED_AT_KEY, String(now))
         scheduleCloudPush()
@@ -122,7 +141,8 @@ function installStorageInterceptor() {
     rawRemoveItem(key)
     if (!isApplyingRemoteSync && SYNCED_KEY_SET.has(key)) {
       explicitlyResetKeys.add(key)
-      if (isOnAdminRoute()) {
+      const isAdminActive = isOnAdminRoute() || rawGetItem('leniva_admin_auth') === 'true'
+      if (isAdminActive) {
         const now = Date.now()
         rawSetItem(UPDATED_AT_KEY, String(now))
         scheduleCloudPush()
@@ -270,7 +290,15 @@ export async function pushCmsStateToCloud(options?: { isEnquirySubmission?: bool
         }),
       ])
 
-      return results.some(r => r.status === 'fulfilled' && r.value.ok)
+      const isSuccess = results.some(r => r.status === 'fulfilled' && r.value.ok)
+      if (isSuccess) {
+        try {
+          syncBroadcastChannel?.postMessage({ type: 'SYNC_NOW', updatedAt })
+        } catch {
+          // ignore
+        }
+      }
+      return isSuccess
     } catch (err) {
       console.warn('Failed to push CMS state to cloud:', err)
       return false
@@ -1020,10 +1048,14 @@ export async function pullCmsStateFromCloud(forceApply = false): Promise<boolean
       ...(winner.keys || {}),
     }
 
-    if (winner.bytebinKey && (!winner.keys || Object.keys(winner.keys).length === 0)) {
-      const blobKeys = await fetchBytebinBlob(winner.bytebinKey)
-      if (blobKeys) {
-        resolvedKeys = { ...resolvedKeys, ...blobKeys }
+    if (winner.bytebinKey) {
+      try {
+        const blobKeys = await fetchBytebinBlob(winner.bytebinKey)
+        if (blobKeys && typeof blobKeys === 'object' && Object.keys(blobKeys).length > 0) {
+          resolvedKeys = { ...resolvedKeys, ...blobKeys }
+        }
+      } catch {
+        // inlineKeys used as fallback
       }
     }
 
@@ -1378,5 +1410,5 @@ export async function initCloudCmsSync(options?: { timeoutMs?: number }): Promis
     if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
       pullCmsStateFromCloud().catch(() => false)
     }
-  }, 8000)
+  }, 4000)
 }

@@ -224,6 +224,8 @@ export default async function handler(req, res) {
       const compactKeyNames = [
         'leniva_admin_password',
         'leniva_site_settings',
+        'leniva_admin_products_catalog',
+        'leniva_admin_blogs_catalog',
         'leniva_cad_software_edits',
         'leniva_custom_cad_products',
         'leniva_home_page_content_v1',
@@ -236,7 +238,7 @@ export default async function handler(req, res) {
       for (const k of compactKeyNames) {
         if (k in mergedKeys) {
           const val = mergedKeys[k]
-          if (typeof val === 'string' && val.length < 35000) {
+          if (typeof val === 'string' && val.length < 65000) {
             inlineKeys[k] = val
           }
         }
