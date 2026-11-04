@@ -119,8 +119,10 @@ export const QuoteModal: React.FC = () => {
 
     // 2. Dispatch background persistence and cloud/mail relay to viju@leniva3d.com and Admin
     const combinedContent = `${formData.productOrService || quoteProduct || ''} ${formData.message || ''}`
-    const derivedEnquiryType: 'trial' | 'demo' | 'consultation' | 'quote' =
-      isTrialRequest || /\btrial\b|\btrail\b|\btry\b|free\s*try|evaluation|30-day|30 day|free trial/i.test(combinedContent)
+    const derivedEnquiryType: 'trial' | 'demo' | 'consultation' | 'quote' | 'brochure' =
+      isBrochureRequest || /\bbrochure\b|\bbrocher\b|\bdatasheet\b|\bcatalog\b/i.test(combinedContent)
+        ? 'brochure'
+        : isTrialRequest || /\btrial\b|\btrail\b|\btry\b|free\s*try|evaluation|30-day|30 day|free trial/i.test(combinedContent)
         ? 'trial'
         : isDemoRequest || /\bdemo\b|demonstration/i.test(combinedContent)
         ? 'demo'
@@ -133,6 +135,8 @@ export const QuoteModal: React.FC = () => {
       productOrService: formData.productOrService || quoteProduct || 'General CAD / Product Enquiry',
       source: isBrochureRequest
         ? 'CAD Software Brochure Download Enquiry'
+        : derivedEnquiryType === 'brochure'
+        ? 'Official Brochure Download Request'
         : derivedEnquiryType === 'trial'
         ? 'Free Trial Request'
         : derivedEnquiryType === 'demo'

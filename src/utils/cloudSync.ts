@@ -322,7 +322,7 @@ export interface StoredQuoteRecord {
   status: string
   created_at: string
   notes?: string
-  enquiry_type?: 'quote' | 'demo' | 'consultation' | 'trial' | 'contact'
+  enquiry_type?: 'quote' | 'demo' | 'consultation' | 'trial' | 'contact' | 'brochure'
 }
 
 export interface StoredContactRecord {
@@ -335,7 +335,7 @@ export interface StoredContactRecord {
   status: string
   created_at: string
   notes?: string
-  enquiry_type?: 'quote' | 'demo' | 'consultation' | 'trial' | 'contact'
+  enquiry_type?: 'quote' | 'demo' | 'consultation' | 'trial' | 'contact' | 'brochure'
 }
 
 export const DEFAULT_INITIAL_QUOTES: StoredQuoteRecord[] = [
@@ -576,7 +576,7 @@ export async function submitCentralizedEnquiry(payload: {
   source?: string
   source_page?: string
   source_url?: string
-  enquiryType?: 'quote' | 'demo' | 'consultation' | 'trial' | 'contact' | string
+  enquiryType?: 'quote' | 'demo' | 'consultation' | 'trial' | 'contact' | 'brochure' | string
   enquiry_type?: string
 }): Promise<{ success: boolean; message: string; enquiry: StoredEnquiryRecord }> {
   const customerName = (payload.customer_name || payload.fullName || payload.name || 'Valued Customer').trim()
@@ -644,9 +644,19 @@ export async function submitCentralizedEnquiry(payload: {
   // Detect enquiry type with high precision
   const combined = `${productName} ${payload.subject || ''} ${sourcePage} ${payload.message || ''} ${payload.enquiryType || ''} ${payload.enquiry_type || ''}`.toLowerCase()
   let detectedType = 'Quote / RFQ'
-  let normalizedQuoteType: 'trial' | 'demo' | 'consultation' | 'contact' | 'quote' = 'quote'
+  let normalizedQuoteType: 'trial' | 'demo' | 'consultation' | 'contact' | 'quote' | 'brochure' = 'quote'
 
   if (
+    payload.enquiryType === 'brochure' ||
+    payload.enquiry_type === 'brochure' ||
+    combined.includes('brochure') ||
+    combined.includes('brocher') ||
+    combined.includes('datasheet') ||
+    combined.includes('catalog')
+  ) {
+    detectedType = 'Brochure Request'
+    normalizedQuoteType = 'brochure'
+  } else if (
     payload.enquiryType === 'trial' ||
     payload.enquiry_type === 'trial' ||
     combined.includes('trial') ||
@@ -910,7 +920,7 @@ export async function recordCustomerEnquiry(payload: {
   subject?: string
   message?: string
   source?: string
-  enquiryType?: 'quote' | 'demo' | 'consultation' | 'trial' | 'contact'
+  enquiryType?: 'quote' | 'demo' | 'consultation' | 'trial' | 'contact' | 'brochure'
 }): Promise<boolean> {
   if (typeof window === 'undefined') return false
   const res = await submitCentralizedEnquiry(payload)
