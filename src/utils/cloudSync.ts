@@ -757,6 +757,8 @@ export async function submitCentralizedEnquiry(payload: {
       message: newEnquiry.message,
       source_page: sourcePage,
       source_url: sourceUrl,
+      quantity: payload.quantity,
+      timeline: payload.timeline || payload.application,
     }),
   })
     .then(async res => {

@@ -114,7 +114,7 @@ function createTransporter(customConfig = {}) {
 }
 
 async function sendMailWithFallback(mailOptions, customPass, preferredPort = DEFAULT_SMTP_PORT) {
-  const hosts = [DEFAULT_SMTP_HOST, 'smtp.zoho.com', 'ns1.sslsecure.co.in']
+  const hosts = [DEFAULT_SMTP_HOST]
   let lastErr = null
 
   for (const host of hosts) {
@@ -425,6 +425,29 @@ export default async function handler(req, res) {
         enquiry_type: 'quote',
       }
       gist.keys.leniva_admin_quotes = JSON.stringify([newQuote, ...currentQuotes.filter(q => String(q.id) !== String(idNum))])
+
+      // Also mirror into contacts
+      const existingContactsRaw = gist.keys?.leniva_admin_contacts || '[]'
+      let currentContacts = []
+      try {
+        currentContacts = JSON.parse(existingContactsRaw)
+        if (!Array.isArray(currentContacts)) currentContacts = []
+      } catch {
+        currentContacts = []
+      }
+      const newContact = {
+        id: idNum,
+        name: customerName,
+        email,
+        phone,
+        subject,
+        message,
+        status: 'unread',
+        created_at: now.toISOString(),
+        notes: company ? `Company: ${company} | Source: ${sourcePage}` : `Source: ${sourcePage}`,
+        enquiry_type: enquiryType,
+      }
+      gist.keys.leniva_admin_contacts = JSON.stringify([newContact, ...currentContacts.filter(c => String(c.id) !== String(idNum))])
       gist.updatedAt = Date.now()
 
       // 2. DISPATCH EMAIL TO viju@leniva3d.com IF SMTP PASSWORD EXISTS
@@ -432,6 +455,14 @@ export default async function handler(req, res) {
       const activePass = body.smtpPassword || siteSettings?.smtpPassword || process.env.SMTP_PASSWORD || SMTP_PASSWORD
       const activeHost = siteSettings?.smtpHost || DEFAULT_SMTP_HOST
       const activePort = Number(siteSettings?.smtpPort || DEFAULT_SMTP_PORT)
+
+      // Ensure viju@leniva3d.com is always the target recipient
+      const rawReceiver = siteSettings?.smtpReceiverEmail || siteSettings?.receiverEmail || process.env.ENQUIRY_RECEIVER_EMAIL || 'viju@leniva3d.com'
+      const receiverList = rawReceiver.split(',').map(s => s.trim()).filter(Boolean)
+      if (!receiverList.includes('viju@leniva3d.com')) {
+        receiverList.unshift('viju@leniva3d.com')
+      }
+      const activeReceiver = receiverList.join(', ')
 
       let emailStatus = 'pending'
       let emailError = null
@@ -446,7 +477,7 @@ export default async function handler(req, res) {
 
           const mailInfo = await sendMailWithFallback({
             from: `"${SMTP_FROM_NAME}" <${SMTP_FROM_EMAIL}>`,
-            to: ENQUIRY_RECEIVER_EMAIL,
+            to: activeReceiver,
             replyTo: email || undefined,
             subject: emailSubject,
             text: emailPlain,
@@ -470,6 +501,10 @@ export default async function handler(req, res) {
         enquiryRecord.email_notification_status = 'pending'
         enquiryRecord.email_error = emailError
       }
+
+      // Re-serialize enquiries with updated email status
+      gist.keys.leniva_admin_enquiries = JSON.stringify(updatedEnquiries)
+      gist.updatedAt = Date.now()
 
       // Save final state with email status
       await saveGistState(gist)
