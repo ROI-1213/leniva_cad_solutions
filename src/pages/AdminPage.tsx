@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Shield,
@@ -287,6 +287,15 @@ export default function AdminPage() {
   const [quoteFilter, setQuoteFilter] = useState('all')
   const [quoteEnquiryTypeFilter, setQuoteEnquiryTypeFilter] = useState<'all' | 'quote' | 'demo' | 'consultation' | 'trial' | 'contact' | 'brochure'>('all')
   const [quoteSearchInput, setQuoteSearchInput] = useState('')
+
+  // Pagination & Display Density for Inquiries & Quotes
+  const [quotePage, setQuotePage] = useState(1)
+  const [quotePageSize, setQuotePageSize] = useState<number | 'all'>(10)
+  const [quoteDensity, setQuoteDensity] = useState<'compact' | 'comfortable'>('compact')
+
+  const [enquiryPage, setEnquiryPage] = useState(1)
+  const [enquiryPageSize, setEnquiryPageSize] = useState<number | 'all'>(10)
+  const [enquiryDensity, setEnquiryDensity] = useState<'compact' | 'comfortable'>('compact')
 
   // Enquiry Management Filters & Modals
   const [selectedEnquiry, setSelectedEnquiry] = useState<StoredEnquiryRecord | null>(null)
@@ -3163,6 +3172,94 @@ export default function AdminPage() {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Table Footer & Full-Page Responsive Pagination */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3.5 border-t border-slate-200 text-xs text-slate-600 bg-slate-50/80 -mx-6 -mb-6 px-6 py-3 rounded-b-2xl">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-medium">
+                      Showing <strong className="text-slate-900 font-bold">{filteredEnquiries.length === 0 ? 0 : (enquiryPage - 1) * (enquiryPageSize === 'all' ? filteredEnquiries.length : Number(enquiryPageSize)) + 1}</strong> to <strong className="text-slate-900 font-bold">{enquiryPageSize === 'all' ? filteredEnquiries.length : Math.min(filteredEnquiries.length, enquiryPage * Number(enquiryPageSize))}</strong> of <strong className="text-slate-900 font-bold">{filteredEnquiries.length}</strong> enquiries
+                    </span>
+                    {enquiryPageSize !== 'all' && totalEnquiryPages > 1 && (
+                      <span className="text-slate-400 font-mono font-semibold">(Page {enquiryPage} of {totalEnquiryPages})</span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    {/* Density Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => setEnquiryDensity(d => d === 'compact' ? 'comfortable' : 'compact')}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 rounded-lg transition-colors cursor-pointer border border-slate-200 shadow-2xs"
+                      title="Toggle Row Density"
+                    >
+                      <Sliders className="w-3 h-3 text-blue-600" />
+                      <span>{enquiryDensity === 'compact' ? 'Comfortable' : 'Compact'}</span>
+                    </button>
+
+                    {/* Rows per page selector */}
+                    <div className="flex items-center space-x-1.5">
+                      <span className="text-slate-500 text-[11px] font-semibold">Per Page:</span>
+                      <select
+                        value={enquiryPageSize}
+                        onChange={e => {
+                          const val = e.target.value === 'all' ? 'all' : Number(e.target.value)
+                          setEnquiryPageSize(val)
+                          setEnquiryPage(1)
+                        }}
+                        className="px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 cursor-pointer shadow-2xs"
+                      >
+                        <option value={5}>5</option>
+                        <option value={10}>10</option>
+                        <option value={20}>20</option>
+                        <option value={50}>50</option>
+                        <option value="all">All</option>
+                      </select>
+                    </div>
+
+                    {/* Navigation Buttons */}
+                    {enquiryPageSize !== 'all' && totalEnquiryPages > 1 && (
+                      <div className="flex items-center space-x-1">
+                        <button
+                          onClick={() => setEnquiryPage(p => Math.max(1, p - 1))}
+                          disabled={enquiryPage <= 1}
+                          className="px-2.5 py-1 rounded-lg border border-slate-300 bg-white font-bold text-xs hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
+                        >
+                          Prev
+                        </button>
+
+                        {Array.from({ length: totalEnquiryPages }, (_, i) => i + 1)
+                          .filter(p => p === 1 || p === totalEnquiryPages || Math.abs(p - enquiryPage) <= 1)
+                          .map((p, idx, arr) => {
+                            const prev = arr[idx - 1]
+                            const showEllipsis = prev && p - prev > 1
+                            return (
+                              <React.Fragment key={p}>
+                                {showEllipsis && <span className="px-1 text-slate-400 font-bold">...</span>}
+                                <button
+                                  onClick={() => setEnquiryPage(p)}
+                                  className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                    enquiryPage === p
+                                      ? 'bg-blue-600 text-white shadow-xs font-black'
+                                      : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                                  }`}
+                                >
+                                  {p}
+                                </button>
+                              </React.Fragment>
+                            )
+                          })}
+
+                        <button
+                          onClick={() => setEnquiryPage(p => Math.min(totalEnquiryPages, p + 1))}
+                          disabled={enquiryPage >= totalEnquiryPages}
+                          className="px-2.5 py-1 rounded-lg border border-slate-300 bg-white font-bold text-xs hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* ─── FULL-PAGE ENQUIRY VIEW ─── */}
@@ -3655,6 +3752,16 @@ export default function AdminPage() {
                     <Download className="w-3.5 h-3.5" />
                     <span>Export CSV</span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setQuoteDensity(d => d === 'compact' ? 'comfortable' : 'compact')}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer border border-slate-200"
+                    title="Toggle Table Row Density"
+                  >
+                    <Sliders className="w-3.5 h-3.5 text-blue-600" />
+                    <span>{quoteDensity === 'compact' ? 'Comfortable View' : 'Compact View'}</span>
+                  </button>
                 </div>
               </div>
 
@@ -3748,27 +3855,28 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {filteredQuotes.length === 0 ? (
+                    {paginatedQuotes.length === 0 ? (
                       <tr>
                         <td colSpan={9} className="py-8 text-center text-slate-400 font-medium">
                           No inquiries found matching your filters.
                         </td>
                       </tr>
                     ) : (
-                      filteredQuotes.map(q => {
+                      paginatedQuotes.map(q => {
                         const type = getEnquiryType(q)
+                        const isCompact = quoteDensity === 'compact'
                         return (
-                          <tr key={q.id} className="hover:bg-slate-50 transition-colors">
-                            <td className="py-3 px-3 font-mono font-bold text-slate-400">#{q.id}</td>
-                            <td className="py-3 px-3 text-slate-600 font-mono text-[11px] whitespace-nowrap">
-                              <div className="font-bold text-slate-800">
+                          <tr key={q.id} className="hover:bg-blue-50/40 transition-colors">
+                            <td className={`${isCompact ? 'py-1.5 px-3' : 'py-3 px-3'} font-mono font-bold text-slate-400 text-xs`}>#{q.id}</td>
+                            <td className={`${isCompact ? 'py-1.5 px-3' : 'py-3 px-3'} text-slate-600 font-mono text-[11px] whitespace-nowrap`}>
+                              <div className="font-bold text-slate-800 leading-tight">
                                 {q.created_at ? new Date(q.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                               </div>
                               <div className="text-[10px] text-slate-400">
                                 {q.created_at ? new Date(q.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true }) : ''}
                               </div>
                             </td>
-                            <td className="py-3 px-3 whitespace-nowrap">
+                            <td className={`${isCompact ? 'py-1.5 px-3' : 'py-3 px-3'} whitespace-nowrap`}>
                               {type === 'demo' && (
                                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-200">
                                   Demo Request
@@ -3800,11 +3908,11 @@ export default function AdminPage() {
                                 </span>
                               )}
                             </td>
-                            <td className="py-3 px-3">
-                              <div className="font-bold text-slate-900">{q.name}</div>
+                            <td className={`${isCompact ? 'py-1.5 px-3' : 'py-3 px-3'}`}>
+                              <div className="font-bold text-slate-900 leading-tight">{q.name}</div>
                               <div className="text-[11px] text-slate-500">{q.company || 'Individual'}</div>
                             </td>
-                            <td className="py-3 px-3 text-slate-600">
+                            <td className={`${isCompact ? 'py-1.5 px-3' : 'py-3 px-3'} text-slate-600`}>
                               <div>
                                 <a href={`mailto:${q.email}`} className="hover:text-blue-600 hover:underline">
                                   {q.email}
@@ -3818,19 +3926,19 @@ export default function AdminPage() {
                                 </div>
                               )}
                             </td>
-                            <td className="py-3 px-3">
-                              <div className="font-semibold text-slate-800">{q.service_or_product}</div>
+                            <td className={`${isCompact ? 'py-1.5 px-3' : 'py-3 px-3'}`}>
+                              <div className="font-semibold text-slate-800 leading-tight">{q.service_or_product}</div>
                               {q.message && (
                                 <div className="text-[11px] text-slate-500 max-w-xs truncate" title={q.message}>
                                   {q.message}
                                 </div>
                               )}
                             </td>
-                            <td className="py-3 px-3 text-slate-600">
+                            <td className={`${isCompact ? 'py-1.5 px-3' : 'py-3 px-3'} text-slate-600`}>
                               <div>Qty: {q.quantity}</div>
                               <div className="text-[11px] text-slate-400">{q.timeline}</div>
                             </td>
-                            <td className="py-3 px-3">
+                            <td className={`${isCompact ? 'py-1.5 px-3' : 'py-3 px-3'}`}>
                               <select
                                 value={q.status}
                                 onChange={e => handleUpdateQuoteStatus(q.id, e.target.value)}
@@ -3842,7 +3950,7 @@ export default function AdminPage() {
                                 <option value="completed">Completed</option>
                               </select>
                             </td>
-                            <td className="py-3 px-3 text-right space-x-2 whitespace-nowrap">
+                            <td className={`${isCompact ? 'py-1.5 px-3' : 'py-3 px-3'} text-right space-x-2 whitespace-nowrap`}>
                               <button
                                 onClick={() => {
                                   setSelectedQuote(q)
@@ -3868,6 +3976,83 @@ export default function AdminPage() {
                     )}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Table Footer & Full-Page Responsive Pagination */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3.5 border-t border-slate-200 text-xs text-slate-600 bg-slate-50/80 -mx-6 -mb-6 px-6 py-3 rounded-b-2xl">
+                <div className="flex items-center space-x-2">
+                  <span className="font-medium">
+                    Showing <strong className="text-slate-900 font-bold">{filteredQuotes.length === 0 ? 0 : (quotePage - 1) * (quotePageSize === 'all' ? filteredQuotes.length : Number(quotePageSize)) + 1}</strong> to <strong className="text-slate-900 font-bold">{quotePageSize === 'all' ? filteredQuotes.length : Math.min(filteredQuotes.length, quotePage * Number(quotePageSize))}</strong> of <strong className="text-slate-900 font-bold">{filteredQuotes.length}</strong> inquiries
+                  </span>
+                  {quotePageSize !== 'all' && totalQuotePages > 1 && (
+                    <span className="text-slate-400 font-mono font-semibold">(Page {quotePage} of {totalQuotePages})</span>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  {/* Rows per page selector */}
+                  <div className="flex items-center space-x-1.5">
+                    <span className="text-slate-500 text-[11px] font-semibold">Per Page:</span>
+                    <select
+                      value={quotePageSize}
+                      onChange={e => {
+                        const val = e.target.value === 'all' ? 'all' : Number(e.target.value)
+                        setQuotePageSize(val)
+                        setQuotePage(1)
+                      }}
+                      className="px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 cursor-pointer shadow-2xs"
+                    >
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                      <option value={50}>50</option>
+                      <option value="all">Show All</option>
+                    </select>
+                  </div>
+
+                  {/* Navigation Buttons */}
+                  {quotePageSize !== 'all' && totalQuotePages > 1 && (
+                    <div className="flex items-center space-x-1">
+                      <button
+                        onClick={() => setQuotePage(p => Math.max(1, p - 1))}
+                        disabled={quotePage <= 1}
+                        className="px-2.5 py-1 rounded-lg border border-slate-300 bg-white font-bold text-xs hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
+                      >
+                        Prev
+                      </button>
+
+                      {Array.from({ length: totalQuotePages }, (_, i) => i + 1)
+                        .filter(p => p === 1 || p === totalQuotePages || Math.abs(p - quotePage) <= 1)
+                        .map((p, idx, arr) => {
+                          const prev = arr[idx - 1]
+                          const showEllipsis = prev && p - prev > 1
+                          return (
+                            <React.Fragment key={p}>
+                              {showEllipsis && <span className="px-1 text-slate-400 font-bold">...</span>}
+                              <button
+                                onClick={() => setQuotePage(p)}
+                                className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                  quotePage === p
+                                    ? 'bg-blue-600 text-white shadow-xs font-black'
+                                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                                }`}
+                              >
+                                {p}
+                              </button>
+                            </React.Fragment>
+                          )
+                        })}
+
+                      <button
+                        onClick={() => setQuotePage(p => Math.min(totalQuotePages, p + 1))}
+                        disabled={quotePage >= totalQuotePages}
+                        className="px-2.5 py-1 rounded-lg border border-slate-300 bg-white font-bold text-xs hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
