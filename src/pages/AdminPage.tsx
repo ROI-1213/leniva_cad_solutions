@@ -1896,6 +1896,14 @@ export default function AdminPage() {
     return matchesStatus && matchesType && matchesSearch
   })
 
+  const paginatedQuotes = useMemo(() => {
+    if (quotePageSize === 'all') return filteredQuotes
+    const start = (quotePage - 1) * Number(quotePageSize)
+    return filteredQuotes.slice(start, start + Number(quotePageSize))
+  }, [filteredQuotes, quotePage, quotePageSize])
+
+  const totalQuotePages = quotePageSize === 'all' ? 1 : Math.max(1, Math.ceil(filteredQuotes.length / Number(quotePageSize)))
+
   const handleExportQuotesCsv = () => {
     const headers = ['ID', 'Date', 'Type', 'Client Name', 'Email', 'Phone', 'Company', 'Product / Service', 'Quantity', 'Timeline', 'Status', 'Notes', 'Message']
     const rows = filteredQuotes.map(q => [
@@ -1971,6 +1979,14 @@ export default function AdminPage() {
     }
     return true
   })
+
+  const paginatedEnquiries = useMemo(() => {
+    if (enquiryPageSize === 'all') return filteredEnquiries
+    const start = (enquiryPage - 1) * Number(enquiryPageSize)
+    return filteredEnquiries.slice(start, start + Number(enquiryPageSize))
+  }, [filteredEnquiries, enquiryPage, enquiryPageSize])
+
+  const totalEnquiryPages = enquiryPageSize === 'all' ? 1 : Math.max(1, Math.ceil(filteredEnquiries.length / Number(enquiryPageSize)))
 
   const brochureEnquiries = enquiries.filter(e => getEnquiryType(e as any) === 'brochure')
 
