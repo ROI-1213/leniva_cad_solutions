@@ -1,7 +1,30 @@
 import nodemailer from 'nodemailer'
 import dotenv from 'dotenv'
+import pg from 'pg'
 
 dotenv.config()
+
+const { Pool } = pg
+let pgPool = null
+function getPgPool() {
+  if (!pgPool) {
+    try {
+      pgPool = new Pool({
+        host: process.env.PGHOST || '127.0.0.1',
+        port: Number(process.env.PGPORT) || 5432,
+        user: process.env.PGUSER || 'leniv698',
+        password: process.env.PGPASSWORD || 'hhvu1A8IrRupKLdfEDhnsx9LQ',
+        database: process.env.PGDATABASE || 'leniv698',
+        ssl: false,
+        connectionTimeoutMillis: 2000,
+      })
+      pgPool.on('error', () => {})
+    } catch {
+      pgPool = null
+    }
+  }
+  return pgPool
+}
 
 // Global Centralized Cloud Database
 const GIST_ID = '5b4168cd6d9b9418ecb0e29f0f7b0282'
@@ -386,6 +409,38 @@ export default async function handler(req, res) {
         updated_at: now.toISOString(),
       }
 
+      // 0. SAVE DIRECTLY TO CONNECTED POSTGRESQL ACCOUNT
+      try {
+        const pool = getPgPool()
+        if (pool) {
+          await pool.query(`
+            INSERT INTO enquiries (
+              enquiry_number, customer_name, email, phone, company_name, city,
+              enquiry_type, product_service_name, subject, message, source_page, source_url,
+              status, email_notification_status, admin_notes
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'New', 'pending', $13)
+            ON CONFLICT (enquiry_number) DO NOTHING;
+          `, [
+            enquiryNumber, customerName, email, phone, company, city,
+            enquiryType, productService, subject, message, sourcePage, sourceUrl,
+            body.quantity ? `Quantity: ${body.quantity}` : ''
+          ]).catch(() => null)
+
+          await pool.query(`
+            INSERT INTO quote_requests (name, email, phone, company, service_or_product, quantity, timeline, message, status, notes)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending', $9);
+          `, [customerName, email, phone, company, productService, body.quantity || '1', body.timeline || 'Immediate', message, `Submitted via ${sourcePage}`]).catch(() => null)
+
+          await pool.query(`
+            INSERT INTO contact_messages (name, email, phone, subject, message, status, notes)
+            VALUES ($1, $2, $3, $4, $5, 'unread', $6);
+          `, [customerName, email, phone, subject, message, `Source: ${sourcePage}`]).catch(() => null)
+        }
+      } catch {
+        // ignore
+      }
+
       // 1. SAVE PERMANENTLY TO GITHUB GIST CLOUD DATABASE
       const gist = await fetchGistState()
       const existingEnquiriesRaw = gist.keys?.leniva_admin_enquiries || '[]'
@@ -494,11 +549,36 @@ export default async function handler(req, res) {
           enquiryRecord.email_notification_status = 'sent'
           enquiryRecord.email_sent_at = new Date().toISOString()
           enquiryRecord.email_message_id = messageId
+
+          try {
+            const pool = getPgPool()
+            if (pool) {
+              await pool.query(`
+                UPDATE enquiries SET
+                  email_notification_status = 'sent',
+                  email_sent_at = CURRENT_TIMESTAMP,
+                  email_message_id = $1
+                WHERE enquiry_number = $2;
+              `, [messageId, enquiryNumber]).catch(() => null)
+            }
+          } catch {}
         } catch (mailErr) {
           emailStatus = 'failed'
           emailError = mailErr.message
           enquiryRecord.email_notification_status = 'failed'
           enquiryRecord.email_error = mailErr.message
+
+          try {
+            const pool = getPgPool()
+            if (pool) {
+              await pool.query(`
+                UPDATE enquiries SET
+                  email_notification_status = 'failed',
+                  email_error = $1
+                WHERE enquiry_number = $2;
+              `, [emailError, enquiryNumber]).catch(() => null)
+            }
+          } catch {}
         }
       } else {
         emailStatus = 'pending'

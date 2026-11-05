@@ -1,3 +1,27 @@
+import pg from 'pg'
+const { Pool } = pg
+
+let pgPool = null
+function getPgPool() {
+  if (!pgPool) {
+    try {
+      pgPool = new Pool({
+        host: process.env.PGHOST || '127.0.0.1',
+        port: Number(process.env.PGPORT) || 5432,
+        user: process.env.PGUSER || 'leniv698',
+        password: process.env.PGPASSWORD || 'hhvu1A8IrRupKLdfEDhnsx9LQ',
+        database: process.env.PGDATABASE || 'leniv698',
+        ssl: false,
+        connectionTimeoutMillis: 2000,
+      })
+      pgPool.on('error', () => {})
+    } catch {
+      pgPool = null
+    }
+  }
+  return pgPool
+}
+
 const GIST_ID = '5b4168cd6d9b9418ecb0e29f0f7b0282'
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || ['ghp', 'q7ImIkHHK0hUvVEAsjVGJ0l1oVTO8K1jkiLQ'].join('_')
 const GIST_RAW_URL = `https://gist.githubusercontent.com/ROI-1213/${GIST_ID}/raw/leniva_cms_data.json`
@@ -166,6 +190,23 @@ export default async function handler(req, res) {
         updatedAt,
         keys: mergedKeys,
       }
+
+      // Persist to connected PostgreSQL site_settings table
+      try {
+        const pool = getPgPool()
+        if (pool) {
+          for (const [k, v] of Object.entries(mergedKeys)) {
+            let jsonVal = v
+            try { JSON.parse(v) } catch { jsonVal = JSON.stringify(v) }
+            await pool.query(`
+              INSERT INTO site_settings (key, value, updated_at)
+              VALUES ($1, $2::jsonb, CURRENT_TIMESTAMP)
+              ON CONFLICT (key) DO UPDATE
+              SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP;
+            `, [k, jsonVal]).catch(() => null)
+          }
+        }
+      } catch {}
 
       await saveToGist(newState)
 

@@ -15,6 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+require_once __DIR__ . '/db.php';
+
 $GIST_ID = '5b4168cd6d9b9418ecb0e29f0f7b0282';
 $GITHUB_TOKEN = implode('_', ['ghp', 'q7ImIkHHK0hUvVEAsjVGJ0l1oVTO8K1jkiLQ']);
 
@@ -145,6 +147,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'PUT
                 }
             }
             $mergedKeys[$k] = $v;
+        }
+    }
+
+    // Persist to connected PostgreSQL site_settings table
+    $pdo = getPostgresConnection();
+    if ($pdo) {
+        try {
+            $stmt = $pdo->prepare("
+                INSERT INTO site_settings (key, value, updated_at)
+                VALUES (?, ?::jsonb, CURRENT_TIMESTAMP)
+                ON CONFLICT (key) DO UPDATE
+                SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
+            ");
+            foreach ($mergedKeys as $k => $v) {
+                $stmt->execute([$k, json_encode($v, JSON_UNESCAPED_SLASHES)]);
+            }
+        } catch (Throwable $e) {
+            error_log('[PostgreSQL CMS Sync Notice] ' . $e->getMessage());
         }
     }
 

@@ -15,6 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+require_once __DIR__ . '/db.php';
+
 $GIST_ID = '5b4168cd6d9b9418ecb0e29f0f7b0282';
 $GITHUB_TOKEN = implode('_', ['ghp', 'q7ImIkHHK0hUvVEAsjVGJ0l1oVTO8K1jkiLQ']);
 
@@ -294,6 +296,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'enquiry_type' => $enquiryType,
     ];
 
+    // 0. Store directly into connected PostgreSQL account
+    $pdo = getPostgresConnection();
+    if ($pdo) {
+        try {
+            $stmt = $pdo->prepare("
+                INSERT INTO enquiries (
+                    enquiry_number, customer_name, email, phone, company_name, city,
+                    enquiry_type, product_service_name, subject, message, source_page, source_url,
+                    status, email_notification_status, admin_notes
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'New', 'pending', ?)
+                ON CONFLICT (enquiry_number) DO NOTHING
+            ");
+            $stmt->execute([
+                $enquiryNumber, $customerName, $email, $phone, $company, $city,
+                $enquiryType, $productService, $subject, $message, $sourcePage,
+                $body['source_url'] ?? '', $quantity ? "Quantity: {$quantity}" : ''
+            ]);
+
+            $qStmt = $pdo->prepare("
+                INSERT INTO quote_requests (
+                    name, email, phone, company, service_or_product, quantity, timeline, message, status, notes
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
+            ");
+            $qStmt->execute([
+                $customerName, $email, $phone, $company, $productService, $quantity, $timeline, $message, "Submitted via {$sourcePage}"
+            ]);
+
+            $cStmt = $pdo->prepare("
+                INSERT INTO contact_messages (
+                    name, email, phone, subject, message, status, notes
+                )
+                VALUES (?, ?, ?, ?, ?, 'unread', ?)
+            ");
+            $cStmt->execute([
+                $customerName, $email, $phone, $subject, $message, "Source: {$sourcePage}"
+            ]);
+        } catch (Throwable $e) {
+            error_log('[PostgreSQL Insert Notice] ' . $e->getMessage());
+        }
+    }
+
     // 1. Fetch current cloud state
     $state = fetchGistState($GIST_ID, $GITHUB_TOKEN);
 
@@ -391,11 +436,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $enquiryRecord['email_notification_status'] = 'sent';
         $enquiryRecord['email_sent_at'] = $now->format(DateTime::ATOM);
         $enquiryRecord['email_message_id'] = $messageId;
+
+        if ($pdo) {
+            try {
+                $upStmt = $pdo->prepare("
+                    UPDATE enquiries SET
+                        email_notification_status = 'sent',
+                        email_sent_at = CURRENT_TIMESTAMP,
+                        email_message_id = ?
+                    WHERE enquiry_number = ?
+                ");
+                $upStmt->execute([$messageId, $enquiryNumber]);
+            } catch (Throwable $e) {}
+        }
     } catch (Exception $e) {
         $emailStatus = 'failed';
         $emailError = $e->getMessage();
         $enquiryRecord['email_notification_status'] = 'failed';
         $enquiryRecord['email_error'] = $emailError;
+
+        if ($pdo) {
+            try {
+                $upStmt = $pdo->prepare("
+                    UPDATE enquiries SET
+                        email_notification_status = 'failed',
+                        email_error = ?
+                    WHERE enquiry_number = ?
+                ");
+                $upStmt->execute([$emailError, $enquiryNumber]);
+            } catch (Throwable $e) {}
+        }
     }
 
     // Re-serialize enquiries with updated email status
