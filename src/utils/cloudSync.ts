@@ -1,9 +1,5 @@
-const RESTFUL_OBJECT_ID = 'ff808181a09d98f701a1436dd2b96f43'
-const RESTFUL_URL = `https://api.restful-api.dev/objects/${RESTFUL_OBJECT_ID}`
-const NTFY_TOPIC = 'leniva_cad_cms_prod_v3'
-const NTFY_POST_URL = `https://ntfy.sh/${NTFY_TOPIC}`
-const NTFY_POLL_URL = `https://ntfy.sh/${NTFY_TOPIC}/json?poll=1&since=all`
-const BYTEBIN_POST_URL = 'https://bytebin.lucko.me/post'
+const GIST_ID = '5b4168cd6d9b9418ecb0e29f0f7b0282'
+const GIST_RAW_URL = `https://gist.githubusercontent.com/ROI-1213/${GIST_ID}/raw/leniva_cms_data.json`
 const UPDATED_AT_KEY = 'leniva_cms_sync_ts_v3'
 
 export const SYNCED_CMS_KEYS = [
@@ -218,79 +214,18 @@ export async function pushCmsStateToCloud(options?: { isEnquirySubmission?: bool
       lastKnownCloudKeys = { ...cleanMergedKeys }
       explicitlyResetKeys.clear()
 
-      // 1. Upload full snapshot to Bytebin for unlimited size support
-      let bytebinKey: string | null = null
-      try {
-        const bRes = await fetch(BYTEBIN_POST_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ updatedAt, keys: cleanMergedKeys }),
-        })
-        if (bRes.ok) {
-          const bJson = await bRes.json()
-          bytebinKey = bJson.key || null
-        }
-      } catch {
-        // ignore
-      }
-
-      // 2. Build compact inline keys for instant access even without Bytebin
-      const inlineKeys: Record<string, string> = {}
-      for (const k of COMPACT_INLINE_KEYS) {
-        const val = cleanMergedKeys[k]
-        if (typeof val === 'string') {
-          if (val.length < 65000) {
-            inlineKeys[k] = val
-          } else if (k === 'leniva_cad_software_edits') {
-            try {
-              const parsed = JSON.parse(val)
-              const compactCad: Record<string, any> = {}
-              for (const [ck, cv] of Object.entries(parsed || {})) {
-                if ((cv as any)?.is_admin_customized || ck.startsWith('cad_')) {
-                  compactCad[ck] = cv
-                }
-              }
-              const serialized = JSON.stringify(compactCad)
-              if (serialized.length < 65000) {
-                inlineKeys[k] = serialized
-              }
-            } catch {
-              // ignore
-            }
-          }
-        }
-      }
-
-      const pointer = {
-        updatedAt,
-        bytebinKey,
-        inlineKeys,
-      }
-
-      // 3. Push to all 3 cloud tiers in parallel
-      const results = await Promise.allSettled([
-        fetch('/api/cms', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            updatedAt,
-            bytebinKey,
-            keys,
-            isEnquirySubmission: !!options?.isEnquirySubmission,
-          }),
+      // Save to /api/cms (which persists to GitHub Gist cloud database)
+      const res = await fetch('/api/cms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          updatedAt,
+          keys,
+          isEnquirySubmission: !!options?.isEnquirySubmission,
         }),
-        fetch(RESTFUL_URL, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: 'leniva_cms_store_v1', data: pointer }),
-        }),
-        fetch(NTFY_POST_URL, {
-          method: 'POST',
-          body: JSON.stringify({ updatedAt, bytebinKey }),
-        }),
-      ])
+      }).catch(() => null)
 
-      const isSuccess = results.some(r => r.status === 'fulfilled' && r.value.ok)
+      const isSuccess = !!(res && res.ok)
       if (isSuccess) {
         try {
           syncBroadcastChannel?.postMessage({ type: 'SYNC_NOW', updatedAt })
@@ -927,23 +862,6 @@ export async function recordCustomerEnquiry(payload: {
   return res.success
 }
 
-async function fetchBytebinBlob(bytebinKey: string): Promise<Record<string, string | null> | null> {
-  if (!bytebinKey) return null
-  try {
-    const res = await fetch(`https://bytebin.lucko.me/${bytebinKey}`, {
-      headers: { Accept: 'application/json' },
-    })
-    if (!res.ok) return null
-    const json = await res.json()
-    if (json && json.keys && typeof json.keys === 'object') {
-      return json.keys
-    }
-  } catch {
-    // ignore
-  }
-  return null
-}
-
 async function fetchCloudCandidates(): Promise<
   Array<{
     updatedAt: number
@@ -962,12 +880,12 @@ async function fetchCloudCandidates(): Promise<
   const fetchApiCms = async () => {
     try {
       const res = await fetch('/api/cms', {
-        headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
+        headers: { Accept: 'application/json', 'Cache-Control': 'no-cache, no-store' },
       })
       const ct = res.headers.get('content-type') || ''
       if (res.ok && ct.includes('application/json')) {
         const json = await res.json()
-        if (json && typeof json.updatedAt === 'number') {
+        if (json && typeof json.updatedAt === 'number' && json.keys) {
           candidates.push(json)
         }
       }
@@ -976,15 +894,15 @@ async function fetchCloudCandidates(): Promise<
     }
   }
 
-  const fetchRestful = async () => {
+  const fetchGistRaw = async () => {
     try {
-      const res = await fetch(RESTFUL_URL, {
-        headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
+      const res = await fetch(`${GIST_RAW_URL}?t=${Date.now()}`, {
+        headers: { Accept: 'application/json', 'Cache-Control': 'no-cache, no-store' },
       })
       if (res.ok) {
         const json = await res.json()
-        if (json?.data && typeof json.data.updatedAt === 'number') {
-          candidates.push(json.data)
+        if (json && typeof json.updatedAt === 'number' && json.keys) {
+          candidates.push(json)
         }
       }
     } catch {
@@ -992,41 +910,7 @@ async function fetchCloudCandidates(): Promise<
     }
   }
 
-  const fetchNtfy = async () => {
-    try {
-      const res = await fetch(NTFY_POLL_URL, {
-        headers: { 'Cache-Control': 'no-cache' },
-      })
-      if (res.ok) {
-        const text = await res.text()
-        const lines = text
-          .split('\n')
-          .map(l => l.trim())
-          .filter(Boolean)
-        let newest: any = null
-        for (const line of lines) {
-          try {
-            const evt = JSON.parse(line)
-            if (evt.event === 'message' && evt.message) {
-              const parsed = JSON.parse(evt.message)
-              if (parsed && typeof parsed.updatedAt === 'number') {
-                if (!newest || parsed.updatedAt > newest.updatedAt) {
-                  newest = parsed
-                }
-              }
-            }
-          } catch {
-            // ignore
-          }
-        }
-        if (newest) candidates.push(newest)
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  await Promise.allSettled([fetchApiCms(), fetchRestful(), fetchNtfy()])
+  await Promise.allSettled([fetchApiCms(), fetchGistRaw()])
   return candidates
 }
 
@@ -1052,21 +936,8 @@ export async function pullCmsStateFromCloud(forceApply = false): Promise<boolean
     validCandidates.sort((a, b) => b.updatedAt - a.updatedAt)
     const winner = validCandidates[0]
 
-    // Merge inline keys + full Bytebin keys
-    let resolvedKeys: Record<string, string | null> = {
-      ...(winner.inlineKeys || {}),
+    const resolvedKeys: Record<string, string | null> = {
       ...(winner.keys || {}),
-    }
-
-    if (winner.bytebinKey) {
-      try {
-        const blobKeys = await fetchBytebinBlob(winner.bytebinKey)
-        if (blobKeys && typeof blobKeys === 'object' && Object.keys(blobKeys).length > 0) {
-          resolvedKeys = { ...resolvedKeys, ...blobKeys }
-        }
-      } catch {
-        // inlineKeys used as fallback
-      }
     }
 
     const cleanCloudKeys: Record<string, string> = {}
