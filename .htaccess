@@ -2,11 +2,12 @@
   RewriteEngine On
   RewriteBase /
 
-  # Handle API endpoints
+  # Handle PHP API endpoints on Hostinger hPanel Apache
+  RewriteRule ^api/cms/?$ api/cms.php [L,QSA]
+  RewriteRule ^api/enquiries/?$ api/enquiries.php [L,QSA]
   RewriteRule ^api/auth/login/?$ api/login.php [L,QSA]
-  RewriteRule ^api/quotes/?$ api/quotes.php [L,QSA]
-  RewriteRule ^api/contacts/?$ api/contacts.php [L,QSA]
-  RewriteRule ^api/products/?$ api/products.php [L,QSA]
+  RewriteRule ^api/quotes/?$ api/enquiries.php [L,QSA]
+  RewriteRule ^api/contacts/?$ api/enquiries.php [L,QSA]
   RewriteRule ^api/health/?$ api/health.php [L,QSA]
 
   # Allow existing real files and directories to be served directly

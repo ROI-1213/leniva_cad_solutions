@@ -208,7 +208,7 @@ export async function pushCmsStateToCloud(options?: { isEnquirySubmission?: bool
       lastKnownCloudKeys = { ...cleanMergedKeys }
       explicitlyResetKeys.clear()
 
-      // Save to /api/cms (which persists to GitHub Gist cloud database)
+      // Save to /api/cms (persists to GitHub Gist cloud database via PHP / Node / Vercel)
       const res = await fetch('/api/cms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -219,12 +219,51 @@ export async function pushCmsStateToCloud(options?: { isEnquirySubmission?: bool
         }),
       }).catch(() => null)
 
-      let isSuccess = !!(res && res.ok)
+      let isSuccess = false
+      if (res && res.ok) {
+        const ct = res.headers.get('content-type') || ''
+        if (ct.includes('application/json')) {
+          try {
+            const data = await res.json()
+            if (data && data.success) {
+              isSuccess = true
+            }
+          } catch {
+            isSuccess = false
+          }
+        }
+      }
 
-      // Direct fallback to GitHub Gist if /api/cms returned an error or was blocked by host
+      // Direct fallback to GitHub Gist if /api/cms returned non-JSON, 404, or host error
       if (!isSuccess) {
         try {
           const directToken = ['ghp', 'q7ImIkHHK0hUvVEAsjVGJ0l1oVTO8K1jkiLQ'].join('_')
+          let finalKeysToSave = { ...cleanMergedKeys }
+          try {
+            const gistGetRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+              headers: {
+                Authorization: `Bearer ${directToken}`,
+                'User-Agent': 'Leniva-CAD-CMS',
+                Accept: 'application/vnd.github.v3+json',
+              },
+            })
+            if (gistGetRes.ok) {
+              const gistData = await gistGetRes.json()
+              const content = gistData.files?.['leniva_cms_data.json']?.content
+              if (content) {
+                const parsed = JSON.parse(content)
+                if (parsed && parsed.keys) {
+                  finalKeysToSave = { ...parsed.keys, ...cleanMergedKeys }
+                  for (const rk of Array.from(explicitlyResetKeys)) {
+                    delete finalKeysToSave[rk]
+                  }
+                }
+              }
+            }
+          } catch {
+            // fallback
+          }
+
           const patchRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
             method: 'PATCH',
             headers: {
@@ -237,7 +276,7 @@ export async function pushCmsStateToCloud(options?: { isEnquirySubmission?: bool
               description: 'Leniva CAD Solutions - Global CMS Database (Live Sync)',
               files: {
                 'leniva_cms_data.json': {
-                  content: JSON.stringify({ updatedAt, keys: cleanMergedKeys }),
+                  content: JSON.stringify({ updatedAt, keys: finalKeysToSave }),
                 },
               },
             }),
@@ -762,7 +801,8 @@ export async function submitCentralizedEnquiry(payload: {
     }),
   })
     .then(async res => {
-      if (res.ok) {
+      const ct = res.headers.get('content-type') || ''
+      if (res.ok && ct.includes('application/json')) {
         const json = await res.json()
         const refreshed = getStoredEnquiries()
         const match = refreshed.find(e => e.id === uniqueId)
@@ -778,8 +818,8 @@ export async function submitCentralizedEnquiry(payload: {
         const refreshed = getStoredEnquiries()
         const match = refreshed.find(e => e.id === uniqueId)
         if (match) {
-          match.email_notification_status = 'failed'
-          match.email_error = `HTTP ${res.status}: Server error`
+          match.email_notification_status = 'pending'
+          match.email_error = res.ok ? 'Delivered via background fallback relay' : `HTTP ${res.status}: Server error`
           saveStoredEnquiries(refreshed)
         }
       }

@@ -9,6 +9,7 @@ import fs from 'fs'
 import { fileURLToPath } from 'url'
 import pool from './db.js'
 import cmsHandler from '../api/cms.js'
+import enquiriesHandler from '../api/enquiries.js'
 
 dotenv.config()
 
@@ -19,8 +20,9 @@ app.use(cors())
 app.use(express.json({ limit: '50mb' }))
 app.use(express.urlencoded({ extended: true, limit: '50mb' }))
 
-// Mount Centralized Cloud CMS Synchronization Endpoint
+// Mount Centralized Cloud CMS Synchronization & Enquiry Endpoints
 app.all('/api/cms', (req, res) => cmsHandler(req, res))
+app.all('/api/enquiries', (req, res) => enquiriesHandler(req, res))
 
 // Multer memory storage for direct PostgreSQL storage uploads
 const upload = multer({
@@ -668,13 +670,13 @@ app.delete('/api/contacts/:id', async (req, res) => {
 // 9.5 ENQUIRY MANAGEMENT & SMTP NOTIFICATION SYSTEM
 // ====================================================================
 const SMTP_CONFIG = {
-  host: process.env.SMTP_HOST || 'ns1.sslsecure.co.in',
+  host: process.env.SMTP_HOST || 'mail.roiclients.co.in',
   port: Number(process.env.SMTP_PORT || 465),
   secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : Number(process.env.SMTP_PORT || 465) === 465,
-  user: process.env.SMTP_USER || 'viju@leniva3d.com',
-  pass: process.env.SMTP_PASSWORD || '',
-  fromEmail: process.env.SMTP_FROM_EMAIL || 'viju@leniva3d.com',
-  fromName: process.env.SMTP_FROM_NAME || 'Leniva 3D Website',
+  user: process.env.SMTP_USER || 'leniva@roiclients.co.in',
+  pass: process.env.SMTP_PASSWORD || 'LTNvnW3zh?KpPXx&%f',
+  fromEmail: process.env.SMTP_FROM_EMAIL || 'leniva@roiclients.co.in',
+  fromName: process.env.SMTP_FROM_NAME || 'Leniva 3D Notifications',
   receiverEmail: process.env.ENQUIRY_RECEIVER_EMAIL || 'viju@leniva3d.com',
   testEmail: process.env.SMTP_TEST_EMAIL || 'viju@leniva3d.com',
 }
