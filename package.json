@@ -4,12 +4,12 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0 --port 8175",
+    "dev": "vite --host 0.0.0.0",
     "start": "node server/index.js",
     "server": "node server/index.js",
     "migrate": "npx tsx scripts/migrate-and-seed.ts",
     "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0 --port 8175"
+    "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
     "cors": "^2.8.6",

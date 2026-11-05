@@ -1,4 +1,4 @@
-import { defineConfig, type Plugin } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 
 function lenivaDevApiPlugin(): Plugin {
@@ -87,34 +87,63 @@ function lenivaDevApiPlugin(): Plugin {
   }
 }
 
-export default defineConfig({
-  base: '/',
-  plugins: [react(), lenivaDevApiPlugin()],
-  resolve: {
-    alias: {
-      '@': '/src',
-    },
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'framer-motion': ['framer-motion'],
-          'icons': ['lucide-react'],
-        },
+export default defineConfig(({ mode }) => {
+  // Load environment variables based on mode and process.cwd()
+  const env = loadEnv(mode, process.cwd(), '')
+
+  // 1. Port numbers for server and proxy strictly managed via .env
+  const port = Number(env.PORT || env.VITE_PORT || process.env.PORT || process.env.VITE_PORT) || 8175
+  const proxyPort = env.PROXY_PORT || env.BACKEND_PORT || env.API_PORT || null
+
+  // 2. Allowed hosts configuration mapped with .env (defaults to true to prevent "Blocked request" errors)
+  const allowedHostsConfig = env.ALLOWED_HOSTS
+    ? (env.ALLOWED_HOSTS === 'true' || env.ALLOWED_HOSTS === '*'
+        ? true
+        : env.ALLOWED_HOSTS.split(',').map((h: string) => h.trim()).filter(Boolean))
+    : true
+
+  // 3. Proxy configuration strictly driven by .env
+  const proxyConfig: Record<string, any> = {}
+  if (proxyPort || env.API_PROXY_URL) {
+    const target = env.API_PROXY_URL || `http://127.0.0.1:${proxyPort}`
+    proxyConfig['/api'] = {
+      target,
+      changeOrigin: true,
+      secure: false,
+    }
+  }
+
+  return {
+    base: '/',
+    plugins: [react(), lenivaDevApiPlugin()],
+    resolve: {
+      alias: {
+        '@': '/src',
       },
     },
-    chunkSizeWarningLimit: 800,
-  },
-  server: {
-    host: '0.0.0.0',
-    port: Number(process.env.PORT) || 8175,
-    allowedHosts: ['leniva3d.com', '.leniva3d.com', 'localhost', '127.0.0.1'],
-  },
-  preview: {
-    host: '0.0.0.0',
-    port: Number(process.env.PORT) || 8175,
-    allowedHosts: ['leniva3d.com', '.leniva3d.com', 'localhost', '127.0.0.1'],
-  },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+            'framer-motion': ['framer-motion'],
+            'icons': ['lucide-react'],
+          },
+        },
+      },
+      chunkSizeWarningLimit: 800,
+    },
+    server: {
+      host: '0.0.0.0',
+      port,
+      allowedHosts: allowedHostsConfig,
+      ...(Object.keys(proxyConfig).length > 0 ? { proxy: proxyConfig } : {}),
+    },
+    preview: {
+      host: '0.0.0.0',
+      port,
+      allowedHosts: allowedHostsConfig,
+      ...(Object.keys(proxyConfig).length > 0 ? { proxy: proxyConfig } : {}),
+    },
+  }
 })
