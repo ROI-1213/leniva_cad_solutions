@@ -3,14 +3,14 @@
   RewriteBase /
 
   # Handle PHP API endpoints on Hostinger hPanel Apache
-  RewriteRule ^api/cms/?$ api/cms.php [L,QSA]
-  RewriteRule ^api/enquiries/?$ api/enquiries.php [L,QSA]
-  RewriteRule ^api/storage/upload/?$ api/upload.php [L,QSA]
-  RewriteRule ^api/upload/?$ api/upload.php [L,QSA]
-  RewriteRule ^api/auth/login/?$ api/login.php [L,QSA]
-  RewriteRule ^api/quotes/?$ api/enquiries.php [L,QSA]
-  RewriteRule ^api/contacts/?$ api/enquiries.php [L,QSA]
-  RewriteRule ^api/health/?$ api/health.php [L,QSA]
+  RewriteRule ^api/cms/?$ /api/cms.php [L,QSA]
+  RewriteRule ^api/enquiries/?$ /api/enquiries.php [L,QSA]
+  RewriteRule ^api/storage/upload/?$ /api/upload.php [L,QSA]
+  RewriteRule ^api/upload/?$ /api/upload.php [L,QSA]
+  RewriteRule ^api/auth/login/?$ /api/login.php [L,QSA]
+  RewriteRule ^api/quotes/?$ /api/enquiries.php [L,QSA]
+  RewriteRule ^api/contacts/?$ /api/enquiries.php [L,QSA]
+  RewriteRule ^api/health/?$ /api/health.php [L,QSA]
 
   # Allow existing real files and directories to be served directly
   RewriteRule ^index\.html$ - [L]

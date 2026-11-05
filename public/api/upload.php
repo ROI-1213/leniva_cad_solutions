@@ -20,17 +20,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Ensure uploads folder exists in public_html / web root
-$uploadDir = __DIR__ . '/../../uploads';
+// Ensure uploads folder exists in web root (public_html/uploads)
+$uploadDir = __DIR__ . '/../uploads';
 if (!is_dir($uploadDir)) {
-    @mkdir($uploadDir, 0755, true);
+    @mkdir($uploadDir, 0777, true);
 }
 
 // Fallback if document root differs
 if (!is_dir($uploadDir)) {
-    $uploadDir = __DIR__ . '/../uploads';
+    $uploadDir = __DIR__ . '/uploads';
     if (!is_dir($uploadDir)) {
-        @mkdir($uploadDir, 0755, true);
+        @mkdir($uploadDir, 0777, true);
     }
 }
 
