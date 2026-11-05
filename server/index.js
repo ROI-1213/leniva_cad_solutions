@@ -677,8 +677,8 @@ const SMTP_CONFIG = {
   pass: process.env.SMTP_PASSWORD || 'LTNvnW3zh?KpPXx&%f',
   fromEmail: process.env.SMTP_FROM_EMAIL || 'leniva@roiclients.co.in',
   fromName: process.env.SMTP_FROM_NAME || 'Leniva 3D Notifications',
-  receiverEmail: process.env.ENQUIRY_RECEIVER_EMAIL || 'viju@leniva.com',
-  testEmail: process.env.SMTP_TEST_EMAIL || 'viju@leniva.com',
+  receiverEmail: process.env.ENQUIRY_RECEIVER_EMAIL || 'viju@leniva3d.com',
+  testEmail: process.env.SMTP_TEST_EMAIL || 'viju@leniva3d.com',
 }
 
 // Ensure enquiries table exists in PostgreSQL

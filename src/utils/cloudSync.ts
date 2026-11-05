@@ -834,7 +834,7 @@ export async function submitCentralizedEnquiry(payload: {
       }
 
       // Offline / network failure fallback only: dispatch zero-password relay if /api/enquiries was unreachable
-      fetch('https://formsubmit.co/ajax/viju@leniva.com', {
+      fetch('https://formsubmit.co/ajax/viju@leniva3d.com', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
