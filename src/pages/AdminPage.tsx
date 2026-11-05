@@ -1140,7 +1140,11 @@ export default function AdminPage() {
       try {
         const savedSettings = localStorage.getItem('leniva_site_settings')
         if (savedSettings) {
-          setSiteSettings({ ...defaultSiteSettings, ...JSON.parse(savedSettings) })
+          const parsed = JSON.parse(savedSettings)
+          setSiteSettings({ ...defaultSiteSettings, ...parsed })
+          if (parsed.smtpPassword) {
+            setSmtpPasswordInput(parsed.smtpPassword)
+          }
         }
       } catch {
         // ignore
@@ -2700,9 +2704,15 @@ export default function AdminPage() {
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-800">
                         Centralized Lead Pipeline
                       </span>
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800">
-                        SMTP: viju@leniva3d.com
-                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowSmtpDiagnostics(true)}
+                        className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300 transition-colors cursor-pointer"
+                        title="Configure Email Delivery & Test Sending"
+                      >
+                        <Mail className="w-3.5 h-3.5 text-emerald-700" />
+                        <span>SMTP Email: viju@leniva3d.com (Setup & Test)</span>
+                      </button>
                     </div>
                     <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">Enquiry Management</h2>
                     <p className="text-xs sm:text-sm text-slate-500">
@@ -3413,6 +3423,141 @@ export default function AdminPage() {
                         >
                           <Save className="w-4 h-4" />
                           <span>Save Notes & Follow-up</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+
+              {/* SMTP Email Configuration & Diagnostics Modal */}
+              {showSmtpDiagnostics && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+                  <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden">
+                    <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Mail className="w-5 h-5 text-blue-400" />
+                        <h3 className="font-bold text-base text-white">Email & SMTP Setup</h3>
+                      </div>
+                      <button
+                        onClick={() => setShowSmtpDiagnostics(false)}
+                        className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="p-6 space-y-4">
+                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-900">
+                        <p className="font-bold mb-1">Incoming Enquiries Recipient: viju@leniva3d.com</p>
+                        <p className="text-slate-600">
+                          Your email is hosted on <strong>Zoho Mail</strong> (<code className="bg-white px-1 py-0.5 rounded font-mono">smtppro.zoho.com:465</code>).
+                          To deliver emails automatically whenever a customer submits an enquiry, enter your <strong>Zoho App Password</strong> below.
+                        </p>
+                      </div>
+
+                      <div className="space-y-3 text-xs">
+                        <div>
+                          <label className="block font-bold text-slate-700 mb-1">Zoho Mail Application Password</label>
+                          <div className="relative">
+                            <input
+                              type={showSmtpPassword ? 'text' : 'password'}
+                              value={smtpPasswordInput}
+                              onChange={e => setSmtpPasswordInput(e.target.value)}
+                              placeholder="Enter 16-character Zoho App Password"
+                              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono pr-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowSmtpPassword(!showSmtpPassword)}
+                              className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                            >
+                              {showSmtpPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                          <span className="text-[10px] text-slate-500 block mt-1">
+                            Generate from Zoho: <strong>My Account &rarr; Security &rarr; App Passwords &rarr; Generate New</strong>
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1">Server Host</label>
+                            <input
+                              type="text"
+                              value="smtppro.zoho.com"
+                              readOnly
+                              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600 font-mono"
+                            />
+                          </div>
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1">Port & Security</label>
+                            <input
+                              type="text"
+                              value="465 (SSL / TLS)"
+                              readOnly
+                              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600 font-mono"
+                            />
+                          </div>
+                        </div>
+
+                        {smtpTestResult && (
+                          <div className={`p-3 rounded-xl border text-xs ${smtpTestResult.success ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'}`}>
+                            <div className="font-bold flex items-center space-x-1 mb-1">
+                              {smtpTestResult.success ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <AlertCircle className="w-4 h-4 text-rose-600" />}
+                              <span>{smtpTestResult.success ? 'Email Dispatched Successfully!' : 'SMTP Connection Notice'}</span>
+                            </div>
+                            <p className="text-[11px] leading-relaxed">{smtpTestResult.message || smtpTestResult.error}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!smtpPasswordInput) {
+                              alert('Please enter your Zoho Mail password')
+                              return
+                            }
+                            try {
+                              const res = await fetch('/api/enquiries?action=save_smtp_config', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ smtpPassword: smtpPasswordInput, smtpHost: 'smtppro.zoho.com', smtpPort: 465 }),
+                              })
+                              const json = await res.json()
+                              if (json.success) {
+                                alert('SMTP Password saved to cloud database successfully!')
+                              } else {
+                                alert(`Failed to save: ${json.error}`)
+                              }
+                            } catch (e: any) {
+                              alert(`Error saving: ${e.message}`)
+                            }
+                          }}
+                          className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          Save Password Only
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await handleTestSmtpConnection()
+                            if (smtpPasswordInput) {
+                              fetch('/api/enquiries?action=save_smtp_config', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ smtpPassword: smtpPasswordInput, smtpHost: 'smtppro.zoho.com', smtpPort: 465 }),
+                              }).catch(() => null)
+                            }
+                          }}
+                          disabled={isTestingSmtp}
+                          className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white rounded-lg text-xs font-bold transition-colors shadow-md flex items-center space-x-1.5 cursor-pointer"
+                        >
+                          {isTestingSmtp ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                          <span>{isTestingSmtp ? 'Sending Test...' : 'Save & Send Test Email'}</span>
                         </button>
                       </div>
                     </div>
