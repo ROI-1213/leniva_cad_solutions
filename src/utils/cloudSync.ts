@@ -124,12 +124,9 @@ function installStorageInterceptor() {
     rawSetItem(key, value)
     if (!isApplyingRemoteSync && SYNCED_KEY_SET.has(key)) {
       explicitlyResetKeys.delete(key)
-      const isAdminActive = isOnAdminRoute() || rawGetItem('leniva_admin_auth') === 'true'
-      if (isAdminActive || key === 'leniva_admin_quotes' || key === 'leniva_admin_contacts' || key === 'leniva_admin_enquiries') {
-        const now = Date.now()
-        rawSetItem(UPDATED_AT_KEY, String(now))
-        scheduleCloudPush()
-      }
+      const now = Date.now()
+      rawSetItem(UPDATED_AT_KEY, String(now))
+      scheduleCloudPush()
     }
   }
 
@@ -137,12 +134,9 @@ function installStorageInterceptor() {
     rawRemoveItem(key)
     if (!isApplyingRemoteSync && SYNCED_KEY_SET.has(key)) {
       explicitlyResetKeys.add(key)
-      const isAdminActive = isOnAdminRoute() || rawGetItem('leniva_admin_auth') === 'true'
-      if (isAdminActive) {
-        const now = Date.now()
-        rawSetItem(UPDATED_AT_KEY, String(now))
-        scheduleCloudPush()
-      }
+      const now = Date.now()
+      rawSetItem(UPDATED_AT_KEY, String(now))
+      scheduleCloudPush()
     }
   }
 }

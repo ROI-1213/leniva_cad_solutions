@@ -6,22 +6,7 @@ let memoryCache = null
 let lastFetchTime = 0
 
 async function fetchFromGist() {
-  try {
-    const rawRes = await fetch(`${GIST_RAW_URL}?t=${Date.now()}`, {
-      headers: { 'Cache-Control': 'no-cache, no-store' },
-    })
-    if (rawRes.ok) {
-      const data = await rawRes.json()
-      if (data && typeof data.updatedAt === 'number') {
-        memoryCache = data
-        lastFetchTime = Date.now()
-        return data
-      }
-    }
-  } catch (e) {
-    // fallback to GitHub API
-  }
-
+  // 1. Fetch directly from GitHub API first for real-time consistency (0ms delay)
   try {
     const apiRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
       headers: {
@@ -43,7 +28,24 @@ async function fetchFromGist() {
       }
     }
   } catch (err) {
-    console.error('Failed to fetch from GitHub Gist:', err)
+    console.error('Failed to fetch from GitHub API:', err)
+  }
+
+  // 2. Fallback to Raw Gist URL if API has network restriction
+  try {
+    const rawRes = await fetch(`${GIST_RAW_URL}?t=${Date.now()}`, {
+      headers: { 'Cache-Control': 'no-cache, no-store' },
+    })
+    if (rawRes.ok) {
+      const data = await rawRes.json()
+      if (data && typeof data.updatedAt === 'number') {
+        memoryCache = data
+        lastFetchTime = Date.now()
+        return data
+      }
+    }
+  } catch (e) {
+    // fallback
   }
 
   return memoryCache || { updatedAt: 0, keys: {} }
@@ -96,8 +98,8 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      // Re-fetch if cache is older than 3 seconds
-      if (!memoryCache || Date.now() - lastFetchTime > 3000) {
+      // Re-fetch if cache is older than 2 seconds
+      if (!memoryCache || Date.now() - lastFetchTime > 2000) {
         await fetchFromGist()
       }
       const state = memoryCache || { updatedAt: 0, keys: {} }
