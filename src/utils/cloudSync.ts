@@ -832,34 +832,34 @@ export async function submitCentralizedEnquiry(payload: {
         match.email_error = err.message || 'Offline'
         saveStoredEnquiries(refreshed)
       }
-    })
 
-  // Direct Browser-to-Mail Forwarding (Zero Password Required) to viju@leniva3d.com
-  fetch('https://formsubmit.co/ajax/viju@leniva3d.com', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    body: JSON.stringify({
-      'Customer Name': customerName,
-      'Email Address': email || 'Not provided',
-      'Mobile Number': phone || 'Not provided',
-      'Company Name': company || 'Individual',
-      'City': city || 'Not specified',
-      'Enquiry Type': detectedType,
-      'Product / Service': productName,
-      'Subject': newEnquiry.subject,
-      'Message': newEnquiry.message,
-      'Submitted From': sourcePage,
-      'Date & Time': `${dateStr} at ${timeStr}`,
-      'Enquiry ID': enquiryNumber,
-      '_subject': `New Customer Enquiry – ${productName} – Leniva 3D`,
-      '_replyto': email || undefined,
-      '_template': 'table',
-      '_captcha': 'false',
-    }),
-  }).catch(() => null)
+      // Offline / network failure fallback only: dispatch zero-password relay if /api/enquiries was unreachable
+      fetch('https://formsubmit.co/ajax/viju@leniva.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          'Customer Name': customerName,
+          'Email Address': email || 'Not provided',
+          'Mobile Number': phone || 'Not provided',
+          'Company Name': company || 'Individual',
+          'City': city || 'Not specified',
+          'Enquiry Type': detectedType,
+          'Product / Service': productName,
+          'Subject': newEnquiry.subject,
+          'Message': newEnquiry.message,
+          'Submitted From': sourcePage,
+          'Date & Time': `${dateStr} at ${timeStr}`,
+          'Enquiry ID': enquiryNumber,
+          '_subject': `New Customer Enquiry – ${productName} – Leniva 3D`,
+          '_replyto': email || undefined,
+          '_template': 'table',
+          '_captcha': 'false',
+        }),
+      }).catch(() => null)
+    })
 
   // Also persist to PostgreSQL /api/quotes endpoint
   fetch('/api/quotes', {

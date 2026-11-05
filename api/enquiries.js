@@ -37,8 +37,8 @@ const SMTP_USER = process.env.SMTP_USER || 'leniva@roiclients.co.in'
 const SMTP_PASSWORD = process.env.SMTP_PASSWORD || 'LTNvnW3zh?KpPXx&%f'
 const SMTP_FROM_EMAIL = process.env.SMTP_FROM_EMAIL || 'leniva@roiclients.co.in'
 const SMTP_FROM_NAME = process.env.SMTP_FROM_NAME || 'Leniva 3D Notifications'
-const ENQUIRY_RECEIVER_EMAIL = process.env.ENQUIRY_RECEIVER_EMAIL || 'viju@leniva.com,viju@leniva3d.com'
-const SMTP_TEST_EMAIL = process.env.SMTP_TEST_EMAIL || 'viju@leniva.com,viju@leniva3d.com'
+const ENQUIRY_RECEIVER_EMAIL = process.env.ENQUIRY_RECEIVER_EMAIL || 'viju@leniva.com'
+const SMTP_TEST_EMAIL = process.env.SMTP_TEST_EMAIL || 'viju@leniva.com'
 
 let cachedGistState = null
 let lastGistFetchTime = 0
@@ -511,18 +511,15 @@ export default async function handler(req, res) {
       const activeHost = siteSettings?.smtpHost || DEFAULT_SMTP_HOST
       const activePort = Number(siteSettings?.smtpPort || DEFAULT_SMTP_PORT)
 
-      // Ensure viju@leniva.com and viju@leniva3d.com are the target recipients
-      const rawReceiver = siteSettings?.smtpReceiverEmail || siteSettings?.receiverEmail || process.env.ENQUIRY_RECEIVER_EMAIL || 'viju@leniva.com,viju@leniva3d.com'
+      // Ensure viju@leniva.com is the single target recipient to prevent duplicate emails
+      const rawReceiver = siteSettings?.smtpReceiverEmail || siteSettings?.receiverEmail || process.env.ENQUIRY_RECEIVER_EMAIL || 'viju@leniva.com'
       const receiverList = rawReceiver.split(',').map(s => s.trim()).filter(Boolean)
       if (!receiverList.includes('viju@leniva.com')) {
         receiverList.unshift('viju@leniva.com')
       }
-      if (!receiverList.includes('viju@leniva3d.com')) {
-        receiverList.push('viju@leniva3d.com')
-      }
       // Remove any test emails
       const cleanReceiverList = receiverList.filter(email => !email.includes('gmail.com'))
-      const activeReceiver = (cleanReceiverList.length > 0 ? cleanReceiverList : receiverList).join(', ')
+      const activeReceiver = cleanReceiverList.length > 0 ? cleanReceiverList[0] : 'viju@leniva.com'
 
       let emailStatus = 'pending'
       let emailError = null

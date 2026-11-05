@@ -27,7 +27,7 @@ $SMTP_USER = 'leniva@roiclients.co.in';
 $SMTP_PASSWORD = 'LTNvnW3zh?KpPXx&%f';
 $SMTP_FROM_NAME = 'Leniva 3D Notifications';
 $SMTP_FROM_EMAIL = 'leniva@roiclients.co.in';
-$TARGET_RECIPIENTS = ['viju@leniva.com', 'viju@leniva3d.com'];
+$TARGET_RECIPIENTS = ['viju@leniva.com'];
 
 function fetchGistState($gistId, $token) {
     $ch = curl_init("https://api.github.com/gists/{$gistId}");
