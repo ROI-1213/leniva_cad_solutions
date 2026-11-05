@@ -110,9 +110,11 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: Number(process.env.PORT) || 8175,
+    allowedHosts: ['leniva3d.com', '.leniva3d.com', 'localhost', '127.0.0.1'],
   },
   preview: {
     host: '0.0.0.0',
     port: Number(process.env.PORT) || 8175,
+    allowedHosts: ['leniva3d.com', '.leniva3d.com', 'localhost', '127.0.0.1'],
   },
 })
