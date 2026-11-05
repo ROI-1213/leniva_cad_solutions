@@ -1123,6 +1123,17 @@ export default function AdminPage() {
   useEffect(() => {
     if (isAuthenticated) {
       loadAllData()
+      const interval = setInterval(() => {
+        if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+          loadAllData()
+        }
+      }, 15000)
+      const onFocus = () => loadAllData()
+      window.addEventListener('focus', onFocus)
+      return () => {
+        clearInterval(interval)
+        window.removeEventListener('focus', onFocus)
+      }
     }
   }, [isAuthenticated])
 

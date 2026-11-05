@@ -150,6 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'PUT
         }
     }
 
+    $pdoSaved = false;
     // Persist to connected PostgreSQL site_settings table
     $pdo = getPostgresConnection();
     if ($pdo) {
@@ -163,6 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'PUT
             foreach ($mergedKeys as $k => $v) {
                 $stmt->execute([$k, json_encode($v, JSON_UNESCAPED_SLASHES)]);
             }
+            $pdoSaved = true;
         } catch (Throwable $e) {
             error_log('[PostgreSQL CMS Sync Notice] ' . $e->getMessage());
         }
@@ -175,7 +177,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'PUT
 
     $saved = saveGistState($GIST_ID, $GITHUB_TOKEN, $newState);
 
-    if ($saved) {
+    if ($saved || $pdoSaved) {
         echo json_encode([
             'success' => true,
             'updatedAt' => $updatedAt,
