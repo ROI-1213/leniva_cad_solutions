@@ -5,6 +5,8 @@
   # Handle PHP API endpoints on Hostinger hPanel Apache
   RewriteRule ^api/cms/?$ api/cms.php [L,QSA]
   RewriteRule ^api/enquiries/?$ api/enquiries.php [L,QSA]
+  RewriteRule ^api/storage/upload/?$ api/upload.php [L,QSA]
+  RewriteRule ^api/upload/?$ api/upload.php [L,QSA]
   RewriteRule ^api/auth/login/?$ api/login.php [L,QSA]
   RewriteRule ^api/quotes/?$ api/enquiries.php [L,QSA]
   RewriteRule ^api/contacts/?$ api/enquiries.php [L,QSA]

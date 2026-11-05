@@ -1290,60 +1290,90 @@ export async function uploadAssetToPersistentStorage(
   const dimensions = kind === 'image' ? await readImageDimensions(file) : undefined
   const formattedSize = formatBytes(file.size)
 
-  // Strategy 1: Try /api/storage/upload first
+  // Strategy 1: Try /api/storage/upload or /api/upload first (Hostinger PHP, Node.js, Vercel)
   try {
     onProgress?.(45, 'Uploading to persistent cloud storage...')
     const base64Data = await fileToBase64(file)
-    const apiRes = await fetch('/api/storage/upload', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        filename: file.name,
-        contentType: file.type || (kind === 'pdf' ? 'application/pdf' : 'image/jpeg'),
-        dataBase64: base64Data,
-      }),
-    })
-    if (apiRes.ok) {
-      const json = await apiRes.json()
-      if (json?.ok && typeof json.url === 'string' && json.url.startsWith('http')) {
-        onProgress?.(100, 'Upload complete!')
-        return {
-          url: json.url,
-          fileName: file.name,
-          fileSize: formattedSize,
-          mimeType: file.type || (kind === 'pdf' ? 'application/pdf' : 'image/jpeg'),
-          dimensions,
+    const endpoints = ['/api/storage/upload', '/api/upload']
+
+    for (const endpoint of endpoints) {
+      try {
+        const apiRes = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: file.name,
+            contentType: file.type || (kind === 'pdf' ? 'application/pdf' : 'image/jpeg'),
+            dataBase64: base64Data,
+          }),
+        })
+        const ct = apiRes.headers.get('content-type') || ''
+        if (apiRes.ok && ct.includes('application/json')) {
+          const json = await apiRes.json()
+          const returnedUrl = json?.url || json?.absoluteUrl
+          if (returnedUrl) {
+            onProgress?.(100, 'Upload complete!')
+            return {
+              url: returnedUrl,
+              fileName: json.fileName || file.name,
+              fileSize: formattedSize,
+              mimeType: file.type || (kind === 'pdf' ? 'application/pdf' : 'image/jpeg'),
+              dimensions,
+            }
+          }
         }
+      } catch {
+        // try next endpoint
       }
     }
   } catch {
-    // Fallback to direct Bytebin CDN upload below
+    // Fallback to optimized direct asset encoding
   }
 
-  // Strategy 2: Direct upload to Bytebin Cloud CDN (returns permanent HTTPS URL)
-  onProgress?.(70, 'Uploading asset to Cloud CDN...')
-  const cdnRes = await fetch('https://bytebin.lucko.me/post', {
-    method: 'POST',
-    headers: {
-      'Content-Type': file.type || (kind === 'pdf' ? 'application/pdf' : 'application/octet-stream'),
-    },
-    body: file,
-  })
+  // Strategy 2: Client-side persistent data encoding fallback (Zero third-party dependency)
+  onProgress?.(80, 'Optimizing and encoding asset...')
+  let finalAssetUrl = await fileToBase64(file)
+  
+  // For images, if larger than 200KB, optimize using HTML5 canvas to keep size tiny
+  if (kind === 'image' && file.size > 200 * 1024) {
+    try {
+      const img = new Image()
+      const loadPromise = new Promise<HTMLImageElement>((resolve, reject) => {
+        img.onload = () => resolve(img)
+        img.onerror = reject
+        img.src = finalAssetUrl
+      })
+      await loadPromise
 
-  if (!cdnRes.ok) {
-    throw new Error(`Cloud storage upload failed with status ${cdnRes.status}. Please try again.`)
+      const maxDim = 1600
+      let { width, height } = img
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width)
+          width = maxDim
+        } else {
+          width = Math.round((width * maxDim) / height)
+          height = maxDim
+        }
+      }
+
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, width, height)
+        finalAssetUrl = canvas.toDataURL('image/jpeg', 0.85)
+      }
+    } catch {
+      // keep original base64
+    }
   }
 
-  const cdnJson = await cdnRes.json()
-  if (!cdnJson?.key) {
-    throw new Error('Cloud storage did not return a valid asset key.')
-  }
-
-  const permanentUrl = `https://bytebin.lucko.me/${cdnJson.key}`
   onProgress?.(100, 'Upload complete!')
 
   return {
-    url: permanentUrl,
+    url: finalAssetUrl,
     fileName: file.name,
     fileSize: formattedSize,
     mimeType: file.type || (kind === 'pdf' ? 'application/pdf' : 'image/jpeg'),

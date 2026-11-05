@@ -1445,56 +1445,73 @@ export default function AdminPage() {
     setTimeout(() => setBlogSuccessMsg(''), 4000)
   }
 
-  // Direct image upload helper for all edit modals (supports backend, cloud Bytebin CDN, and DataURL fallback)
+  // Direct image upload helper for all edit modals (supports Hostinger PHP, Node.js backend, and optimized DataURL fallback)
   const handleDirectImageUpload = async (file: File, callback: (url: string) => void) => {
     try {
       setUploadingField(file.name)
-      // 1. Try local/backend storage first
-      try {
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('bucket', 'media')
-        formData.append('description', file.name)
-        const res = await fetch('/api/storage/upload', {
-          method: 'POST',
-          body: formData,
-        })
-        const ct = res.headers.get('content-type') || ''
-        if (res.ok && ct.includes('application/json')) {
-          const data = await res.json()
-          if (data?.url) {
-            callback(data.url)
-            return
+      // 1. Try server storage first (/api/storage/upload and /api/upload)
+      const uploadEndpoints = ['/api/storage/upload', '/api/upload']
+      for (const endpoint of uploadEndpoints) {
+        try {
+          const formData = new FormData()
+          formData.append('file', file)
+          formData.append('bucket', 'media')
+          formData.append('description', file.name)
+          const res = await fetch(endpoint, {
+            method: 'POST',
+            body: formData,
+          })
+          const ct = res.headers.get('content-type') || ''
+          if (res.ok && ct.includes('application/json')) {
+            const data = await res.json()
+            const finalUrl = data?.url || data?.absoluteUrl
+            if (finalUrl) {
+              callback(finalUrl)
+              return
+            }
           }
+        } catch {
+          // try next endpoint
         }
-      } catch {
-        // Fallback to cloud upload
       }
 
-      // 2. Upload directly to Bytebin Cloud CDN so the image URL works across all browsers and phones
-      try {
-        const buf = await file.arrayBuffer()
-        const bRes = await fetch('https://bytebin.lucko.me/post', {
-          method: 'POST',
-          headers: { 'Content-Type': file.type || 'image/png' },
-          body: buf,
-        })
-        if (bRes.ok) {
-          const bJson = await bRes.json()
-          if (bJson?.key) {
-            callback(`https://bytebin.lucko.me/${bJson.key}`)
-            return
-          }
-        }
-      } catch {
-        // Fallback to DataURL
-      }
-
-      // 3. Offline / DataURL fallback
+      // 2. High-performance Canvas-optimized data URL fallback (Zero third-party failures)
       const reader = new FileReader()
-      reader.onload = () => {
+      reader.onload = async () => {
         if (typeof reader.result === 'string') {
-          callback(reader.result)
+          let dataUrl = reader.result
+          if (file.type.startsWith('image/') && file.size > 250 * 1024) {
+            try {
+              const img = new Image()
+              await new Promise((resolve, reject) => {
+                img.onload = () => resolve()
+                img.onerror = reject
+                img.src = dataUrl
+              })
+              const maxDim = 1400
+              let { width, height } = img
+              if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                  height = Math.round((height * maxDim) / width)
+                  width = maxDim
+                } else {
+                  width = Math.round((width * maxDim) / height)
+                  height = maxDim
+                }
+              }
+              const canvas = document.createElement('canvas')
+              canvas.width = width
+              canvas.height = height
+              const ctx = canvas.getContext('2d')
+              if (ctx) {
+                ctx.drawImage(img, 0, 0, width, height)
+                dataUrl = canvas.toDataURL('image/jpeg', 0.85)
+              }
+            } catch {
+              // keep original
+            }
+          }
+          callback(dataUrl)
         }
       }
       reader.readAsDataURL(file)
