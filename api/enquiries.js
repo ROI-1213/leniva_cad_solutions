@@ -1,17 +1,21 @@
 import nodemailer from 'nodemailer'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 // Global Centralized Cloud Database
 const GIST_ID = '5b4168cd6d9b9418ecb0e29f0f7b0282'
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || ['ghp', 'q7ImIkHHK0hUvVEAsjVGJ0l1oVTO8K1jkiLQ'].join('_')
 
-// SMTP Configuration (Zoho Mail is the MX provider for leniva3d.com)
-const DEFAULT_SMTP_HOST = process.env.SMTP_HOST || 'smtppro.zoho.com'
+// SMTP Configuration (Verified Working Host: mail.roiclients.co.in)
+const DEFAULT_SMTP_HOST = process.env.SMTP_HOST || 'mail.roiclients.co.in'
 const DEFAULT_SMTP_PORT = Number(process.env.SMTP_PORT || 465)
-const SMTP_USER = process.env.SMTP_USER || 'viju@leniva3d.com'
-const SMTP_FROM_EMAIL = process.env.SMTP_FROM_EMAIL || 'viju@leniva3d.com'
-const SMTP_FROM_NAME = process.env.SMTP_FROM_NAME || 'Leniva 3D Website'
-const ENQUIRY_RECEIVER_EMAIL = process.env.ENQUIRY_RECEIVER_EMAIL || 'viju@leniva3d.com'
-const SMTP_TEST_EMAIL = process.env.SMTP_TEST_EMAIL || 'viju@leniva3d.com'
+const SMTP_USER = process.env.SMTP_USER || 'leniva@roiclients.co.in'
+const SMTP_PASSWORD = process.env.SMTP_PASSWORD || 'LTNvnW3zh?KpPXx&%f'
+const SMTP_FROM_EMAIL = process.env.SMTP_FROM_EMAIL || 'leniva@roiclients.co.in'
+const SMTP_FROM_NAME = process.env.SMTP_FROM_NAME || 'Leniva 3D Notifications'
+const ENQUIRY_RECEIVER_EMAIL = process.env.ENQUIRY_RECEIVER_EMAIL || 'viju@leniva3d.com,roiprojects012@gmail.com'
+const SMTP_TEST_EMAIL = process.env.SMTP_TEST_EMAIL || 'roiprojects012@gmail.com'
 
 let cachedGistState = null
 let lastGistFetchTime = 0
@@ -92,7 +96,7 @@ function createTransporter(customConfig = {}) {
   const port = Number(customConfig.port || DEFAULT_SMTP_PORT)
   const secure = customConfig.secure !== undefined ? Boolean(customConfig.secure) : (port === 465)
   const user = customConfig.user || SMTP_USER
-  const pass = customConfig.pass !== undefined ? customConfig.pass : (process.env.SMTP_PASSWORD || '')
+  const pass = customConfig.pass !== undefined ? customConfig.pass : SMTP_PASSWORD
 
   return nodemailer.createTransport({
     host,
@@ -103,9 +107,9 @@ function createTransporter(customConfig = {}) {
       rejectUnauthorized: false,
       minVersion: 'TLSv1.2',
     },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
+    connectionTimeout: 30000,
+    greetingTimeout: 30000,
+    socketTimeout: 45000,
   })
 }
 
@@ -223,7 +227,7 @@ export default async function handler(req, res) {
   if (queryAction === 'test_smtp') {
     const gist = await fetchGistState()
     const siteSettings = gist.keys?.leniva_site_settings ? JSON.parse(gist.keys.leniva_site_settings) : {}
-    const customPass = req.body?.smtpPassword || siteSettings?.smtpPassword || process.env.SMTP_PASSWORD
+    const customPass = req.body?.smtpPassword || siteSettings?.smtpPassword || process.env.SMTP_PASSWORD || SMTP_PASSWORD
     const customPort = Number(req.body?.smtpPort || siteSettings?.smtpPort || DEFAULT_SMTP_PORT)
     const customHost = req.body?.smtpHost || siteSettings?.smtpHost || DEFAULT_SMTP_HOST
     const recipient = req.body?.testRecipient || SMTP_TEST_EMAIL
@@ -425,7 +429,7 @@ export default async function handler(req, res) {
 
       // 2. DISPATCH EMAIL TO viju@leniva3d.com IF SMTP PASSWORD EXISTS
       const siteSettings = gist.keys?.leniva_site_settings ? JSON.parse(gist.keys.leniva_site_settings) : {}
-      const activePass = body.smtpPassword || siteSettings?.smtpPassword || process.env.SMTP_PASSWORD
+      const activePass = body.smtpPassword || siteSettings?.smtpPassword || process.env.SMTP_PASSWORD || SMTP_PASSWORD
       const activeHost = siteSettings?.smtpHost || DEFAULT_SMTP_HOST
       const activePort = Number(siteSettings?.smtpPort || DEFAULT_SMTP_PORT)
 
