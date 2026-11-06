@@ -231,7 +231,7 @@ Admin URL: ${adminUrl}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate')
 
@@ -631,6 +631,47 @@ export default async function handler(req, res) {
       await saveGistState(gist)
 
       return res.status(200).json({ success: true, enquiry: enquiries[idx] })
+    } catch (err) {
+      return res.status(500).json({ success: false, error: err.message })
+    }
+  }
+
+  // =========================================================================
+  // METHOD: DELETE (Remove enquiry from cloud database)
+  // =========================================================================
+  if (req.method === 'DELETE') {
+    try {
+      const enquiryId = req.query?.id || (req.body && req.body.id)
+      if (!enquiryId) return res.status(400).json({ success: false, error: 'Enquiry ID required' })
+
+      const gist = await fetchGistState()
+      const enquiriesRaw = gist.keys?.leniva_admin_enquiries || '[]'
+      let enquiries = []
+      try { enquiries = JSON.parse(enquiriesRaw) } catch { enquiries = [] }
+
+      const filteredEnquiries = enquiries.filter(e => String(e.id) !== String(enquiryId) && String(e.enquiry_number || '') !== String(enquiryId))
+      gist.keys.leniva_admin_enquiries = JSON.stringify(filteredEnquiries)
+
+      const quotesRaw = gist.keys?.leniva_admin_quotes || '[]'
+      try {
+        const quotes = JSON.parse(quotesRaw)
+        gist.keys.leniva_admin_quotes = JSON.stringify(quotes.filter(q => String(q.id) !== String(enquiryId)))
+      } catch {}
+
+      gist.updatedAt = Date.now()
+      await saveGistState(gist)
+
+      try {
+        const pool = getPgPool()
+        if (pool) {
+          await pool.query('DELETE FROM enquiries WHERE id = $1 OR enquiry_number = $2;', [
+            isNaN(Number(enquiryId)) ? 0 : Number(enquiryId),
+            String(enquiryId)
+          ]).catch(() => null)
+        }
+      } catch {}
+
+      return res.status(200).json({ success: true, message: 'Enquiry deleted from cloud database' })
     } catch (err) {
       return res.status(500).json({ success: false, error: err.message })
     }

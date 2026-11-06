@@ -890,6 +890,9 @@ export default function AdminPage() {
       setAboutContentData(getStoredAboutContent())
       setCustomCadProducts(loadCustomCadProducts())
       setCadEdits(loadCadEdits())
+      setEnquiries(getStoredEnquiries())
+      setQuotes(getStoredQuotes())
+      setContacts(getStoredContacts())
 
       const [
         statsRes,
@@ -1036,45 +1039,63 @@ export default function AdminPage() {
       if (remoteEnquiriesList.length > 0) {
         const curEnqs = getStoredEnquiries()
         const curQts = getStoredQuotes()
-        let anyNewEnq = false
-        let anyNewQt = false
 
+        // Authoritative merge by enquiry_number / id
+        const enqMap = new Map<string, StoredEnquiryRecord>()
+        for (const e of curEnqs) {
+          if (e && (e.id != null || e.enquiry_number)) {
+            enqMap.set(String(e.enquiry_number || e.id), e)
+          }
+        }
         for (const re of remoteEnquiriesList) {
-          if (!re || !re.id) continue
-          const existingE = curEnqs.find(e => e.id === Number(re.id) || (re.email && e.email === re.email && e.customer_name === (re.customer_name || re.name)))
-          if (!existingE) {
-            curEnqs.unshift(re)
-            anyNewEnq = true
-          }
-          const existingQ = curQts.find(q => q.id === Number(re.id) || (re.email && q.email === re.email && q.name === (re.customer_name || re.name)))
-          if (!existingQ) {
-            curQts.unshift({
-              id: Number(re.id),
-              name: re.customer_name || re.name || 'Valued Customer',
-              email: re.email || '',
-              phone: re.phone || '',
-              company: re.company_name || re.company || '',
-              service_or_product: re.product_service_name || re.productOrService || 'Customer Enquiry',
-              quantity: '1',
-              timeline: 'Immediate',
-              message: re.message || '',
-              status: re.status === 'Closed' ? 'completed' : 'pending',
-              created_at: re.created_at || new Date().toISOString(),
-              notes: re.admin_notes || `Enquiry Number: ${re.enquiry_number || ''}`,
-              enquiry_type: (re.enquiry_type || 'quote') as any,
-            })
-            anyNewQt = true
+          if (re && (re.id != null || re.enquiry_number)) {
+            const key = String(re.enquiry_number || re.id)
+            const existing = enqMap.get(key)
+            enqMap.set(key, existing ? { ...existing, ...re } : re)
           }
         }
+        const mergedEnqs = Array.from(enqMap.values()).sort((a, b) => {
+          const tsA = new Date(a.created_at || 0).getTime() || Number(a.id || 0)
+          const tsB = new Date(b.created_at || 0).getTime() || Number(b.id || 0)
+          return tsB - tsA
+        })
+        saveStoredEnquiries(mergedEnqs)
+        setEnquiries(mergedEnqs)
 
-        if (anyNewEnq) {
-          saveStoredEnquiries(curEnqs)
-          setEnquiries(curEnqs)
+        // Authoritative merge for quotes
+        const qtMap = new Map<string, QuoteRequest>()
+        for (const q of curQts) {
+          if (q && q.id != null) qtMap.set(String(q.id), q)
         }
-        if (anyNewQt) {
-          saveStoredQuotes(curQts)
-          setQuotes(curQts)
+        for (const re of remoteEnquiriesList) {
+          if (re && (re.id != null || re.enquiry_number)) {
+            const qKey = String(re.id || re.enquiry_number)
+            if (!qtMap.has(qKey)) {
+              qtMap.set(qKey, {
+                id: Number(re.id) || Date.now(),
+                name: re.customer_name || re.name || 'Valued Customer',
+                email: re.email || '',
+                phone: re.phone || '',
+                company: re.company_name || re.company || '',
+                service_or_product: re.product_service_name || re.productOrService || 'Customer Enquiry',
+                quantity: (re as any).quantity || '1',
+                timeline: (re as any).timeline || 'Immediate',
+                message: re.message || '',
+                status: re.status === 'Closed' ? 'completed' : 'pending',
+                created_at: re.created_at || new Date().toISOString(),
+                notes: re.admin_notes || `Enquiry Number: ${re.enquiry_number || ''}`,
+                enquiry_type: (re.enquiry_type || 'quote') as any,
+              })
+            }
+          }
         }
+        const mergedQts = Array.from(qtMap.values()).sort((a, b) => {
+          const tsA = new Date(a.created_at || 0).getTime() || Number(a.id || 0)
+          const tsB = new Date(b.created_at || 0).getTime() || Number(b.id || 0)
+          return tsB - tsA
+        })
+        saveStoredQuotes(mergedQts)
+        setQuotes(mergedQts)
       }
 
       if (Array.isArray(usersVal) && usersVal.length > 0) {

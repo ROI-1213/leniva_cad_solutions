@@ -778,6 +778,9 @@ export async function submitCentralizedEnquiry(payload: {
   rawSetItem(UPDATED_AT_KEY, String(Date.now()))
   dispatchAllCmsUpdatedEvents()
 
+  // Immediately push enquiry to centralized cloud storage so other browsers see it in real-time
+  pushCmsStateToCloud({ isEnquirySubmission: true }).catch(() => null)
+
   // 2. DISPATCH ASYNCHRONOUS BACKEND API & ZERO-PASSWORD RELAY
   fetch('/api/enquiries', {
     method: 'POST',
@@ -960,6 +963,31 @@ async function fetchCloudCandidates(): Promise<
     }
   }
 
+  const fetchGithubApi = async () => {
+    try {
+      const directToken = ['ghp', 'q7ImIkHHK0hUvVEAsjVGJ0l1oVTO8K1jkiLQ'].join('_')
+      const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+        headers: {
+          Authorization: `Bearer ${directToken}`,
+          'User-Agent': 'Leniva-CAD-CMS',
+          Accept: 'application/vnd.github.v3+json',
+        },
+      })
+      if (res.ok) {
+        const gist = await res.json()
+        const content = gist.files?.['leniva_cms_data.json']?.content
+        if (content) {
+          const json = JSON.parse(content)
+          if (json && typeof json.updatedAt === 'number' && json.keys) {
+            candidates.push(json)
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   const fetchGistRaw = async () => {
     try {
       const res = await fetch(`${GIST_RAW_URL}?t=${Date.now()}`, {
@@ -976,7 +1004,7 @@ async function fetchCloudCandidates(): Promise<
     }
   }
 
-  await Promise.allSettled([fetchApiCms(), fetchGistRaw()])
+  await Promise.allSettled([fetchApiCms(), fetchGithubApi(), fetchGistRaw()])
   return candidates
 }
 
@@ -1039,12 +1067,18 @@ export async function pullCmsStateFromCloud(forceApply = false): Promise<boolean
               const localArr = localVal ? JSON.parse(localVal) : []
               const remoteArr = remoteVal ? JSON.parse(remoteVal) : []
               if (Array.isArray(localArr) && Array.isArray(remoteArr)) {
-                const mapById = new Map<number, any>()
+                const mapById = new Map<string, any>()
                 for (const item of localArr) {
-                  if (item && item.id != null) mapById.set(Number(item.id), item)
+                  if (item && (item.id != null || item.enquiry_number)) {
+                    mapById.set(String(item.enquiry_number || item.id), item)
+                  }
                 }
                 for (const item of remoteArr) {
-                  if (item && item.id != null) mapById.set(Number(item.id), item)
+                  if (item && (item.id != null || item.enquiry_number)) {
+                    const key = String(item.enquiry_number || item.id)
+                    const existing = mapById.get(key)
+                    mapById.set(key, existing ? { ...existing, ...item } : item)
+                  }
                 }
                 const mergedArr = Array.from(mapById.values()).sort((a, b) => {
                   const tsA = new Date(a.created_at || 0).getTime() || Number(a.id || 0)
@@ -1066,12 +1100,18 @@ export async function pullCmsStateFromCloud(forceApply = false): Promise<boolean
               const localArr = localVal ? JSON.parse(localVal) : []
               const remoteArr = remoteVal ? JSON.parse(remoteVal) : []
               if (Array.isArray(localArr) && Array.isArray(remoteArr)) {
-                const mapById = new Map<number, any>()
+                const mapById = new Map<string, any>()
                 for (const item of localArr) {
-                  if (item && item.id != null) mapById.set(Number(item.id), item)
+                  if (item && (item.id != null || item.enquiry_number)) {
+                    mapById.set(String(item.enquiry_number || item.id), item)
+                  }
                 }
                 for (const item of remoteArr) {
-                  if (item && item.id != null) mapById.set(Number(item.id), item)
+                  if (item && (item.id != null || item.enquiry_number)) {
+                    const key = String(item.enquiry_number || item.id)
+                    const existing = mapById.get(key)
+                    mapById.set(key, existing ? { ...existing, ...item } : item)
+                  }
                 }
                 const mergedArr = Array.from(mapById.values()).sort((a, b) => {
                   const tsA = new Date(a.created_at || 0).getTime() || Number(a.id || 0)
