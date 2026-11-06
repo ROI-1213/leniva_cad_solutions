@@ -3190,7 +3190,7 @@ export default function AdminPage() {
                 </div>
 
                 {/* Table Footer & Full-Page Responsive Pagination */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3.5 border-t border-slate-200 text-xs text-slate-600 bg-slate-50/80 -mx-6 -mb-6 px-6 py-3 rounded-b-2xl">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200 text-xs text-slate-600 bg-slate-50 px-6 py-4">
                   <div className="flex items-center space-x-2">
                     <span className="font-medium">
                       Showing <strong className="text-slate-900 font-bold">{filteredEnquiries.length === 0 ? 0 : (enquiryPage - 1) * (enquiryPageSize === 'all' ? filteredEnquiries.length : Number(enquiryPageSize)) + 1}</strong> to <strong className="text-slate-900 font-bold">{enquiryPageSize === 'all' ? filteredEnquiries.length : Math.min(filteredEnquiries.length, enquiryPage * Number(enquiryPageSize))}</strong> of <strong className="text-slate-900 font-bold">{filteredEnquiries.length}</strong> enquiries
@@ -3995,7 +3995,7 @@ export default function AdminPage() {
               </div>
 
               {/* Table Footer & Full-Page Responsive Pagination */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3.5 border-t border-slate-200 text-xs text-slate-600 bg-slate-50/80 -mx-6 -mb-6 px-6 py-3 rounded-b-2xl">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200 text-xs text-slate-600 bg-slate-50 px-6 py-4">
                 <div className="flex items-center space-x-2">
                   <span className="font-medium">
                     Showing <strong className="text-slate-900 font-bold">{filteredQuotes.length === 0 ? 0 : (quotePage - 1) * (quotePageSize === 'all' ? filteredQuotes.length : Number(quotePageSize)) + 1}</strong> to <strong className="text-slate-900 font-bold">{quotePageSize === 'all' ? filteredQuotes.length : Math.min(filteredQuotes.length, quotePage * Number(quotePageSize))}</strong> of <strong className="text-slate-900 font-bold">{filteredQuotes.length}</strong> inquiries
@@ -4006,6 +4006,17 @@ export default function AdminPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
+                  {/* Density Toggle */}
+                  <button
+                    type="button"
+                    onClick={() => setQuoteDensity(d => d === 'compact' ? 'comfortable' : 'compact')}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 rounded-lg transition-colors cursor-pointer border border-slate-200 shadow-2xs"
+                    title="Toggle Row Density"
+                  >
+                    <Sliders className="w-3.5 h-3.5 text-blue-600" />
+                    <span>{quoteDensity === 'compact' ? 'Comfortable' : 'Compact'}</span>
+                  </button>
+
                   {/* Rows per page selector */}
                   <div className="flex items-center space-x-1.5">
                     <span className="text-slate-500 text-[11px] font-semibold">Per Page:</span>
