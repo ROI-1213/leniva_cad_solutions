@@ -130,28 +130,27 @@ function createTransporter(customConfig = {}) {
       rejectUnauthorized: false,
       minVersion: 'TLSv1.2',
     },
-    connectionTimeout: 30000,
-    greetingTimeout: 30000,
-    socketTimeout: 45000,
+    connectionTimeout: 15000,
+    greetingTimeout: 25000,
+    socketTimeout: 30000,
   })
 }
 
 async function sendMailWithFallback(mailOptions, customPass, preferredPort = DEFAULT_SMTP_PORT) {
-  const hosts = [DEFAULT_SMTP_HOST]
   let lastErr = null
 
-  for (const host of hosts) {
-    for (const port of [preferredPort, preferredPort === 465 ? 587 : 465]) {
-      try {
-        const transporter = createTransporter({ host, port, pass: customPass })
-        return await transporter.sendMail(mailOptions)
-      } catch (err) {
-        lastErr = err
-        // If authentication error, don't keep hammering different ports of the same host
-        if (err.code === 'EAUTH' || (err.response && err.response.includes('535'))) {
-          throw err
-        }
-      }
+  // Fast direct dispatch on port 465 (SSL)
+  try {
+    const transporter = createTransporter({ host: DEFAULT_SMTP_HOST, port: 465, secure: true, pass: customPass })
+    return await transporter.sendMail(mailOptions)
+  } catch (err) {
+    lastErr = err
+    console.warn('[SMTP] Port 465 dispatch warning, trying port 587 fallback:', err.message)
+    try {
+      const fallbackTransporter = createTransporter({ host: DEFAULT_SMTP_HOST, port: 587, secure: false, pass: customPass })
+      return await fallbackTransporter.sendMail(mailOptions)
+    } catch (fErr) {
+      lastErr = fErr
     }
   }
   throw lastErr || new Error('All SMTP servers failed')
@@ -239,7 +238,13 @@ export default async function handler(req, res) {
     return res.status(200).end()
   }
 
-  const queryAction = req.query?.action || (req.body && req.body.action)
+  const urlPath = String(req.path || req.url || '')
+  let queryAction = req.query?.action || (req.body && req.body.action)
+  if (!queryAction) {
+    if (urlPath.includes('test-smtp')) queryAction = 'test_smtp'
+    else if (urlPath.includes('retry')) queryAction = 'retry'
+    else if (urlPath.includes('save_smtp')) queryAction = 'save_smtp_config'
+  }
   const hostHeader = req.headers?.host || 'www.leniva3d.com'
   const protocol = req.headers?.['x-forwarded-proto'] || 'https'
   const siteOrigin = `${protocol}://${hostHeader}`
@@ -294,6 +299,67 @@ export default async function handler(req, res) {
         error: err.message || 'SMTP Connection failed',
         code: err.code || 'SMTP_AUTH_FAILED',
         logs,
+      })
+    }
+  }
+
+  // =========================================================================
+  // ACTION: RETRY ENQUIRY EMAIL DISPATCH
+  // =========================================================================
+  if (queryAction === 'retry') {
+    try {
+      const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {}
+      const enquiryId = body.enquiryId || req.query?.id
+      const gist = await fetchGistState()
+      const currentEnquiriesRaw = gist.keys?.leniva_admin_enquiries || '[]'
+      let currentEnquiries = []
+      try {
+        currentEnquiries = JSON.parse(currentEnquiriesRaw)
+        if (!Array.isArray(currentEnquiries)) currentEnquiries = []
+      } catch {
+        currentEnquiries = []
+      }
+      const targetEnquiry = currentEnquiries.find(e => String(e.id) === String(enquiryId))
+
+      if (!targetEnquiry) {
+        return res.status(404).json({ success: false, error: 'Enquiry record not found' })
+      }
+
+      const siteSettings = gist.keys?.leniva_site_settings ? JSON.parse(gist.keys.leniva_site_settings) : {}
+      const customPass = body.smtpPassword || siteSettings?.smtpPassword || process.env.SMTP_PASSWORD || SMTP_PASSWORD
+      const activePort = Number(body.smtpPort || siteSettings?.smtpPort || DEFAULT_SMTP_PORT)
+      const activeReceiver = 'viju@leniva3d.com, viju@leniva.com'
+
+      const emailSubject = `[Resend] New Customer Enquiry – ${sanitizeHeader(targetEnquiry.product_service_name)} – Leniva 3D`
+      const emailHtml = buildEnquiryEmailHtml({ enquiry: targetEnquiry, adminUrl: `${siteOrigin}/admin` })
+      const emailPlain = buildEnquiryPlainText({ enquiry: targetEnquiry, adminUrl: `${siteOrigin}/admin` })
+
+      const mailInfo = await sendMailWithFallback({
+        from: `"${SMTP_FROM_NAME}" <${SMTP_FROM_EMAIL}>`,
+        to: activeReceiver,
+        subject: emailSubject,
+        text: emailPlain,
+        html: emailHtml,
+      }, customPass, activePort)
+
+      targetEnquiry.email_notification_status = 'sent'
+      targetEnquiry.email_sent_at = new Date().toISOString()
+      targetEnquiry.email_message_id = mailInfo.messageId
+      targetEnquiry.email_error = null
+
+      gist.keys.leniva_admin_enquiries = JSON.stringify(currentEnquiries)
+      gist.updatedAt = Date.now()
+      await saveGistState(gist)
+
+      return res.status(200).json({
+        success: true,
+        message: 'Notification email successfully delivered to viju@leniva3d.com!',
+        messageId: mailInfo.messageId,
+      })
+    } catch (err) {
+      return res.status(200).json({
+        success: false,
+        error: err.message,
       })
     }
   }
@@ -538,8 +604,8 @@ export default async function handler(req, res) {
       const activeHost = siteSettings?.smtpHost || DEFAULT_SMTP_HOST
       const activePort = Number(siteSettings?.smtpPort || DEFAULT_SMTP_PORT)
 
-      // Target recipient strictly set to viju@leniva3d.com
-      const activeReceiver = 'viju@leniva3d.com'
+      // Target recipient strictly set to viju@leniva3d.com (and mirrored to viju@leniva.com)
+      const activeReceiver = 'viju@leniva3d.com, viju@leniva.com'
 
       let emailStatus = 'pending'
       let emailError = null
@@ -555,7 +621,6 @@ export default async function handler(req, res) {
           const mailInfo = await sendMailWithFallback({
             from: `"${SMTP_FROM_NAME}" <${SMTP_FROM_EMAIL}>`,
             to: activeReceiver,
-            replyTo: email || undefined,
             subject: emailSubject,
             text: emailPlain,
             html: emailHtml,

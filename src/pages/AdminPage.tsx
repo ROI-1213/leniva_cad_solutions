@@ -3211,7 +3211,7 @@ export default function AdminPage() {
                 </div>
 
                 {/* Table Footer & Full-Page Responsive Pagination */}
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-t border-slate-200 text-xs text-slate-600 bg-slate-50 px-6 py-4.5 min-h-[64px]">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-t border-slate-200 text-xs text-slate-600 bg-slate-50 px-6 py-4 sm:py-5 min-h-[64px] relative z-10 w-full">
                   <div className="flex items-center space-x-2 shrink-0">
                     <span className="font-semibold text-slate-700">
                       Showing <strong className="text-slate-900 font-bold">{filteredEnquiries.length === 0 ? 0 : (enquiryPage - 1) * (enquiryPageSize === 'all' ? filteredEnquiries.length : Number(enquiryPageSize)) + 1}</strong> to <strong className="text-slate-900 font-bold">{enquiryPageSize === 'all' ? filteredEnquiries.length : Math.min(filteredEnquiries.length, enquiryPage * Number(enquiryPageSize))}</strong> of <strong className="text-slate-900 font-bold">{filteredEnquiries.length}</strong> enquiries
@@ -4016,7 +4016,7 @@ export default function AdminPage() {
               </div>
 
               {/* Table Footer & Full-Page Responsive Pagination */}
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-t border-slate-200 text-xs text-slate-600 bg-slate-50 px-6 py-4.5 min-h-[64px]">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-t border-slate-200 text-xs text-slate-600 bg-slate-50 px-6 py-4 sm:py-5 min-h-[64px] relative z-10 w-full">
                 <div className="flex items-center space-x-2 shrink-0">
                   <span className="font-semibold text-slate-700">
                     Showing <strong className="text-slate-900 font-bold">{filteredQuotes.length === 0 ? 0 : (quotePage - 1) * (quotePageSize === 'all' ? filteredQuotes.length : Number(quotePageSize)) + 1}</strong> to <strong className="text-slate-900 font-bold">{quotePageSize === 'all' ? filteredQuotes.length : Math.min(filteredQuotes.length, quotePage * Number(quotePageSize))}</strong> of <strong className="text-slate-900 font-bold">{filteredQuotes.length}</strong> inquiries

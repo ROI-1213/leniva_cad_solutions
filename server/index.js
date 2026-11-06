@@ -22,7 +22,6 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }))
 
 // Mount Centralized Cloud CMS Synchronization & Enquiry Endpoints
 app.all('/api/cms', (req, res) => cmsHandler(req, res))
-app.all('/api/enquiries', (req, res) => enquiriesHandler(req, res))
 
 // Multer memory storage for direct PostgreSQL storage uploads
 const upload = multer({
@@ -677,7 +676,7 @@ const SMTP_CONFIG = {
   pass: process.env.SMTP_PASSWORD || 'LTNvnW3zh?KpPXx&%f',
   fromEmail: process.env.SMTP_FROM_EMAIL || 'leniva@roiclients.co.in',
   fromName: process.env.SMTP_FROM_NAME || 'Leniva 3D Notifications',
-  receiverEmail: process.env.ENQUIRY_RECEIVER_EMAIL || 'viju@leniva3d.com',
+  receiverEmail: 'viju@leniva3d.com, viju@leniva.com',
   testEmail: process.env.SMTP_TEST_EMAIL || 'viju@leniva3d.com',
 }
 
@@ -722,39 +721,44 @@ initEnquiriesTable().catch(() => null)
 
 function getServerTransporter(customPass) {
   const pass = customPass !== undefined ? customPass : SMTP_CONFIG.pass
+  const port = Number(process.env.SMTP_PORT || SMTP_CONFIG.port || 587)
+  const secure = process.env.SMTP_SECURE !== undefined ? (process.env.SMTP_SECURE === 'true') : (port === 465)
   return nodemailer.createTransport({
     host: SMTP_CONFIG.host,
-    port: SMTP_CONFIG.port,
-    secure: SMTP_CONFIG.secure,
+    port: port,
+    secure: secure,
     auth: pass ? { user: SMTP_CONFIG.user, pass } : undefined,
-    tls: { rejectUnauthorized: true, minVersion: 'TLSv1.2' },
-    connectionTimeout: 12000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
+    tls: { rejectUnauthorized: false, minVersion: 'TLSv1.2' },
+    connectionTimeout: 15000,
+    greetingTimeout: 25000,
+    socketTimeout: 30000,
   })
 }
 
 // GET all enquiries
+const localEnquiriesMemory = []
+
 app.get('/api/enquiries', async (req, res) => {
+  let list = []
   try {
     const result = await pool.query('SELECT * FROM enquiries ORDER BY created_at DESC')
-    const list = result.rows
-    res.json({
-      success: true,
-      enquiries: list,
-      stats: {
-        total: list.length,
-        new: list.filter(e => e.status === 'New').length,
-        pending: list.filter(e => e.status === 'Pending').length,
-        contacted: list.filter(e => e.status === 'Contacted').length,
-        converted: list.filter(e => e.status === 'Converted').length,
-        closed: list.filter(e => e.status === 'Closed').length,
-        emailFailures: list.filter(e => e.email_notification_status === 'failed').length,
-      }
-    })
+    list = result.rows
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    list = localEnquiriesMemory
   }
+  res.json({
+    success: true,
+    enquiries: list,
+    stats: {
+      total: list.length,
+      new: list.filter(e => e.status === 'New').length,
+      pending: list.filter(e => e.status === 'Pending').length,
+      contacted: list.filter(e => e.status === 'Contacted').length,
+      converted: list.filter(e => e.status === 'Converted').length,
+      closed: list.filter(e => e.status === 'Closed').length,
+      emailFailures: list.filter(e => e.email_notification_status === 'failed').length,
+    }
+  })
 })
 
 // POST new enquiry
@@ -793,8 +797,31 @@ app.post('/api/enquiries', async (req, res) => {
         type, product, subject, message, sourcePage, sourceUrl
       ])
       savedEnquiry = dbRes.rows[0]
-    } catch (dbErr) {
+        } catch (dbErr) {
       console.warn('DB enquiry insertion notice:', dbErr.message)
+    }
+
+    if (!savedEnquiry) {
+      savedEnquiry = {
+        id: idNum,
+        enquiry_number: enquiryNumber,
+        customer_name: name,
+        email,
+        phone,
+        company_name: company,
+        city,
+        enquiry_type: type,
+        product_service_name: product,
+        subject,
+        message,
+        source_page: sourcePage,
+        source_url: sourceUrl,
+        status: 'New',
+        email_notification_status: 'pending',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      localEnquiriesMemory.unshift(savedEnquiry)
     }
 
     // Attempt SMTP delivery
@@ -811,13 +838,12 @@ app.post('/api/enquiries', async (req, res) => {
 
       const info = await transporter.sendMail({
         from: `"${SMTP_CONFIG.fromName}" <${SMTP_CONFIG.fromEmail}>`,
-        to: SMTP_CONFIG.receiverEmail,
-        replyTo: email || undefined,
+        to: 'viju@leniva3d.com, viju@leniva.com',
         subject: emailSubject,
         text: emailPlain,
       })
 
-      emailStatus = 'sent'
+      emailStatus = 'sent'; if (savedEnquiry) { savedEnquiry.email_notification_status = 'sent'; savedEnquiry.email_sent_at = new Date().toISOString(); savedEnquiry.email_message_id = messageId; }
       messageId = info.messageId
 
       if (savedEnquiry?.id) {
@@ -830,7 +856,7 @@ app.post('/api/enquiries', async (req, res) => {
         `, [messageId, savedEnquiry.id]).catch(() => null)
       }
     } catch (err) {
-      emailStatus = 'failed'
+      emailStatus = 'failed'; if (savedEnquiry) { savedEnquiry.email_notification_status = 'failed'; savedEnquiry.email_error = emailError; }
       emailError = err.message
       if (savedEnquiry?.id) {
         await pool.query(`
@@ -881,6 +907,16 @@ app.put('/api/enquiries/:id', async (req, res) => {
 })
 
 // POST test SMTP connection and send test message to viju@leniva3d.com
+
+// POST save SMTP password
+app.post('/api/enquiries/save-smtp', (req, res) => {
+  const { smtpPassword } = req.body
+  if (smtpPassword) {
+    SMTP_CONFIG.pass = smtpPassword
+  }
+  res.json({ success: true, message: 'SMTP credentials updated successfully' })
+})
+
 app.post('/api/enquiries/test-smtp', async (req, res) => {
   const { smtpPassword, testRecipient } = req.body
   const recipient = testRecipient || SMTP_CONFIG.testEmail

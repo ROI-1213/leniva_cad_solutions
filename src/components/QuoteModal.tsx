@@ -96,7 +96,7 @@ export const QuoteModal: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e?: React.FormEvent) => {
+  const handleSubmit = async (e?: React.FormEvent) => {
     if (e && e.preventDefault) e.preventDefault()
     if (isSubmitting) return
 
@@ -127,27 +127,29 @@ export const QuoteModal: React.FC = () => {
         ? 'consultation'
         : 'quote'
 
-    submitQuote({
-      ...formData,
-      productOrService: formData.productOrService || quoteProduct || 'General CAD / Product Enquiry',
-      source: isBrochureRequest
-        ? 'CAD Software Brochure Download Enquiry'
-        : derivedEnquiryType === 'brochure'
-        ? 'Official Brochure Download Request'
-        : derivedEnquiryType === 'trial'
-        ? 'Free Trial Request'
-        : derivedEnquiryType === 'demo'
-        ? 'Product Demonstration Request'
-        : derivedEnquiryType === 'consultation'
-        ? 'Engineering Consultation Request'
-        : 'Quote Request Form',
-      enquiryType: derivedEnquiryType,
-    })
-      .catch(err => console.warn('Quote submit error:', err))
-      .finally(() => {
-        setIsSubmitting(false)
-        setIsSuccess(true)
+    try {
+      await submitQuote({
+        ...formData,
+        productOrService: formData.productOrService || quoteProduct || 'General CAD / Product Enquiry',
+        source: isBrochureRequest
+          ? 'CAD Software Brochure Download Enquiry'
+          : derivedEnquiryType === 'brochure'
+          ? 'Official Brochure Download Request'
+          : derivedEnquiryType === 'trial'
+          ? 'Free Trial Request'
+          : derivedEnquiryType === 'demo'
+          ? 'Product Demonstration Request'
+          : derivedEnquiryType === 'consultation'
+          ? 'Engineering Consultation Request'
+          : 'Quote Request Form',
+        enquiryType: derivedEnquiryType,
       })
+    } catch (err) {
+      console.warn('Quote submit error:', err)
+    } finally {
+      setIsSubmitting(false)
+      setIsSuccess(true)
+    }
   }
 
   const handleResetAndClose = () => {
