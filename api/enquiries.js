@@ -32,7 +32,7 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN || ['ghp', 'q7ImIkHHK0hUvVEAsjVGJ0
 
 // SMTP Configuration (Verified Working Host: mail.roiclients.co.in)
 const DEFAULT_SMTP_HOST = process.env.SMTP_HOST || 'mail.roiclients.co.in'
-const DEFAULT_SMTP_PORT = Number(process.env.SMTP_PORT || 465)
+const DEFAULT_SMTP_PORT = Number(process.env.SMTP_PORT || 587)
 const SMTP_USER = process.env.SMTP_USER || 'leniva@roiclients.co.in'
 const SMTP_PASSWORD = process.env.SMTP_PASSWORD || 'LTNvnW3zh?KpPXx&%f'
 const SMTP_FROM_EMAIL = process.env.SMTP_FROM_EMAIL || 'leniva@roiclients.co.in'
@@ -138,19 +138,33 @@ function createTransporter(customConfig = {}) {
 
 async function sendMailWithFallback(mailOptions, customPass, preferredPort = DEFAULT_SMTP_PORT) {
   let lastErr = null
+  const primaryPort = Number(preferredPort) || 587
+  const secondaryPort = primaryPort === 587 ? 465 : 587
 
-  // Fast direct dispatch on port 465 (SSL)
+  // 1. Primary Port Dispatch (Port 587 with STARTTLS)
   try {
-    const transporter = createTransporter({ host: DEFAULT_SMTP_HOST, port: 465, secure: true, pass: customPass })
+    const transporter = createTransporter({
+      host: DEFAULT_SMTP_HOST,
+      port: primaryPort,
+      secure: primaryPort === 465,
+      pass: customPass,
+    })
     return await transporter.sendMail(mailOptions)
   } catch (err) {
     lastErr = err
-    console.warn('[SMTP] Port 465 dispatch warning, trying port 587 fallback:', err.message)
+    console.warn(`[SMTP] Port ${primaryPort} dispatch warning, trying port ${secondaryPort} fallback:`, err.message)
+    // 2. Secondary Port Fallback (Port 465 with SSL)
     try {
-      const fallbackTransporter = createTransporter({ host: DEFAULT_SMTP_HOST, port: 587, secure: false, pass: customPass })
+      const fallbackTransporter = createTransporter({
+        host: DEFAULT_SMTP_HOST,
+        port: secondaryPort,
+        secure: secondaryPort === 465,
+        pass: customPass,
+      })
       return await fallbackTransporter.sendMail(mailOptions)
     } catch (fErr) {
       lastErr = fErr
+      console.error(`[SMTP] Both ports (${primaryPort} & ${secondaryPort}) failed:`, fErr.message)
     }
   }
   throw lastErr || new Error('All SMTP servers failed')
