@@ -122,7 +122,33 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      // Re-fetch if cache is older than 2 seconds
+      // 1. Check PostgreSQL Database as primary source
+      const pool = getPgPool()
+      if (pool) {
+        try {
+          const pgRes = await pool.query('SELECT key, value, updated_at FROM site_settings')
+          if (pgRes && pgRes.rows && pgRes.rows.length > 0) {
+            const keys = {}
+            let maxUpdatedAt = 0
+            for (const row of pgRes.rows) {
+              const val = typeof row.value === 'string' ? row.value : JSON.stringify(row.value)
+              keys[row.key] = val
+              const ts = new Date(row.updated_at).getTime()
+              if (ts > maxUpdatedAt) maxUpdatedAt = ts
+            }
+            return res.status(200).json({
+              success: true,
+              source: 'PostgreSQL Database',
+              updatedAt: maxUpdatedAt || Date.now(),
+              keys,
+            })
+          }
+        } catch (dbErr) {
+          // PostgreSQL table not yet populated or starting up
+        }
+      }
+
+      // 2. Fallback cache/Gist
       if (!memoryCache || Date.now() - lastFetchTime > 2000) {
         await fetchFromGist()
       }
@@ -137,7 +163,7 @@ export default async function handler(req, res) {
         success: false,
         updatedAt: 0,
         keys: {},
-        error: err?.message || 'Failed to read cloud state',
+        error: err?.message || 'Failed to read CMS state',
       })
     }
   }
@@ -191,22 +217,32 @@ export default async function handler(req, res) {
         keys: mergedKeys,
       }
 
-      // Persist to connected PostgreSQL site_settings table
+      // Persist to connected PostgreSQL site_settings table as primary authoritative storage
       try {
         const pool = getPgPool()
         if (pool) {
+          await pool.query(`
+            CREATE TABLE IF NOT EXISTS site_settings (
+              key VARCHAR(100) PRIMARY KEY,
+              value JSONB NOT NULL,
+              updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+          `).catch(() => null)
+
           for (const [k, v] of Object.entries(mergedKeys)) {
             let jsonVal = v
-            try { JSON.parse(v) } catch { jsonVal = JSON.stringify(v) }
+            try { jsonVal = JSON.parse(v) } catch { jsonVal = v }
             await pool.query(`
               INSERT INTO site_settings (key, value, updated_at)
               VALUES ($1, $2::jsonb, CURRENT_TIMESTAMP)
               ON CONFLICT (key) DO UPDATE
               SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP;
-            `, [k, jsonVal]).catch(() => null)
+            `, [k, JSON.stringify(jsonVal)]).catch(() => null)
           }
         }
-      } catch {}
+      } catch (err) {
+        console.warn('[CMS API] PostgreSQL write notice:', err.message)
+      }
 
       await saveToGist(newState)
 

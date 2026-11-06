@@ -327,6 +327,33 @@ export default async function handler(req, res) {
   // =========================================================================
   if (req.method === 'GET') {
     try {
+      // 1. Primary storage check: PostgreSQL Database
+      const pool = getPgPool()
+      if (pool) {
+        try {
+          const pgRes = await pool.query('SELECT * FROM enquiries ORDER BY created_at DESC')
+          if (pgRes && pgRes.rows && pgRes.rows.length > 0) {
+            return res.status(200).json({
+              success: true,
+              source: 'PostgreSQL Database',
+              count: pgRes.rows.length,
+              enquiries: pgRes.rows,
+              stats: {
+                total: pgRes.rows.length,
+                new: pgRes.rows.filter(e => e.status === 'New').length,
+                pending: pgRes.rows.filter(e => e.status === 'Pending').length,
+                contacted: pgRes.rows.filter(e => e.status === 'Contacted').length,
+                converted: pgRes.rows.filter(e => e.status === 'Converted').length,
+                closed: pgRes.rows.filter(e => e.status === 'Closed').length,
+              },
+            })
+          }
+        } catch (dbErr) {
+          // PostgreSQL table not yet created or connection offline
+        }
+      }
+
+      // 2. Fallback to cached/cloud state if PostgreSQL is offline
       const gist = await fetchGistState()
       const enquiriesRaw = gist.keys?.leniva_admin_enquiries || '[]'
       let enquiries = []
