@@ -1339,7 +1339,17 @@ const distPath = path.resolve(__dirname, '../dist')
 
 if (fs.existsSync(distPath)) {
   console.log(`[Static] Serving frontend static assets from: ${distPath}`)
-  app.use(express.static(distPath))
+  app.use(express.static(distPath, {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+        res.setHeader('Pragma', 'no-cache')
+        res.setHeader('Expires', '0')
+      } else if (filePath.includes(path.sep + 'assets' + path.sep) || filePath.includes('/assets/')) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+      }
+    }
+  }))
 
   // Any non-API route returns index.html for React SPA routing (Express 4 & 5 compatible)
   app.use((req, res, next) => {
@@ -1349,6 +1359,9 @@ if (fs.existsSync(distPath)) {
     if (req.path.startsWith('/assets/') || path.extname(req.path)) {
       return res.status(404).end()
     }
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+    res.setHeader('Pragma', 'no-cache')
+    res.setHeader('Expires', '0')
     res.sendFile(path.join(distPath, 'index.html'))
   })
 }

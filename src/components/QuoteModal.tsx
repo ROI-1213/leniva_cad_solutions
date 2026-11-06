@@ -113,11 +113,8 @@ export const QuoteModal: React.FC = () => {
       return
     }
 
-    // 1. Immediately activate success state
-    setIsSuccess(true)
-    setIsSubmitting(false)
+    setIsSubmitting(true)
 
-    // 2. Dispatch background persistence and cloud/mail relay to viju@leniva3d.com and Admin
     const combinedContent = `${formData.productOrService || quoteProduct || ''} ${formData.message || ''}`
     const derivedEnquiryType: 'trial' | 'demo' | 'consultation' | 'quote' | 'brochure' =
       isBrochureRequest || /\bbrochure\b|\bbrocher\b|\bdatasheet\b|\bcatalog\b/i.test(combinedContent)
@@ -145,9 +142,12 @@ export const QuoteModal: React.FC = () => {
         ? 'Engineering Consultation Request'
         : 'Quote Request Form',
       enquiryType: derivedEnquiryType,
-    }).catch(err => {
-      console.warn('Background quote submit error:', err)
     })
+      .catch(err => console.warn('Quote submit error:', err))
+      .finally(() => {
+        setIsSubmitting(false)
+        setIsSuccess(true)
+      })
   }
 
   const handleResetAndClose = () => {

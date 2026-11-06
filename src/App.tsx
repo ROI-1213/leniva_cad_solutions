@@ -94,13 +94,20 @@ class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
       error.message?.includes('Failed to fetch dynamically imported module') ||
       error.message?.includes('Importing a module script failed') ||
       error.message?.includes('Unable to preload CSS') ||
+      error.message?.includes('dynamically imported module') ||
       error.name === 'ChunkLoadError'
 
     const storageKey = 'leniva_chunk_reload'
     const lastReload = sessionStorage.getItem(storageKey)
     const now = Date.now()
-    if (!lastReload || now - parseInt(lastReload) > 8000) {
+    if (!lastReload || now - parseInt(lastReload) > 6000) {
       sessionStorage.setItem(storageKey, now.toString())
+      if (isChunkError) {
+        // Automatically perform a cache-busting reload to fetch newly deployed bundles immediately
+        const freshUrl = window.location.pathname + (window.location.search ? window.location.search + '&' : '?') + '_v=' + now
+        window.location.replace(freshUrl)
+        return
+      }
       if (!isChunkError) {
         // Sanitize any corrupted localStorage JSON if a runtime error occurred
         try {
@@ -150,8 +157,9 @@ class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-2">
               <button
                 onClick={() => {
-                  sessionStorage.removeItem('leniva_chunk_reload')
-                  window.location.reload()
+                  sessionStorage.clear()
+                  const freshUrl = window.location.pathname + (window.location.search ? window.location.search + '&' : '?') + '_v=' + Date.now()
+                  window.location.replace(freshUrl)
                 }}
                 className="w-full sm:w-auto px-6 py-2.5 bg-red-600 text-white text-sm font-bold rounded-xl shadow-md hover:bg-red-700 transition-all cursor-pointer"
               >
@@ -163,7 +171,8 @@ class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
                   try {
                     localStorage.removeItem('leniva_admin_blogs_catalog')
                   } catch (e) {}
-                  window.location.reload()
+                  const freshUrl = window.location.pathname + '?_fresh=' + Date.now()
+                  window.location.replace(freshUrl)
                 }}
                 className="w-full sm:w-auto px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
               >

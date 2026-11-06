@@ -31,23 +31,24 @@ export const ContactPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSubmitting(false)
-    setIsSubmitted(true)
+    setIsSubmitting(true)
     try {
-      window.alert('Enquiry Submitted Successfully!')
-    } catch {
-      // ignore
+      await recordCustomerEnquiry({
+        fullName: formData.fullName,
+        company: formData.company,
+        email: formData.email,
+        phone: formData.phone,
+        productOrService: formData.requirementType || 'General Inquiry',
+        subject: `${formData.requirementType || 'General Inquiry'}${formData.company ? ` - ${formData.company}` : ''}`,
+        message: formData.message,
+        source: 'Contact Us Page',
+      })
+    } catch (err) {
+      console.warn('API submission error:', err)
+    } finally {
+      setIsSubmitting(false)
+      setIsSubmitted(true)
     }
-    recordCustomerEnquiry({
-      fullName: formData.fullName,
-      company: formData.company,
-      email: formData.email,
-      phone: formData.phone,
-      productOrService: formData.requirementType || 'General Inquiry',
-      subject: `${formData.requirementType || 'General Inquiry'}${formData.company ? ` - ${formData.company}` : ''}`,
-      message: formData.message,
-      source: 'Contact Us Page',
-    }).catch(err => console.warn('API submission fallback:', err))
   }
 
   return (

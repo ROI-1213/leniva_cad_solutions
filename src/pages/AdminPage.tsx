@@ -2305,7 +2305,7 @@ export default function AdminPage() {
       </header>
 
       {/* Main Admin Content Container */}
-      <div className={`mx-auto w-full px-3 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col md:flex-row gap-6 min-w-0 transition-all ${
+      <div className={`mx-auto w-full px-3 sm:px-6 lg:px-8 pt-6 pb-28 flex-1 flex flex-col md:flex-row gap-6 min-w-0 transition-all ${
         (activeTab === 'enquiries' || activeTab === 'quotes') && isEnquiryFullPage
           ? 'max-w-none'
           : activeTab === 'enquiries' || activeTab === 'quotes'
@@ -3005,14 +3005,14 @@ export default function AdminPage() {
               </div>
 
               {/* ─── SECTION B: ENQUIRY TABLE ─── */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-12">
                 <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                   <div className="text-xs font-bold text-slate-700">
                     Showing <span className="text-blue-600 font-extrabold">{filteredEnquiries.length}</span> of {enquiries.length} enquiries
                   </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto pb-2">
                   <table className="w-full text-left text-xs text-slate-600">
                     <thead className="bg-slate-50 text-[11px] font-bold text-slate-700 uppercase tracking-wider border-b border-slate-200">
                       <tr>
@@ -3211,13 +3211,13 @@ export default function AdminPage() {
                 </div>
 
                 {/* Table Footer & Full-Page Responsive Pagination */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200 text-xs text-slate-600 bg-slate-50 px-6 py-4">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-medium">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-t border-slate-200 text-xs text-slate-600 bg-slate-50 px-6 py-4.5 min-h-[64px]">
+                  <div className="flex items-center space-x-2 shrink-0">
+                    <span className="font-semibold text-slate-700">
                       Showing <strong className="text-slate-900 font-bold">{filteredEnquiries.length === 0 ? 0 : (enquiryPage - 1) * (enquiryPageSize === 'all' ? filteredEnquiries.length : Number(enquiryPageSize)) + 1}</strong> to <strong className="text-slate-900 font-bold">{enquiryPageSize === 'all' ? filteredEnquiries.length : Math.min(filteredEnquiries.length, enquiryPage * Number(enquiryPageSize))}</strong> of <strong className="text-slate-900 font-bold">{filteredEnquiries.length}</strong> enquiries
                     </span>
                     {enquiryPageSize !== 'all' && totalEnquiryPages > 1 && (
-                      <span className="text-slate-400 font-mono font-semibold">(Page {enquiryPage} of {totalEnquiryPages})</span>
+                      <span className="text-slate-500 font-mono font-bold">(Page {enquiryPage} of {totalEnquiryPages})</span>
                     )}
                   </div>
 
@@ -3733,7 +3733,7 @@ export default function AdminPage() {
               TAB 2: QUOTES & RFQS
              ==================================================== */}
           {activeTab === 'quotes' && (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6 mb-12">
               <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                 <div>
                   <h3 className="text-lg font-black text-slate-900">Customer Inquiries, Quotes & Consultations</h3>
@@ -4016,13 +4016,13 @@ export default function AdminPage() {
               </div>
 
               {/* Table Footer & Full-Page Responsive Pagination */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200 text-xs text-slate-600 bg-slate-50 px-6 py-4">
-                <div className="flex items-center space-x-2">
-                  <span className="font-medium">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-t border-slate-200 text-xs text-slate-600 bg-slate-50 px-6 py-4.5 min-h-[64px]">
+                <div className="flex items-center space-x-2 shrink-0">
+                  <span className="font-semibold text-slate-700">
                     Showing <strong className="text-slate-900 font-bold">{filteredQuotes.length === 0 ? 0 : (quotePage - 1) * (quotePageSize === 'all' ? filteredQuotes.length : Number(quotePageSize)) + 1}</strong> to <strong className="text-slate-900 font-bold">{quotePageSize === 'all' ? filteredQuotes.length : Math.min(filteredQuotes.length, quotePage * Number(quotePageSize))}</strong> of <strong className="text-slate-900 font-bold">{filteredQuotes.length}</strong> inquiries
                   </span>
                   {quotePageSize !== 'all' && totalQuotePages > 1 && (
-                    <span className="text-slate-400 font-mono font-semibold">(Page {quotePage} of {totalQuotePages})</span>
+                    <span className="text-slate-500 font-mono font-bold">(Page {quotePage} of {totalQuotePages})</span>
                   )}
                 </div>
 

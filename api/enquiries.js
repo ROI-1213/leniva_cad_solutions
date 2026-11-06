@@ -538,15 +538,8 @@ export default async function handler(req, res) {
       const activeHost = siteSettings?.smtpHost || DEFAULT_SMTP_HOST
       const activePort = Number(siteSettings?.smtpPort || DEFAULT_SMTP_PORT)
 
-      // Ensure viju@leniva3d.com is the single target recipient to prevent duplicate emails
-      const rawReceiver = siteSettings?.smtpReceiverEmail || siteSettings?.receiverEmail || process.env.ENQUIRY_RECEIVER_EMAIL || 'viju@leniva3d.com'
-      const receiverList = rawReceiver.split(',').map(s => s.trim()).filter(Boolean)
-      if (!receiverList.includes('viju@leniva3d.com')) {
-        receiverList.unshift('viju@leniva3d.com')
-      }
-      // Remove any test emails
-      const cleanReceiverList = receiverList.filter(email => !email.includes('gmail.com'))
-      const activeReceiver = cleanReceiverList.length > 0 ? cleanReceiverList[0] : 'viju@leniva3d.com'
+      // Target recipient strictly set to viju@leniva3d.com
+      const activeReceiver = 'viju@leniva3d.com'
 
       let emailStatus = 'pending'
       let emailError = null

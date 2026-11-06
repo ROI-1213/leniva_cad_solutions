@@ -781,63 +781,72 @@ export async function submitCentralizedEnquiry(payload: {
   // Immediately push enquiry to centralized cloud storage so other browsers see it in real-time
   pushCmsStateToCloud({ isEnquirySubmission: true }).catch(() => null)
 
-  // 2. DISPATCH ASYNCHRONOUS BACKEND API & ZERO-PASSWORD RELAY
-  fetch('/api/enquiries', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      id: uniqueId,
-      enquiry_number: enquiryNumber,
-      customer_name: customerName,
-      email,
-      phone,
-      company_name: company,
-      city,
-      enquiry_type: detectedType,
-      product_service_name: productName,
-      subject: newEnquiry.subject,
-      message: newEnquiry.message,
-      source_page: sourcePage,
-      source_url: sourceUrl,
-      quantity: payload.quantity,
-      timeline: payload.timeline || payload.application,
-    }),
-  })
-    .then(async res => {
-      const ct = res.headers.get('content-type') || ''
-      if (res.ok && ct.includes('application/json')) {
-        const json = await res.json()
+  // 2. DISPATCH BACKEND API & DIRECT EMAIL TO viju@leniva3d.com
+  try {
+    const res = await fetch('/api/enquiries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: uniqueId,
+        enquiry_number: enquiryNumber,
+        customer_name: customerName,
+        email,
+        phone,
+        company_name: company,
+        city,
+        enquiry_type: detectedType,
+        product_service_name: productName,
+        subject: newEnquiry.subject,
+        message: newEnquiry.message,
+        source_page: sourcePage,
+        source_url: sourceUrl,
+        quantity: payload.quantity,
+        timeline: payload.timeline || payload.application,
+      }),
+    })
+
+    const ct = res.headers.get('content-type') || ''
+    if (res.ok && ct.includes('application/json')) {
+      const json = await res.json().catch(() => null)
+      if (json) {
+        newEnquiry.email_notification_status = json.email_notification_status || 'sent'
+        newEnquiry.email_sent_at = json.enquiry?.email_sent_at || new Date().toISOString()
+        newEnquiry.email_message_id = json.messageId || null
+        newEnquiry.email_error = json.email_error || null
+
         const refreshed = getStoredEnquiries()
         const match = refreshed.find(e => e.id === uniqueId)
         if (match) {
-          match.email_notification_status = json.email_notification_status || 'sent'
-          match.email_sent_at = json.enquiry?.email_sent_at || new Date().toISOString()
-          match.email_message_id = json.messageId || null
-          match.email_error = json.email_error || null
+          match.email_notification_status = newEnquiry.email_notification_status
+          match.email_sent_at = newEnquiry.email_sent_at
+          match.email_message_id = newEnquiry.email_message_id
+          match.email_error = newEnquiry.email_error
           saveStoredEnquiries(refreshed)
           dispatchAllCmsUpdatedEvents()
         }
-      } else {
-        const refreshed = getStoredEnquiries()
-        const match = refreshed.find(e => e.id === uniqueId)
-        if (match) {
-          match.email_notification_status = 'pending'
-          match.email_error = res.ok ? 'Delivered via background fallback relay' : `HTTP ${res.status}: Server error`
-          saveStoredEnquiries(refreshed)
-        }
       }
-    })
-    .catch(err => {
+    } else {
       const refreshed = getStoredEnquiries()
       const match = refreshed.find(e => e.id === uniqueId)
       if (match) {
         match.email_notification_status = 'pending'
-        match.email_error = err.message || 'Offline'
+        match.email_error = `HTTP ${res.status}: Server error`
         saveStoredEnquiries(refreshed)
       }
+    }
+  } catch (err) {
+    console.warn('API enquiry dispatch error:', err)
+    const refreshed = getStoredEnquiries()
+    const match = refreshed.find(e => e.id === uniqueId)
+    if (match) {
+      match.email_notification_status = 'pending'
+      match.email_error = err.message || 'Offline'
+      saveStoredEnquiries(refreshed)
+    }
 
-      // Offline / network failure fallback only: dispatch zero-password relay if /api/enquiries was unreachable
-      fetch('https://formsubmit.co/ajax/viju@leniva3d.com', {
+    // Direct fallback relay if /api/enquiries was unreachable
+    try {
+      await fetch('https://formsubmit.co/ajax/viju@leniva3d.com', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -862,7 +871,8 @@ export async function submitCentralizedEnquiry(payload: {
           '_captcha': 'false',
         }),
       }).catch(() => null)
-    })
+    } catch {}
+  }
 
   // Also persist to PostgreSQL /api/quotes endpoint
   fetch('/api/quotes', {
