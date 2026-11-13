@@ -80,20 +80,31 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
   }
   const resolvedSlug = slug ? (slugAliases[slug.toLowerCase()] || slug.toLowerCase()) : ''
 
-  const storedCatalog = getStoredProductsCatalog()
-  const customProd = storedCatalog.find(
-    p => (p.slug && p.slug.toLowerCase() === resolvedSlug) || (p.id && p.id.toLowerCase() === resolvedSlug)
-  )
-
-  const hasAdminCatalog = typeof window !== 'undefined' && !!localStorage.getItem('leniva_admin_products_catalog')
-
-  // If the product was deleted by the admin from the catalog, cleanly redirect to catalog
-  if (hasAdminCatalog && !customProd) {
-    return <Navigate to="/products" replace />
-  }
-
   // Always render dedicated full-featured product pages so visual editor overrides & rich layouts match 100%
   const renderDedicatedPage = () => {
+    // 1. Check custom CAD software products created via Admin Console (formatted like ARES Standard)
+    if (typeof window !== 'undefined') {
+      try {
+        const customCadProducts: any[] = JSON.parse(localStorage.getItem('leniva_custom_cad_products') || '[]')
+        const matchedCustom = customCadProducts.find((p: any) => {
+          const pRouteSlug = (p.route || '').replace(/^\/products\/?/, '').toLowerCase().trim()
+          const pKeySlug = (p.key || '').replace(/^cad_/, '').toLowerCase().trim()
+          return pRouteSlug === resolvedSlug || pKeySlug === resolvedSlug || p.key === resolvedSlug
+        })
+        if (matchedCustom) {
+          return <AresStandardPage cadKey={matchedCustom.key} />
+        }
+
+        const cadEdits = JSON.parse(localStorage.getItem('leniva_cad_edits') || '{}')
+        const directKey = `cad_${resolvedSlug}`
+        if (cadEdits[directKey]) {
+          return <AresStandardPage cadKey={directKey} />
+        }
+      } catch (err) {
+        console.warn('Error matching custom CAD product:', err)
+      }
+    }
+
     if (resolvedSlug === 'pratham-desktop') return <PrathamDesktopPage />
     if (resolvedSlug === 'pratham-mini') return <PrathamMiniPage />
     if (resolvedSlug === 'pratham-3' || resolvedSlug === 'pratham-3-0') return <Pratham3Page />
@@ -129,6 +140,18 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
         {dedicated}
       </Suspense>
     )
+  }
+
+  const storedCatalog = getStoredProductsCatalog()
+  const customProd = storedCatalog.find(
+    p => (p.slug && p.slug.toLowerCase() === resolvedSlug) || (p.id && p.id.toLowerCase() === resolvedSlug)
+  )
+
+  const hasAdminCatalog = typeof window !== 'undefined' && !!localStorage.getItem('leniva_admin_products_catalog')
+
+  // If the product was deleted by the admin from the catalog, cleanly redirect to catalog
+  if (hasAdminCatalog && !customProd) {
+    return <Navigate to="/products" replace />
   }
 
   // Find product by slug or id or alias

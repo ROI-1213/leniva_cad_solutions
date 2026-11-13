@@ -501,9 +501,9 @@ export default function AdminPage() {
   const [newCadForm, setNewCadForm] = useState({
     name: '',
     brand: 'Graebert',
-    category: '2D/3D CAD Software',
+    category: '2D DWG CAD Software',
     route: '/products/',
-    template: 'ares_mechanical',
+    template: 'ares_standard',
   })
 
   const persistLeanCadEdits = (allEdits: Record<string, any>) => {
@@ -709,14 +709,14 @@ export default function AdminPage() {
       isCustom: true,
     }
 
-    const templateData = CAD_DEFAULTS[newCadForm.template] || CAD_DEFAULTS.ares_mechanical
+    const templateData = CAD_DEFAULTS[newCadForm.template] || CAD_DEFAULTS.ares_standard
     const newProdData = {
       ...templateData,
       productName: newCadForm.name,
       brand: newCadForm.brand,
       category: newCadForm.category,
       heroHeading: newCadForm.name,
-      headline: `${newCadForm.name} — Engineering CAD`,
+      headline: `${newCadForm.name} — Precision CAD Software`,
       supportingHeadline: `Professional ${newCadForm.category} Solutions`,
       shortDescription: `Explore ${newCadForm.name} by ${newCadForm.brand}. Genuine software licenses, expert integration, and local onboarding from Leniva CAD Solutions.`,
     }
@@ -728,10 +728,42 @@ export default function AdminPage() {
     const updatedEdits = { ...cadEdits, [key]: newProdData }
     saveCadEdits(updatedEdits)
 
+    // Register into leniva_admin_products_catalog so the product shows on /products catalog
+    try {
+      const storedCat = JSON.parse(localStorage.getItem('leniva_admin_products_catalog') || '[]')
+      const exists = storedCat.some((p: any) => p.slug === cleanSlug || p.id === cleanSlug)
+      if (!exists) {
+        const catItem = {
+          id: cleanSlug,
+          slug: cleanSlug,
+          name: newCadForm.name,
+          brand: newCadForm.brand,
+          category: 'CAD Software',
+          category_slug: 'cad-software',
+          technology: 'CAD Software',
+          tagline: `Professional ${newCadForm.category}`,
+          hero_heading: newCadForm.name,
+          hero_subtitle: `Genuine ${newCadForm.name} software licenses and onboarding by Leniva.`,
+          short_description: `Explore ${newCadForm.name} by ${newCadForm.brand}. Genuine software licenses, expert integration, and local onboarding from Leniva CAD Solutions.`,
+          description: `Full suite CAD software: ${newCadForm.name}. Format and features engineered for industry precision.`,
+          hero_image: templateData.heroImage || '/images/ares-standard/ares-standard-hero.jpg',
+          price: 0,
+          in_stock: true,
+          is_featured: false,
+          is_quote_based: true,
+          is_new: true,
+        }
+        storedCat.push(catItem)
+        localStorage.setItem('leniva_admin_products_catalog', JSON.stringify(storedCat))
+      }
+    } catch {
+      // ignore
+    }
+
     setActiveCadProduct(key)
     setIsNewCadProductOpen(false)
-    setNewCadForm({ name: '', brand: 'Graebert', category: '2D/3D CAD Software', route: '/products/', template: 'ares_mechanical' })
-    setCadSaveMsg(`✓ Created product "${newCadForm.name}"! You are now editing its full page.`)
+    setNewCadForm({ name: '', brand: 'Graebert', category: '2D DWG CAD Software', route: '/products/', template: 'ares_standard' })
+    setCadSaveMsg(`✓ Created CAD product "${newCadForm.name}" with ARES Standard layout! You are now editing its full page.`)
   }
 
   // Delete Custom CAD Product
@@ -10123,6 +10155,24 @@ export default function AdminPage() {
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <button
+                      type="button"
+                      onClick={() => {
+                        setNewCadForm({
+                          name: '',
+                          brand: 'Graebert',
+                          category: '2D DWG CAD Software',
+                          route: '/products/',
+                          template: 'ares_standard',
+                        })
+                        setIsNewCadProductOpen(true)
+                      }}
+                      className="inline-flex items-center space-x-1.5 px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 active:scale-95 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer"
+                      title="Add a new CAD software formatted like ARES Standard"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>+ Add New CAD Software</span>
+                    </button>
+                    <button
                       onClick={() => saveCadEdits(cadEdits)}
                       className="inline-flex items-center space-x-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
                       title="Save all CAD software edits"
@@ -10151,13 +10201,60 @@ export default function AdminPage() {
 
                 {/* Product Selector Cards */}
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-                  <div className="mb-3">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Select Product to Edit ({cadProducts.length} Total)
-                    </p>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        Select Product to Edit ({cadProducts.length} Total)
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        Select any software to customize its live layout, or click &quot;Add New CAD Software&quot; to generate an ARES Standard format page.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewCadForm({
+                          name: '',
+                          brand: 'Graebert',
+                          category: '2D DWG CAD Software',
+                          route: '/products/',
+                          template: 'ares_standard',
+                        })
+                        setIsNewCadProductOpen(true)
+                      }}
+                      className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold transition-all cursor-pointer self-start sm:self-auto shrink-0"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add CAD Software</span>
+                    </button>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 min-w-0">
+                    {/* Add New CAD Software Card */}
+                    <div
+                      onClick={() => {
+                        setNewCadForm({
+                          name: '',
+                          brand: 'Graebert',
+                          category: '2D DWG CAD Software',
+                          route: '/products/',
+                          template: 'ares_standard',
+                        })
+                        setIsNewCadProductOpen(true)
+                      }}
+                      className="relative text-left p-3 rounded-xl border-2 border-dashed border-indigo-300 hover:border-indigo-500 bg-indigo-50/40 hover:bg-indigo-50 transition-all cursor-pointer min-w-0 flex flex-col justify-center items-center text-center group"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-indigo-100 group-hover:bg-indigo-200 text-indigo-700 flex items-center justify-center mb-1">
+                        <Plus className="w-4 h-4" />
+                      </div>
+                      <div className="text-xs font-black text-indigo-900 group-hover:text-indigo-700 leading-snug">
+                        + Add New CAD
+                      </div>
+                      <div className="text-[9px] text-indigo-500 font-semibold mt-0.5">
+                        ARES Standard format
+                      </div>
+                    </div>
+
                     {cadProducts.map(p => {
                       const isActive = activeCadProduct === p.key
                       return (
@@ -10201,7 +10298,10 @@ export default function AdminPage() {
                           <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
                             <Shield className="w-4 h-4" />
                           </div>
-                          <h4 className="text-base font-black text-slate-900">Add New CAD Software Product</h4>
+                          <div>
+                            <h4 className="text-base font-black text-slate-900">Add New CAD Software</h4>
+                            <p className="text-[11px] text-indigo-600 font-semibold">Formatted like ARES Standard</p>
+                          </div>
                         </div>
                         <button
                           onClick={() => setIsNewCadProductOpen(false)}
@@ -10209,6 +10309,17 @@ export default function AdminPage() {
                         >
                           <X className="w-5 h-5" />
                         </button>
+                      </div>
+
+                      {/* ARES Standard Format Callout */}
+                      <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 rounded-xl text-xs space-y-1 text-slate-700">
+                        <div className="flex items-center space-x-1.5 font-bold text-blue-900">
+                          <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                          <span>ARES Standard Page Structure</span>
+                        </div>
+                        <p className="text-[11px] leading-relaxed text-slate-600">
+                          Your new CAD software will inherit the complete 14-section ARES Standard engineering layout (Hero banner, 4-Stage Workflow, AutoCAD Comparison Matrix, System Specifications, Licensing Plans, FAQs, and Consultation Form). You can customize every single field after creation.
+                        </p>
                       </div>
 
                       <form onSubmit={handleCreateCadProduct} className="space-y-3.5 text-xs">
@@ -10234,7 +10345,7 @@ export default function AdminPage() {
                             <input
                               type="text"
                               required
-                              placeholder="e.g. Graebert / Trimble"
+                              placeholder="e.g. Graebert / Autodesk / Trimble"
                               value={newCadForm.brand}
                               onChange={e => setNewCadForm({ ...newCadForm, brand: e.target.value })}
                               className="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none"
@@ -10249,9 +10360,10 @@ export default function AdminPage() {
                               onChange={e => setNewCadForm({ ...newCadForm, category: e.target.value })}
                               className="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none bg-white font-medium"
                             >
+                              <option value="2D DWG CAD Software">2D DWG CAD Software</option>
                               <option value="2D Mechanical CAD">2D Mechanical CAD</option>
                               <option value="Electrical CAD (ECAD)">Electrical CAD (ECAD)</option>
-                              <option value="2D DWG CAD Software">2D DWG CAD Software</option>
+                              <option value="2D & 3D CAD Software">2D & 3D CAD Software</option>
                               <option value="Real-Time Rendering & VR">Real-Time Rendering & VR</option>
                               <option value="Photorealistic 3D Rendering">Photorealistic 3D Rendering</option>
                               <option value="3D Design & BIM Suite">3D Design & BIM Suite</option>
@@ -10281,21 +10393,21 @@ export default function AdminPage() {
 
                         <div>
                           <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                            Starter Template (Pre-populate full page fields)
+                            Starter Layout Format
                           </label>
                           <select
                             value={newCadForm.template}
                             onChange={e => setNewCadForm({ ...newCadForm, template: e.target.value })}
                             className="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none bg-white font-medium"
                           >
-                            <option value="ares_mechanical">Clone from ARES Mechanical (2D Engineering)</option>
-                            <option value="ares_electrical">Clone from ARES Electrical (ECAD & Schematics)</option>
-                            <option value="ares_standard">Clone from ARES Standard (Drafting & DWG)</option>
-                            <option value="ares_commander">Clone from ARES Commander (2D & 3D CAD)</option>
-                            <option value="chaos_enscape">Clone from Chaos Enscape (Real-Time 3D)</option>
-                            <option value="chaos_vray">Clone from Chaos V-Ray (Photorealistic Render)</option>
-                            <option value="sketchup_studio">Clone from SketchUp Studio (3D Suite)</option>
-                            <option value="sketchup_proscan">Clone from SketchUp Pro Scan (Point Cloud)</option>
+                            <option value="ares_standard">★ Format like ARES Standard (Complete 2D/3D DWG Suite, Specs, Matrix & Quote Form) [Recommended]</option>
+                            <option value="ares_commander">Format like ARES Commander (Desktop, Cloud & Mobile Trinity)</option>
+                            <option value="ares_mechanical">Format like ARES Mechanical (2D Engineering & Automated BOM)</option>
+                            <option value="ares_electrical">Format like ARES Electrical (ECAD & Schematics)</option>
+                            <option value="chaos_enscape">Format like Chaos Enscape (Real-Time 3D Rendering)</option>
+                            <option value="chaos_vray">Format like Chaos V-Ray (Photorealistic Render)</option>
+                            <option value="sketchup_studio">Format like SketchUp Studio (3D Design Suite)</option>
+                            <option value="sketchup_proscan">Format like SketchUp Pro Scan (Point Cloud Workflows)</option>
                           </select>
                         </div>
 
@@ -10309,10 +10421,10 @@ export default function AdminPage() {
                           </button>
                           <button
                             type="submit"
-                            className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold cursor-pointer transition-colors shadow-md flex items-center space-x-1.5"
+                            className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-xl font-bold cursor-pointer transition-all shadow-md flex items-center space-x-1.5"
                           >
                             <Plus className="w-4 h-4" />
-                            <span>Create & Open Editor</span>
+                            <span>Create CAD Software & Open Editor</span>
                           </button>
                         </div>
                       </form>
@@ -11417,6 +11529,23 @@ export default function AdminPage() {
                     <h4 className="text-sm font-black text-slate-900">
                       All CAD Software Products ({cadProducts.length})
                     </h4>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewCadForm({
+                          name: '',
+                          brand: 'Graebert',
+                          category: '2D DWG CAD Software',
+                          route: '/products/',
+                          template: 'ares_standard',
+                        })
+                        setIsNewCadProductOpen(true)
+                      }}
+                      className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>+ Add New CAD Software</span>
+                    </button>
                   </div>
 
                   <div className="overflow-x-auto">
