@@ -336,6 +336,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
 
   // New CAD Software Modal State
   const [showNewCadModal, setShowNewCadModal] = useState<boolean>(false)
+  const [cadModalTab, setCadModalTab] = useState<'create' | 'manage'>('create')
   const [newCadForm, setNewCadForm] = useState({
     name: '',
     brand: 'Graebert',
@@ -487,6 +488,69 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
     setViewMode('editor')
     loadProductIntoEditor(key)
     showToast('success', `Created "${newProdItem.label}" formatted like ARES Standard! You are now editing its live page.`)
+  }
+
+  // Delete Custom CAD Software handler
+  const handleDeleteCadSoftware = (key: string, label?: string) => {
+    const prodName = label || key
+    if (!window.confirm(`Are you sure you want to permanently delete "${prodName}"?\n\nThis will remove its page, catalog listing, and route from your website.`)) {
+      return
+    }
+
+    // 1. Remove from leniva_custom_cad_products
+    let existingCustom: any[] = []
+    try {
+      existingCustom = JSON.parse(localStorage.getItem('leniva_custom_cad_products') || '[]')
+      if (!Array.isArray(existingCustom)) existingCustom = []
+    } catch {
+      existingCustom = []
+    }
+    const updatedCustom = existingCustom.filter((x: any) => x.key !== key)
+    localStorage.setItem('leniva_custom_cad_products', JSON.stringify(updatedCustom))
+    setCustomCadProducts(updatedCustom)
+
+    // 2. Remove from leniva_cad_software_edits
+    try {
+      const existingEdits = JSON.parse(localStorage.getItem('leniva_cad_software_edits') || '{}')
+      delete existingEdits[key]
+      localStorage.setItem('leniva_cad_software_edits', JSON.stringify(existingEdits))
+    } catch {}
+
+    // 3. Remove from leniva_cad_edits
+    try {
+      const existingEdits2 = JSON.parse(localStorage.getItem('leniva_cad_edits') || '{}')
+      delete existingEdits2[key]
+      localStorage.setItem('leniva_cad_edits', JSON.stringify(existingEdits2))
+    } catch {}
+
+    // 4. Remove from leniva_admin_products_catalog
+    const slug = key.replace(/^cad_/, '')
+    try {
+      const storedCat = JSON.parse(localStorage.getItem('leniva_admin_products_catalog') || '[]')
+      const filteredCat = storedCat.filter((p: any) => p.slug !== slug && p.id !== slug && p.id !== key)
+      localStorage.setItem('leniva_admin_products_catalog', JSON.stringify(filteredCat))
+    } catch {}
+
+    // 5. Remove any drafts / published payloads
+    try {
+      const drafts = JSON.parse(localStorage.getItem('leniva_cad_visual_drafts_v1') || '{}')
+      delete drafts[key]
+      localStorage.setItem('leniva_cad_visual_drafts_v1', JSON.stringify(drafts))
+
+      const pub = JSON.parse(localStorage.getItem('leniva_cad_visual_published_v1') || '{}')
+      delete pub[key]
+      localStorage.setItem('leniva_cad_visual_published_v1', JSON.stringify(pub))
+    } catch {}
+
+    // 6. Push to cloud CMS
+    pushCmsStateToCloud({ isEnquirySubmission: false }).catch(() => null)
+
+    // 7. If currently viewing the deleted product, switch to ARES Standard
+    if (activeProductKey === key) {
+      loadProductIntoEditor('ares_standard')
+    }
+
+    showToast('success', `✓ Successfully deleted CAD software "${prodName}".`)
   }
 
   // Sync if parent switches between CAD Software Edit / 3D Printers Edit / 3D Scanners Edit
@@ -1283,6 +1347,17 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                       <span className="hidden sm:inline">Live Page</span>
                     </a>
                     <div className="flex items-center gap-1.5">
+                      {prod.key.startsWith('cad_') && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCadSoftware(prod.key, prod.label)}
+                          className="px-2.5 py-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors border border-rose-200"
+                          title={`Permanently delete ${prod.label}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                          <span>Delete</span>
+                        </button>
+                      )}
                       <button
                         onClick={() => {
                           loadProductIntoEditor(prod.key)
@@ -1460,6 +1535,12 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
             value={activeProductKey}
             onChange={e => {
               if (e.target.value === '__ADD_NEW_CAD__') {
+                setCadModalTab('create')
+                setShowNewCadModal(true)
+                return
+              }
+              if (e.target.value === '__MANAGE_CAD__') {
+                setCadModalTab('manage')
                 setShowNewCadModal(true)
                 return
               }
@@ -1474,6 +1555,11 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
               <option value="__ADD_NEW_CAD__" className="text-emerald-400 font-bold bg-slate-900">
                 + Add New CAD Software (ARES Format)...
               </option>
+              {customCadProducts.length > 0 && (
+                <option value="__MANAGE_CAD__" className="text-rose-400 font-bold bg-slate-900">
+                  🗑️ Manage & Delete CAD Softwares ({customCadProducts.length})...
+                </option>
+              )}
             </optgroup>
             {(categoryFilter === 'all' || categoryFilter === 'cad') && (
               <optgroup label={`💻 CAD Software Pages (${categoryCounts.cad})`}>
@@ -1516,13 +1602,45 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
           {/* Prominent "+ Add CAD Software" button right in the top toolbar */}
           <button
             type="button"
-            onClick={() => setShowNewCadModal(true)}
+            onClick={() => {
+              setCadModalTab('create')
+              setShowNewCadModal(true)
+            }}
             className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all shrink-0 hover:scale-[1.02] active:scale-[0.98]"
             title="Add a new CAD software page formatted like ARES Standard"
           >
             <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
             <span>Add CAD Software</span>
           </button>
+
+          {/* Delete CAD Software button: visible when any custom CAD software is currently open */}
+          {activeProductMeta.key.startsWith('cad_') && (
+            <button
+              type="button"
+              onClick={() => handleDeleteCadSoftware(activeProductMeta.key, activeProductMeta.label)}
+              className="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all shrink-0 hover:scale-[1.02] active:scale-[0.98]"
+              title={`Permanently delete ${activeProductMeta.label}`}
+            >
+              <Trash2 className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>Delete Software</span>
+            </button>
+          )}
+
+          {/* Manage / Delete CAD Softwares button: visible when custom CAD softwares exist */}
+          {customCadProducts.length > 0 && !activeProductMeta.key.startsWith('cad_') && (
+            <button
+              type="button"
+              onClick={() => {
+                setCadModalTab('manage')
+                setShowNewCadModal(true)
+              }}
+              className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-rose-300 hover:text-rose-200 border border-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all shrink-0"
+              title="Manage and delete created CAD softwares"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+              <span>Manage CAD ({customCadProducts.length})</span>
+            </button>
+          )}
 
           {hasUnsavedChanges ? (
             <span className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[11px] font-mono font-bold">
@@ -3508,7 +3626,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
       )}
 
       {/* ====================================================================
-          ADD NEW CAD SOFTWARE MODAL (Formatted like ARES Standard)
+          CAD SOFTWARE MANAGEMENT MODAL (Add New / Delete Existing Softwares)
          ==================================================================== */}
       {showNewCadModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 animate-in fade-in">
@@ -3517,17 +3635,21 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
             <div className="px-6 py-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400 font-bold shrink-0">
-                  <Plus className="w-5 h-5 stroke-[2.5]" />
+                  {cadModalTab === 'create' ? <Plus className="w-5 h-5 stroke-[2.5]" /> : <Trash2 className="w-5 h-5 text-rose-400" />}
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <h3 className="font-extrabold text-base text-white">Add New CAD Software</h3>
+                    <h3 className="font-extrabold text-base text-white">
+                      {cadModalTab === 'create' ? 'Add New CAD Software' : 'Manage & Delete CAD Softwares'}
+                    </h3>
                     <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[10px] font-mono font-bold">
                       ARES Standard Layout
                     </span>
                   </div>
                   <p className="text-slate-300 text-xs mt-0.5">
-                    Create a new dedicated CAD product page formatted with the professional ARES Standard sections & RFQ form.
+                    {cadModalTab === 'create'
+                      ? 'Create a new dedicated CAD product page formatted with the professional ARES Standard sections & RFQ form.'
+                      : 'Review and delete created custom CAD softwares from your website and catalog.'}
                   </p>
                 </div>
               </div>
@@ -3540,173 +3662,278 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
               </button>
             </div>
 
-            {/* Form */}
-            <form onSubmit={handleCreateNewCadSoftware} className="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
-              {/* Template / Format Banner (HIGHLIGHTED) */}
-              <div className="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl">
-                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-indigo-900 mb-1.5 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Choose Page Format & Template Layout</span>
-                </label>
-                <select
-                  value={newCadForm.template}
-                  onChange={e => setNewCadForm({ ...newCadForm, template: e.target.value })}
-                  className="w-full px-3 py-2 border border-indigo-300 rounded-lg text-slate-900 font-bold bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
-                >
-                  <option value="ares_standard">
-                    ★ Format like ARES Standard (Complete 2D/3D DWG Suite, Specs Table, Comparison Matrix & RFQ Quote Form) [Recommended]
-                  </option>
-                  <option value="ares_commander">
-                    Format like ARES Commander (Trinity: Desktop, Cloud & Mobile Multi-Platform)
-                  </option>
-                  <option value="ares_mechanical">
-                    Format like ARES Mechanical (2D Mechanical Engineering & Automated BOM)
-                  </option>
-                  <option value="sketchup_pro">
-                    Format like SketchUp Pro (3D Design, Architectural Modeling & Rendering)
-                  </option>
-                </select>
-                <p className="text-[11px] text-indigo-700 mt-1.5 leading-relaxed">
-                  ✓ <strong>ARES Standard Format Selected:</strong> Your page will automatically include the complete Hero section, 2D Drafting Overview tabs, Key Benefits, Technical Specifications table, System Requirements, Download Trial button, and Instant RFQ Quote form!
-                </p>
-              </div>
+            {/* Navigation Tabs (Add New CAD vs Manage & Delete) */}
+            <div className="flex items-center border-b border-slate-200 bg-slate-50 px-6 pt-2">
+              <button
+                type="button"
+                onClick={() => setCadModalTab('create')}
+                className={`px-4 py-2.5 text-xs font-extrabold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
+                  cadModalTab === 'create'
+                    ? 'border-indigo-600 text-indigo-700 bg-white rounded-t-lg shadow-2xs'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Add New CAD Software</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setCadModalTab('manage')}
+                className={`px-4 py-2.5 text-xs font-extrabold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
+                  cadModalTab === 'manage'
+                    ? 'border-rose-600 text-rose-700 bg-white rounded-t-lg shadow-2xs'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Manage & Delete Softwares ({customCadProducts.length})</span>
+              </button>
+            </div>
 
-              {/* Software Name */}
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
-                  CAD Software Name <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. SolidWorks 2026, AutoCAD Mechanical, ZwCAD Pro, BricsCAD"
-                  value={newCadForm.name}
-                  onChange={e => {
-                    const name = e.target.value
-                    const autoSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-                    setNewCadForm({
-                      ...newCadForm,
-                      name,
-                      route: autoSlug ? `/products/${autoSlug}` : '/products/',
-                      headline: newCadForm.headline || (name ? `${name} — Professional DWG CAD Software` : ''),
-                    })
-                  }}
-                  className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-slate-900 font-bold focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
-                />
-              </div>
+            {/* TAB 1: CREATE NEW CAD SOFTWARE */}
+            {cadModalTab === 'create' && (
+              <form onSubmit={handleCreateNewCadSoftware} className="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
+                {/* Template / Format Banner (HIGHLIGHTED) */}
+                <div className="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl">
+                  <label className="block text-[11px] font-extrabold uppercase tracking-wider text-indigo-900 mb-1.5 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Choose Page Format & Template Layout</span>
+                  </label>
+                  <select
+                    value={newCadForm.template}
+                    onChange={e => setNewCadForm({ ...newCadForm, template: e.target.value })}
+                    className="w-full px-3 py-2 border border-indigo-300 rounded-lg text-slate-900 font-bold bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
+                  >
+                    <option value="ares_standard">
+                      ★ Format like ARES Standard (Complete 2D/3D DWG Suite, Specs Table, Comparison Matrix & RFQ Quote Form) [Recommended]
+                    </option>
+                    <option value="ares_commander">
+                      Format like ARES Commander (Trinity: Desktop, Cloud & Mobile Multi-Platform)
+                    </option>
+                    <option value="ares_mechanical">
+                      Format like ARES Mechanical (2D Mechanical Engineering & Automated BOM)
+                    </option>
+                    <option value="sketchup_pro">
+                      Format like SketchUp Pro (3D Design, Architectural Modeling & Rendering)
+                    </option>
+                  </select>
+                  <p className="text-[11px] text-indigo-700 mt-1.5 leading-relaxed">
+                    ✓ <strong>ARES Standard Format Selected:</strong> Your page will automatically include the complete Hero section, 2D Drafting Overview tabs, Key Benefits, Technical Specifications table, System Requirements, Download Trial button, and Instant RFQ Quote form!
+                  </p>
+                </div>
 
-              {/* Grid: Brand & Category */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {/* Software Name */}
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Brand / Developer <span className="text-rose-500">*</span>
+                    CAD Software Name <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Graebert / Dassault / Autodesk / Trimble"
-                    value={newCadForm.brand}
-                    onChange={e => setNewCadForm({ ...newCadForm, brand: e.target.value })}
+                    placeholder="e.g. SolidWorks 2026, AutoCAD Mechanical, ZwCAD Pro, BricsCAD"
+                    value={newCadForm.name}
+                    onChange={e => {
+                      const name = e.target.value
+                      const autoSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+                      setNewCadForm({
+                        ...newCadForm,
+                        name,
+                        route: autoSlug ? `/products/${autoSlug}` : '/products/',
+                        headline: newCadForm.headline || (name ? `${name} — Professional DWG CAD Software` : ''),
+                      })
+                    }}
+                    className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-slate-900 font-bold focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
+                  />
+                </div>
+
+                {/* Grid: Brand & Category */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                      Brand / Developer <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Graebert / Dassault / Autodesk / Trimble"
+                      value={newCadForm.brand}
+                      onChange={e => setNewCadForm({ ...newCadForm, brand: e.target.value })}
+                      className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                      CAD Category <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={newCadForm.category}
+                      onChange={e => setNewCadForm({ ...newCadForm, category: e.target.value })}
+                      className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-xs font-medium"
+                    >
+                      <option value="2D DWG CAD Software">2D DWG CAD Software</option>
+                      <option value="2D Mechanical CAD">2D Mechanical CAD</option>
+                      <option value="Electrical CAD (ECAD)">Electrical CAD (ECAD)</option>
+                      <option value="3D Engineering CAD & BIM">3D Engineering CAD & BIM</option>
+                      <option value="Architectural Modeling & Rendering">Architectural Modeling & Rendering</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Public URL Route */}
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    Public Website Page URL <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="flex items-center">
+                    <span className="px-3 py-2 bg-slate-100 border border-r-0 border-slate-300 rounded-l-xl text-slate-500 font-mono text-[11px]">
+                      https://www.leniva3d.com/products/
+                    </span>
+                    <input
+                      type="text"
+                      required
+                      placeholder="software-name-slug"
+                      value={newCadForm.route.replace(/^\/products\/?/, '')}
+                      onChange={e => {
+                        const clean = e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+                        setNewCadForm({ ...newCadForm, route: `/products/${clean}` })
+                      }}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-r-xl text-slate-900 font-mono text-[11px] focus:ring-2 focus:ring-indigo-500 outline-none"
+                    />
+                  </div>
+                  <span className="text-[10px] text-slate-400 mt-1 block">
+                    Accessible directly at this URL on your live website after publishing.
+                  </span>
+                </div>
+
+                {/* Tagline / Headline */}
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    Page Hero Headline / Tagline
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Precision 2D DWG CAD Software for Engineering & Technical Drafters"
+                    value={newCadForm.headline}
+                    onChange={e => setNewCadForm({ ...newCadForm, headline: e.target.value })}
                     className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
                   />
                 </div>
 
+                {/* Short Description */}
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    CAD Category <span className="text-rose-500">*</span>
+                    Short Description
                   </label>
-                  <select
-                    value={newCadForm.category}
-                    onChange={e => setNewCadForm({ ...newCadForm, category: e.target.value })}
-                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-xs font-medium"
-                  >
-                    <option value="2D DWG CAD Software">2D DWG CAD Software</option>
-                    <option value="2D Mechanical CAD">2D Mechanical CAD</option>
-                    <option value="Electrical CAD (ECAD)">Electrical CAD (ECAD)</option>
-                    <option value="3D Engineering CAD & BIM">3D Engineering CAD & BIM</option>
-                    <option value="Architectural Modeling & Rendering">Architectural Modeling & Rendering</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Public URL Route */}
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
-                  Public Website Page URL <span className="text-rose-500">*</span>
-                </label>
-                <div className="flex items-center">
-                  <span className="px-3 py-2 bg-slate-100 border border-r-0 border-slate-300 rounded-l-xl text-slate-500 font-mono text-[11px]">
-                    https://www.leniva3d.com/products/
-                  </span>
-                  <input
-                    type="text"
-                    required
-                    placeholder="software-name-slug"
-                    value={newCadForm.route.replace(/^\/products\/?/, '')}
-                    onChange={e => {
-                      const clean = e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-                      setNewCadForm({ ...newCadForm, route: `/products/${clean}` })
-                    }}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-r-xl text-slate-900 font-mono text-[11px] focus:ring-2 focus:ring-indigo-500 outline-none"
+                  <textarea
+                    rows={2}
+                    placeholder="e.g. Professional DWG CAD solution with perpetual and subscription licensing, native DWG compatibility, and full technical support from Leniva CAD Solutions."
+                    value={newCadForm.shortDescription}
+                    onChange={e => setNewCadForm({ ...newCadForm, shortDescription: e.target.value })}
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none text-xs resize-none"
                   />
                 </div>
-                <span className="text-[10px] text-slate-400 mt-1 block">
-                  Accessible directly at this URL on your live website after publishing.
-                </span>
-              </div>
 
-              {/* Tagline / Headline */}
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
-                  Page Hero Headline / Tagline
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Precision 2D DWG CAD Software for Engineering & Technical Drafters"
-                  value={newCadForm.headline}
-                  onChange={e => setNewCadForm({ ...newCadForm, headline: e.target.value })}
-                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
-                />
-              </div>
+                {/* Actions Footer */}
+                <div className="pt-3 border-t border-slate-200 flex items-center justify-between gap-3">
+                  <span className="text-[11px] text-slate-500 hidden sm:inline">
+                    Template: <strong>ARES Standard Engine</strong>
+                  </span>
 
-              {/* Short Description */}
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
-                  Short Description
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="e.g. Professional DWG CAD solution with perpetual and subscription licensing, native DWG compatibility, and full technical support from Leniva CAD Solutions."
-                  value={newCadForm.shortDescription}
-                  onChange={e => setNewCadForm({ ...newCadForm, shortDescription: e.target.value })}
-                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none text-xs resize-none"
-                />
-              </div>
+                  <div className="flex items-center space-x-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setShowNewCadModal(false)}
+                      className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors cursor-pointer text-xs"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-md cursor-pointer flex items-center space-x-1.5 text-xs hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      <Plus className="w-4 h-4 stroke-[2.5]" />
+                      <span>Create & Open in Visual Editor &rarr;</span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            )}
 
-              {/* Actions Footer */}
-              <div className="pt-3 border-t border-slate-200 flex items-center justify-between gap-3">
-                <span className="text-[11px] text-slate-500 hidden sm:inline">
-                  Template: <strong>ARES Standard Engine</strong>
-                </span>
-
-                <div className="flex items-center space-x-2.5">
+            {/* TAB 2: MANAGE & DELETE EXISTING CAD SOFTWARES */}
+            {cadModalTab === 'manage' && (
+              <div className="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <span className="text-xs font-bold text-slate-700">
+                    Custom CAD Softwares on Website ({customCadProducts.length})
+                  </span>
                   <button
                     type="button"
-                    onClick={() => setShowNewCadModal(false)}
-                    className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors cursor-pointer text-xs"
+                    onClick={() => setCadModalTab('create')}
+                    className="px-3 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
                   >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-md cursor-pointer flex items-center space-x-1.5 text-xs hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <Plus className="w-4 h-4 stroke-[2.5]" />
-                    <span>Create & Open in Visual Editor &rarr;</span>
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Create New Software</span>
                   </button>
                 </div>
+
+                {customCadProducts.length === 0 ? (
+                  <div className="py-12 text-center text-slate-400 space-y-2">
+                    <p className="text-sm font-bold text-slate-600">No custom CAD softwares created yet.</p>
+                    <p className="text-xs">Click the "+ Add New CAD Software" tab above to create one formatted like ARES Standard.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {customCadProducts.map((cp: any) => (
+                      <div
+                        key={cp.key}
+                        className="p-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-blue-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="font-extrabold text-sm text-slate-900 truncate">
+                              {cp.label || cp.name}
+                            </h4>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                              {cp.brand || 'Graebert'}
+                            </span>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              ARES Standard Format
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1 truncate">
+                            {cp.category} • <span className="font-mono text-[11px] text-blue-600">{cp.route}</span>
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowNewCadModal(false)
+                              loadProductIntoEditor(cp.key)
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                          >
+                            <span>Open & Edit</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCadSoftware(cp.key, cp.label || cp.name)}
+                            className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                            title={`Permanently delete ${cp.label || cp.name}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </form>
+            )}
           </div>
         </div>
       )}
