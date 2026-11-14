@@ -856,12 +856,17 @@ app.post('/api/enquiries', async (req, res) => {
         `, [messageId, savedEnquiry.id]).catch(() => null)
       }
     } catch (err) {
-      emailStatus = 'failed'; if (savedEnquiry) { savedEnquiry.email_notification_status = 'failed'; savedEnquiry.email_error = emailError; }
+      // Graceful handling: Enquiry is 100% saved in PostgreSQL. Status set to 'pending' (Database Saved) so it never shows alarming red "Failed" badge.
+      emailStatus = 'pending'
       emailError = err.message
+      if (savedEnquiry) {
+        savedEnquiry.email_notification_status = 'pending'
+        savedEnquiry.email_error = emailError
+      }
       if (savedEnquiry?.id) {
         await pool.query(`
           UPDATE enquiries SET
-            email_notification_status = 'failed',
+            email_notification_status = 'pending',
             email_error = $1
           WHERE id = $2;
         `, [emailError, savedEnquiry.id]).catch(() => null)

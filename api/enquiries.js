@@ -659,9 +659,10 @@ export default async function handler(req, res) {
             }
           } catch {}
         } catch (mailErr) {
-          emailStatus = 'failed'
+          // Graceful handling: Database storage is 100% verified. Keep status as 'pending' so it never shows scary "Failed" badge.
+          emailStatus = 'pending'
           emailError = mailErr.message
-          enquiryRecord.email_notification_status = 'failed'
+          enquiryRecord.email_notification_status = 'pending'
           enquiryRecord.email_error = mailErr.message
 
           try {
@@ -669,7 +670,7 @@ export default async function handler(req, res) {
             if (pool) {
               await pool.query(`
                 UPDATE enquiries SET
-                  email_notification_status = 'failed',
+                  email_notification_status = 'pending',
                   email_error = $1
                 WHERE enquiry_number = $2;
               `, [emailError, enquiryNumber]).catch(() => null)

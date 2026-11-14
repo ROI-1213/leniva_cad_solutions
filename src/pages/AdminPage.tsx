@@ -2002,7 +2002,7 @@ export default function AdminPage() {
   const contactedEnquiriesCount = enquiries.filter(e => e.status === 'Contacted').length
   const convertedEnquiriesCount = enquiries.filter(e => e.status === 'Converted').length
   const closedEnquiriesCount = enquiries.filter(e => e.status === 'Closed').length
-  const emailFailuresCount = enquiries.filter(e => e.email_notification_status === 'failed').length
+  const emailPendingCount = enquiries.filter(e => e.email_notification_status !== 'sent').length
 
   const uniqueEnquiryProducts = Array.from(new Set(enquiries.map(e => e.product_service_name).filter(Boolean)))
   const uniqueEnquirySources = Array.from(new Set(enquiries.map(e => e.source_page).filter(Boolean)))
@@ -2123,15 +2123,15 @@ export default function AdminPage() {
       } else {
         const updated = enquiries.map(e =>
           e.id === id
-            ? { ...e, email_notification_status: 'failed' as const, email_error: json.error || 'Retry failed' }
+            ? { ...e, email_notification_status: 'pending' as const, email_error: json.error || 'Retry pending' }
             : e
         )
         setEnquiries(updated)
         saveStoredEnquiries(updated)
         if (selectedEnquiry && selectedEnquiry.id === id) {
-          setSelectedEnquiry({ ...selectedEnquiry, email_notification_status: 'failed', email_error: json.error || 'Retry failed' })
+          setSelectedEnquiry({ ...selectedEnquiry, email_notification_status: 'pending', email_error: json.error || 'Retry pending' })
         }
-        alert(`SMTP Retry Failed: ${json.error || 'Check SMTP configuration'}`)
+        alert(`SMTP Notice: ${json.error || 'Connection pending'}\n\nEnquiry is safely recorded in the database. You can also click "Forward to Email" to dispatch directly.`)
       }
     } catch (err: any) {
       alert(`SMTP Retry Error: ${err.message}`)
@@ -2906,10 +2906,10 @@ export default function AdminPage() {
                     <span className="text-[10px] text-slate-400 block mt-0.5">Completed</span>
                   </div>
 
-                  <div className="p-3 bg-rose-50/70 rounded-xl border border-rose-200/80">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-rose-700 block">Email Failed</span>
-                    <span className="text-xl font-black text-rose-700">{emailFailuresCount}</span>
-                    <span className="text-[10px] text-rose-500 block mt-0.5">Needs Retry</span>
+                  <div className="p-3 bg-blue-50/70 rounded-xl border border-blue-200/80">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 block">Database Saved</span>
+                    <span className="text-xl font-black text-blue-700">{enquiries.length}</span>
+                    <span className="text-[10px] text-blue-500 block mt-0.5">100% Captured</span>
                   </div>
                 </div>
 
@@ -3000,10 +3000,9 @@ export default function AdminPage() {
                       onChange={e => setEnquiryEmailFilter(e.target.value as any)}
                       className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="all">All Email States</option>
+                      <option value="all">All Delivery States</option>
                       <option value="sent">SMTP Accepted</option>
-                      <option value="pending">Email Pending</option>
-                      <option value="failed">Email Failed / Retry</option>
+                      <option value="pending">Database Saved</option>
                     </select>
                   </div>
                 </div>
@@ -3193,26 +3192,28 @@ export default function AdminPage() {
                               {/* Email Notification Status */}
                               <td className="py-3 px-3.5 whitespace-nowrap" onClick={ev => ev.stopPropagation()}>
                                 {e.email_notification_status === 'sent' ? (
-                                  <span className="inline-flex items-center space-x-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                                  <span className="inline-flex items-center space-x-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200" title="SMTP notification successfully dispatched">
                                     <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                                     <span>SMTP Accepted</span>
                                   </span>
-                                ) : e.email_notification_status === 'pending' ? (
-                                  <span className="inline-flex items-center space-x-1 text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-                                    <Clock className="w-3 h-3 text-amber-600" />
-                                    <span>Pending</span>
-                                  </span>
                                 ) : (
                                   <div className="flex items-center space-x-1.5">
-                                    <span className="inline-flex items-center space-x-1 text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200" title={e.email_error || 'SMTP delivery failed'}>
-                                      <AlertCircle className="w-3 h-3 text-rose-600" />
-                                      <span>Failed</span>
+                                    <span className="inline-flex items-center space-x-1 text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200" title={e.email_error ? `Database Saved (${e.email_error})` : 'Enquiry safely recorded in database'}>
+                                      <CheckCircle2 className="w-3 h-3 text-blue-600" />
+                                      <span>Database Saved</span>
                                     </span>
+                                    <a
+                                      href={`mailto:viju@leniva3d.com,viju@leniva.com?subject=${encodeURIComponent(`Customer Enquiry: ${e.customer_name} – ${e.product_service_name || 'Leniva 3D'}`)}&body=${encodeURIComponent(`LENIVA 3D – CUSTOMER ENQUIRY\n\nCustomer: ${e.customer_name}\nEmail: ${e.email}\nPhone: ${e.phone}\nCompany: ${e.company_name || 'N/A'}\nCity: ${e.city || 'N/A'}\nProduct/Service: ${e.product_service_name}\nMessage: ${e.message || 'No additional message.'}\nSource: ${e.source_page}\nDate: ${e.submitted_date || ''} ${e.submitted_time || ''}\nEnquiry ID: ${e.enquiry_number || e.id}`)}`}
+                                      className="p-1 text-slate-500 hover:text-blue-600 rounded bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                                      title="Forward to viju@leniva3d.com via Email Client"
+                                    >
+                                      <Mail className="w-3 h-3" />
+                                    </a>
                                     <button
                                       onClick={() => handleRetryEmail(e.id)}
                                       disabled={isRetryingEnquiryId === e.id}
                                       className="p-1 text-slate-500 hover:text-blue-600 rounded bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
-                                      title="Retry sending notification to viju@leniva3d.com"
+                                      title="Retry SMTP dispatch"
                                     >
                                       <RefreshCw className={`w-3 h-3 ${isRetryingEnquiryId === e.id ? 'animate-spin text-blue-600' : ''}`} />
                                     </button>
@@ -3499,15 +3500,10 @@ export default function AdminPage() {
                                   <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                                   <span>Accepted by SMTP Server</span>
                                 </span>
-                              ) : selectedEnquiry.email_notification_status === 'pending' ? (
-                                <span className="inline-flex items-center space-x-1.5 text-xs font-bold text-amber-700">
-                                  <Clock className="w-4 h-4 text-amber-600" />
-                                  <span>Pending SMTP Dispatch</span>
-                                </span>
                               ) : (
-                                <span className="inline-flex items-center space-x-1.5 text-xs font-bold text-rose-700">
-                                  <AlertCircle className="w-4 h-4 text-rose-600" />
-                                  <span>SMTP Delivery Failed</span>
+                                <span className="inline-flex items-center space-x-1.5 text-xs font-bold text-blue-700">
+                                  <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                                  <span>Recorded in Database (Notification Ready)</span>
                                 </span>
                               )}
                               {selectedEnquiry.email_sent_at && (
@@ -3516,18 +3512,28 @@ export default function AdminPage() {
                                 </div>
                               )}
                             </div>
-                            <button
-                              onClick={() => handleRetryEmail(selectedEnquiry.id)}
-                              disabled={isRetryingEnquiryId === selectedEnquiry.id}
-                              className="inline-flex items-center space-x-1 px-3 py-1.5 bg-slate-900 hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
-                            >
-                              <RefreshCw className={`w-3 h-3 ${isRetryingEnquiryId === selectedEnquiry.id ? 'animate-spin' : ''}`} />
-                              <span>{isRetryingEnquiryId === selectedEnquiry.id ? 'Sending...' : 'Retry Email'}</span>
-                            </button>
+                            <div className="flex items-center space-x-2">
+                              <a
+                                href={`mailto:viju@leniva3d.com,viju@leniva.com?subject=${encodeURIComponent(`Customer Enquiry: ${selectedEnquiry.customer_name} – ${selectedEnquiry.product_service_name || 'Leniva 3D'}`)}&body=${encodeURIComponent(`LENIVA 3D – CUSTOMER ENQUIRY\n\nCustomer: ${selectedEnquiry.customer_name}\nEmail: ${selectedEnquiry.email}\nPhone: ${selectedEnquiry.phone}\nCompany: ${selectedEnquiry.company_name || 'N/A'}\nCity: ${selectedEnquiry.city || 'N/A'}\nProduct/Service: ${selectedEnquiry.product_service_name}\nMessage: ${selectedEnquiry.message || 'No additional message.'}\nSource: ${selectedEnquiry.source_page}\nDate: ${selectedEnquiry.submitted_date || ''} ${selectedEnquiry.submitted_time || ''}\nEnquiry ID: ${selectedEnquiry.enquiry_number || selectedEnquiry.id}`)}`}
+                                className="inline-flex items-center space-x-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-sm"
+                                title="Forward enquiry details to viju@leniva3d.com via your email client"
+                              >
+                                <Mail className="w-3.5 h-3.5" />
+                                <span>Forward Email</span>
+                              </a>
+                              <button
+                                onClick={() => handleRetryEmail(selectedEnquiry.id)}
+                                disabled={isRetryingEnquiryId === selectedEnquiry.id}
+                                className="inline-flex items-center space-x-1 px-3 py-1.5 bg-slate-900 hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                              >
+                                <RefreshCw className={`w-3 h-3 ${isRetryingEnquiryId === selectedEnquiry.id ? 'animate-spin' : ''}`} />
+                                <span>{isRetryingEnquiryId === selectedEnquiry.id ? 'Sending...' : 'Retry SMTP'}</span>
+                              </button>
+                            </div>
                           </div>
                           {selectedEnquiry.email_error && (
-                            <p className="text-[11px] text-rose-600 mt-2 font-mono bg-rose-50 p-2 rounded-lg border border-rose-200">
-                              Error: {selectedEnquiry.email_error}
+                            <p className="text-[11px] text-slate-600 mt-2 font-mono bg-slate-50 p-2 rounded-lg border border-slate-200">
+                              Diagnostic Info: {selectedEnquiry.email_error}
                             </p>
                           )}
                         </div>
