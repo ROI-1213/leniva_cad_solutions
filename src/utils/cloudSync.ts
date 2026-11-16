@@ -7,6 +7,7 @@ export const SYNCED_CMS_KEYS = [
   'leniva_cad_software_edits',
   'leniva_cad_visual_published_v1',
   'leniva_custom_cad_products',
+  'leniva_deleted_cad_keys',
   'leniva_home_page_content_v1',
   'leniva_about_page_content_v1',
   'leniva_navigation_config',
@@ -25,6 +26,7 @@ const ADMIN_CONTENT_CHECK_KEYS = [
   'leniva_cad_software_edits',
   'leniva_cad_visual_published_v1',
   'leniva_custom_cad_products',
+  'leniva_deleted_cad_keys',
   'leniva_home_page_content_v1',
   'leniva_about_page_content_v1',
   'leniva_navigation_config',
@@ -43,6 +45,7 @@ const COMPACT_INLINE_KEYS = [
   'leniva_cad_software_edits',
   'leniva_cad_visual_published_v1',
   'leniva_custom_cad_products',
+  'leniva_deleted_cad_keys',
   'leniva_home_page_content_v1',
   'leniva_about_page_content_v1',
   'leniva_navigation_config',
@@ -121,8 +124,9 @@ function installStorageInterceptor() {
   rawRemoveItem = window.localStorage.removeItem.bind(window.localStorage)
 
   window.localStorage.setItem = function (key: string, value: string) {
+    const prev = rawGetItem(key)
     rawSetItem(key, value)
-    if (!isApplyingRemoteSync && SYNCED_KEY_SET.has(key)) {
+    if (!isApplyingRemoteSync && SYNCED_KEY_SET.has(key) && prev !== value) {
       explicitlyResetKeys.delete(key)
       const now = Date.now()
       rawSetItem(UPDATED_AT_KEY, String(now))
