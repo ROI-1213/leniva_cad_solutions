@@ -100,8 +100,32 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
         if (cadEdits[directKey]) {
           return <AresStandardPage cadKey={directKey} />
         }
+
+        // 1b. Check custom 3D Printer products created via Admin Console
+        const customPrinterProducts: any[] = JSON.parse(localStorage.getItem('leniva_custom_printer_products') || '[]')
+        const matchedPrinter = customPrinterProducts.find((p: any) => {
+          const pRouteSlug = (p.route || '').replace(/^\/products\/?/, '').toLowerCase().trim()
+          const pKeySlug = (p.key || '').replace(/^printer_/, '').toLowerCase().trim()
+          return pRouteSlug === resolvedSlug || pKeySlug === resolvedSlug || p.key === resolvedSlug
+        })
+        if (matchedPrinter) {
+          const tpl = matchedPrinter.template || 'pratham_mini'
+          if (tpl === 'pratham_desktop') return <PrathamDesktopPage />
+          if (tpl === 'pratham_3') return <Pratham3Page />
+          if (tpl === 'pratham_3_rapid') return <Pratham3RapidPage />
+          if (tpl === 'pratham_5') return <Pratham5Page />
+          if (tpl === 'pratham_6') return <Pratham6Page />
+          if (tpl === 'pratham_x_600') return <PrathamX600Page />
+          if (tpl === 'pratham_x') return <PrathamX1000Page />
+          if (tpl === 'eka_ht') return <EkaHtPage />
+          if (tpl === 'eka_xl') return <EkaXlPage />
+          if (tpl === 'eka_xle') return <EkaXlePage />
+          if (tpl === 'eka_gt_max') return <EkaGtMaxPage />
+          if (tpl === 'eka_f1_16k') return <EkaF116kPage />
+          return <PrathamMiniPage />
+        }
       } catch (err) {
-        console.warn('Error matching custom CAD product:', err)
+        console.warn('Error matching custom product:', err)
       }
     }
 

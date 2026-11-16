@@ -818,6 +818,24 @@ export function resolveVisualProductKeyFromPath(pathname: string): string | null
       return item.key
     }
   }
+  if (typeof window !== 'undefined') {
+    try {
+      const customPrinters: any[] = JSON.parse(localStorage.getItem('leniva_custom_printer_products') || '[]')
+      for (const cp of customPrinters) {
+        if (!cp) continue
+        const r = (cp.route || '').replace(/\/+$/, '').toLowerCase()
+        if (r === clean) return cp.key
+      }
+      const customCad: any[] = JSON.parse(localStorage.getItem('leniva_custom_cad_products') || '[]')
+      for (const cc of customCad) {
+        if (!cc) continue
+        const r = (cc.route || '').replace(/\/+$/, '').toLowerCase()
+        if (r === clean) return cc.key
+      }
+    } catch {
+      // ignore
+    }
+  }
   return null
 }
 
@@ -1590,6 +1608,103 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
   if (!root || !payload) return
 
   stampDeterministicCadKeys(root)
+
+  // 0. If this is a custom 3D Printer created from a template, apply its initial customPrinterMeta branding to the template DOM
+  const customPrinterMeta = payload.dataOverrides?.customPrinterMeta
+  if (customPrinterMeta && typeof customPrinterMeta === 'object' && customPrinterMeta.name) {
+    const newName = String(customPrinterMeta.name).trim()
+    const newBrand = String(customPrinterMeta.brand || 'Make3D').trim()
+    const baseNames = [
+      customPrinterMeta.baseTemplateName,
+      'Pratham Mini',
+      'PRATHAM MINI',
+      'Pratham Desktop',
+      'PRATHAM DESKTOP',
+      'Pratham 3.0 Rapid',
+      'PRATHAM 3.0 RAPID',
+      'Pratham 3 Rapid',
+      'Pratham 3.0',
+      'PRATHAM 3.0',
+      'Pratham 5.0',
+      'PRATHAM 5.0',
+      'Pratham 6.0',
+      'PRATHAM 6.0',
+      'Pratham X (600)',
+      'Pratham X (1000)',
+      'Pratham X 1000',
+      'Pratham X',
+      'EKA HT',
+      'EKA XL',
+      'EKA XLE',
+      'EKA GT Max',
+      'EKA GT MAX',
+      'EKA F1 16K',
+    ].filter(Boolean) as string[]
+
+    if (typeof document !== 'undefined') {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+      let currentNode = walker.nextNode()
+      while (currentNode) {
+        const parentEl = currentNode.parentElement
+        const elKey = parentEl?.getAttribute('data-cad-key') || ''
+        if (!elKey || !payload.elementOverrides?.[elKey]) {
+          let txt = currentNode.nodeValue || ''
+          let changed = false
+          for (const bn of baseNames) {
+            if (txt.includes(bn.toUpperCase())) {
+              txt = txt.split(bn.toUpperCase()).join(newName.toUpperCase())
+              changed = true
+            }
+            if (txt.includes(bn)) {
+              txt = txt.split(bn).join(newName)
+              changed = true
+            }
+          }
+          if (customPrinterMeta.buildVolume) {
+            const defaultVolumes = [
+              '170 × 170 × 170 mm',
+              '200 × 200 × 250 mm',
+              '300 × 300 × 300 mm',
+              '350 × 350 × 350 mm',
+              '500 × 500 × 500 mm',
+              '600 × 600 × 600 mm',
+              '1000 × 1000 × 1000 mm',
+              '130 × 73 × 150 mm',
+            ]
+            for (const dv of defaultVolumes) {
+              if (txt.includes(dv)) {
+                txt = txt.split(dv).join(String(customPrinterMeta.buildVolume))
+                changed = true
+              }
+            }
+          }
+          if (changed) {
+            currentNode.nodeValue = txt
+          }
+        }
+        currentNode = walker.nextNode()
+      }
+    }
+
+    if (customPrinterMeta.headline) {
+      const h1El = root.querySelector<HTMLElement>('h1')
+      const h1Key = h1El?.getAttribute('data-cad-key') || 'auto:h1:0'
+      if (h1El && !payload.elementOverrides?.[h1Key]) {
+        h1El.textContent = String(customPrinterMeta.headline)
+      }
+    }
+    if (customPrinterMeta.shortDescription) {
+      const pEls = Array.from(root.querySelectorAll<HTMLElement>('section p'))
+      const descEl = pEls.find(p => (p.textContent || '').trim().length > 45)
+      const descKey = descEl?.getAttribute('data-cad-key') || ''
+      if (descEl && (!descKey || !payload.elementOverrides?.[descKey])) {
+        descEl.textContent = String(customPrinterMeta.shortDescription)
+      }
+    }
+    if (newBrand) {
+      // keep brand accessible for any brand badges
+    }
+  }
 
   // 1. Apply SEO title & description when on public product page
   if (typeof document !== 'undefined' && !window.location.pathname.startsWith('/admin')) {

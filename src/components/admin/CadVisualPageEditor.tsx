@@ -125,6 +125,21 @@ interface SelectedElementInfo {
 }
 
 function renderRealProductPage(productKey: string) {
+  // Support custom 3D Printers created with Pratham / EKA formats
+  if (productKey.startsWith('printer_')) {
+    try {
+      const savedPrinters: any[] = JSON.parse(localStorage.getItem('leniva_custom_printer_products') || '[]')
+      const matched = savedPrinters.find(p => p && p.key === productKey)
+      const tpl = matched?.template || 'pratham_mini'
+      if (tpl && !tpl.startsWith('printer_')) {
+        return renderRealProductPage(tpl)
+      }
+    } catch {
+      // fallback
+    }
+    return <PrathamMiniPage />
+  }
+
   // Support custom CAD products created with ARES Standard format
   if (productKey.startsWith('cad_') || productKey.includes('custom')) {
     return <AresStandardPage cadKey={productKey} />
@@ -329,7 +344,27 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
     }
   })
 
-  // Keep customCadProducts and deletedCadKeys synced when Cloud CMS pulls updates
+  // Custom 3D Printer Products state (Loaded from localStorage & Cloud CMS)
+  const [customPrinterProducts, setCustomPrinterProducts] = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem('leniva_custom_printer_products')
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
+  })
+
+  // Deleted 3D Printer keys (allows deleting both custom and built-in 3D printers)
+  const [deletedPrinterKeys, setDeletedPrinterKeys] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('leniva_deleted_printer_keys')
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
+  })
+
+  // Keep custom products and deleted keys synced when Cloud CMS pulls updates
   useEffect(() => {
     const syncFromStorage = () => {
       try {
@@ -346,6 +381,20 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
           if (Array.isArray(parsedDel)) setDeletedCadKeys(parsedDel)
         }
       } catch {}
+      try {
+        const savedCustomPrinters = localStorage.getItem('leniva_custom_printer_products')
+        if (savedCustomPrinters) {
+          const parsedP = JSON.parse(savedCustomPrinters)
+          if (Array.isArray(parsedP)) setCustomPrinterProducts(parsedP)
+        }
+      } catch {}
+      try {
+        const savedDeletedPrinters = localStorage.getItem('leniva_deleted_printer_keys')
+        if (savedDeletedPrinters) {
+          const parsedDelP = JSON.parse(savedDeletedPrinters)
+          if (Array.isArray(parsedDelP)) setDeletedPrinterKeys(parsedDelP)
+        }
+      } catch {}
     }
     window.addEventListener('leniva_cloud_cms_synced', syncFromStorage)
     window.addEventListener('storage', syncFromStorage)
@@ -355,10 +404,10 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
     }
   }, [])
 
-  // Full unified visual catalog (Base pages + user-created Custom CAD Softwares, excluding deleted CAD keys)
+  // Full unified visual catalog (Base pages + Custom CAD Softwares + Custom 3D Printers, excluding deleted keys)
   const fullVisualCatalog = useMemo<VisualPageCatalogItem[]>(() => {
-    const deletedSet = new Set(deletedCadKeys)
-    const customItems: VisualPageCatalogItem[] = customCadProducts
+    const deletedSet = new Set([...deletedCadKeys, ...deletedPrinterKeys])
+    const customCadItems: VisualPageCatalogItem[] = customCadProducts
       .filter((p: any) => p && p.key && !deletedSet.has(p.key))
       .map((p: any) => ({
         key: p.key,
@@ -370,17 +419,37 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
         heroImage: p.heroImage || '/images/ares-standard/ares-standard-hero.jpg',
         defaultBrochureUrl: p.route || `/products/${p.key.replace(/^cad_/, '')}`,
       }))
+    const customPrinterItems: VisualPageCatalogItem[] = customPrinterProducts
+      .filter((p: any) => p && p.key && !deletedSet.has(p.key))
+      .map((p: any) => ({
+        key: p.key,
+        label: p.label || p.name,
+        brand: p.brand || 'Make3D',
+        category: p.category || 'FDM 3D Printers',
+        editorGroup: 'printers',
+        route: p.route || `/products/${p.key.replace(/^printer_/, '')}`,
+        heroImage: p.heroImage || '/images/products/pratham-mini.png',
+        defaultBrochureUrl: p.defaultBrochureUrl || '/brochures/pratham-mini.pdf',
+      }))
     const baseItems = VISUAL_PAGE_CATALOG.filter(p => !deletedSet.has(p.key))
-    return [...baseItems, ...customItems]
-  }, [customCadProducts, deletedCadKeys])
+    return [...baseItems, ...customCadItems, ...customPrinterItems]
+  }, [customCadProducts, deletedCadKeys, customPrinterProducts, deletedPrinterKeys])
 
   // All active CAD software items (both custom and standard)
   const allCadCatalogItems = useMemo<VisualPageCatalogItem[]>(() => {
     return fullVisualCatalog.filter(p => p.editorGroup === 'cad')
   }, [fullVisualCatalog])
 
-  // New CAD Software Modal State
+  // All active 3D Printer & Filament items (both custom and standard)
+  const allPrinterCatalogItems = useMemo<VisualPageCatalogItem[]>(() => {
+    return fullVisualCatalog.filter(p => p.editorGroup === 'printers')
+  }, [fullVisualCatalog])
+
+  // Modal State for CAD Software & 3D Printers
   const [showNewCadModal, setShowNewCadModal] = useState<boolean>(false)
+  const [modalEntityType, setModalEntityType] = useState<'cad' | 'printers'>(() =>
+    initialCategory === 'printers' ? 'printers' : 'cad'
+  )
   const [cadModalTab, setCadModalTab] = useState<'create' | 'manage'>('create')
   const [newCadForm, setNewCadForm] = useState({
     name: '',
@@ -388,6 +457,16 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
     category: '2D DWG CAD Software',
     route: '/products/',
     template: 'ares_standard',
+    headline: '',
+    shortDescription: '',
+  })
+  const [newPrinterForm, setNewPrinterForm] = useState({
+    name: '',
+    brand: 'Make3D',
+    category: 'FDM 3D Printers',
+    buildVolume: '300 × 300 × 300 mm',
+    route: '/products/',
+    template: 'pratham_mini',
     headline: '',
     shortDescription: '',
   })
@@ -622,6 +701,281 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
     setDeletedCadKeys([])
     pushCmsStateToCloud({ isEnquirySubmission: false }).catch(() => null)
     showToast('success', '✓ Restored all default CAD software pages.')
+  }
+
+  // Create New 3D Printer handler (formatted like Pratham Mini, Pratham 3.0, EKA HT, EKA GT Max, etc.)
+  const handleCreateNewPrinter = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newPrinterForm.name.trim()) {
+      alert('Please enter a 3D Printer name')
+      return
+    }
+
+    const rawSlug =
+      newPrinterForm.route.replace(/^\/products\/?/, '').trim() ||
+      newPrinterForm.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    const cleanSlug =
+      rawSlug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'new-3d-printer'
+    const key = `printer_${cleanSlug}`
+    const route = `/products/${cleanSlug}`
+
+    const baseTemplateItem =
+      VISUAL_PAGE_CATALOG.find(p => p.key === newPrinterForm.template) ||
+      VISUAL_PAGE_CATALOG.find(p => p.key === 'pratham_mini')!
+
+    const newPrinterItem = {
+      key,
+      label: newPrinterForm.name.trim(),
+      brand: newPrinterForm.brand.trim() || 'Make3D',
+      category: newPrinterForm.category || 'FDM 3D Printers',
+      buildVolume: newPrinterForm.buildVolume.trim() || '300 × 300 × 300 mm',
+      route,
+      template: newPrinterForm.template || 'pratham_mini',
+      templateLabel: baseTemplateItem.label,
+      isCustom: true,
+      heroImage: baseTemplateItem.heroImage || '/images/products/pratham-mini.png',
+      defaultBrochureUrl: baseTemplateItem.defaultBrochureUrl || '/brochures/pratham-mini.pdf',
+    }
+
+    // 0. Ensure key is not in deletedPrinterKeys
+    if (deletedPrinterKeys.includes(key)) {
+      const updatedDeleted = deletedPrinterKeys.filter(k => k !== key)
+      localStorage.setItem('leniva_deleted_printer_keys', JSON.stringify(updatedDeleted))
+      setDeletedPrinterKeys(updatedDeleted)
+    }
+
+    // 1. Save to leniva_custom_printer_products
+    let existingCustom: any[] = []
+    try {
+      existingCustom = JSON.parse(localStorage.getItem('leniva_custom_printer_products') || '[]')
+      if (!Array.isArray(existingCustom)) existingCustom = []
+    } catch {
+      existingCustom = []
+    }
+    const updatedCustom = [...existingCustom.filter((x: any) => x.key !== key), newPrinterItem]
+    localStorage.setItem('leniva_custom_printer_products', JSON.stringify(updatedCustom))
+    setCustomPrinterProducts(updatedCustom)
+
+    // 2. Seed initial Visual Payload with customPrinterMeta so the template immediately shows the new printer's name, build volume, headline, and description
+    const initialVisualPayload: CadVisualPagePayload = {
+      productKey: key,
+      dataOverrides: {
+        customPrinterMeta: {
+          name: newPrinterForm.name.trim(),
+          brand: newPrinterForm.brand.trim() || 'Make3D',
+          category: newPrinterForm.category || 'FDM 3D Printers',
+          buildVolume: newPrinterForm.buildVolume.trim() || '300 × 300 × 300 mm',
+          template: newPrinterForm.template || 'pratham_mini',
+          baseTemplateName: baseTemplateItem.label.replace(/\s*\(.*?\)\s*/g, '').trim(),
+          headline:
+            newPrinterForm.headline.trim() ||
+            `${newPrinterForm.name.trim()} — Precision Industrial 3D Printing`,
+          shortDescription:
+            newPrinterForm.shortDescription.trim() ||
+            `Explore ${newPrinterForm.name.trim()} by ${newPrinterForm.brand.trim() || 'Make3D'}. Industrial-grade 3D printing accuracy, reliable production performance, and nationwide technical support from Leniva CAD Solutions.`,
+        },
+      },
+      elementOverrides: {},
+      pdfResources: [
+        {
+          id: `${key}-brochure`,
+          title: `${newPrinterForm.name.trim()} Official Brochure (PDF)`,
+          description: `Technical specifications, build volume, material compatibility, and system datasheet for ${newPrinterForm.name.trim()}.`,
+          badge: 'Product Brochure',
+          buttonLabel: 'Download Brochure PDF',
+          fileUrl: baseTemplateItem.defaultBrochureUrl || '/brochures/pratham-mini.pdf',
+          originalFileUrl: baseTemplateItem.defaultBrochureUrl || '/brochures/pratham-mini.pdf',
+          fileName: `${cleanSlug}-brochure.pdf`,
+          fileSize: '2.5 MB',
+          visible: true,
+          behavior: 'new_tab',
+        },
+      ],
+      sectionOrder: [],
+      hiddenSections: {},
+      seo: {
+        title: `${newPrinterForm.name.trim()} (${newPrinterForm.brand.trim() || 'Make3D'}) | Industrial 3D Printers — Leniva CAD Solutions`,
+        description:
+          newPrinterForm.shortDescription.trim() ||
+          `Official ${newPrinterForm.name.trim()} 3D Printer specifications, features, build volume (${newPrinterForm.buildVolume.trim() || '300 × 300 × 300 mm'}), and quotation from Leniva CAD Solutions.`,
+      },
+      updatedAt: new Date().toISOString(),
+    }
+
+    try {
+      const pubMap = JSON.parse(localStorage.getItem('leniva_cad_visual_published_v1') || '{}')
+      pubMap[key] = initialVisualPayload
+      localStorage.setItem('leniva_cad_visual_published_v1', JSON.stringify(pubMap))
+
+      const draftMap = JSON.parse(localStorage.getItem('leniva_cad_visual_drafts_v1') || '{}')
+      draftMap[key] = initialVisualPayload
+      localStorage.setItem('leniva_cad_visual_drafts_v1', JSON.stringify(draftMap))
+    } catch {}
+
+    // 3. Register in leniva_admin_products_catalog for public /products catalog listing
+    try {
+      const storedCat = JSON.parse(localStorage.getItem('leniva_admin_products_catalog') || '[]')
+      const exists = storedCat.some((p: any) => p.slug === cleanSlug || p.id === cleanSlug)
+      const catSlug =
+        newPrinterForm.category.includes('DLP')
+          ? 'dlp-3d-printers'
+          : newPrinterForm.category.includes('LCD')
+            ? 'industrial-lcd-3d-printers'
+            : newPrinterForm.category.includes('Filament')
+              ? 'filaments'
+              : 'fdm-3d-printers'
+      const techLabel =
+        newPrinterForm.category.includes('DLP')
+          ? 'DLP'
+          : newPrinterForm.category.includes('LCD')
+            ? 'LCD'
+            : newPrinterForm.category.includes('Filament')
+              ? 'Filament'
+              : 'FDM'
+
+      if (!exists) {
+        storedCat.push({
+          id: cleanSlug,
+          slug: cleanSlug,
+          name: newPrinterForm.name.trim(),
+          brand: newPrinterForm.brand.trim() || 'Make3D',
+          category: newPrinterForm.category || 'FDM 3D Printers',
+          category_slug: catSlug,
+          technology: techLabel,
+          tagline:
+            newPrinterForm.headline.trim() ||
+            `Industrial ${techLabel} 3D Printer (${newPrinterForm.buildVolume.trim() || '300 × 300 × 300 mm'})`,
+          hero_heading: newPrinterForm.name.trim(),
+          hero_subtitle: `Precision ${newPrinterForm.category} engineered for reliability and accuracy.`,
+          short_description:
+            initialVisualPayload.dataOverrides.customPrinterMeta.shortDescription,
+          description:
+            initialVisualPayload.dataOverrides.customPrinterMeta.shortDescription,
+          hero_image: baseTemplateItem.heroImage || '/images/products/pratham-mini.png',
+          price: 0,
+          in_stock: true,
+          is_featured: true,
+          is_quote_based: true,
+          is_new: true,
+        })
+        localStorage.setItem('leniva_admin_products_catalog', JSON.stringify(storedCat))
+      }
+    } catch {}
+
+    // 4. Sync to Cloud CMS
+    pushCmsStateToCloud({ isEnquirySubmission: false }).catch(() => null)
+
+    // 5. Reset form and close modal
+    setShowNewCadModal(false)
+    setNewPrinterForm({
+      name: '',
+      brand: 'Make3D',
+      category: 'FDM 3D Printers',
+      buildVolume: '300 × 300 × 300 mm',
+      route: '/products/',
+      template: 'pratham_mini',
+      headline: '',
+      shortDescription: '',
+    })
+
+    // 6. Immediately open the new 3D printer page in the visual editor!
+    setCategoryFilter('printers')
+    setViewMode('editor')
+    setActiveProductKey(key)
+    setPayload(initialVisualPayload)
+    setHistory([structuredCloneSafe(initialVisualPayload)])
+    setHistoryIndex(0)
+    setHasUnsavedChanges(false)
+    setStatusMeta({
+      hasDraft: true,
+      isPublished: true,
+      lastSavedAt: initialVisualPayload.updatedAt,
+      lastPublishedAt: initialVisualPayload.updatedAt,
+    })
+    showToast(
+      'success',
+      `✓ Created 3D Printer "${newPrinterItem.label}" with ${baseTemplateItem.label} format! You are now editing its live page.`
+    )
+  }
+
+  // Delete 3D Printer handler (supports both Custom 3D Printers and Built-In 3D Printers)
+  const handleDeletePrinter = (key: string, label?: string) => {
+    const prodName = label || key
+    if (
+      !window.confirm(
+        `Are you sure you want to delete "${prodName}"?\n\nThis will remove its 3D printer page and catalog entry from your website.`
+      )
+    ) {
+      return
+    }
+
+    // 1. Remove from leniva_custom_printer_products
+    let existingCustom: any[] = []
+    try {
+      existingCustom = JSON.parse(localStorage.getItem('leniva_custom_printer_products') || '[]')
+      if (!Array.isArray(existingCustom)) existingCustom = []
+    } catch {
+      existingCustom = []
+    }
+    const updatedCustom = existingCustom.filter((x: any) => x.key !== key)
+    localStorage.setItem('leniva_custom_printer_products', JSON.stringify(updatedCustom))
+    setCustomPrinterProducts(updatedCustom)
+
+    // 1b. If it's a built-in 3D Printer key, record in leniva_deleted_printer_keys so it stays deleted
+    const isBuiltIn = VISUAL_PAGE_CATALOG.some(p => p.key === key)
+    let nextDeletedKeys = deletedPrinterKeys
+    if (isBuiltIn && !deletedPrinterKeys.includes(key)) {
+      nextDeletedKeys = [...deletedPrinterKeys, key]
+      localStorage.setItem('leniva_deleted_printer_keys', JSON.stringify(nextDeletedKeys))
+      setDeletedPrinterKeys(nextDeletedKeys)
+    }
+
+    // 2. Remove from leniva_admin_products_catalog
+    const slug = key.replace(/^printer_/, '').replace(/_/g, '-')
+    try {
+      const storedCat = JSON.parse(localStorage.getItem('leniva_admin_products_catalog') || '[]')
+      const filteredCat = storedCat.filter(
+        (p: any) =>
+          p.slug !== slug &&
+          p.id !== slug &&
+          p.id !== key &&
+          p.slug !== key.replace(/^printer_/, '')
+      )
+      localStorage.setItem('leniva_admin_products_catalog', JSON.stringify(filteredCat))
+    } catch {}
+
+    // 3. Remove any drafts / published payloads
+    try {
+      const drafts = JSON.parse(localStorage.getItem('leniva_cad_visual_drafts_v1') || '{}')
+      delete drafts[key]
+      localStorage.setItem('leniva_cad_visual_drafts_v1', JSON.stringify(drafts))
+
+      const pub = JSON.parse(localStorage.getItem('leniva_cad_visual_published_v1') || '{}')
+      delete pub[key]
+      localStorage.setItem('leniva_cad_visual_published_v1', JSON.stringify(pub))
+    } catch {}
+
+    // 4. Push to cloud CMS
+    pushCmsStateToCloud({ isEnquirySubmission: false }).catch(() => null)
+
+    // 5. If currently viewing the deleted printer, switch to the next available 3D printer
+    if (activeProductKey === key) {
+      const remainingPrinters = fullVisualCatalog.filter(
+        p => p.editorGroup === 'printers' && p.key !== key && !nextDeletedKeys.includes(p.key)
+      )
+      const fallbackKey = remainingPrinters[0]?.key || 'pratham_mini'
+      loadProductIntoEditor(fallbackKey)
+    }
+
+    showToast('success', `✓ Successfully deleted 3D Printer "${prodName}".`)
+  }
+
+  // Restore any deleted built-in 3D Printers
+  const handleRestoreDeletedPrinters = () => {
+    localStorage.setItem('leniva_deleted_printer_keys', JSON.stringify([]))
+    setDeletedPrinterKeys([])
+    pushCmsStateToCloud({ isEnquirySubmission: false }).catch(() => null)
+    showToast('success', '✓ Restored all default 3D Printer & Filament pages.')
   }
 
   // Sync if parent switches between CAD Software Edit / 3D Printers Edit / 3D Scanners Edit
@@ -1213,55 +1567,96 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
           ? 'CAD Software Edit — Full-Page Live Visual Editor'
           : 'All Product Pages — Full-Page Live Visual Editor'
 
-  // Shared Modal Renderer for Adding & Deleting CAD Softwares (works in both List & Editor views)
+  // Shared Modal Renderer for Adding & Deleting 3D Printers and CAD Softwares (works in both List & Editor views)
   const renderCadModal = () =>
     showNewCadModal ? (
       <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 animate-in fade-in">
         <div className="bg-white rounded-3xl max-w-2xl w-full flex flex-col shadow-2xl border border-slate-200 overflow-hidden text-xs">
-          {/* Header */}
-          <div className="px-6 py-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+          {/* Header with Category Switcher (3D Printers vs CAD Software) */}
+          <div className="px-6 py-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 shrink-0">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400 font-bold shrink-0">
                 {cadModalTab === 'create' ? <Plus className="w-5 h-5 stroke-[2.5]" /> : <Trash2 className="w-5 h-5 text-rose-400" />}
               </div>
               <div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 flex-wrap gap-y-1">
                   <h3 className="font-extrabold text-base text-white">
-                    {cadModalTab === 'create' ? 'Add New CAD Software' : 'Manage & Delete CAD Softwares'}
+                    {modalEntityType === 'printers'
+                      ? cadModalTab === 'create'
+                        ? 'Add New 3D Printer'
+                        : 'Manage & Delete 3D Printers'
+                      : cadModalTab === 'create'
+                        ? 'Add New CAD Software'
+                        : 'Manage & Delete CAD Softwares'}
                   </h3>
                   <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[10px] font-mono font-bold">
-                    ARES Standard Layout
+                    {modalEntityType === 'printers' ? 'Pratham & EKA Formats' : 'ARES Standard Layout'}
                   </span>
                 </div>
                 <p className="text-slate-300 text-xs mt-0.5">
-                  {cadModalTab === 'create'
-                    ? 'Create a new dedicated CAD product page formatted with the professional ARES Standard sections & RFQ form.'
-                    : 'Review, edit, or delete CAD softwares from your website and product catalog.'}
+                  {modalEntityType === 'printers'
+                    ? cadModalTab === 'create'
+                      ? 'Create a new dedicated 3D Printer page formatted like Pratham Mini, Pratham 3.0, EKA DLP, or EKA Industrial LCD.'
+                      : 'Review, edit, or delete 3D Printer & Filament pages from your website and catalog.'
+                    : cadModalTab === 'create'
+                      ? 'Create a new dedicated CAD product page formatted with the professional ARES Standard sections & RFQ form.'
+                      : 'Review, edit, or delete CAD softwares from your website and product catalog.'}
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowNewCadModal(false)}
-              className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
+
+            <div className="flex items-center gap-2 self-end sm:self-center">
+              {/* Quick Mode Switcher inside Modal */}
+              <div className="inline-flex rounded-xl bg-slate-800/90 p-1 border border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => setModalEntityType('printers')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                    modalEntityType === 'printers'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  🖨️ 3D Printers
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModalEntityType('cad')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                    modalEntityType === 'cad'
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  💻 CAD Software
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowNewCadModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
-          {/* Navigation Tabs (Add New CAD vs Manage & Delete) */}
+          {/* Navigation Tabs (Add New vs Manage & Delete) */}
           <div className="flex items-center border-b border-slate-200 bg-slate-50 px-6 pt-2">
             <button
               type="button"
               onClick={() => setCadModalTab('create')}
               className={`px-4 py-2.5 text-xs font-extrabold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
                 cadModalTab === 'create'
-                  ? 'border-indigo-600 text-indigo-700 bg-white rounded-t-lg shadow-2xs'
+                  ? 'border-emerald-600 text-emerald-700 bg-white rounded-t-lg shadow-2xs'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>+ Add New CAD Software</span>
+              <span>
+                {modalEntityType === 'printers' ? '+ Add New 3D Printer' : '+ Add New CAD Software'}
+              </span>
             </button>
             <button
               type="button"
@@ -1273,12 +1668,373 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
               }`}
             >
               <Trash2 className="w-3.5 h-3.5" />
-              <span>Manage & Delete Softwares ({allCadCatalogItems.length})</span>
+              <span>
+                {modalEntityType === 'printers'
+                  ? `Manage & Delete 3D Printers (${allPrinterCatalogItems.length})`
+                  : `Manage & Delete CAD Softwares (${allCadCatalogItems.length})`}
+              </span>
             </button>
           </div>
 
-          {/* TAB 1: CREATE NEW CAD SOFTWARE */}
-          {cadModalTab === 'create' && (
+          {/* ================================================================
+              MODE A: 3D PRINTERS (CREATE & MANAGE/DELETE WITH PRINTER FORMATS)
+             ================================================================ */}
+          {modalEntityType === 'printers' && cadModalTab === 'create' && (
+            <form onSubmit={handleCreateNewPrinter} className="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
+              {/* 3D Printer Template / Format Selector (HIGHLIGHTED) */}
+              <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl">
+                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-emerald-950 mb-1.5 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Choose 3D Printer Page Format & Template Layout</span>
+                </label>
+                <select
+                  value={newPrinterForm.template}
+                  onChange={e => {
+                    const tpl = e.target.value
+                    const autoCat =
+                      tpl.startsWith('eka_gt') || tpl.startsWith('eka_f1')
+                        ? 'Industrial LCD 3D Printers'
+                        : tpl.startsWith('eka_')
+                          ? 'DLP 3D Printers'
+                          : tpl.startsWith('filament_')
+                            ? 'Filaments & Materials'
+                            : 'FDM 3D Printers'
+                    const autoBrand = tpl.startsWith('eka_') ? 'EKA' : 'Make3D'
+                    const autoVol =
+                      tpl === 'pratham_mini'
+                        ? '170 × 170 × 170 mm'
+                        : tpl === 'pratham_desktop'
+                          ? '200 × 200 × 250 mm'
+                          : tpl === 'pratham_3'
+                            ? '300 × 300 × 300 mm'
+                            : tpl === 'pratham_3_rapid'
+                              ? '350 × 350 × 350 mm'
+                              : tpl === 'pratham_5'
+                                ? '500 × 500 × 500 mm'
+                                : tpl === 'pratham_6' || tpl === 'pratham_x_600'
+                                  ? '600 × 600 × 600 mm'
+                                  : tpl === 'pratham_x'
+                                    ? '1000 × 1000 × 1000 mm'
+                                    : tpl === 'eka_ht'
+                                      ? '130 × 73 × 150 mm'
+                                      : newPrinterForm.buildVolume
+                    setNewPrinterForm({
+                      ...newPrinterForm,
+                      template: tpl,
+                      category: autoCat,
+                      brand: autoBrand,
+                      buildVolume: autoVol,
+                    })
+                  }}
+                  className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-slate-900 font-bold bg-white focus:ring-2 focus:ring-emerald-500 outline-none text-xs"
+                >
+                  <optgroup label="★ FDM 3D Printer Formats (Make3D Pratham Series)">
+                    <option value="pratham_mini">
+                      ★ Format like Pratham Mini (Compact Enclosed FDM — Hero, 3-Spec Strip, Education/Lab Section, 4-Tab Specs Table, Print Gallery & FAQ) [Recommended]
+                    </option>
+                    <option value="pratham_desktop">
+                      Format like Pratham Desktop (Desktop Studio FDM — 200×200×250 mm Layout, Specs & Applications)
+                    </option>
+                    <option value="pratham_3">
+                      Format like Pratham 3.0 (Industrial Workhorse FDM — 300×300×300 mm, Industrial Features, Specs Matrix & RFQ)
+                    </option>
+                    <option value="pratham_3_rapid">
+                      Format like Pratham 3.0 Rapid (High-Speed 500 mm/s CoreXY Industrial FDM Layout)
+                    </option>
+                    <option value="pratham_5">
+                      Format like Pratham 5.0 (Large-Format Heated Chamber Industrial FDM — 500×500×500 mm Layout)
+                    </option>
+                    <option value="pratham_6">
+                      Format like Pratham 6.0 (Closed-Loop Servo Industrial FDM — 600×600×600 mm Layout)
+                    </option>
+                    <option value="pratham_x_600">
+                      Format like Pratham X 600 (Jumbo Industrial Production FDM Layout)
+                    </option>
+                    <option value="pratham_x">
+                      Format like Pratham X 1000 (Giant 1 m³ Industrial FDM — 1000×1000×1000 mm Layout)
+                    </option>
+                  </optgroup>
+                  <optgroup label="💎 DLP 3D Printer Formats (EKA Jewelry & Casting Series)">
+                    <option value="eka_ht">
+                      Format like EKA HT (Heated-Tray Jewelry DLP 3D Printer Layout, Wax Casting Specs & Gallery)
+                    </option>
+                    <option value="eka_xl">
+                      Format like EKA XL (Large-Platform Jewelry DLP 3D Printer Layout)
+                    </option>
+                    <option value="eka_xle">
+                      Format like EKA XLE (Extended Production Jewelry DLP 3D Printer Layout)
+                    </option>
+                  </optgroup>
+                  <optgroup label="🔬 Industrial LCD 3D Printer Formats (EKA LCD Series)">
+                    <option value="eka_gt_max">
+                      Format like EKA GT Max (Industrial Large-Format LCD Resin 3D Printer Layout)
+                    </option>
+                    <option value="eka_f1_16k">
+                      Format like EKA F1 16K (16K Ultra-HD Industrial LCD Jewelry 3D Printer Layout)
+                    </option>
+                  </optgroup>
+                  <optgroup label="🧵 3D Filament & Material Format">
+                    <option value="filament_white_pla">
+                      Format like PLA / PLA+ 3D Printer Filament (Material Spool, Print Temp Specs & Applications Layout)
+                    </option>
+                  </optgroup>
+                </select>
+                <p className="text-[11px] text-emerald-800 mt-1.5 leading-relaxed">
+                  ✓ <strong>Full 3D Printer Format Selected:</strong> Your new 3D printer page will automatically include the complete Hero section, Build Volume & Technology cards, Key Features, Multi-Tab Technical Specifications table, Print Gallery, PDF Brochure button, FAQ, and Instant Quote modal!
+                </p>
+              </div>
+
+              {/* 3D Printer Name */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  3D Printer Model Name <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Pratham Pro 400, Pratham Ultra X, EKA Pro DLP, Bambu Lab X1E"
+                  value={newPrinterForm.name}
+                  onChange={e => {
+                    const name = e.target.value
+                    const autoSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+                    setNewPrinterForm({
+                      ...newPrinterForm,
+                      name,
+                      route: autoSlug ? `/products/${autoSlug}` : '/products/',
+                      headline:
+                        newPrinterForm.headline ||
+                        (name ? `${name} — Precision Industrial 3D Printer` : ''),
+                    })
+                  }}
+                  className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 outline-none text-xs"
+                />
+              </div>
+
+              {/* Grid: Brand, Category & Build Volume */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    Brand / Manufacturer <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Make3D / EKA / Leniva 3D"
+                    value={newPrinterForm.brand}
+                    onChange={e => setNewPrinterForm({ ...newPrinterForm, brand: e.target.value })}
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    3D Printer Category <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={newPrinterForm.category}
+                    onChange={e => setNewPrinterForm({ ...newPrinterForm, category: e.target.value })}
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none bg-white text-xs font-medium"
+                  >
+                    <option value="FDM 3D Printers">FDM 3D Printers</option>
+                    <option value="DLP 3D Printers">DLP 3D Printers</option>
+                    <option value="Industrial LCD 3D Printers">Industrial LCD 3D Printers</option>
+                    <option value="Filaments & Materials">Filaments & Materials</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    Build Volume / Spec
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 300 × 300 × 300 mm"
+                    value={newPrinterForm.buildVolume}
+                    onChange={e => setNewPrinterForm({ ...newPrinterForm, buildVolume: e.target.value })}
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 font-mono focus:ring-2 focus:ring-emerald-500 outline-none text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Public URL Route */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Public Website Page URL <span className="text-rose-500">*</span>
+                </label>
+                <div className="flex items-center">
+                  <span className="px-3 py-2 bg-slate-100 border border-r-0 border-slate-300 rounded-l-xl text-slate-500 font-mono text-[11px]">
+                    https://www.leniva3d.com/products/
+                  </span>
+                  <input
+                    type="text"
+                    required
+                    placeholder="printer-model-slug"
+                    value={newPrinterForm.route.replace(/^\/products\/?/, '')}
+                    onChange={e => {
+                      const clean = e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+                      setNewPrinterForm({ ...newPrinterForm, route: `/products/${clean}` })
+                    }}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-r-xl text-slate-900 font-mono text-[11px] focus:ring-2 focus:ring-emerald-500 outline-none"
+                  />
+                </div>
+                <span className="text-[10px] text-slate-400 mt-1 block">
+                  Accessible directly at this URL on your live website after publishing.
+                </span>
+              </div>
+
+              {/* Tagline / Headline */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Page Hero Headline / Tagline
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Industrial Power for High-Speed Functional Prototyping & Production"
+                  value={newPrinterForm.headline}
+                  onChange={e => setNewPrinterForm({ ...newPrinterForm, headline: e.target.value })}
+                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none text-xs"
+                />
+              </div>
+
+              {/* Short Description */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Short Description
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. Engineered for industrial manufacturing, R&D labs, and continuous production with micron-level accuracy and nationwide Leniva technical support."
+                  value={newPrinterForm.shortDescription}
+                  onChange={e => setNewPrinterForm({ ...newPrinterForm, shortDescription: e.target.value })}
+                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none text-xs resize-none"
+                />
+              </div>
+
+              {/* Actions Footer */}
+              <div className="pt-3 border-t border-slate-200 flex items-center justify-between gap-3">
+                <span className="text-[11px] text-slate-500 hidden sm:inline">
+                  Template: <strong>{VISUAL_PAGE_CATALOG.find(p => p.key === newPrinterForm.template)?.label || 'Pratham Mini'} Format</strong>
+                </span>
+
+                <div className="flex items-center space-x-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setShowNewCadModal(false)}
+                    className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors cursor-pointer text-xs"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-md cursor-pointer flex items-center space-x-1.5 text-xs hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <Plus className="w-4 h-4 stroke-[2.5]" />
+                    <span>Create 3D Printer & Open in Visual Editor &rarr;</span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          )}
+
+          {modalEntityType === 'printers' && cadModalTab === 'manage' && (
+            <div className="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
+              <div className="flex items-center justify-between gap-2 flex-wrap pb-2 border-b border-slate-100">
+                <span className="text-xs font-bold text-slate-700">
+                  All Active 3D Printers & Filaments on Website ({allPrinterCatalogItems.length})
+                </span>
+                <div className="flex items-center gap-2">
+                  {deletedPrinterKeys.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleRestoreDeletedPrinters}
+                      className="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Restore Deleted Defaults ({deletedPrinterKeys.length})</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setCadModalTab('create')}
+                    className="px-3 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Create New 3D Printer</span>
+                  </button>
+                </div>
+              </div>
+
+              {allPrinterCatalogItems.length === 0 ? (
+                <div className="py-12 text-center text-slate-400 space-y-2">
+                  <p className="text-sm font-bold text-slate-600">No 3D printers currently active.</p>
+                  <p className="text-xs">Click the "+ Add New 3D Printer" tab above to create one formatted like Pratham Mini, Pratham 3.0, or EKA DLP.</p>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {allPrinterCatalogItems.map(pp => {
+                    const isCustomPrinter = pp.key.startsWith('printer_')
+                    return (
+                      <div
+                        key={pp.key}
+                        className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-emerald-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="font-extrabold text-sm text-slate-900 truncate">
+                              {pp.label}
+                            </h4>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              {pp.brand || 'Make3D'}
+                            </span>
+                            {isCustomPrinter ? (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                ★ Custom 3D Printer
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-200 text-slate-700">
+                                Standard 3D Printer Page
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1 truncate">
+                            {pp.category} • <span className="font-mono text-[11px] text-blue-600">{pp.route}</span>
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowNewCadModal(false)
+                              loadProductIntoEditor(pp.key)
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                          >
+                            <span>Open & Edit</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePrinter(pp.key, pp.label)}
+                            className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                            title={`Delete ${pp.label}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ================================================================
+              MODE B: CAD SOFTWARE (CREATE & MANAGE/DELETE WITH ARES FORMATS)
+             ================================================================ */}
+          {modalEntityType === 'cad' && cadModalTab === 'create' && (
             <form onSubmit={handleCreateNewCadSoftware} className="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
               {/* Template / Format Banner (HIGHLIGHTED) */}
               <div className="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl">
@@ -1447,8 +2203,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
             </form>
           )}
 
-          {/* TAB 2: MANAGE & DELETE EXISTING CAD SOFTWARES */}
-          {cadModalTab === 'manage' && (
+          {modalEntityType === 'cad' && cadModalTab === 'manage' && (
             <div className="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
               <div className="flex items-center justify-between gap-2 flex-wrap pb-2 border-b border-slate-100">
                 <span className="text-xs font-bold text-slate-700">
@@ -1550,6 +2305,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
   // VIEW 1: PRODUCT SELECTION DASHBOARD (Supports CAD Software, 3D Printers & 3D Scanners)
   // ============================================================================
   if (viewMode === 'list') {
+    const isPrintersListContext = categoryFilter === 'printers'
     return (
       <div className="min-h-screen bg-slate-100 p-4 sm:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
@@ -1592,24 +2348,26 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                 <button
                   type="button"
                   onClick={() => {
+                    setModalEntityType(isPrintersListContext ? 'printers' : 'cad')
                     setCadModalTab('create')
                     setShowNewCadModal(true)
                   }}
                   className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <Plus className="w-4 h-4 stroke-[2.5]" />
-                  <span>Add New CAD Software</span>
+                  <span>{isPrintersListContext ? 'Add New 3D Printer' : 'Add New CAD Software'}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => {
+                    setModalEntityType(isPrintersListContext ? 'printers' : 'cad')
                     setCadModalTab('manage')
                     setShowNewCadModal(true)
                   }}
                   className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <Trash2 className="w-4 h-4 stroke-[2.5]" />
-                  <span>Delete CAD Software</span>
+                  <span>{isPrintersListContext ? 'Delete 3D Printer' : 'Delete CAD Software'}</span>
                 </button>
                 <button
                   onClick={() => setShowAuditModal(true)}
@@ -1776,6 +2534,17 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                           <span>Delete</span>
                         </button>
                       )}
+                      {(prod.editorGroup === 'printers' || prod.key.startsWith('printer_')) && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeletePrinter(prod.key, prod.label)}
+                          className="px-2.5 py-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors border border-rose-200"
+                          title={`Delete ${prod.label}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                          <span>Delete</span>
+                        </button>
+                      )}
                       <button
                         onClick={() => {
                           loadProductIntoEditor(prod.key)
@@ -1888,6 +2657,10 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
   }
 
   const revisions = getVisualRevisions(activeProductKey)
+  const isPrinterActive =
+    activeProductMeta.editorGroup === 'printers' ||
+    activeProductMeta.key.startsWith('printer_') ||
+    categoryFilter === 'printers'
 
   return (
     <div className="fixed inset-0 z-50 w-screen h-screen bg-white flex flex-col overflow-hidden">
@@ -1954,12 +2727,26 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
           <select
             value={activeProductKey}
             onChange={e => {
+              if (e.target.value === '__ADD_NEW_PRINTER__') {
+                setModalEntityType('printers')
+                setCadModalTab('create')
+                setShowNewCadModal(true)
+                return
+              }
+              if (e.target.value === '__MANAGE_PRINTERS__') {
+                setModalEntityType('printers')
+                setCadModalTab('manage')
+                setShowNewCadModal(true)
+                return
+              }
               if (e.target.value === '__ADD_NEW_CAD__') {
+                setModalEntityType('cad')
                 setCadModalTab('create')
                 setShowNewCadModal(true)
                 return
               }
               if (e.target.value === '__MANAGE_CAD__') {
+                setModalEntityType('cad')
                 setCadModalTab('manage')
                 setShowNewCadModal(true)
                 return
@@ -1972,6 +2759,12 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
             className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs font-bold max-w-[240px] sm:max-w-[300px] focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <optgroup label="✨ Quick Action">
+              <option value="__ADD_NEW_PRINTER__" className="text-emerald-400 font-bold bg-slate-900">
+                + Add New 3D Printer (Pratham / EKA Format)...
+              </option>
+              <option value="__MANAGE_PRINTERS__" className="text-rose-400 font-bold bg-slate-900">
+                🗑️ Manage & Delete 3D Printers ({allPrinterCatalogItems.length})...
+              </option>
               <option value="__ADD_NEW_CAD__" className="text-emerald-400 font-bold bg-slate-900">
                 + Add New CAD Software (ARES Format)...
               </option>
@@ -1992,7 +2785,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
               <optgroup label={`🖨️ 3D Printers & Filaments (${categoryCounts.printers})`}>
                 {fullVisualCatalog.filter(p => p.editorGroup === 'printers').map(p => (
                   <option key={p.key} value={p.key}>
-                    {p.label} ({p.brand})
+                    {p.label} ({p.brand}) {p.key.startsWith('printer_') ? '★ [Custom]' : ''}
                   </option>
                 ))}
               </optgroup>
@@ -2017,46 +2810,95 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
             )}
           </select>
 
-          {/* Prominent "+ Add CAD Software" button right in the top toolbar */}
-          <button
-            type="button"
-            onClick={() => {
-              setCadModalTab('create')
-              setShowNewCadModal(true)
-            }}
-            className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all shrink-0 hover:scale-[1.02] active:scale-[0.98]"
-            title="Add a new CAD software page formatted like ARES Standard"
-          >
-            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>Add CAD Software</span>
-          </button>
+          {isPrinterActive ? (
+            <>
+              {/* Prominent "+ Add 3D Printer" button in the top toolbar */}
+              <button
+                type="button"
+                onClick={() => {
+                  setModalEntityType('printers')
+                  setCadModalTab('create')
+                  setShowNewCadModal(true)
+                }}
+                className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all shrink-0 hover:scale-[1.02] active:scale-[0.98]"
+                title="Add a new 3D Printer page formatted like Pratham Mini, Pratham 3.0, or EKA DLP"
+              >
+                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Add 3D Printer</span>
+              </button>
 
-          {/* Prominent "Delete CAD Software" button — ALWAYS visible in the top toolbar */}
-          {(activeProductMeta.editorGroup === 'cad' || activeProductMeta.key.startsWith('cad_')) && (
-            <button
-              type="button"
-              onClick={() => handleDeleteCadSoftware(activeProductMeta.key, activeProductMeta.label)}
-              className="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all shrink-0 hover:scale-[1.02] active:scale-[0.98]"
-              title={`Delete ${activeProductMeta.label}`}
-            >
-              <Trash2 className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>Delete Software</span>
-            </button>
+              {/* Prominent "Delete 3D Printer" button in the top toolbar */}
+              <button
+                type="button"
+                onClick={() => handleDeletePrinter(activeProductMeta.key, activeProductMeta.label)}
+                className="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all shrink-0 hover:scale-[1.02] active:scale-[0.98]"
+                title={`Delete ${activeProductMeta.label}`}
+              >
+                <Trash2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Delete 3D Printer</span>
+              </button>
+
+              {/* Manage / Delete All 3D Printers button in the top toolbar */}
+              <button
+                type="button"
+                onClick={() => {
+                  setModalEntityType('printers')
+                  setCadModalTab('manage')
+                  setShowNewCadModal(true)
+                }}
+                className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-rose-300 hover:text-rose-200 border border-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all shrink-0"
+                title="Open list of all 3D Printers to manage or delete"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                <span>Manage / Delete Printers ({allPrinterCatalogItems.length})</span>
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Prominent "+ Add CAD Software" button right in the top toolbar */}
+              <button
+                type="button"
+                onClick={() => {
+                  setModalEntityType('cad')
+                  setCadModalTab('create')
+                  setShowNewCadModal(true)
+                }}
+                className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all shrink-0 hover:scale-[1.02] active:scale-[0.98]"
+                title="Add a new CAD software page formatted like ARES Standard"
+              >
+                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Add CAD Software</span>
+              </button>
+
+              {/* Prominent "Delete CAD Software" button — ALWAYS visible in the top toolbar */}
+              {(activeProductMeta.editorGroup === 'cad' || activeProductMeta.key.startsWith('cad_')) && (
+                <button
+                  type="button"
+                  onClick={() => handleDeleteCadSoftware(activeProductMeta.key, activeProductMeta.label)}
+                  className="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all shrink-0 hover:scale-[1.02] active:scale-[0.98]"
+                  title={`Delete ${activeProductMeta.label}`}
+                >
+                  <Trash2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Delete Software</span>
+                </button>
+              )}
+
+              {/* Manage / Delete All CAD Softwares button — ALWAYS visible in the top toolbar */}
+              <button
+                type="button"
+                onClick={() => {
+                  setModalEntityType('cad')
+                  setCadModalTab('manage')
+                  setShowNewCadModal(true)
+                }}
+                className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-rose-300 hover:text-rose-200 border border-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all shrink-0"
+                title="Open list of all CAD softwares to manage or delete"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                <span>Manage / Delete CAD ({allCadCatalogItems.length})</span>
+              </button>
+            </>
           )}
-
-          {/* Manage / Delete All CAD Softwares button — ALWAYS visible in the top toolbar */}
-          <button
-            type="button"
-            onClick={() => {
-              setCadModalTab('manage')
-              setShowNewCadModal(true)
-            }}
-            className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-rose-300 hover:text-rose-200 border border-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all shrink-0"
-            title="Open list of all CAD softwares to manage or delete"
-          >
-            <Trash2 className="w-3.5 h-3.5 text-rose-400" />
-            <span>Manage / Delete CAD ({allCadCatalogItems.length})</span>
-          </button>
 
           {hasUnsavedChanges ? (
             <span className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[11px] font-mono font-bold">
