@@ -445,11 +445,8 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
     return fullVisualCatalog.filter(p => p.editorGroup === 'printers')
   }, [fullVisualCatalog])
 
-  // Modal State for CAD Software & 3D Printers
+  // Modal State for CAD Softwares (Clean earlier layout)
   const [showNewCadModal, setShowNewCadModal] = useState<boolean>(false)
-  const [modalEntityType, setModalEntityType] = useState<'cad' | 'printers'>(() =>
-    initialCategory === 'printers' ? 'printers' : 'cad'
-  )
   const [cadModalTab, setCadModalTab] = useState<'create' | 'manage'>('create')
   const [newCadForm, setNewCadForm] = useState({
     name: '',
@@ -460,6 +457,10 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
     headline: '',
     shortDescription: '',
   })
+
+  // Dedicated Modal State for 3D Printers (Completely separate from CAD Softwares)
+  const [showNewPrinterModal, setShowNewPrinterModal] = useState<boolean>(false)
+  const [printerModalTab, setPrinterModalTab] = useState<'create' | 'manage'>('create')
   const [newPrinterForm, setNewPrinterForm] = useState({
     name: '',
     brand: 'Make3D',
@@ -866,7 +867,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
     pushCmsStateToCloud({ isEnquirySubmission: false }).catch(() => null)
 
     // 5. Reset form and close modal
-    setShowNewCadModal(false)
+    setShowNewPrinterModal(false)
     setNewPrinterForm({
       name: '',
       brand: 'Make3D',
@@ -1567,96 +1568,55 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
           ? 'CAD Software Edit — Full-Page Live Visual Editor'
           : 'All Product Pages — Full-Page Live Visual Editor'
 
-  // Shared Modal Renderer for Adding & Deleting 3D Printers and CAD Softwares (works in both List & Editor views)
+  // Dedicated Modal for Adding & Deleting CAD Softwares (Restored to Clean Earlier Layout)
   const renderCadModal = () =>
     showNewCadModal ? (
       <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 animate-in fade-in">
         <div className="bg-white rounded-3xl max-w-2xl w-full flex flex-col shadow-2xl border border-slate-200 overflow-hidden text-xs">
-          {/* Header with Category Switcher (3D Printers vs CAD Software) */}
-          <div className="px-6 py-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 shrink-0">
+          {/* Header */}
+          <div className="px-6 py-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400 font-bold shrink-0">
                 {cadModalTab === 'create' ? <Plus className="w-5 h-5 stroke-[2.5]" /> : <Trash2 className="w-5 h-5 text-rose-400" />}
               </div>
               <div>
-                <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                <div className="flex items-center space-x-2">
                   <h3 className="font-extrabold text-base text-white">
-                    {modalEntityType === 'printers'
-                      ? cadModalTab === 'create'
-                        ? 'Add New 3D Printer'
-                        : 'Manage & Delete 3D Printers'
-                      : cadModalTab === 'create'
-                        ? 'Add New CAD Software'
-                        : 'Manage & Delete CAD Softwares'}
+                    {cadModalTab === 'create' ? 'Add New CAD Software' : 'Manage & Delete CAD Softwares'}
                   </h3>
                   <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[10px] font-mono font-bold">
-                    {modalEntityType === 'printers' ? 'Pratham & EKA Formats' : 'ARES Standard Layout'}
+                    ARES Standard Layout
                   </span>
                 </div>
                 <p className="text-slate-300 text-xs mt-0.5">
-                  {modalEntityType === 'printers'
-                    ? cadModalTab === 'create'
-                      ? 'Create a new dedicated 3D Printer page formatted like Pratham Mini, Pratham 3.0, EKA DLP, or EKA Industrial LCD.'
-                      : 'Review, edit, or delete 3D Printer & Filament pages from your website and catalog.'
-                    : cadModalTab === 'create'
-                      ? 'Create a new dedicated CAD product page formatted with the professional ARES Standard sections & RFQ form.'
-                      : 'Review, edit, or delete CAD softwares from your website and product catalog.'}
+                  {cadModalTab === 'create'
+                    ? 'Create a new dedicated CAD product page formatted with the professional ARES Standard sections & RFQ form.'
+                    : 'Review, edit, or delete CAD softwares from your website and product catalog.'}
                 </p>
               </div>
             </div>
-
-            <div className="flex items-center gap-2 self-end sm:self-center">
-              {/* Quick Mode Switcher inside Modal */}
-              <div className="inline-flex rounded-xl bg-slate-800/90 p-1 border border-slate-700">
-                <button
-                  type="button"
-                  onClick={() => setModalEntityType('printers')}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    modalEntityType === 'printers'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'text-slate-300 hover:text-white'
-                  }`}
-                >
-                  🖨️ 3D Printers
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setModalEntityType('cad')}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    modalEntityType === 'cad'
-                      ? 'bg-indigo-600 text-white shadow-xs'
-                      : 'text-slate-300 hover:text-white'
-                  }`}
-                >
-                  💻 CAD Software
-                </button>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowNewCadModal(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setShowNewCadModal(false)}
+              className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
-          {/* Navigation Tabs (Add New vs Manage & Delete) */}
+          {/* Navigation Tabs (Add New CAD vs Manage & Delete) */}
           <div className="flex items-center border-b border-slate-200 bg-slate-50 px-6 pt-2">
             <button
               type="button"
               onClick={() => setCadModalTab('create')}
               className={`px-4 py-2.5 text-xs font-extrabold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
                 cadModalTab === 'create'
-                  ? 'border-emerald-600 text-emerald-700 bg-white rounded-t-lg shadow-2xs'
+                  ? 'border-indigo-600 text-indigo-700 bg-white rounded-t-lg shadow-2xs'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>
-                {modalEntityType === 'printers' ? '+ Add New 3D Printer' : '+ Add New CAD Software'}
-              </span>
+              <span>Add New CAD Software</span>
             </button>
             <button
               type="button"
@@ -1668,20 +1628,349 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
               }`}
             >
               <Trash2 className="w-3.5 h-3.5" />
-              <span>
-                {modalEntityType === 'printers'
-                  ? `Manage & Delete 3D Printers (${allPrinterCatalogItems.length})`
-                  : `Manage & Delete CAD Softwares (${allCadCatalogItems.length})`}
-              </span>
+              <span>Manage & Delete CAD Softwares ({allCadCatalogItems.length})</span>
             </button>
           </div>
 
-          {/* ================================================================
-              MODE A: 3D PRINTERS (CREATE & MANAGE/DELETE WITH PRINTER FORMATS)
-             ================================================================ */}
-          {modalEntityType === 'printers' && cadModalTab === 'create' && (
+
+
+          {/* TAB 1: CREATE NEW CAD SOFTWARE */}
+          {cadModalTab === 'create' && (
+            <form onSubmit={handleCreateNewCadSoftware} className="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
+              {/* Template / Format Banner (HIGHLIGHTED) */}
+              <div className="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl">
+                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-indigo-900 mb-1.5 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Choose Page Format & Template Layout</span>
+                </label>
+                <select
+                  value={newCadForm.template}
+                  onChange={e => setNewCadForm({ ...newCadForm, template: e.target.value })}
+                  className="w-full px-3 py-2 border border-indigo-300 rounded-lg text-slate-900 font-bold bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
+                >
+                  <option value="ares_standard">
+                    ★ Format like ARES Standard (Complete 2D/3D DWG Suite, Specs Table, Comparison Matrix & RFQ Quote Form) [Recommended]
+                  </option>
+                  <option value="ares_commander">
+                    Format like ARES Commander (Trinity: Desktop, Cloud & Mobile Multi-Platform)
+                  </option>
+                  <option value="ares_mechanical">
+                    Format like ARES Mechanical (2D Mechanical Engineering & Automated BOM)
+                  </option>
+                  <option value="sketchup_pro">
+                    Format like SketchUp Pro (3D Design, Architectural Modeling & Rendering)
+                  </option>
+                </select>
+                <p className="text-[11px] text-indigo-700 mt-1.5 leading-relaxed">
+                  ✓ <strong>ARES Standard Format Selected:</strong> Your page will automatically include the complete Hero section, 2D Drafting Overview tabs, Key Benefits, Technical Specifications table, System Requirements, Download Trial button, and Instant RFQ Quote form!
+                </p>
+              </div>
+
+              {/* Software Name */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  CAD Software Name <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. SolidWorks 2026, AutoCAD Mechanical, ZwCAD Pro, BricsCAD"
+                  value={newCadForm.name}
+                  onChange={e => {
+                    const name = e.target.value
+                    const autoSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+                    setNewCadForm({
+                      ...newCadForm,
+                      name,
+                      route: autoSlug ? `/products/${autoSlug}` : '/products/',
+                      headline: newCadForm.headline || (name ? `${name} — Professional DWG CAD Software` : ''),
+                    })
+                  }}
+                  className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-slate-900 font-bold focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
+                />
+              </div>
+
+              {/* Grid: Brand & Category */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    Brand / Developer <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Graebert / Dassault / Autodesk / Trimble"
+                    value={newCadForm.brand}
+                    onChange={e => setNewCadForm({ ...newCadForm, brand: e.target.value })}
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    CAD Category <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={newCadForm.category}
+                    onChange={e => setNewCadForm({ ...newCadForm, category: e.target.value })}
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-xs font-medium"
+                  >
+                    <option value="2D DWG CAD Software">2D DWG CAD Software</option>
+                    <option value="2D Mechanical CAD">2D Mechanical CAD</option>
+                    <option value="Electrical CAD (ECAD)">Electrical CAD (ECAD)</option>
+                    <option value="3D Engineering CAD & BIM">3D Engineering CAD & BIM</option>
+                    <option value="Architectural Modeling & Rendering">Architectural Modeling & Rendering</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Public URL Route */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Public Website Page URL <span className="text-rose-500">*</span>
+                </label>
+                <div className="flex items-center">
+                  <span className="px-3 py-2 bg-slate-100 border border-r-0 border-slate-300 rounded-l-xl text-slate-500 font-mono text-[11px]">
+                    https://www.leniva3d.com/products/
+                  </span>
+                  <input
+                    type="text"
+                    required
+                    placeholder="software-name-slug"
+                    value={newCadForm.route.replace(/^\/products\/?/, '')}
+                    onChange={e => {
+                      const clean = e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+                      setNewCadForm({ ...newCadForm, route: `/products/${clean}` })
+                    }}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-r-xl text-slate-900 font-mono text-[11px] focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+                <span className="text-[10px] text-slate-400 mt-1 block">
+                  Accessible directly at this URL on your live website after publishing.
+                </span>
+              </div>
+
+              {/* Tagline / Headline */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Page Hero Headline / Tagline
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Precision 2D DWG CAD Software for Engineering & Technical Drafters"
+                  value={newCadForm.headline}
+                  onChange={e => setNewCadForm({ ...newCadForm, headline: e.target.value })}
+                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
+                />
+              </div>
+
+              {/* Short Description */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Short Description
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. Professional DWG CAD solution with perpetual and subscription licensing, native DWG compatibility, and full technical support from Leniva CAD Solutions."
+                  value={newCadForm.shortDescription}
+                  onChange={e => setNewCadForm({ ...newCadForm, shortDescription: e.target.value })}
+                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none text-xs resize-none"
+                />
+              </div>
+
+              {/* Actions Footer */}
+              <div className="pt-3 border-t border-slate-200 flex items-center justify-between gap-3">
+                <span className="text-[11px] text-slate-500 hidden sm:inline">
+                  Template: <strong>ARES Standard Engine</strong>
+                </span>
+
+                <div className="flex items-center space-x-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setShowNewCadModal(false)}
+                    className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors cursor-pointer text-xs"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-md cursor-pointer flex items-center space-x-1.5 text-xs hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <Plus className="w-4 h-4 stroke-[2.5]" />
+                    <span>Create & Open in Visual Editor &rarr;</span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          )}
+
+          {/* TAB 2: MANAGE & DELETE CAD SOFTWARES */}
+          {cadModalTab === 'manage' && (
+            <div className="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
+              <div className="flex items-center justify-between gap-2 flex-wrap pb-2 border-b border-slate-100">
+                <span className="text-xs font-bold text-slate-700">
+                  All Active CAD Softwares on Website ({allCadCatalogItems.length})
+                </span>
+                <div className="flex items-center gap-2">
+                  {deletedCadKeys.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleRestoreDeletedCadSoftwares}
+                      className="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Restore Deleted Defaults ({deletedCadKeys.length})</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setCadModalTab('create')}
+                    className="px-3 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Create New Software</span>
+                  </button>
+                </div>
+              </div>
+
+              {allCadCatalogItems.length === 0 ? (
+                <div className="py-12 text-center text-slate-400 space-y-2">
+                  <p className="text-sm font-bold text-slate-600">No CAD softwares currently active.</p>
+                  <p className="text-xs">Click the "+ Add New CAD Software" tab above to create one formatted like ARES Standard.</p>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {allCadCatalogItems.map(cp => {
+                    const isCustomItem = cp.key.startsWith('cad_')
+                    return (
+                      <div
+                        key={cp.key}
+                        className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-blue-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="font-extrabold text-sm text-slate-900 truncate">
+                              {cp.label}
+                            </h4>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                              {cp.brand || 'Graebert'}
+                            </span>
+                            {isCustomItem ? (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                ★ Custom (ARES Standard Format)
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-200 text-slate-700">
+                                Standard CAD Page
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1 truncate">
+                            {cp.category} • <span className="font-mono text-[11px] text-blue-600">{cp.route}</span>
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowNewCadModal(false)
+                              loadProductIntoEditor(cp.key)
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                          >
+                            <span>Open & Edit</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCadSoftware(cp.key, cp.label)}
+                            className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                            title={`Delete ${cp.label}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    ) : null
+
+  // Dedicated Modal for Adding & Deleting 3D Printers (Completely Separate from CAD Softwares)
+  const renderPrinterModal = () =>
+    showNewPrinterModal ? (
+      <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 animate-in fade-in">
+        <div className="bg-white rounded-3xl max-w-2xl w-full flex flex-col shadow-2xl border border-slate-200 overflow-hidden text-xs">
+          {/* Header */}
+          <div className="px-6 py-4 bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400 font-bold shrink-0">
+                {printerModalTab === 'create' ? <Plus className="w-5 h-5 stroke-[2.5]" /> : <Trash2 className="w-5 h-5 text-rose-400" />}
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h3 className="font-extrabold text-base text-white">
+                    {printerModalTab === 'create' ? 'Add New 3D Printer' : 'Manage & Delete 3D Printers'}
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[10px] font-mono font-bold">
+                    Pratham & EKA Formats
+                  </span>
+                </div>
+                <p className="text-slate-300 text-xs mt-0.5">
+                  {printerModalTab === 'create'
+                    ? 'Create a new dedicated 3D Printer page formatted like Pratham Mini, Pratham 3.0, EKA DLP, or EKA Industrial LCD.'
+                    : 'Review, edit, or delete 3D Printer & Filament pages from your website and catalog.'}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowNewPrinterModal(false)}
+              className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Navigation Tabs (Add New 3D Printer vs Manage & Delete) */}
+          <div className="flex items-center border-b border-slate-200 bg-slate-50 px-6 pt-2">
+            <button
+              type="button"
+              onClick={() => setPrinterModalTab('create')}
+              className={`px-4 py-2.5 text-xs font-extrabold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
+                printerModalTab === 'create'
+                  ? 'border-emerald-600 text-emerald-700 bg-white rounded-t-lg shadow-2xs'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add New 3D Printer</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPrinterModalTab('manage')}
+              className={`px-4 py-2.5 text-xs font-extrabold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
+                printerModalTab === 'manage'
+                  ? 'border-rose-600 text-rose-700 bg-white rounded-t-lg shadow-2xs'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Manage & Delete 3D Printers ({allPrinterCatalogItems.length})</span>
+            </button>
+          </div>
+
+          {/* TAB 1: CREATE NEW 3D PRINTER */}
+          {printerModalTab === 'create' && (
             <form onSubmit={handleCreateNewPrinter} className="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
-              {/* 3D Printer Template / Format Selector (HIGHLIGHTED) */}
+              {/* 3D Printer Template / Format Selector */}
               <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl">
                 <label className="block text-[11px] font-extrabold uppercase tracking-wider text-emerald-950 mb-1.5 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
@@ -1919,7 +2208,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                 <div className="flex items-center space-x-2.5">
                   <button
                     type="button"
-                    onClick={() => setShowNewCadModal(false)}
+                    onClick={() => setShowNewPrinterModal(false)}
                     className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors cursor-pointer text-xs"
                   >
                     Cancel
@@ -1936,7 +2225,8 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
             </form>
           )}
 
-          {modalEntityType === 'printers' && cadModalTab === 'manage' && (
+          {/* TAB 2: MANAGE & DELETE 3D PRINTERS */}
+          {printerModalTab === 'manage' && (
             <div className="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
               <div className="flex items-center justify-between gap-2 flex-wrap pb-2 border-b border-slate-100">
                 <span className="text-xs font-bold text-slate-700">
@@ -1955,7 +2245,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                   )}
                   <button
                     type="button"
-                    onClick={() => setCadModalTab('create')}
+                    onClick={() => setPrinterModalTab('create')}
                     className="px-3 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -2005,7 +2295,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                           <button
                             type="button"
                             onClick={() => {
-                              setShowNewCadModal(false)
+                              setShowNewPrinterModal(false)
                               loadProductIntoEditor(pp.key)
                             }}
                             className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
@@ -2018,273 +2308,6 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                             onClick={() => handleDeletePrinter(pp.key, pp.label)}
                             className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
                             title={`Delete ${pp.label}`}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            <span>Delete</span>
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ================================================================
-              MODE B: CAD SOFTWARE (CREATE & MANAGE/DELETE WITH ARES FORMATS)
-             ================================================================ */}
-          {modalEntityType === 'cad' && cadModalTab === 'create' && (
-            <form onSubmit={handleCreateNewCadSoftware} className="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
-              {/* Template / Format Banner (HIGHLIGHTED) */}
-              <div className="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl">
-                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-indigo-900 mb-1.5 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Choose Page Format & Template Layout</span>
-                </label>
-                <select
-                  value={newCadForm.template}
-                  onChange={e => setNewCadForm({ ...newCadForm, template: e.target.value })}
-                  className="w-full px-3 py-2 border border-indigo-300 rounded-lg text-slate-900 font-bold bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
-                >
-                  <option value="ares_standard">
-                    ★ Format like ARES Standard (Complete 2D/3D DWG Suite, Specs Table, Comparison Matrix & RFQ Quote Form) [Recommended]
-                  </option>
-                  <option value="ares_commander">
-                    Format like ARES Commander (Trinity: Desktop, Cloud & Mobile Multi-Platform)
-                  </option>
-                  <option value="ares_mechanical">
-                    Format like ARES Mechanical (2D Mechanical Engineering & Automated BOM)
-                  </option>
-                  <option value="sketchup_pro">
-                    Format like SketchUp Pro (3D Design, Architectural Modeling & Rendering)
-                  </option>
-                </select>
-                <p className="text-[11px] text-indigo-700 mt-1.5 leading-relaxed">
-                  ✓ <strong>ARES Standard Format Selected:</strong> Your page will automatically include the complete Hero section, 2D Drafting Overview tabs, Key Benefits, Technical Specifications table, System Requirements, Download Trial button, and Instant RFQ Quote form!
-                </p>
-              </div>
-
-              {/* Software Name */}
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
-                  CAD Software Name <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. SolidWorks 2026, AutoCAD Mechanical, ZwCAD Pro, BricsCAD"
-                  value={newCadForm.name}
-                  onChange={e => {
-                    const name = e.target.value
-                    const autoSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-                    setNewCadForm({
-                      ...newCadForm,
-                      name,
-                      route: autoSlug ? `/products/${autoSlug}` : '/products/',
-                      headline: newCadForm.headline || (name ? `${name} — Professional DWG CAD Software` : ''),
-                    })
-                  }}
-                  className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-slate-900 font-bold focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
-                />
-              </div>
-
-              {/* Grid: Brand & Category */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Brand / Developer <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Graebert / Dassault / Autodesk / Trimble"
-                    value={newCadForm.brand}
-                    onChange={e => setNewCadForm({ ...newCadForm, brand: e.target.value })}
-                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    CAD Category <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={newCadForm.category}
-                    onChange={e => setNewCadForm({ ...newCadForm, category: e.target.value })}
-                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-xs font-medium"
-                  >
-                    <option value="2D DWG CAD Software">2D DWG CAD Software</option>
-                    <option value="2D Mechanical CAD">2D Mechanical CAD</option>
-                    <option value="Electrical CAD (ECAD)">Electrical CAD (ECAD)</option>
-                    <option value="3D Engineering CAD & BIM">3D Engineering CAD & BIM</option>
-                    <option value="Architectural Modeling & Rendering">Architectural Modeling & Rendering</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Public URL Route */}
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
-                  Public Website Page URL <span className="text-rose-500">*</span>
-                </label>
-                <div className="flex items-center">
-                  <span className="px-3 py-2 bg-slate-100 border border-r-0 border-slate-300 rounded-l-xl text-slate-500 font-mono text-[11px]">
-                    https://www.leniva3d.com/products/
-                  </span>
-                  <input
-                    type="text"
-                    required
-                    placeholder="software-name-slug"
-                    value={newCadForm.route.replace(/^\/products\/?/, '')}
-                    onChange={e => {
-                      const clean = e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-                      setNewCadForm({ ...newCadForm, route: `/products/${clean}` })
-                    }}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-r-xl text-slate-900 font-mono text-[11px] focus:ring-2 focus:ring-indigo-500 outline-none"
-                  />
-                </div>
-                <span className="text-[10px] text-slate-400 mt-1 block">
-                  Accessible directly at this URL on your live website after publishing.
-                </span>
-              </div>
-
-              {/* Tagline / Headline */}
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
-                  Page Hero Headline / Tagline
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Precision 2D DWG CAD Software for Engineering & Technical Drafters"
-                  value={newCadForm.headline}
-                  onChange={e => setNewCadForm({ ...newCadForm, headline: e.target.value })}
-                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
-                />
-              </div>
-
-              {/* Short Description */}
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
-                  Short Description
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="e.g. Professional DWG CAD solution with perpetual and subscription licensing, native DWG compatibility, and full technical support from Leniva CAD Solutions."
-                  value={newCadForm.shortDescription}
-                  onChange={e => setNewCadForm({ ...newCadForm, shortDescription: e.target.value })}
-                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none text-xs resize-none"
-                />
-              </div>
-
-              {/* Actions Footer */}
-              <div className="pt-3 border-t border-slate-200 flex items-center justify-between gap-3">
-                <span className="text-[11px] text-slate-500 hidden sm:inline">
-                  Template: <strong>ARES Standard Engine</strong>
-                </span>
-
-                <div className="flex items-center space-x-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setShowNewCadModal(false)}
-                    className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors cursor-pointer text-xs"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-md cursor-pointer flex items-center space-x-1.5 text-xs hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <Plus className="w-4 h-4 stroke-[2.5]" />
-                    <span>Create & Open in Visual Editor &rarr;</span>
-                  </button>
-                </div>
-              </div>
-            </form>
-          )}
-
-          {modalEntityType === 'cad' && cadModalTab === 'manage' && (
-            <div className="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
-              <div className="flex items-center justify-between gap-2 flex-wrap pb-2 border-b border-slate-100">
-                <span className="text-xs font-bold text-slate-700">
-                  All Active CAD Softwares on Website ({allCadCatalogItems.length})
-                </span>
-                <div className="flex items-center gap-2">
-                  {deletedCadKeys.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={handleRestoreDeletedCadSoftwares}
-                      className="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                      <span>Restore Deleted Defaults ({deletedCadKeys.length})</span>
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setCadModalTab('create')}
-                    className="px-3 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Create New Software</span>
-                  </button>
-                </div>
-              </div>
-
-              {allCadCatalogItems.length === 0 ? (
-                <div className="py-12 text-center text-slate-400 space-y-2">
-                  <p className="text-sm font-bold text-slate-600">No CAD softwares currently active.</p>
-                  <p className="text-xs">Click the "+ Add New CAD Software" tab above to create one formatted like ARES Standard.</p>
-                </div>
-              ) : (
-                <div className="space-y-2.5">
-                  {allCadCatalogItems.map(cp => {
-                    const isCustomItem = cp.key.startsWith('cad_')
-                    return (
-                      <div
-                        key={cp.key}
-                        className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-blue-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                      >
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="font-extrabold text-sm text-slate-900 truncate">
-                              {cp.label}
-                            </h4>
-                            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                              {cp.brand || 'Graebert'}
-                            </span>
-                            {isCustomItem ? (
-                              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                ★ Custom (ARES Standard Format)
-                              </span>
-                            ) : (
-                              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-200 text-slate-700">
-                                Standard CAD Page
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-slate-500 mt-1 truncate">
-                            {cp.category} • <span className="font-mono text-[11px] text-blue-600">{cp.route}</span>
-                          </p>
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowNewCadModal(false)
-                              loadProductIntoEditor(cp.key)
-                            }}
-                            className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
-                          >
-                            <span>Open & Edit</span>
-                            <ChevronRight className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteCadSoftware(cp.key, cp.label)}
-                            className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
-                            title={`Delete ${cp.label}`}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                             <span>Delete</span>
@@ -2345,30 +2368,57 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
               </div>
 
               <div className="flex flex-wrap items-center gap-3 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setModalEntityType(isPrintersListContext ? 'printers' : 'cad')
-                    setCadModalTab('create')
-                    setShowNewCadModal(true)
-                  }}
-                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  <Plus className="w-4 h-4 stroke-[2.5]" />
-                  <span>{isPrintersListContext ? 'Add New 3D Printer' : 'Add New CAD Software'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setModalEntityType(isPrintersListContext ? 'printers' : 'cad')
-                    setCadModalTab('manage')
-                    setShowNewCadModal(true)
-                  }}
-                  className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  <Trash2 className="w-4 h-4 stroke-[2.5]" />
-                  <span>{isPrintersListContext ? 'Delete 3D Printer' : 'Delete CAD Software'}</span>
-                </button>
+                {isPrintersListContext ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPrinterModalTab('create')
+                        setShowNewPrinterModal(true)
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      <Plus className="w-4 h-4 stroke-[2.5]" />
+                      <span>Add New 3D Printer</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPrinterModalTab('manage')
+                        setShowNewPrinterModal(true)
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      <Trash2 className="w-4 h-4 stroke-[2.5]" />
+                      <span>Delete 3D Printer</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCadModalTab('create')
+                        setShowNewCadModal(true)
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      <Plus className="w-4 h-4 stroke-[2.5]" />
+                      <span>Add New CAD Software</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCadModalTab('manage')
+                        setShowNewCadModal(true)
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      <Trash2 className="w-4 h-4 stroke-[2.5]" />
+                      <span>Delete CAD Software</span>
+                    </button>
+                  </>
+                )}
                 <button
                   onClick={() => setShowAuditModal(true)}
                   className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold flex items-center gap-2 cursor-pointer transition-all"
@@ -2632,6 +2682,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
           )}
 
           {renderCadModal()}
+          {renderPrinterModal()}
         </div>
       </div>
     )
@@ -2727,28 +2778,24 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
           <select
             value={activeProductKey}
             onChange={e => {
-              if (e.target.value === '__ADD_NEW_PRINTER__') {
-                setModalEntityType('printers')
-                setCadModalTab('create')
-                setShowNewCadModal(true)
-                return
-              }
-              if (e.target.value === '__MANAGE_PRINTERS__') {
-                setModalEntityType('printers')
-                setCadModalTab('manage')
-                setShowNewCadModal(true)
-                return
-              }
               if (e.target.value === '__ADD_NEW_CAD__') {
-                setModalEntityType('cad')
                 setCadModalTab('create')
                 setShowNewCadModal(true)
                 return
               }
               if (e.target.value === '__MANAGE_CAD__') {
-                setModalEntityType('cad')
                 setCadModalTab('manage')
                 setShowNewCadModal(true)
+                return
+              }
+              if (e.target.value === '__ADD_NEW_PRINTER__') {
+                setPrinterModalTab('create')
+                setShowNewPrinterModal(true)
+                return
+              }
+              if (e.target.value === '__MANAGE_PRINTERS__') {
+                setPrinterModalTab('manage')
+                setShowNewPrinterModal(true)
                 return
               }
               if (hasUnsavedChanges && !window.confirm('Switch page without saving current changes?')) {
@@ -2816,9 +2863,8 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  setModalEntityType('printers')
-                  setCadModalTab('create')
-                  setShowNewCadModal(true)
+                  setPrinterModalTab('create')
+                  setShowNewPrinterModal(true)
                 }}
                 className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all shrink-0 hover:scale-[1.02] active:scale-[0.98]"
                 title="Add a new 3D Printer page formatted like Pratham Mini, Pratham 3.0, or EKA DLP"
@@ -2842,9 +2888,8 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  setModalEntityType('printers')
-                  setCadModalTab('manage')
-                  setShowNewCadModal(true)
+                  setPrinterModalTab('manage')
+                  setShowNewPrinterModal(true)
                 }}
                 className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-rose-300 hover:text-rose-200 border border-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all shrink-0"
                 title="Open list of all 3D Printers to manage or delete"
@@ -2859,7 +2904,6 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  setModalEntityType('cad')
                   setCadModalTab('create')
                   setShowNewCadModal(true)
                 }}
@@ -2887,7 +2931,6 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  setModalEntityType('cad')
                   setCadModalTab('manage')
                   setShowNewCadModal(true)
                 }}
@@ -4884,9 +4927,10 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
       )}
 
       {/* ====================================================================
-          CAD SOFTWARE MANAGEMENT MODAL (Add New / Delete Existing Softwares)
+          CAD SOFTWARE & 3D PRINTER MANAGEMENT MODALS
          ==================================================================== */}
       {renderCadModal()}
+      {renderPrinterModal()}
     </div>
   )
 }
