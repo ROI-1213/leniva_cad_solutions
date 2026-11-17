@@ -826,6 +826,12 @@ export function resolveVisualProductKeyFromPath(pathname: string): string | null
         const r = (cp.route || '').replace(/\/+$/, '').toLowerCase()
         if (r === clean) return cp.key
       }
+      const customScanners: any[] = JSON.parse(localStorage.getItem('leniva_custom_scanner_products') || '[]')
+      for (const cs of customScanners) {
+        if (!cs) continue
+        const r = (cs.route || '').replace(/\/+$/, '').toLowerCase()
+        if (r === clean) return cs.key
+      }
       const customCad: any[] = JSON.parse(localStorage.getItem('leniva_custom_cad_products') || '[]')
       for (const cc of customCad) {
         if (!cc) continue
@@ -1639,6 +1645,14 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
       'EKA GT Max',
       'EKA GT MAX',
       'EKA F1 16K',
+      'Devok MT',
+      'DEVOK MT',
+      'Devok MQ',
+      'DEVOK MQ',
+      'EinScan Series',
+      'EINSCAN SERIES',
+      'EinScan',
+      'EINSCAN',
     ].filter(Boolean) as string[]
 
     if (typeof document !== 'undefined') {

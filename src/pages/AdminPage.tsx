@@ -2610,34 +2610,6 @@ export default function AdminPage() {
                   <PanelLeft className="w-4 h-4 text-blue-600" />
                   <span>{isEnquiryFullPage ? 'Show Sidebar' : 'Full Page Mode'}</span>
                 </button>
-
-                <div className="flex items-center space-x-1.5 pl-2 border-l border-slate-200">
-                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider hidden sm:inline">Go to Page:</span>
-                  <select
-                    value={activeTab}
-                    onChange={(e) => {
-                      const tab = e.target.value as AdminTab
-                      setActiveTab(tab)
-                      if (tab !== 'enquiries' && tab !== 'quotes') {
-                        setIsEnquiryFullPage(false)
-                      }
-                    }}
-                    className="px-3 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  >
-                    <option value="dashboard">📊 Dashboard Overview</option>
-                    <option value="enquiries">📥 Enquiry Management</option>
-                    <option value="quotes">📄 Quotes &amp; RFQs</option>
-                    <option value="blogs">✍️ Engineering Blogs</option>
-                    <option value="home_content">🏠 Home Page Editor</option>
-                    <option value="about_content">ℹ️ About Us Editor</option>
-                    <option value="shop_editor">🛒 Shop &amp; Dropdowns Editor</option>
-                    <option value="site_settings">⚙️ Site &amp; CMS Settings</option>
-                    <option value="users">👤 Admin Account</option>
-                    <option value="cad_visual_edit">📐 CAD Software Edit</option>
-                    <option value="printers_visual_edit">🖨️ 3D Printers Edit</option>
-                    <option value="scanners_visual_edit">📷 3D Scanners Edit</option>
-                  </select>
-                </div>
               </div>
             </div>
           )}

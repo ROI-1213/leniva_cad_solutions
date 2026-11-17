@@ -43,6 +43,10 @@ const AresStandardPage = lazy(() => import('./AresStandardPage'))
 const AresCommanderPage = lazy(() => import('./AresCommanderPage'))
 const AresKudoPage = lazy(() => import('./AresKudoPage'))
 const AresTouchPage = lazy(() => import('./AresTouchPage'))
+const DevokMTPage = lazy(() => import('./DevokMTPage'))
+const DevokMQPage = lazy(() => import('./DevokMQPage'))
+const EinscanPage = lazy(() => import('./EinscanPage'))
+const ScannersCategoryPage = lazy(() => import('./ScannersCategoryPage'))
 
 interface ProductDetailPageProps {
   forcedSlug?: string
@@ -123,6 +127,21 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
           if (tpl === 'eka_gt_max') return <EkaGtMaxPage />
           if (tpl === 'eka_f1_16k') return <EkaF116kPage />
           return <PrathamMiniPage />
+        }
+
+        // 1c. Check custom 3D Scanner products created via Admin Console
+        const customScannerProducts: any[] = JSON.parse(localStorage.getItem('leniva_custom_scanner_products') || '[]')
+        const matchedScanner = customScannerProducts.find((p: any) => {
+          const pRouteSlug = (p.route || '').replace(/^\/products\/?/, '').toLowerCase().trim()
+          const pKeySlug = (p.key || '').replace(/^scanner_/, '').toLowerCase().trim()
+          return pRouteSlug === resolvedSlug || pKeySlug === resolvedSlug || p.key === resolvedSlug
+        })
+        if (matchedScanner) {
+          const tpl = matchedScanner.template || 'devok_mt'
+          if (tpl === 'devok_mq') return <DevokMQPage />
+          if (tpl === 'einscan_series') return <EinscanPage />
+          if (tpl === 'scanners_category') return <ScannersCategoryPage />
+          return <DevokMTPage />
         }
       } catch (err) {
         console.warn('Error matching custom product:', err)

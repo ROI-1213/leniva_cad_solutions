@@ -125,6 +125,21 @@ interface SelectedElementInfo {
 }
 
 function renderRealProductPage(productKey: string) {
+  // Support custom 3D Scanners created with Devok / EinScan formats
+  if (productKey.startsWith('scanner_')) {
+    try {
+      const savedScanners: any[] = JSON.parse(localStorage.getItem('leniva_custom_scanner_products') || '[]')
+      const matched = savedScanners.find(p => p && p.key === productKey)
+      const tpl = matched?.template || 'devok_mt'
+      if (tpl && !tpl.startsWith('scanner_')) {
+        return renderRealProductPage(tpl)
+      }
+    } catch {
+      // fallback
+    }
+    return <DevokMTPage />
+  }
+
   // Support custom 3D Printers created with Pratham / EKA formats
   if (productKey.startsWith('printer_')) {
     try {
@@ -395,6 +410,20 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
           if (Array.isArray(parsedDelP)) setDeletedPrinterKeys(parsedDelP)
         }
       } catch {}
+      try {
+        const savedCustomScanners = localStorage.getItem('leniva_custom_scanner_products')
+        if (savedCustomScanners) {
+          const parsedS = JSON.parse(savedCustomScanners)
+          if (Array.isArray(parsedS)) setCustomScannerProducts(parsedS)
+        }
+      } catch {}
+      try {
+        const savedDeletedScanners = localStorage.getItem('leniva_deleted_scanner_keys')
+        if (savedDeletedScanners) {
+          const parsedDelS = JSON.parse(savedDeletedScanners)
+          if (Array.isArray(parsedDelS)) setDeletedScannerKeys(parsedDelS)
+        }
+      } catch {}
     }
     window.addEventListener('leniva_cloud_cms_synced', syncFromStorage)
     window.addEventListener('storage', syncFromStorage)
@@ -404,9 +433,9 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
     }
   }, [])
 
-  // Full unified visual catalog (Base pages + Custom CAD Softwares + Custom 3D Printers, excluding deleted keys)
+  // Full unified visual catalog (Base pages + Custom CAD Softwares + Custom 3D Printers + Custom 3D Scanners)
   const fullVisualCatalog = useMemo<VisualPageCatalogItem[]>(() => {
-    const deletedSet = new Set([...deletedCadKeys, ...deletedPrinterKeys])
+    const deletedSet = new Set([...deletedCadKeys, ...deletedPrinterKeys, ...deletedScannerKeys])
     const customCadItems: VisualPageCatalogItem[] = customCadProducts
       .filter((p: any) => p && p.key && !deletedSet.has(p.key))
       .map((p: any) => ({
@@ -431,9 +460,21 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
         heroImage: p.heroImage || '/images/products/pratham-mini.png',
         defaultBrochureUrl: p.defaultBrochureUrl || '/brochures/pratham-mini.pdf',
       }))
+    const customScannerItems: VisualPageCatalogItem[] = customScannerProducts
+      .filter((p: any) => p && p.key && !deletedSet.has(p.key))
+      .map((p: any) => ({
+        key: p.key,
+        label: p.label || p.name,
+        brand: p.brand || 'Shining3D',
+        category: p.category || '3D Scanners',
+        editorGroup: 'scanners',
+        route: p.route || `/products/${p.key.replace(/^scanner_/, '')}`,
+        heroImage: p.heroImage || '/images/products/devok-mt.jpg',
+        defaultBrochureUrl: p.defaultBrochureUrl || '/brochures/devok-mt.pdf',
+      }))
     const baseItems = VISUAL_PAGE_CATALOG.filter(p => !deletedSet.has(p.key))
-    return [...baseItems, ...customCadItems, ...customPrinterItems]
-  }, [customCadProducts, deletedCadKeys, customPrinterProducts, deletedPrinterKeys])
+    return [...baseItems, ...customCadItems, ...customPrinterItems, ...customScannerItems]
+  }, [customCadProducts, deletedCadKeys, customPrinterProducts, deletedPrinterKeys, customScannerProducts, deletedScannerKeys])
 
   // All active CAD software items (both custom and standard)
   const allCadCatalogItems = useMemo<VisualPageCatalogItem[]>(() => {
@@ -443,6 +484,11 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
   // All active 3D Printer & Filament items (both custom and standard)
   const allPrinterCatalogItems = useMemo<VisualPageCatalogItem[]>(() => {
     return fullVisualCatalog.filter(p => p.editorGroup === 'printers')
+  }, [fullVisualCatalog])
+
+  // All active 3D Scanner items (both custom and standard)
+  const allScannerCatalogItems = useMemo<VisualPageCatalogItem[]>(() => {
+    return fullVisualCatalog.filter(p => p.editorGroup === 'scanners')
   }, [fullVisualCatalog])
 
   // Modal State for CAD Softwares (Clean earlier layout)
@@ -470,6 +516,40 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
     template: 'pratham_mini',
     headline: '',
     shortDescription: '',
+  })
+
+  // Dedicated Modal State for 3D Scanners (Completely separate from CAD & Printers)
+  const [showNewScannerModal, setShowNewScannerModal] = useState<boolean>(false)
+  const [scannerModalTab, setScannerModalTab] = useState<'create' | 'manage'>('create')
+  const [newScannerForm, setNewScannerForm] = useState({
+    name: '',
+    brand: 'Shining3D',
+    category: '3D Scanners',
+    scanAccuracy: '0.05 mm',
+    route: '/products/',
+    template: 'devok_mt',
+    headline: '',
+    shortDescription: '',
+  })
+
+  // Custom 3D Scanner Products state
+  const [customScannerProducts, setCustomScannerProducts] = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem('leniva_custom_scanner_products')
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
+  })
+
+  // Deleted 3D Scanner keys
+  const [deletedScannerKeys, setDeletedScannerKeys] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('leniva_deleted_scanner_keys')
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
   })
 
   const canvasRef = useRef<HTMLDivElement>(null)
@@ -977,6 +1057,265 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
     setDeletedPrinterKeys([])
     pushCmsStateToCloud({ isEnquirySubmission: false }).catch(() => null)
     showToast('success', '✓ Restored all default 3D Printer & Filament pages.')
+  }
+
+  // ── 3D SCANNER HANDLERS ──────────────────────────────────────────────────
+
+  // Create a new custom 3D Scanner page (formatted like Devok MT, Devok MQ, or EinScan series)
+  const handleCreateNewScanner = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const name = newScannerForm.name.trim()
+    if (!name) {
+      showToast('error', 'Scanner name is required.')
+      return
+    }
+
+    const rawSlug =
+      newScannerForm.route.replace(/^\/products\/?/, '').trim() ||
+      name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    const cleanSlug =
+      rawSlug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'new-3d-scanner'
+    const key = `scanner_${cleanSlug}`
+    const route = `/products/${cleanSlug}`
+
+    const baseTemplateItem =
+      VISUAL_PAGE_CATALOG.find(p => p.key === newScannerForm.template) ||
+      VISUAL_PAGE_CATALOG.find(p => p.key === 'devok_mt')!
+
+    const newScanner = {
+      key,
+      name,
+      label: name,
+      brand: newScannerForm.brand.trim() || 'Shining3D',
+      category: newScannerForm.category || '3D Scanners',
+      scanAccuracy: newScannerForm.scanAccuracy.trim() || '0.05 mm',
+      route,
+      template: newScannerForm.template || 'devok_mt',
+      templateLabel: baseTemplateItem.label,
+      headline: newScannerForm.headline.trim(),
+      shortDescription: newScannerForm.shortDescription.trim(),
+      editorGroup: 'scanners',
+      isCustom: true,
+      heroImage: baseTemplateItem.heroImage || '/images/products/devok-mt.jpg',
+      defaultBrochureUrl: baseTemplateItem.defaultBrochureUrl || '/brochures/devok-mt.pdf',
+      createdAt: new Date().toISOString(),
+    }
+
+    // 0. Remove from deleted keys if re-adding
+    if (deletedScannerKeys.includes(key)) {
+      const updatedDeleted = deletedScannerKeys.filter(k => k !== key)
+      setDeletedScannerKeys(updatedDeleted)
+      localStorage.setItem('leniva_deleted_scanner_keys', JSON.stringify(updatedDeleted))
+    }
+
+    // 1. Save to custom scanner products
+    let existingCustom: any[] = []
+    try {
+      existingCustom = JSON.parse(localStorage.getItem('leniva_custom_scanner_products') || '[]')
+      if (!Array.isArray(existingCustom)) existingCustom = []
+    } catch {}
+    const updatedCustom = [...existingCustom.filter((p: any) => p?.key !== key), newScanner]
+    localStorage.setItem('leniva_custom_scanner_products', JSON.stringify(updatedCustom))
+    setCustomScannerProducts(updatedCustom)
+
+    // 2. Seed initial Visual Payload with customScannerMeta / customPrinterMeta so the template immediately shows the new scanner's name, accuracy, headline, and description
+    const initialVisualPayload: CadVisualPagePayload = {
+      productKey: key,
+      dataOverrides: {
+        customPrinterMeta: {
+          name,
+          brand: newScannerForm.brand.trim() || 'Shining3D',
+          category: newScannerForm.category || '3D Scanners',
+          buildVolume: newScannerForm.scanAccuracy.trim() || '0.05 mm',
+          template: newScannerForm.template || 'devok_mt',
+          baseTemplateName: baseTemplateItem.label.replace(/\s*\(.*?\)\s*/g, '').trim(),
+          headline:
+            newScannerForm.headline.trim() ||
+            `${name} — High-Precision Industrial 3D Scanner`,
+          shortDescription:
+            newScannerForm.shortDescription.trim() ||
+            `Explore ${name} by ${newScannerForm.brand.trim() || 'Shining3D'}. Metrology-grade 3D scanning accuracy (${newScannerForm.scanAccuracy.trim() || '0.05 mm'}) for reverse engineering, quality inspection, and CAD modeling from Leniva CAD Solutions.`,
+        },
+      },
+      elementOverrides: {},
+      pdfResources: [
+        {
+          id: `${key}-brochure`,
+          title: `${name} Official Technical Brochure (PDF)`,
+          description: `Complete 3D scanning accuracy, light source, working distance, and system specifications for ${name}.`,
+          badge: 'Product Brochure',
+          buttonLabel: 'Download Brochure PDF',
+          fileUrl: baseTemplateItem.defaultBrochureUrl || '/brochures/devok-mt.pdf',
+          originalFileUrl: baseTemplateItem.defaultBrochureUrl || '/brochures/devok-mt.pdf',
+          fileName: `${cleanSlug}-brochure.pdf`,
+          fileSize: '2.4 MB',
+          visible: true,
+          behavior: 'new_tab',
+        },
+      ],
+      sectionOrder: [],
+      hiddenSections: {},
+      seo: {
+        title: `${name} (${newScannerForm.brand.trim() || 'Shining3D'}) | Industrial 3D Scanners — Leniva CAD Solutions`,
+        description:
+          newScannerForm.shortDescription.trim() ||
+          `Official ${name} 3D Scanner specifications, scan accuracy (${newScannerForm.scanAccuracy.trim() || '0.05 mm'}), and quotation from Leniva CAD Solutions.`,
+      },
+      updatedAt: new Date().toISOString(),
+    }
+
+    try {
+      const pubMap = JSON.parse(localStorage.getItem('leniva_cad_visual_published_v1') || '{}')
+      pubMap[key] = initialVisualPayload
+      localStorage.setItem('leniva_cad_visual_published_v1', JSON.stringify(pubMap))
+
+      const draftMap = JSON.parse(localStorage.getItem('leniva_cad_visual_drafts_v1') || '{}')
+      draftMap[key] = initialVisualPayload
+      localStorage.setItem('leniva_cad_visual_drafts_v1', JSON.stringify(draftMap))
+    } catch {}
+
+    // 3. Register in leniva_admin_products_catalog for public /products catalog listing
+    try {
+      const storedCat = JSON.parse(localStorage.getItem('leniva_admin_products_catalog') || '[]')
+      const exists = storedCat.some((p: any) => p.slug === cleanSlug || p.id === cleanSlug)
+      if (!exists) {
+        storedCat.push({
+          id: cleanSlug,
+          slug: cleanSlug,
+          name,
+          brand: newScannerForm.brand.trim() || 'Shining3D',
+          category: newScannerForm.category || '3D Scanners',
+          category_slug: '3d-scanners',
+          technology: '3D Scanner',
+          tagline:
+            newScannerForm.headline.trim() ||
+            `High-Precision 3D Scanner (${newScannerForm.scanAccuracy.trim() || '0.05 mm'})`,
+          hero_heading: name,
+          hero_subtitle: `Metrology-grade ${newScannerForm.category} engineered for reverse engineering and quality inspection.`,
+          short_description: initialVisualPayload.dataOverrides.customPrinterMeta.shortDescription,
+          description: initialVisualPayload.dataOverrides.customPrinterMeta.shortDescription,
+          hero_image: baseTemplateItem.heroImage || '/images/products/devok-mt.jpg',
+          price: 0,
+          in_stock: true,
+          is_featured: true,
+          is_quote_based: true,
+          is_new: true,
+        })
+        localStorage.setItem('leniva_admin_products_catalog', JSON.stringify(storedCat))
+      }
+    } catch {}
+
+    // 4. Sync to Cloud CMS
+    pushCmsStateToCloud({ isEnquirySubmission: false }).catch(() => null)
+
+    // 5. Reset form and close modal
+    setNewScannerForm({
+      name: '',
+      brand: 'Shining3D',
+      category: '3D Scanners',
+      scanAccuracy: '0.05 mm',
+      route: '/products/',
+      template: 'devok_mt',
+      headline: '',
+      shortDescription: '',
+    })
+    setShowNewScannerModal(false)
+
+    // 6. Immediately open the new 3D scanner page in the visual editor!
+    setCategoryFilter('scanners')
+    setViewMode('editor')
+    setActiveProductKey(key)
+    setPayload(initialVisualPayload)
+    setHistory([structuredCloneSafe(initialVisualPayload)])
+    setHistoryIndex(0)
+    setHasUnsavedChanges(false)
+    setStatusMeta({
+      hasDraft: true,
+      isPublished: true,
+      lastSavedAt: initialVisualPayload.updatedAt,
+      lastPublishedAt: initialVisualPayload.updatedAt,
+    })
+    showToast(
+      'success',
+      `✓ Created 3D Scanner "${name}" with ${baseTemplateItem.label} format! You are now editing its live page.`
+    )
+  }
+
+  // Delete a 3D Scanner (custom or built-in)
+  const handleDeleteScanner = (key: string, label?: string) => {
+    const prodName = label || key
+    if (
+      !window.confirm(
+        `Are you sure you want to delete 3D Scanner "${prodName}"?\n\nThis will remove its 3D scanner page and catalog entry from your website.`
+      )
+    ) {
+      return
+    }
+    // 1. Remove from custom scanners if present
+    let existingCustom: any[] = []
+    try {
+      existingCustom = JSON.parse(localStorage.getItem('leniva_custom_scanner_products') || '[]')
+      if (!Array.isArray(existingCustom)) existingCustom = []
+    } catch {}
+    const updatedCustom = existingCustom.filter((p: any) => p?.key !== key)
+    localStorage.setItem('leniva_custom_scanner_products', JSON.stringify(updatedCustom))
+    setCustomScannerProducts(updatedCustom)
+
+    // 1b. If it's a built-in scanner key, record in deleted keys
+    const isBuiltIn = VISUAL_PAGE_CATALOG.some(p => p.key === key)
+    let nextDeletedKeys = deletedScannerKeys
+    if ((isBuiltIn || !key.startsWith('scanner_')) && !deletedScannerKeys.includes(key)) {
+      nextDeletedKeys = [...deletedScannerKeys, key]
+      setDeletedScannerKeys(nextDeletedKeys)
+      localStorage.setItem('leniva_deleted_scanner_keys', JSON.stringify(nextDeletedKeys))
+    }
+
+    // 2. Remove from leniva_admin_products_catalog
+    const slug = key.replace(/^scanner_/, '').replace(/_/g, '-')
+    try {
+      const storedCat = JSON.parse(localStorage.getItem('leniva_admin_products_catalog') || '[]')
+      const filteredCat = storedCat.filter(
+        (p: any) =>
+          p.slug !== slug &&
+          p.id !== slug &&
+          p.id !== key &&
+          p.slug !== key.replace(/^scanner_/, '')
+      )
+      localStorage.setItem('leniva_admin_products_catalog', JSON.stringify(filteredCat))
+    } catch {}
+
+    // 3. Remove any drafts / published payloads
+    try {
+      const drafts = JSON.parse(localStorage.getItem('leniva_cad_visual_drafts_v1') || '{}')
+      delete drafts[key]
+      localStorage.setItem('leniva_cad_visual_drafts_v1', JSON.stringify(drafts))
+
+      const pub = JSON.parse(localStorage.getItem('leniva_cad_visual_published_v1') || '{}')
+      delete pub[key]
+      localStorage.setItem('leniva_cad_visual_published_v1', JSON.stringify(pub))
+    } catch {}
+
+    // 4. Push to cloud CMS
+    pushCmsStateToCloud({ isEnquirySubmission: false }).catch(() => null)
+
+    // 5. If currently viewing the deleted scanner, switch to the next available scanner
+    if (activeProductKey === key) {
+      const remainingScanners = fullVisualCatalog.filter(
+        p => p.editorGroup === 'scanners' && p.key !== key && !nextDeletedKeys.includes(p.key)
+      )
+      const fallbackKey = remainingScanners[0]?.key || 'devok_mt'
+      loadProductIntoEditor(fallbackKey)
+    }
+
+    showToast('success', `✓ Successfully deleted 3D Scanner "${prodName}".`)
+  }
+
+  // Restore any deleted built-in 3D Scanners
+  const handleRestoreDeletedScanners = () => {
+    localStorage.setItem('leniva_deleted_scanner_keys', JSON.stringify([]))
+    setDeletedScannerKeys([])
+    pushCmsStateToCloud({ isEnquirySubmission: false }).catch(() => null)
+    showToast('success', '✓ Restored all default 3D Scanner pages.')
   }
 
   // Sync if parent switches between CAD Software Edit / 3D Printers Edit / 3D Scanners Edit
@@ -2324,11 +2663,308 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
       </div>
     ) : null
 
+  // Dedicated Modal for Adding & Deleting 3D Scanners (Completely Separate from CAD & Printers)
+  const renderScannerModal = () =>
+    showNewScannerModal ? (
+      <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 animate-in fade-in">
+        <div className="bg-white rounded-3xl max-w-2xl w-full flex flex-col shadow-2xl border border-slate-200 overflow-hidden text-xs">
+          {/* Header */}
+          <div className="px-6 py-4 bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-purple-400 font-bold shrink-0">
+                {scannerModalTab === 'create' ? <Plus className="w-5 h-5 stroke-[2.5]" /> : <Trash2 className="w-5 h-5 text-rose-400" />}
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h3 className="font-extrabold text-base text-white">
+                    {scannerModalTab === 'create' ? 'Add New 3D Scanner' : 'Manage & Delete 3D Scanners'}
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-full bg-purple-500/20 border border-purple-400/30 text-purple-300 text-[10px] font-mono font-bold">
+                    Devok & EinScan Formats
+                  </span>
+                </div>
+                <p className="text-slate-300 text-xs mt-0.5">
+                  {scannerModalTab === 'create'
+                    ? 'Create a new dedicated 3D Scanner page formatted like Devok MT, Devok MQ, or EinScan series.'
+                    : 'Review, edit, or delete 3D Scanner pages from your website and product catalog.'}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowNewScannerModal(false)}
+              className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Navigation Tabs */}
+          <div className="flex items-center border-b border-slate-200 bg-slate-50 px-6 pt-2">
+            <button
+              type="button"
+              onClick={() => setScannerModalTab('create')}
+              className={`px-4 py-2.5 text-xs font-extrabold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
+                scannerModalTab === 'create'
+                  ? 'border-purple-600 text-purple-700 bg-white rounded-t-lg shadow-2xs'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add New 3D Scanner</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setScannerModalTab('manage')}
+              className={`px-4 py-2.5 text-xs font-extrabold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
+                scannerModalTab === 'manage'
+                  ? 'border-rose-600 text-rose-700 bg-white rounded-t-lg shadow-2xs'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Manage & Delete 3D Scanners ({allScannerCatalogItems.length})</span>
+            </button>
+          </div>
+
+          {/* TAB 1: CREATE NEW 3D SCANNER */}
+          {scannerModalTab === 'create' && (
+            <form onSubmit={handleCreateNewScanner} className="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
+              {/* Template / Format Selector */}
+              <div className="p-3.5 bg-purple-50 border border-purple-200 rounded-xl">
+                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-purple-950 mb-1.5 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                  <span>Choose 3D Scanner Page Format & Template Layout</span>
+                </label>
+                <select
+                  value={newScannerForm.template}
+                  onChange={e => setNewScannerForm({ ...newScannerForm, template: e.target.value })}
+                  className="w-full px-3 py-2 border border-purple-300 rounded-lg text-slate-900 font-bold bg-white focus:ring-2 focus:ring-purple-500 outline-none text-xs"
+                >
+                  <optgroup label="📷 Devok Series (Shining3D)">
+                    <option value="devok_mt">Devok MT — Mid-range 3D Scanner (Shining3D)</option>
+                    <option value="devok_mq">Devok MQ — High-precision 3D Scanner (Shining3D)</option>
+                  </optgroup>
+                  <optgroup label="🔬 EinScan Series (Shining3D)">
+                    <option value="einscan_series">EinScan Series — Professional 3D Scanners (Shining3D)</option>
+                  </optgroup>
+                  <optgroup label="📂 Scanner Category Page">
+                    <option value="scanners_category">3D Scanners Category Overview Page</option>
+                  </optgroup>
+                </select>
+                <p className="text-purple-700 text-[10px] font-semibold mt-1.5">
+                  ✓ <span className="font-bold">Devok / EinScan Format Selected:</span> Your scanner page will follow the professional layout with spec table, accuracy chart, and inquiry form.
+                </p>
+              </div>
+
+              {/* Scanner Name */}
+              <div>
+                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-700 mb-1">
+                  3D Scanner Name <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newScannerForm.name}
+                  onChange={e => {
+                    const val = e.target.value
+                    const slug = val
+                      .toLowerCase()
+                      .replace(/[^a-z0-9]+/g, '-')
+                      .replace(/^-|-$/g, '')
+                    setNewScannerForm({
+                      ...newScannerForm,
+                      name: val,
+                      route: `/products/${slug}`,
+                    })
+                  }}
+                  placeholder="e.g. Devok MT Pro, EinScan H2, Revopoint RANGE 2"
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 font-semibold bg-white focus:ring-2 focus:ring-purple-500 outline-none text-xs placeholder-slate-400"
+                />
+              </div>
+
+              {/* Brand & Category */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-700 mb-1">
+                    Brand / Manufacturer <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newScannerForm.brand}
+                    onChange={e => setNewScannerForm({ ...newScannerForm, brand: e.target.value })}
+                    placeholder="e.g. Shining3D, Revopoint"
+                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 font-semibold bg-white focus:ring-2 focus:ring-purple-500 outline-none text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-700 mb-1">
+                    Scanner Category <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={newScannerForm.category}
+                    onChange={e => setNewScannerForm({ ...newScannerForm, category: e.target.value })}
+                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 font-semibold bg-white focus:ring-2 focus:ring-purple-500 outline-none text-xs"
+                  >
+                    <option value="3D Scanners">3D Scanners</option>
+                    <option value="Handheld 3D Scanners">Handheld 3D Scanners</option>
+                    <option value="Industrial 3D Scanners">Industrial 3D Scanners</option>
+                    <option value="Desktop 3D Scanners">Desktop 3D Scanners</option>
+                    <option value="Structured Light Scanners">Structured Light Scanners</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Scan Accuracy & URL */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-700 mb-1">
+                    Scan Accuracy
+                  </label>
+                  <input
+                    type="text"
+                    value={newScannerForm.scanAccuracy}
+                    onChange={e => setNewScannerForm({ ...newScannerForm, scanAccuracy: e.target.value })}
+                    placeholder="e.g. 0.05 mm"
+                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 font-semibold bg-white focus:ring-2 focus:ring-purple-500 outline-none text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-700 mb-1">
+                    Public Website Page URL <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="flex">
+                    <span className="px-2.5 py-2.5 bg-slate-100 border border-r-0 border-slate-300 rounded-l-lg text-slate-500 text-[10px] font-mono whitespace-nowrap">
+                      leniva3d.com
+                    </span>
+                    <input
+                      type="text"
+                      required
+                      value={newScannerForm.route}
+                      onChange={e => setNewScannerForm({ ...newScannerForm, route: e.target.value })}
+                      placeholder="/products/scanner-name-slug"
+                      className="flex-1 px-3 py-2.5 border border-slate-300 rounded-r-lg text-slate-900 font-semibold bg-white focus:ring-2 focus:ring-purple-500 outline-none text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Headline */}
+              <div>
+                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-700 mb-1">
+                  Page Hero Headline / Tagline
+                </label>
+                <input
+                  type="text"
+                  value={newScannerForm.headline}
+                  onChange={e => setNewScannerForm({ ...newScannerForm, headline: e.target.value })}
+                  placeholder="e.g. Precision 3D Scanning for Reverse Engineering & Quality Control"
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 font-semibold bg-white focus:ring-2 focus:ring-purple-500 outline-none text-xs"
+                />
+              </div>
+
+              {/* Short Description */}
+              <div>
+                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-700 mb-1">
+                  Short Description
+                </label>
+                <textarea
+                  value={newScannerForm.shortDescription}
+                  onChange={e => setNewScannerForm({ ...newScannerForm, shortDescription: e.target.value })}
+                  placeholder="Brief description of this 3D scanner for the product listing..."
+                  rows={3}
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 font-semibold bg-white focus:ring-2 focus:ring-purple-500 outline-none text-xs resize-none"
+                />
+              </div>
+
+              {/* Submit */}
+              <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setShowNewScannerModal(false)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-extrabold flex items-center gap-2 cursor-pointer transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <Plus className="w-4 h-4 stroke-[2.5]" />
+                  Create 3D Scanner Page
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* TAB 2: MANAGE & DELETE 3D SCANNERS */}
+          {scannerModalTab === 'manage' && (
+            <div className="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
+                  All Active 3D Scanners on Website ({allScannerCatalogItems.length})
+                </h4>
+                <button
+                  type="button"
+                  onClick={handleRestoreDeletedScanners}
+                  className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
+                >
+                  <span>↺ Restore Deleted</span>
+                </button>
+              </div>
+              <div className="space-y-2">
+                {allScannerCatalogItems.length === 0 && (
+                  <p className="text-sm font-bold text-slate-600">No 3D scanners currently active.</p>
+                )}
+                {allScannerCatalogItems.map(sc => (
+                  <div key={sc.key} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                    <div className="min-w-0">
+                      <div className="font-bold text-slate-900 text-xs truncate">{sc.label}</div>
+                      <div className="text-[11px] text-slate-500 truncate">{sc.brand} · {sc.category}</div>
+                      <div className="text-[10px] font-mono text-slate-400 truncate">{sc.route}</div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => { setShowNewScannerModal(false); loadProductIntoEditor(sc.key) }}
+                        className="px-2.5 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 text-[11px] font-bold border border-purple-200 cursor-pointer"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteScanner(sc.key, sc.label)}
+                        className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-bold border border-rose-200 cursor-pointer flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="pt-3 border-t border-slate-200 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowNewScannerModal(false)}
+                  className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    ) : null
+
   // ============================================================================
   // VIEW 1: PRODUCT SELECTION DASHBOARD (Supports CAD Software, 3D Printers & 3D Scanners)
   // ============================================================================
   if (viewMode === 'list') {
     const isPrintersListContext = categoryFilter === 'printers'
+    const isScannersListContext = categoryFilter === 'scanners'
     return (
       <div className="min-h-screen bg-slate-100 p-4 sm:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
@@ -2391,6 +3027,31 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                     >
                       <Trash2 className="w-4 h-4 stroke-[2.5]" />
                       <span>Delete 3D Printer</span>
+                    </button>
+                  </>
+                ) : isScannersListContext ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setScannerModalTab('create')
+                        setShowNewScannerModal(true)
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      <Plus className="w-4 h-4 stroke-[2.5]" />
+                      <span>Add New 3D Scanner</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setScannerModalTab('manage')
+                        setShowNewScannerModal(true)
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      <Trash2 className="w-4 h-4 stroke-[2.5]" />
+                      <span>Delete 3D Scanner</span>
                     </button>
                   </>
                 ) : (
@@ -2595,6 +3256,17 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                           <span>Delete</span>
                         </button>
                       )}
+                      {(prod.editorGroup === 'scanners' || prod.key.startsWith('scanner_')) && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteScanner(prod.key, prod.label)}
+                          className="px-2.5 py-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors border border-rose-200"
+                          title={`Delete ${prod.label}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                          <span>Delete</span>
+                        </button>
+                      )}
                       <button
                         onClick={() => {
                           loadProductIntoEditor(prod.key)
@@ -2683,6 +3355,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
 
           {renderCadModal()}
           {renderPrinterModal()}
+          {renderScannerModal()}
         </div>
       </div>
     )
@@ -2712,6 +3385,10 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
     activeProductMeta.editorGroup === 'printers' ||
     activeProductMeta.key.startsWith('printer_') ||
     categoryFilter === 'printers'
+  const isScannerActive =
+    activeProductMeta.editorGroup === 'scanners' ||
+    activeProductMeta.key.startsWith('scanner_') ||
+    categoryFilter === 'scanners'
 
   return (
     <div className="fixed inset-0 z-50 w-screen h-screen bg-white flex flex-col overflow-hidden">
@@ -2798,6 +3475,16 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                 setShowNewPrinterModal(true)
                 return
               }
+              if (e.target.value === '__ADD_NEW_SCANNER__') {
+                setScannerModalTab('create')
+                setShowNewScannerModal(true)
+                return
+              }
+              if (e.target.value === '__MANAGE_SCANNERS__') {
+                setScannerModalTab('manage')
+                setShowNewScannerModal(true)
+                return
+              }
               if (hasUnsavedChanges && !window.confirm('Switch page without saving current changes?')) {
                 return
               }
@@ -2811,6 +3498,12 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
               </option>
               <option value="__MANAGE_PRINTERS__" className="text-rose-400 font-bold bg-slate-900">
                 🗑️ Manage & Delete 3D Printers ({allPrinterCatalogItems.length})...
+              </option>
+              <option value="__ADD_NEW_SCANNER__" className="text-purple-400 font-bold bg-slate-900">
+                + Add New 3D Scanner (Devok / EinScan Format)...
+              </option>
+              <option value="__MANAGE_SCANNERS__" className="text-rose-400 font-bold bg-slate-900">
+                🗑️ Manage & Delete 3D Scanners ({allScannerCatalogItems.length})...
               </option>
               <option value="__ADD_NEW_CAD__" className="text-emerald-400 font-bold bg-slate-900">
                 + Add New CAD Software (ARES Format)...
@@ -2841,7 +3534,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
               <optgroup label={`📷 3D Scanners (${categoryCounts.scanners})`}>
                 {fullVisualCatalog.filter(p => p.editorGroup === 'scanners').map(p => (
                   <option key={p.key} value={p.key}>
-                    {p.label} ({p.brand})
+                    {p.label} ({p.brand}) {p.key.startsWith('scanner_') ? '★ [Custom]' : ''}
                   </option>
                 ))}
               </optgroup>
@@ -2896,6 +3589,47 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
               >
                 <Trash2 className="w-3.5 h-3.5 text-rose-400" />
                 <span>Manage / Delete Printers ({allPrinterCatalogItems.length})</span>
+              </button>
+            </>
+          ) : isScannerActive ? (
+            <>
+              {/* Prominent "+ Add 3D Scanner" button in the top toolbar */}
+              <button
+                type="button"
+                onClick={() => {
+                  setScannerModalTab('create')
+                  setShowNewScannerModal(true)
+                }}
+                className="px-2.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all shrink-0 hover:scale-[1.02] active:scale-[0.98]"
+                title="Add a new 3D Scanner page formatted like Devok MT, Devok MQ, or EinScan"
+              >
+                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Add 3D Scanner</span>
+              </button>
+
+              {/* Prominent "Delete 3D Scanner" button in the top toolbar */}
+              <button
+                type="button"
+                onClick={() => handleDeleteScanner(activeProductMeta.key, activeProductMeta.label)}
+                className="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all shrink-0 hover:scale-[1.02] active:scale-[0.98]"
+                title={`Delete ${activeProductMeta.label}`}
+              >
+                <Trash2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Delete 3D Scanner</span>
+              </button>
+
+              {/* Manage / Delete All 3D Scanners button in the top toolbar */}
+              <button
+                type="button"
+                onClick={() => {
+                  setScannerModalTab('manage')
+                  setShowNewScannerModal(true)
+                }}
+                className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-rose-300 hover:text-rose-200 border border-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all shrink-0"
+                title="Open list of all 3D Scanners to manage or delete"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                <span>Manage / Delete Scanners ({allScannerCatalogItems.length})</span>
               </button>
             </>
           ) : (
@@ -4927,10 +5661,11 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
       )}
 
       {/* ====================================================================
-          CAD SOFTWARE & 3D PRINTER MANAGEMENT MODALS
+          CAD SOFTWARE, 3D PRINTER & 3D SCANNER MANAGEMENT MODALS
          ==================================================================== */}
       {renderCadModal()}
       {renderPrinterModal()}
+      {renderScannerModal()}
     </div>
   )
 }
