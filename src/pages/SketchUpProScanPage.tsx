@@ -287,30 +287,29 @@ export const SketchUpProScanPage: React.FC = () => {
             </div>
 
             {/* Right Split View / Parallax Card */}
-            <div className="lg:col-span-5 relative">
-              <div className="relative rounded-2xl overflow-hidden border border-slate-700 shadow-2xl bg-slate-900 group flex items-center justify-center p-2">
+            <div className="lg:col-span-5 relative flex flex-col gap-3">
+              <div className="relative rounded-2xl overflow-hidden border border-slate-700 shadow-2xl bg-slate-900 group flex items-center justify-center p-3 sm:p-4 min-h-[300px] sm:min-h-[360px]">
                 <img
                   src={proScanData.hero.image}
                   alt="SketchUp Pro Scan Reality Capture to 3D"
-                  className="w-full h-[400px] sm:h-[460px] object-contain transition-transform duration-700"
+                  className="w-full max-h-[360px] object-contain transition-transform duration-700 group-hover:scale-102"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+              </div>
 
-                <div className="absolute bottom-4 left-4 right-4 p-4 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-700/60">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5" />
-                      Scan-to-3D Precision
-                    </span>
-                    <span className="px-2 py-0.5 text-[10px] font-bold bg-green-500/20 text-green-400 rounded-full border border-green-500/30">
-                      Windows Native
-                    </span>
-                  </div>
-                  <h4 className="text-sm font-bold text-white">Scan Essentials Point Cloud Modeling</h4>
-                  <p className="text-xs text-slate-300 mt-1">
-                    Trace existing conditions, verify plumb tolerances, and export 2D permit sheets in LayOut.
-                  </p>
+              <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-700/60 shadow-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Scan-to-3D Precision
+                  </span>
+                  <span className="px-2 py-0.5 text-[10px] font-bold bg-green-500/20 text-green-400 rounded-full border border-green-500/30">
+                    Windows Native
+                  </span>
                 </div>
+                <h4 className="text-sm font-bold text-white">Scan Essentials Point Cloud Modeling</h4>
+                <p className="text-xs text-slate-300 mt-1">
+                  Trace existing conditions, verify plumb tolerances, and export 2D permit sheets in LayOut.
+                </p>
               </div>
             </div>
           </div>

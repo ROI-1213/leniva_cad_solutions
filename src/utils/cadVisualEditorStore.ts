@@ -2180,13 +2180,11 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
           target.setAttribute('src', normSrc)
         }
         // When a custom image is uploaded, display it cleanly in its full natural proportions without zooming or cropping
-        const effectiveFit = ov.objectFit || 'contain'
+        const effectiveFit = (ov.objectFit === 'fill' || ov.objectFit === 'scale-down') ? ov.objectFit : 'contain'
         target.style.objectFit = effectiveFit
         target.style.objectPosition = 'center'
         target.classList.remove('object-cover')
-        if (effectiveFit === 'contain') {
-          target.classList.add('object-contain')
-        }
+        target.classList.add('object-contain')
       } else if (target.hasAttribute('data-original-src')) {
         const orig = target.getAttribute('data-original-src') || ''
         if (orig && target.getAttribute('src') !== orig) {
@@ -2194,8 +2192,10 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
         }
       }
       if (ov.alt !== undefined && target.alt !== ov.alt) target.alt = ov.alt
-      if (ov.objectFit && target.style.objectFit !== ov.objectFit) {
+      if (ov.objectFit && (ov.objectFit === 'fill' || ov.objectFit === 'scale-down')) {
         target.style.objectFit = ov.objectFit
+      } else if (ov.src) {
+        target.style.objectFit = 'contain'
       }
     } else {
       if (!target.hasAttribute('data-original-text')) {

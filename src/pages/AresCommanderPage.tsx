@@ -378,38 +378,36 @@ export const AresCommanderPage: React.FC = () => {
             </div>
 
             {/* Right Hero Visual Column */}
-            <div className="lg:col-span-6">
-              <div className="relative rounded-2xl overflow-hidden border border-slate-200/90 shadow-xl bg-slate-900 group">
-                <div className="relative aspect-16/10 w-full overflow-hidden">
-                  <img
-                    data-cad-path="hero.image"
-                    src={data.hero.image}
-                    alt={(data.hero as any).imageAlt || 'ARES Commander - Dual 2D drafting and 3D solid modeling CAD workstation'}
-                    className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
+            <div className="lg:col-span-6 flex flex-col gap-3">
+              <div className="relative rounded-2xl overflow-hidden border border-slate-700/70 shadow-xl bg-slate-900 group flex items-center justify-center p-3 sm:p-4 min-h-[300px] sm:min-h-[360px]">
+                <img
+                  data-cad-path="hero.image"
+                  src={data.hero.image}
+                  alt={(data.hero as any).imageAlt || 'ARES Commander - Dual 2D drafting and 3D solid modeling CAD workstation'}
+                  className="w-full max-h-[360px] object-contain group-hover:scale-102 transition-transform duration-700"
+                />
 
-                  {/* Floating Badges */}
-                  <div className="absolute top-4 left-4 flex flex-col gap-2">
-                    <span className="px-3 py-1 rounded-full bg-slate-900/90 backdrop-blur-md border border-slate-700 text-white text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-md">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                      <span data-cad-path="hero.floatingBadge1">{(data.hero as any).floatingBadge1 || 'Native DWG 2018–R12'}</span>
-                    </span>
-                    <span className="px-3 py-1 rounded-full bg-blue-600/90 backdrop-blur-md text-white text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-md">
-                      <LayersIcon className="w-3 h-3" />
-                      <span data-cad-path="hero.floatingBadge2">{(data.hero as any).floatingBadge2 || '2D Drafting + 3D Solids'}</span>
-                    </span>
-                  </div>
-
-                  <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <span data-cad-path="hero.captionEyebrow" className="text-[10px] font-mono uppercase tracking-wider text-blue-400 font-bold">
-                      {(data.hero as any).captionEyebrow || 'Cross-Platform Workstation'}
-                    </span>
-                    <h3 data-cad-path="hero.captionTitle" className="text-sm sm:text-base font-bold text-white leading-snug drop-shadow-sm">
-                      {(data.hero as any).captionTitle || 'ARES Commander on Desktop with Trinity Cloud & Mobile'}
-                    </h3>
-                  </div>
+                {/* Floating Badges */}
+                <div className="absolute top-3 left-3 flex flex-col gap-2">
+                  <span className="px-3 py-1 rounded-full bg-slate-900/95 backdrop-blur-md border border-slate-700 text-white text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-md">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span data-cad-path="hero.floatingBadge1">{(data.hero as any).floatingBadge1 || 'Native DWG 2018–R12'}</span>
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-blue-600/95 backdrop-blur-md text-white text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-md">
+                    <LayersIcon className="w-3 h-3" />
+                    <span data-cad-path="hero.floatingBadge2">{(data.hero as any).floatingBadge2 || '2D Drafting + 3D Solids'}</span>
+                  </span>
                 </div>
+              </div>
+
+              {/* Informational Sub-Card cleanly below the image */}
+              <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900 border border-slate-700/80 text-white shadow-md">
+                <span data-cad-path="hero.captionEyebrow" className="text-[10px] font-mono uppercase tracking-wider text-blue-400 font-bold block mb-0.5">
+                  {(data.hero as any).captionEyebrow || 'Cross-Platform Workstation'}
+                </span>
+                <h3 data-cad-path="hero.captionTitle" className="text-sm sm:text-base font-bold text-white leading-snug">
+                  {(data.hero as any).captionTitle || 'ARES Commander on Desktop with Trinity Cloud & Mobile'}
+                </h3>
               </div>
 
               {/* Quick Spec Strip */}

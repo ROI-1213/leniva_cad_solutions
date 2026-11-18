@@ -260,34 +260,36 @@ export const AresStandardPage: React.FC<AresStandardPageProps> = ({ cadKey = 'ar
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="lg:col-span-5"
+              className="lg:col-span-5 flex flex-col gap-3"
             >
-              <div className="relative rounded-2xl overflow-hidden border border-slate-700/70 shadow-2xl bg-slate-900/60 backdrop-blur-sm group flex items-center justify-center p-2">
+              <div className="relative rounded-2xl overflow-hidden border border-slate-700/70 shadow-2xl bg-slate-900/80 backdrop-blur-sm group flex items-center justify-center p-3 sm:p-4 min-h-[300px] sm:min-h-[360px]">
                 <img
                   src={data.hero.image}
                   alt="ARES Standard 2D CAD Workstation"
-                  className="w-full h-80 sm:h-96 object-contain transition-transform duration-700"
+                  className="w-full max-h-[360px] object-contain transition-transform duration-700 group-hover:scale-102"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent pointer-events-none" />
 
-                <div className="absolute top-4 left-4">
-                  <span className="px-3 py-1 rounded-full bg-blue-600/90 text-white text-[11px] font-bold tracking-wide uppercase shadow">
-                    {data.hero.badge}
-                  </span>
-                </div>
-
-                <div className="absolute bottom-4 left-4 right-4 p-4 rounded-xl bg-slate-900/90 border border-slate-700/80 backdrop-blur-md">
-                  <div className="flex items-center justify-between text-xs text-slate-300 mb-1">
-                    <span className="font-semibold text-white flex items-center space-x-1.5">
-                      <FileCode className="w-3.5 h-3.5 text-blue-400" />
-                      <span>Native DWG Environment</span>
+                {data.hero.badge && (
+                  <div className="absolute top-3 left-3">
+                    <span className="px-3 py-1 rounded-full bg-blue-600/95 text-white text-[11px] font-bold tracking-wide uppercase shadow">
+                      {data.hero.badge}
                     </span>
-                    <span className="text-[11px] text-blue-400 font-mono">Windows 64-bit</span>
                   </div>
-                  <p className="text-[11px] text-slate-400">
-                    2D drafting, layer controls, blocks with attributes, and BatchPrint publishing.
-                  </p>
+                )}
+              </div>
+
+              {/* Informational Sub-Card cleanly underneath the image */}
+              <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900/90 border border-slate-700/80 backdrop-blur-md shadow-lg">
+                <div className="flex items-center justify-between text-xs text-slate-300 mb-1">
+                  <span className="font-semibold text-white flex items-center space-x-1.5">
+                    <FileCode className="w-3.5 h-3.5 text-blue-400" />
+                    <span>Native DWG Environment</span>
+                  </span>
+                  <span className="text-[11px] text-blue-400 font-mono">Windows 64-bit</span>
                 </div>
+                <p className="text-[11px] text-slate-400">
+                  2D drafting, layer controls, blocks with attributes, and BatchPrint publishing.
+                </p>
               </div>
             </motion.div>
           </div>
