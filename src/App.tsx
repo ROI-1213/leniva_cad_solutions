@@ -1,4 +1,4 @@
-import { Suspense, lazy, Component, ErrorInfo, ReactNode, useState, useEffect } from 'react'
+import React, { Suspense, lazy, Component, ErrorInfo, ReactNode } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AppProvider } from './context/AppContext'
 import Header from './components/Header'
@@ -10,54 +10,77 @@ import ScrollToTop from './components/ScrollToTop'
 import { GlobalVisualPageOverridesApplier } from './utils/cadVisualEditorStore'
 import HomePage from './pages/HomePage'
 
+// Resilient lazy loader that seamlessly fetches fresh bundles on Vercel redeploy without flashing an error screen
+function lazyWithRetry<T extends React.ComponentType<any>>(
+  importer: () => Promise<{ default: T }>
+) {
+  return lazy(async () => {
+    try {
+      return await importer()
+    } catch (err: any) {
+      const reloadKey = 'leniva_lazy_retry_' + window.location.pathname
+      const last = sessionStorage.getItem(reloadKey)
+      const now = Date.now()
+      if (!last || now - Number(last) > 4000) {
+        sessionStorage.setItem(reloadKey, String(now))
+        const cleanSearch = window.location.search.replace(/[?&]_v=\d+/g, '')
+        const sep = cleanSearch.includes('?') ? '&' : '?'
+        window.location.replace(window.location.pathname + cleanSearch + sep + '_v=' + now)
+        return new Promise<{ default: T }>(() => {})
+      }
+      throw err
+    }
+  })
+}
+
 // Lazy-loaded pages — each loads only when that route is visited
-const AdminPage = lazy(() => import('./pages/AdminPage'))
-const ProductsPage = lazy(() => import('./pages/ProductsPage'))
-const CategoryDetailPage = lazy(() => import('./pages/CategoryDetailPage'))
-const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage'))
-const ServicesPage = lazy(() => import('./pages/ServicesPage'))
-const ShopPage = lazy(() => import('./pages/ShopPage'))
-const MaterialsPage = lazy(() => import('./pages/MaterialsPage'))
-const BlogPage = lazy(() => import('./pages/BlogPage'))
-const BlogPostPage = lazy(() => import('./pages/BlogPostPage'))
-const AboutPage = lazy(() => import('./pages/AboutPage'))
-const ContactPage = lazy(() => import('./pages/ContactPage'))
-const CareersPage = lazy(() => import('./pages/CareersPage'))
-const ResellerPage = lazy(() => import('./pages/ResellerPage'))
-const LegalPage = lazy(() => import('./pages/LegalPage'))
-const CartPage = lazy(() => import('./pages/CartPage'))
-const CheckoutPage = lazy(() => import('./pages/CheckoutPage'))
-const WishlistPage = lazy(() => import('./pages/WishlistPage'))
-const MyAccountPage = lazy(() => import('./pages/MyAccountPage'))
-const ScannersCategoryPage = lazy(() => import('./pages/ScannersCategoryPage'))
-const DevokMQPage = lazy(() => import('./pages/DevokMQPage'))
-const DevokMTPage = lazy(() => import('./pages/DevokMTPage'))
-const EinscanPage = lazy(() => import('./pages/EinscanPage'))
-const EkaHtPage = lazy(() => import('./pages/EkaHtPage'))
-const EkaXlPage = lazy(() => import('./pages/EkaXlPage'))
-const EkaXlePage = lazy(() => import('./pages/EkaXlePage'))
-const DlpCategoryPage = lazy(() => import('./pages/DlpCategoryPage'))
-const IndustrialLcdCategoryPage = lazy(() => import('./pages/IndustrialLcdCategoryPage'))
-const EkaGtMaxPage = lazy(() => import('./pages/EkaGtMaxPage'))
-const EkaF116kPage = lazy(() => import('./pages/EkaF116kPage'))
-const EnscapePage = lazy(() => import('./pages/EnscapePage'))
-const VRayPage = lazy(() => import('./pages/VRayPage'))
-const CoronaPage = lazy(() => import('./pages/CoronaPage'))
-const SketchUpStudioPage = lazy(() => import('./pages/SketchUpStudioPage'))
-const SketchUpProScanPage = lazy(() => import('./pages/SketchUpProScanPage'))
-const SketchUpProPage = lazy(() => import('./pages/SketchUpProPage'))
-const SketchUpProAdvancedPage = lazy(() => import('./pages/SketchUpProAdvancedPage'))
-const AresMechanicalPage = lazy(() => import('./pages/AresMechanicalPage'))
-const AresElectricalPage = lazy(() => import('./pages/AresElectricalPage'))
-const AresStandardPage = lazy(() => import('./pages/AresStandardPage'))
-const AresCommanderPage = lazy(() => import('./pages/AresCommanderPage'))
-const AresKudoPage = lazy(() => import('./pages/AresKudoPage'))
-const AresTouchPage = lazy(() => import('./pages/AresTouchPage'))
-const FilamentCategoryPage = lazy(() => import('./pages/FilamentCategoryPage'))
-const FilamentDetailPage = lazy(() => import('./pages/FilamentCategoryPage').then(m => ({ default: m.FilamentDetailPage })))
-const WhitePlaDetailPage = lazy(() => import('./pages/WhitePlaDetailPage'))
-const GreySilverPlaPage = lazy(() => import('./pages/GreySilverPlaPage'))
-const GoldPlaPage = lazy(() => import('./pages/GoldPlaPage'))
+const AdminPage = lazyWithRetry(() => import('./pages/AdminPage'))
+const ProductsPage = lazyWithRetry(() => import('./pages/ProductsPage'))
+const CategoryDetailPage = lazyWithRetry(() => import('./pages/CategoryDetailPage'))
+const ProductDetailPage = lazyWithRetry(() => import('./pages/ProductDetailPage'))
+const ServicesPage = lazyWithRetry(() => import('./pages/ServicesPage'))
+const ShopPage = lazyWithRetry(() => import('./pages/ShopPage'))
+const MaterialsPage = lazyWithRetry(() => import('./pages/MaterialsPage'))
+const BlogPage = lazyWithRetry(() => import('./pages/BlogPage'))
+const BlogPostPage = lazyWithRetry(() => import('./pages/BlogPostPage'))
+const AboutPage = lazyWithRetry(() => import('./pages/AboutPage'))
+const ContactPage = lazyWithRetry(() => import('./pages/ContactPage'))
+const CareersPage = lazyWithRetry(() => import('./pages/CareersPage'))
+const ResellerPage = lazyWithRetry(() => import('./pages/ResellerPage'))
+const LegalPage = lazyWithRetry(() => import('./pages/LegalPage'))
+const CartPage = lazyWithRetry(() => import('./pages/CartPage'))
+const CheckoutPage = lazyWithRetry(() => import('./pages/CheckoutPage'))
+const WishlistPage = lazyWithRetry(() => import('./pages/WishlistPage'))
+const MyAccountPage = lazyWithRetry(() => import('./pages/MyAccountPage'))
+const ScannersCategoryPage = lazyWithRetry(() => import('./pages/ScannersCategoryPage'))
+const DevokMQPage = lazyWithRetry(() => import('./pages/DevokMQPage'))
+const DevokMTPage = lazyWithRetry(() => import('./pages/DevokMTPage'))
+const EinscanPage = lazyWithRetry(() => import('./pages/EinscanPage'))
+const EkaHtPage = lazyWithRetry(() => import('./pages/EkaHtPage'))
+const EkaXlPage = lazyWithRetry(() => import('./pages/EkaXlPage'))
+const EkaXlePage = lazyWithRetry(() => import('./pages/EkaXlePage'))
+const DlpCategoryPage = lazyWithRetry(() => import('./pages/DlpCategoryPage'))
+const IndustrialLcdCategoryPage = lazyWithRetry(() => import('./pages/IndustrialLcdCategoryPage'))
+const EkaGtMaxPage = lazyWithRetry(() => import('./pages/EkaGtMaxPage'))
+const EkaF116kPage = lazyWithRetry(() => import('./pages/EkaF116kPage'))
+const EnscapePage = lazyWithRetry(() => import('./pages/EnscapePage'))
+const VRayPage = lazyWithRetry(() => import('./pages/VRayPage'))
+const CoronaPage = lazyWithRetry(() => import('./pages/CoronaPage'))
+const SketchUpStudioPage = lazyWithRetry(() => import('./pages/SketchUpStudioPage'))
+const SketchUpProScanPage = lazyWithRetry(() => import('./pages/SketchUpProScanPage'))
+const SketchUpProPage = lazyWithRetry(() => import('./pages/SketchUpProPage'))
+const SketchUpProAdvancedPage = lazyWithRetry(() => import('./pages/SketchUpProAdvancedPage'))
+const AresMechanicalPage = lazyWithRetry(() => import('./pages/AresMechanicalPage'))
+const AresElectricalPage = lazyWithRetry(() => import('./pages/AresElectricalPage'))
+const AresStandardPage = lazyWithRetry(() => import('./pages/AresStandardPage'))
+const AresCommanderPage = lazyWithRetry(() => import('./pages/AresCommanderPage'))
+const AresKudoPage = lazyWithRetry(() => import('./pages/AresKudoPage'))
+const AresTouchPage = lazyWithRetry(() => import('./pages/AresTouchPage'))
+const FilamentCategoryPage = lazyWithRetry(() => import('./pages/FilamentCategoryPage'))
+const FilamentDetailPage = lazyWithRetry(() => import('./pages/FilamentCategoryPage').then(m => ({ default: m.FilamentDetailPage })))
+const WhitePlaDetailPage = lazyWithRetry(() => import('./pages/WhitePlaDetailPage'))
+const GreySilverPlaPage = lazyWithRetry(() => import('./pages/GreySilverPlaPage'))
+const GoldPlaPage = lazyWithRetry(() => import('./pages/GoldPlaPage'))
 
 // Loading fallback
 const PageLoader = () => (
@@ -72,71 +95,61 @@ const PageLoader = () => (
 // Deployment chunk error boundary
 interface ErrorBoundaryProps {
   children: ReactNode
+  pathname?: string
 }
 
 interface ErrorBoundaryState {
   hasError: boolean
+  retryCount: number
 }
 
 class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props)
-    this.state = { hasError: false }
+    this.state = { hasError: false, retryCount: 0 }
   }
 
-  static getDerivedStateFromError(): ErrorBoundaryState {
+  static getDerivedStateFromError(): Partial<ErrorBoundaryState> {
     return { hasError: true }
+  }
+
+  componentDidUpdate(prevProps: ErrorBoundaryProps) {
+    if (prevProps.pathname !== this.props.pathname && this.state.hasError) {
+      this.setState({ hasError: false, retryCount: 0 })
+    }
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('App caught an error:', error, errorInfo)
+    const msg = error?.message || ''
+    const isDomMutationNoise =
+      msg.includes('removeChild') ||
+      msg.includes('insertBefore') ||
+      msg.includes('NotFoundError')
+
+    if (isDomMutationNoise && this.state.retryCount < 2) {
+      this.setState(prev => ({ hasError: false, retryCount: prev.retryCount + 1 }))
+      return
+    }
+
     const isChunkError =
-      error.message?.includes('Failed to fetch dynamically imported module') ||
-      error.message?.includes('Importing a module script failed') ||
-      error.message?.includes('Unable to preload CSS') ||
-      error.message?.includes('dynamically imported module') ||
+      msg.includes('Failed to fetch dynamically imported module') ||
+      msg.includes('Importing a module script failed') ||
+      msg.includes('Unable to preload CSS') ||
+      msg.includes('dynamically imported module') ||
       error.name === 'ChunkLoadError'
 
-    const storageKey = 'leniva_chunk_reload'
+    const storageKey = 'leniva_chunk_reload_' + (this.props.pathname || '')
     const lastReload = sessionStorage.getItem(storageKey)
     const now = Date.now()
-    if (!lastReload || now - parseInt(lastReload) > 6000) {
+    if (!lastReload || now - parseInt(lastReload) > 4000) {
       sessionStorage.setItem(storageKey, now.toString())
       if (isChunkError) {
-        // Automatically perform a cache-busting reload to fetch newly deployed bundles immediately
-        const freshUrl = window.location.pathname + (window.location.search ? window.location.search + '&' : '?') + '_v=' + now
-        window.location.replace(freshUrl)
+        const cleanSearch = window.location.search.replace(/[?&]_v=\d+/g, '')
+        const sep = cleanSearch.includes('?') ? '&' : '?'
+        window.location.replace(window.location.pathname + cleanSearch + sep + '_v=' + now)
         return
       }
-      if (!isChunkError) {
-        // Sanitize any corrupted localStorage JSON if a runtime error occurred
-        try {
-          const keysToCheck = [
-            'leniva_admin_products_catalog',
-            'leniva_admin_blogs_catalog',
-            'leniva_cad_software_edits',
-            'leniva_custom_cad_products',
-            'leniva_home_content',
-            'leniva_about_content',
-          ]
-          for (const k of keysToCheck) {
-            const raw = localStorage.getItem(k)
-            if (raw) {
-              try {
-                const parsed = JSON.parse(raw)
-                if (k === 'leniva_admin_blogs_catalog' && !Array.isArray(parsed)) {
-                  localStorage.removeItem(k)
-                }
-              } catch {
-                localStorage.removeItem(k)
-              }
-            }
-          }
-        } catch {
-          // ignore
-        }
-      }
-      window.location.reload()
     }
   }
 
@@ -199,7 +212,7 @@ export default function App() {
         {!isAdminRoute && <Header />}
 
         <main className="flex-1">
-          <AppErrorBoundary>
+          <AppErrorBoundary pathname={location.pathname}>
             <Suspense fallback={<PageLoader />}>
               <Routes>
               {/* 1. Home */}

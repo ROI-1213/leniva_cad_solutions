@@ -24,22 +24,6 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({ forcedSl
   const { openQuoteModal } = useApp()
   const [activeBrandTab, setActiveBrandTab] = useState<'all' | 'graebert' | 'sketchup' | 'chaos'>('all')
 
-  if (slug === 'dlp-3d-printers' || slug === 'dlp') {
-    return <DlpCategoryPage />
-  }
-  if (slug === 'industrial-lcd-3d-printers' || slug === 'lcd' || slug === 'industrial-lcd') {
-    return <IndustrialLcdCategoryPage />
-  }
-  if (slug === '3d-scanners' || slug === 'scanners') {
-    return <ScannersCategoryPage />
-  }
-
-  const category = productCategories.find(c => c.slug === slug)
-
-  if (!category) {
-    return <Navigate to="/products" replace />
-  }
-
   // Live stored products catalog (includes newly added custom products from admin)
   const [allProducts, setAllProducts] = useState<Product[]>(() => {
     try {
@@ -68,6 +52,22 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({ forcedSl
       window.removeEventListener('storage', handleUpdate)
     }
   }, [])
+
+  if (slug === 'dlp-3d-printers' || slug === 'dlp') {
+    return <DlpCategoryPage />
+  }
+  if (slug === 'industrial-lcd-3d-printers' || slug === 'lcd' || slug === 'industrial-lcd') {
+    return <IndustrialLcdCategoryPage />
+  }
+  if (slug === '3d-scanners' || slug === 'scanners') {
+    return <ScannersCategoryPage />
+  }
+
+  const category = productCategories.find(c => c.slug === slug)
+
+  if (!category) {
+    return <Navigate to="/products" replace />
+  }
 
   // Find all products matching this category
   const categoryProducts = allProducts.filter(p => p.categorySlug === slug)

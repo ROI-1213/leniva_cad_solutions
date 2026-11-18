@@ -1866,6 +1866,49 @@ export function discoverLiveDomInventory(
   return { sections, imageSlots, pdfLinks }
 }
 
+/**
+ * Safely updates the visible text of an element WITHOUT removing any child Element nodes
+ * (<br>, <span>, <strong>, <svg>) owned by React's Fiber tree, preventing React removeChild crashes on unmount.
+ */
+function setElementTextSafely(el: HTMLElement, newText: string) {
+  if (el.childElementCount === 0) {
+    if (el.textContent !== newText) {
+      el.textContent = newText
+    }
+    return
+  }
+
+  // If element contains child Elements (like <br/>, <span>, <svg>), update text nodes in-place without removing Elements
+  const textNodes: Text[] = []
+  if (typeof document !== 'undefined') {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
+    let node = walker.nextNode() as Text | null
+    while (node) {
+      if (!node.parentElement?.closest('svg')) {
+        textNodes.push(node)
+      }
+      node = walker.nextNode() as Text | null
+    }
+  }
+
+  if (textNodes.length > 0) {
+    if (textNodes[0].nodeValue !== newText) {
+      textNodes[0].nodeValue = newText
+    }
+    for (let i = 1; i < textNodes.length; i++) {
+      if (textNodes[i].nodeValue !== '') {
+        textNodes[i].nodeValue = ''
+      }
+    }
+    const brs = Array.from(el.querySelectorAll<HTMLElement>('br'))
+    for (const br of brs) {
+      if (br.style.display !== 'none') {
+        br.style.display = 'none'
+      }
+    }
+  }
+}
+
 function bindVisualDownloadClickHandler(el: HTMLElement) {
   if (el.hasAttribute('data-visual-href-bound')) return
   el.setAttribute('data-visual-href-bound', 'true')
@@ -1996,9 +2039,7 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
       const h1Key = h1El?.getAttribute('data-cad-key') || 'auto:h1:0'
       if (h1El && !payload.elementOverrides?.[h1Key]) {
         const targetHeadline = String(customPrinterMeta.headline)
-        if (h1El.textContent !== targetHeadline) {
-          h1El.textContent = targetHeadline
-        }
+        setElementTextSafely(h1El, targetHeadline)
       }
     }
     if (customPrinterMeta.shortDescription) {
@@ -2007,9 +2048,7 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
       const descKey = descEl?.getAttribute('data-cad-key') || ''
       if (descEl && (!descKey || !payload.elementOverrides?.[descKey])) {
         const targetDesc = String(customPrinterMeta.shortDescription)
-        if (descEl.textContent !== targetDesc) {
-          descEl.textContent = targetDesc
-        }
+        setElementTextSafely(descEl, targetDesc)
       }
     }
     if (newBrand) {
@@ -2160,9 +2199,7 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
           Boolean(target.querySelector('svg'))
 
         if (!isButtonOrLinkWithIcon && (target.childElementCount === 0 || target.hasAttribute('data-cad-text-leaf') || /^h[1-6]|p|li|td|th$/i.test(target.tagName))) {
-          if (target.textContent !== newText) {
-            target.textContent = newText
-          }
+          setElementTextSafely(target, newText)
         } else {
           // Preserve child SVG icons inside buttons or links by updating the inner span or text node
           const textSpan =
@@ -2171,9 +2208,7 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
               s => s.childElementCount === 0 && (s.textContent || '').trim().length > 0
             )
           if (textSpan) {
-            if (textSpan.textContent !== newText) {
-              textSpan.textContent = newText
-            }
+            setElementTextSafely(textSpan, newText)
           } else {
             const textNode = Array.from(target.childNodes).find(
               n => n.nodeType === Node.TEXT_NODE && (n.textContent || '').trim().length > 0
@@ -2183,8 +2218,8 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
               if (textNode.textContent !== formatted) {
                 textNode.textContent = formatted
               }
-            } else if (target.textContent !== newText) {
-              target.textContent = newText
+            } else {
+              setElementTextSafely(target, newText)
             }
           }
         }

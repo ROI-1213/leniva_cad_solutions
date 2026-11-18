@@ -4100,6 +4100,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
             }}
           >
             <div
+              key={activeProductKey}
               ref={canvasRef}
               data-cad-editor-canvas="true"
               data-preview-mode={isPreviewMode ? 'true' : 'false'}

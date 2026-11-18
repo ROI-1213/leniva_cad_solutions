@@ -18,35 +18,57 @@ import { getStoredProductsCatalog } from '../utils/productCatalog'
 import { ProductCard } from '../components/ProductCard'
 import { useApp } from '../context/AppContext'
 
+function lazyWithRetry<T extends React.ComponentType<any>>(
+  importer: () => Promise<{ default: T }>
+) {
+  return lazy(async () => {
+    try {
+      return await importer()
+    } catch (err: any) {
+      const reloadKey = 'leniva_lazy_retry_' + window.location.pathname
+      const last = sessionStorage.getItem(reloadKey)
+      const now = Date.now()
+      if (!last || now - Number(last) > 4000) {
+        sessionStorage.setItem(reloadKey, String(now))
+        const cleanSearch = window.location.search.replace(/[?&]_v=\d+/g, '')
+        const sep = cleanSearch.includes('?') ? '&' : '?'
+        window.location.replace(window.location.pathname + cleanSearch + sep + '_v=' + now)
+        return new Promise<{ default: T }>(() => {})
+      }
+      throw err
+    }
+  })
+}
+
 // Code-split all dedicated product pages so they only load when requested
-const PrathamDesktopPage = lazy(() => import('./PrathamDesktopPage'))
-const PrathamMiniPage = lazy(() => import('./PrathamMiniPage'))
-const Pratham3Page = lazy(() => import('./Pratham3Page'))
-const EkaHtPage = lazy(() => import('./EkaHtPage'))
-const EkaXlPage = lazy(() => import('./EkaXlPage'))
-const EkaXlePage = lazy(() => import('./EkaXlePage'))
-const EkaGtMaxPage = lazy(() => import('./EkaGtMaxPage'))
-const EkaF116kPage = lazy(() => import('./EkaF116kPage'))
-const Pratham5Page = lazy(() => import('./Pratham5Page'))
-const Pratham6Page = lazy(() => import('./Pratham6Page'))
-const PrathamX600Page = lazy(() => import('./PrathamX600Page'))
-const PrathamX1000Page = lazy(() => import('./PrathamX1000Page'))
-const Pratham3RapidPage = lazy(() => import('./Pratham3RapidPage'))
-const EnscapePage = lazy(() => import('./EnscapePage'))
-const VRayPage = lazy(() => import('./VRayPage'))
-const CoronaPage = lazy(() => import('./CoronaPage'))
-const SketchUpStudioPage = lazy(() => import('./SketchUpStudioPage'))
-const SketchUpProScanPage = lazy(() => import('./SketchUpProScanPage'))
-const AresMechanicalPage = lazy(() => import('./AresMechanicalPage'))
-const AresElectricalPage = lazy(() => import('./AresElectricalPage'))
-const AresStandardPage = lazy(() => import('./AresStandardPage'))
-const AresCommanderPage = lazy(() => import('./AresCommanderPage'))
-const AresKudoPage = lazy(() => import('./AresKudoPage'))
-const AresTouchPage = lazy(() => import('./AresTouchPage'))
-const DevokMTPage = lazy(() => import('./DevokMTPage'))
-const DevokMQPage = lazy(() => import('./DevokMQPage'))
-const EinscanPage = lazy(() => import('./EinscanPage'))
-const ScannersCategoryPage = lazy(() => import('./ScannersCategoryPage'))
+const PrathamDesktopPage = lazyWithRetry(() => import('./PrathamDesktopPage'))
+const PrathamMiniPage = lazyWithRetry(() => import('./PrathamMiniPage'))
+const Pratham3Page = lazyWithRetry(() => import('./Pratham3Page'))
+const EkaHtPage = lazyWithRetry(() => import('./EkaHtPage'))
+const EkaXlPage = lazyWithRetry(() => import('./EkaXlPage'))
+const EkaXlePage = lazyWithRetry(() => import('./EkaXlePage'))
+const EkaGtMaxPage = lazyWithRetry(() => import('./EkaGtMaxPage'))
+const EkaF116kPage = lazyWithRetry(() => import('./EkaF116kPage'))
+const Pratham5Page = lazyWithRetry(() => import('./Pratham5Page'))
+const Pratham6Page = lazyWithRetry(() => import('./Pratham6Page'))
+const PrathamX600Page = lazyWithRetry(() => import('./PrathamX600Page'))
+const PrathamX1000Page = lazyWithRetry(() => import('./PrathamX1000Page'))
+const Pratham3RapidPage = lazyWithRetry(() => import('./Pratham3RapidPage'))
+const EnscapePage = lazyWithRetry(() => import('./EnscapePage'))
+const VRayPage = lazyWithRetry(() => import('./VRayPage'))
+const CoronaPage = lazyWithRetry(() => import('./CoronaPage'))
+const SketchUpStudioPage = lazyWithRetry(() => import('./SketchUpStudioPage'))
+const SketchUpProScanPage = lazyWithRetry(() => import('./SketchUpProScanPage'))
+const AresMechanicalPage = lazyWithRetry(() => import('./AresMechanicalPage'))
+const AresElectricalPage = lazyWithRetry(() => import('./AresElectricalPage'))
+const AresStandardPage = lazyWithRetry(() => import('./AresStandardPage'))
+const AresCommanderPage = lazyWithRetry(() => import('./AresCommanderPage'))
+const AresKudoPage = lazyWithRetry(() => import('./AresKudoPage'))
+const AresTouchPage = lazyWithRetry(() => import('./AresTouchPage'))
+const DevokMTPage = lazyWithRetry(() => import('./DevokMTPage'))
+const DevokMQPage = lazyWithRetry(() => import('./DevokMQPage'))
+const EinscanPage = lazyWithRetry(() => import('./EinscanPage'))
+const ScannersCategoryPage = lazyWithRetry(() => import('./ScannersCategoryPage'))
 
 interface ProductDetailPageProps {
   forcedSlug?: string
@@ -56,6 +78,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
   const { slug: paramSlug } = useParams<{ slug: string }>()
   const slug = forcedSlug || paramSlug
   const { openQuoteModal, toggleWishlist, isInWishlist } = useApp()
+  const [activeImageIndex, setActiveImageIndex] = useState(0)
+  const [activeTab, setActiveTab] = useState<'overview' | 'features' | 'specs' | 'applications' | 'materials' | 'who'>('overview')
+  const [copiedLink, setCopiedLink] = useState(false)
 
   const slugAliases: Record<string, string> = {
     'pratham-6-0': 'pratham-6',
@@ -244,10 +269,6 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ forcedSlug
   if (!product) {
     return <Navigate to="/products" replace />
   }
-
-  const [activeImageIndex, setActiveImageIndex] = useState(0)
-  const [activeTab, setActiveTab] = useState<'overview' | 'features' | 'specs' | 'applications' | 'materials' | 'who'>('overview')
-  const [copiedLink, setCopiedLink] = useState(false)
 
   const inWishlist = isInWishlist(product.id)
   const isCadSoftware =
