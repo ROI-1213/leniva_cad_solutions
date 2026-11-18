@@ -1628,7 +1628,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
         sectionId,
         currentSrc: normalizeAssetUrl(ov?.src || imgEl.getAttribute('src') || imgEl.src, 'image'),
         currentAlt: ov?.alt !== undefined ? ov.alt : imgEl.alt,
-        currentObjectFit: ov?.objectFit || 'cover',
+        currentObjectFit: ov?.objectFit || 'contain',
       })
       setInspectorOpen(true)
       setInspectorTab('element')
@@ -1766,6 +1766,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
               originalSrc: existing.originalSrc || options.defaultSrc,
               fileName: res.fileName,
               dimensions: res.dimensions,
+              objectFit: existing.objectFit || 'contain',
             },
           }
         }
@@ -4462,7 +4463,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                             <div>
                               <label className="block font-bold text-slate-800 mb-1">Display Fit</label>
                               <select
-                                value={payload.elementOverrides?.[selectedElement.key]?.objectFit || 'cover'}
+                                value={payload.elementOverrides?.[selectedElement.key]?.objectFit || 'contain'}
                                 onChange={e =>
                                   setElementOverrideValue(selectedElement.key, {
                                     objectFit: e.target.value as any,
@@ -4470,8 +4471,8 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                                 }
                                 className="w-full px-2.5 py-2 rounded-xl border border-slate-300 text-slate-900 text-xs"
                               >
-                                <option value="cover">Cover (Maintain Aspect)</option>
-                                <option value="contain">Contain (Full Fit)</option>
+                                <option value="contain">Contain (Full Image - No Crop)</option>
+                                <option value="cover">Cover (Fill &amp; Crop)</option>
                                 <option value="fill">Fill Stretch</option>
                                 <option value="scale-down">Scale Down</option>
                               </select>

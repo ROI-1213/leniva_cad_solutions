@@ -1583,8 +1583,8 @@ export async function uploadAssetToPersistentStorage(
     }
   }
 
-  // Strategy 3: Client-side persistent Data URL with HTML5 canvas compression for images
-  onProgress?.(85, 'Optimizing and encoding asset...')
+  // Strategy 3: Client-side persistent Data URL
+  onProgress?.(85, 'Processing and encoding asset...')
   let finalAssetUrl = await fileToDataUrl(file)
 
   // Ensure valid data: prefix
@@ -1592,8 +1592,10 @@ export async function uploadAssetToPersistentStorage(
     finalAssetUrl = `data:${resolvedMime};base64,${finalAssetUrl}`
   }
 
-  // For raster images, optimize using HTML5 canvas so it fits comfortably in localStorage & Cloud Gist
-  if (kind === 'image' && resolvedMime !== 'image/svg+xml') {
+  // Preserve 100% original pixel clarity without lossy compression for reasonable file sizes (< 3MB)
+  // Only resize huge images (> 3MB) to maintain fast cloud sync while preserving crisp high-definition lines
+  const MAX_RAW_SIZE_BYTES = 3 * 1024 * 1024
+  if (kind === 'image' && resolvedMime !== 'image/svg+xml' && file.size > MAX_RAW_SIZE_BYTES) {
     try {
       const img = new Image()
       const loadPromise = new Promise<HTMLImageElement>((resolve, reject) => {
@@ -1603,7 +1605,8 @@ export async function uploadAssetToPersistentStorage(
       })
       await loadPromise
 
-      const maxDim = 1200
+      // Ultra-HD 2048px bounding box ensures crisp text and detailed CAD graphics
+      const maxDim = 2048
       let { width, height } = img
       if (width > maxDim || height > maxDim) {
         if (width > height) {
@@ -1620,16 +1623,17 @@ export async function uploadAssetToPersistentStorage(
       canvas.height = height
       const ctx = canvas.getContext('2d')
       if (ctx) {
+        ctx.imageSmoothingEnabled = true
+        ctx.imageSmoothingQuality = 'high'
         ctx.drawImage(img, 0, 0, width, height)
-        // Preserve transparency for PNG/WebP product renders using WebP (or PNG fallback)
         const isTransparentType = resolvedMime === 'image/png' || resolvedMime === 'image/webp'
-        const encoded = canvas.toDataURL(isTransparentType ? 'image/webp' : 'image/jpeg', 0.84)
-        if (encoded && encoded.startsWith('data:image/')) {
+        const encoded = canvas.toDataURL(isTransparentType ? 'image/webp' : 'image/jpeg', 0.92)
+        if (encoded && encoded.startsWith('data:image/') && encoded.length < finalAssetUrl.length) {
           finalAssetUrl = encoded
         }
       }
     } catch {
-      // keep valid data URL
+      // keep original pristine data URL
     }
   }
 
@@ -2175,6 +2179,14 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
         if (target.getAttribute('src') !== normSrc) {
           target.setAttribute('src', normSrc)
         }
+        // When a custom image is uploaded, display it cleanly in its full natural proportions without zooming or cropping
+        const effectiveFit = ov.objectFit || 'contain'
+        target.style.objectFit = effectiveFit
+        target.style.objectPosition = 'center'
+        target.classList.remove('object-cover')
+        if (effectiveFit === 'contain') {
+          target.classList.add('object-contain')
+        }
       } else if (target.hasAttribute('data-original-src')) {
         const orig = target.getAttribute('data-original-src') || ''
         if (orig && target.getAttribute('src') !== orig) {
@@ -2182,7 +2194,9 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
         }
       }
       if (ov.alt !== undefined && target.alt !== ov.alt) target.alt = ov.alt
-      if (ov.objectFit && target.style.objectFit !== ov.objectFit) target.style.objectFit = ov.objectFit
+      if (ov.objectFit && target.style.objectFit !== ov.objectFit) {
+        target.style.objectFit = ov.objectFit
+      }
     } else {
       if (!target.hasAttribute('data-original-text')) {
         target.setAttribute('data-original-text', target.textContent || '')

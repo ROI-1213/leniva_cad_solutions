@@ -288,11 +288,11 @@ export const SketchUpProScanPage: React.FC = () => {
 
             {/* Right Split View / Parallax Card */}
             <div className="lg:col-span-5 relative">
-              <div className="relative rounded-2xl overflow-hidden border border-slate-700 shadow-2xl bg-slate-900 group">
+              <div className="relative rounded-2xl overflow-hidden border border-slate-700 shadow-2xl bg-slate-900 group flex items-center justify-center p-2">
                 <img
                   src={proScanData.hero.image}
                   alt="SketchUp Pro Scan Reality Capture to 3D"
-                  className="w-full h-[400px] sm:h-[460px] object-cover group-hover:scale-105 transition-transform duration-700"
+                  className="w-full h-[400px] sm:h-[460px] object-contain transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
 

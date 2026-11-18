@@ -262,11 +262,11 @@ export const AresStandardPage: React.FC<AresStandardPageProps> = ({ cadKey = 'ar
               transition={{ duration: 0.6, delay: 0.1 }}
               className="lg:col-span-5"
             >
-              <div className="relative rounded-2xl overflow-hidden border border-slate-700/70 shadow-2xl bg-slate-800/50 backdrop-blur-sm group">
+              <div className="relative rounded-2xl overflow-hidden border border-slate-700/70 shadow-2xl bg-slate-900/60 backdrop-blur-sm group flex items-center justify-center p-2">
                 <img
                   src={data.hero.image}
                   alt="ARES Standard 2D CAD Workstation"
-                  className="w-full h-80 sm:h-96 object-cover transform group-hover:scale-105 transition-transform duration-700"
+                  className="w-full h-80 sm:h-96 object-contain transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent pointer-events-none" />
 
