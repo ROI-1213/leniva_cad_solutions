@@ -380,6 +380,26 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
     }
   })
 
+  // Custom 3D Scanner Products state (Loaded from localStorage & Cloud CMS)
+  const [customScannerProducts, setCustomScannerProducts] = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem('leniva_custom_scanner_products')
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
+  })
+
+  // Deleted 3D Scanner keys (allows deleting both custom and built-in 3D scanners)
+  const [deletedScannerKeys, setDeletedScannerKeys] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('leniva_deleted_scanner_keys')
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
+  })
+
   // Keep custom products and deleted keys synced when Cloud CMS pulls updates
   useEffect(() => {
     const syncFromStorage = () => {
@@ -531,26 +551,6 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
     template: 'devok_mt',
     headline: '',
     shortDescription: '',
-  })
-
-  // Custom 3D Scanner Products state
-  const [customScannerProducts, setCustomScannerProducts] = useState<any[]>(() => {
-    try {
-      const saved = localStorage.getItem('leniva_custom_scanner_products')
-      return saved ? JSON.parse(saved) : []
-    } catch {
-      return []
-    }
-  })
-
-  // Deleted 3D Scanner keys
-  const [deletedScannerKeys, setDeletedScannerKeys] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem('leniva_deleted_scanner_keys')
-      return saved ? JSON.parse(saved) : []
-    } catch {
-      return []
-    }
   })
 
   const canvasRef = useRef<HTMLDivElement>(null)
