@@ -1110,6 +1110,185 @@ export function getWorkingVisualPayload(productKey: string): {
   }
 }
 
+export function normalizeAssetUrl(url: string | undefined, kind: 'image' | 'pdf' = 'image'): string {
+  if (!url) return ''
+  const trimmed = url.trim()
+  if (!trimmed) return ''
+  if (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('/') ||
+    trimmed.startsWith('data:') ||
+    trimmed.startsWith('blob:') ||
+    trimmed.startsWith('#')
+  ) {
+    // Wait: if it starts with '/9j/' that is actually raw JPEG base64, NOT a relative path!
+    if (!trimmed.startsWith('/9j/')) {
+      return trimmed
+    }
+  }
+  if (trimmed.startsWith('JVBERi')) return `data:application/pdf;base64,${trimmed}`
+  if (trimmed.startsWith('iVBOR')) return `data:image/png;base64,${trimmed}`
+  if (trimmed.startsWith('/9j/')) return `data:image/jpeg;base64,${trimmed}`
+  if (trimmed.startsWith('R0lGOD')) return `data:image/gif;base64,${trimmed}`
+  if (trimmed.startsWith('UklGR')) return `data:image/webp;base64,${trimmed}`
+  if (trimmed.startsWith('PHN2Zw') || trimmed.startsWith('PD94bW')) return `data:image/svg+xml;base64,${trimmed}`
+  if (trimmed.length > 120 && !trimmed.includes(' ')) {
+    return kind === 'pdf'
+      ? `data:application/pdf;base64,${trimmed}`
+      : `data:image/jpeg;base64,${trimmed}`
+  }
+  return trimmed
+}
+
+export function openPdfOrUrlSafely(rawUrl: string) {
+  const url = normalizeAssetUrl(rawUrl, 'pdf')
+  if (!url) return
+  if (url.startsWith('data:application/pdf;base64,')) {
+    try {
+      const base64 = url.split(',')[1] || ''
+      const binary = atob(base64)
+      const len = binary.length
+      const bytes = new Uint8Array(len)
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binary.charCodeAt(i)
+      }
+      const blob = new Blob([bytes], { type: 'application/pdf' })
+      const blobUrl = URL.createObjectURL(blob)
+      window.open(blobUrl, '_blank', 'noopener,noreferrer')
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000)
+      return
+    } catch {
+      // fallback below
+    }
+  }
+  window.open(url, '_blank', 'noopener,noreferrer')
+}
+
+export function syncVisualPayloadToCatalogs(productKey: string, stamped: CadVisualPagePayload) {
+  if (typeof window === 'undefined') return
+  const ov = stamped.dataOverrides || {}
+  const elOv = stamped.elementOverrides || {}
+
+  // Find primary hero image override if any image was uploaded
+  const rawHeroImg =
+    ov.hero?.image ||
+    elOv['hero.image']?.src ||
+    elOv['auto:img:0']?.src ||
+    Object.values(elOv).find(x => x?.src)?.src
+  const heroImg = rawHeroImg ? normalizeAssetUrl(rawHeroImg, 'image') : undefined
+
+  // Find primary brochure PDF URL if uploaded
+  const primaryPdf = stamped.pdfResources?.[0]
+  const rawBrochureUrl =
+    (primaryPdf && primaryPdf.fileUrl !== primaryPdf.originalFileUrl ? primaryPdf.fileUrl : undefined) ||
+    Object.values(elOv).find(x => x?.pdfUrl)?.pdfUrl ||
+    primaryPdf?.fileUrl
+  const brochureUrl = rawBrochureUrl ? normalizeAssetUrl(rawBrochureUrl, 'pdf') : undefined
+
+  // Find primary headline & description overrides
+  const headline =
+    ov.hero?.headline ||
+    elOv['hero.headline']?.text ||
+    elOv['auto:h1:0']?.text ||
+    ov.customPrinterMeta?.headline
+  const shortDesc =
+    ov.hero?.shortDescription ||
+    ov.hero?.supportingText ||
+    elOv['auto:p:0']?.text ||
+    elOv['auto:p:1']?.text ||
+    ov.customPrinterMeta?.shortDescription
+
+  // 1. Sync into leniva_cad_software_edits
+  try {
+    const cadEditsRaw = window.localStorage.getItem('leniva_cad_software_edits')
+    const cadEditsMap = cadEditsRaw ? JSON.parse(cadEditsRaw) : {}
+    const existingEdits = cadEditsMap[productKey] || {}
+    const updatedEdits: Record<string, any> = { ...existingEdits }
+    if (headline) {
+      updatedEdits.headline = headline
+      updatedEdits.heroHeading = headline
+    }
+    if (ov.hero?.supportingText) {
+      updatedEdits.supportingHeadline = ov.hero.supportingText
+      updatedEdits.heroSupportingText = ov.hero.supportingText
+    }
+    if (ov.hero?.eyebrow) updatedEdits.eyebrow = ov.hero.eyebrow
+    if (heroImg) updatedEdits.heroImage = heroImg
+    if (brochureUrl) {
+      updatedEdits.downloadUrl = brochureUrl
+      updatedEdits.brochureUrl = brochureUrl
+    } else if (ov.identity?.downloadUrl) {
+      updatedEdits.downloadUrl = ov.identity.downloadUrl
+      updatedEdits.trialUrl = ov.identity.downloadUrl
+    }
+    if (ov.overview?.description || shortDesc) {
+      updatedEdits.description = ov.overview?.description || shortDesc
+    }
+    cadEditsMap[productKey] = updatedEdits
+    window.localStorage.setItem('leniva_cad_software_edits', JSON.stringify(cadEditsMap))
+  } catch {}
+
+  // 2. Sync into leniva_custom_printer_products, leniva_custom_cad_products, leniva_custom_scanner_products
+  const customStorageKeys = [
+    'leniva_custom_printer_products',
+    'leniva_custom_cad_products',
+    'leniva_custom_scanner_products',
+  ]
+  for (const sKey of customStorageKeys) {
+    try {
+      const list = JSON.parse(window.localStorage.getItem(sKey) || '[]')
+      if (Array.isArray(list) && list.some((item: any) => item && item.key === productKey)) {
+        const updatedList = list.map((item: any) => {
+          if (!item || item.key !== productKey) return item
+          return {
+            ...item,
+            ...(heroImg ? { heroImage: heroImg } : {}),
+            ...(brochureUrl ? { defaultBrochureUrl: brochureUrl } : {}),
+            ...(headline ? { headline } : {}),
+            ...(shortDesc ? { shortDescription: shortDesc } : {}),
+          }
+        })
+        window.localStorage.setItem(sKey, JSON.stringify(updatedList))
+      }
+    } catch {}
+  }
+
+  // 3. Sync into leniva_admin_products_catalog so /products & category pages show the uploaded image, brochure, and edited text
+  try {
+    const cleanSlug = productKey
+      .replace(/^(printer_|cad_|scanner_)/, '')
+      .replace(/_/g, '-')
+      .toLowerCase()
+    const catalogItem = VISUAL_PAGE_CATALOG.find(i => i.key === productKey)
+    const routeSlug = catalogItem?.route.replace(/^\/products\/?/, '').toLowerCase() || cleanSlug
+
+    const storedCat = JSON.parse(window.localStorage.getItem('leniva_admin_products_catalog') || '[]')
+    if (Array.isArray(storedCat) && storedCat.length > 0) {
+      let changed = false
+      const updatedCat = storedCat.map((item: any) => {
+        if (!item) return item
+        const itemSlug = (item.slug || item.id || '').toLowerCase()
+        if (itemSlug === cleanSlug || itemSlug === routeSlug || item.id === productKey) {
+          changed = true
+          return {
+            ...item,
+            is_admin_customized: true,
+            ...(heroImg ? { hero_image: heroImg, images: [heroImg, ...(Array.isArray(item.images) ? item.images.slice(1) : [])] } : {}),
+            ...(brochureUrl ? { brochure_url: brochureUrl } : {}),
+            ...(headline ? { hero_heading: headline, tagline: headline } : {}),
+            ...(shortDesc ? { short_description: shortDesc, description: shortDesc } : {}),
+          }
+        }
+        return item
+      })
+      if (changed) {
+        window.localStorage.setItem('leniva_admin_products_catalog', JSON.stringify(updatedCat))
+      }
+    }
+  } catch {}
+}
+
 export function saveVisualDraft(productKey: string, payload: CadVisualPagePayload): CadVisualPagePayload {
   const allDrafts = readJsonMap<CadVisualPagePayload>(CAD_VISUAL_DRAFT_KEY)
   const stamped: CadVisualPagePayload = {
@@ -1119,8 +1298,17 @@ export function saveVisualDraft(productKey: string, payload: CadVisualPagePayloa
   }
   allDrafts[productKey] = stamped
   writeJsonMap(CAD_VISUAL_DRAFT_KEY, allDrafts)
+
+  // Also keep published map & catalogs synced locally so the frontend reflects admin edits/uploads immediately
+  const allPublished = readJsonMap<CadVisualPagePayload>(CAD_VISUAL_PUBLISHED_KEY)
+  allPublished[productKey] = stamped
+  writeJsonMap(CAD_VISUAL_PUBLISHED_KEY, allPublished)
+  syncVisualPayloadToCatalogs(productKey, stamped)
+
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event('leniva_cad_visual_draft_updated'))
+    window.dispatchEvent(new Event('leniva_cad_visual_updated'))
+    window.dispatchEvent(new Event('leniva_products_catalog_updated'))
   }
   return stamped
 }
@@ -1132,6 +1320,7 @@ export function discardVisualDraft(productKey: string): CadVisualPagePayload {
   const fallback = getPublishedVisualPayload(productKey) || getDefaultVisualPayload(productKey)
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event('leniva_cad_visual_draft_updated'))
+    window.dispatchEvent(new Event('leniva_cad_visual_updated'))
   }
   return structuredCloneSafe(fallback)
 }
@@ -1170,33 +1359,8 @@ export async function publishVisualPayload(
   allRevisions[productKey] = [newRevision, ...productRevisions].slice(0, 10)
   writeJsonMap(CAD_VISUAL_REVISIONS_KEY, allRevisions)
 
-  // 4. Also sync key Hero / Identity fields into leniva_cad_software_edits for cross-tab compatibility
-  try {
-    const cadEditsRaw = window.localStorage.getItem('leniva_cad_software_edits')
-    const cadEditsMap = cadEditsRaw ? JSON.parse(cadEditsRaw) : {}
-    const existingEdits = cadEditsMap[productKey] || {}
-    const ov = stamped.dataOverrides || {}
-    const updatedEdits: Record<string, any> = { ...existingEdits }
-    if (ov.hero?.headline) {
-      updatedEdits.headline = ov.hero.headline
-      updatedEdits.heroHeading = ov.hero.headline
-    }
-    if (ov.hero?.supportingText) {
-      updatedEdits.supportingHeadline = ov.hero.supportingText
-      updatedEdits.heroSupportingText = ov.hero.supportingText
-    }
-    if (ov.hero?.eyebrow) updatedEdits.eyebrow = ov.hero.eyebrow
-    if (ov.hero?.image) updatedEdits.heroImage = ov.hero.image
-    if (ov.identity?.downloadUrl) {
-      updatedEdits.downloadUrl = ov.identity.downloadUrl
-      updatedEdits.trialUrl = ov.identity.downloadUrl
-    }
-    if (ov.overview?.description) updatedEdits.description = ov.overview.description
-    cadEditsMap[productKey] = updatedEdits
-    window.localStorage.setItem('leniva_cad_software_edits', JSON.stringify(cadEditsMap))
-  } catch {
-    // ignore secondary sync errors
-  }
+  // 4. Sync Hero / Image / Brochure / Identity fields across all catalogs
+  syncVisualPayloadToCatalogs(productKey, stamped)
 
   // 5. Notify all listeners on the client immediately
   if (typeof window !== 'undefined') {
@@ -1268,12 +1432,25 @@ async function fileToBase64(file: File): Promise<string> {
   })
 }
 
+async function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const res = typeof reader.result === 'string' ? reader.result : ''
+      resolve(res)
+    }
+    reader.onerror = () => reject(new Error('Failed to read file as Data URL'))
+    reader.readAsDataURL(file)
+  })
+}
+
 /**
  * Validates and uploads an Image or PDF file to persistent cloud storage.
- * Never returns temporary blob: URLs.
+ * Never returns temporary blob: URLs or broken raw base64 without data: prefix.
  * Priority:
  * 1. /api/storage/upload (Vercel Blob / S3 / Bytebin backend endpoint)
  * 2. Direct Bytebin Cloud CDN (https://bytebin.lucko.me/post) returning a permanent HTTPS URL
+ * 3. Client-side optimized persistent Data URL (data:image/...;base64,... or data:application/pdf;base64,...)
  */
 export async function uploadAssetToPersistentStorage(
   file: File,
@@ -1282,13 +1459,20 @@ export async function uploadAssetToPersistentStorage(
 ): Promise<PersistentUploadResult> {
   if (kind === 'image') {
     const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml']
-    if (!allowedImageTypes.includes(file.type)) {
+    const ext = file.name.toLowerCase()
+    const isImageExt =
+      ext.endsWith('.jpg') ||
+      ext.endsWith('.jpeg') ||
+      ext.endsWith('.png') ||
+      ext.endsWith('.webp') ||
+      ext.endsWith('.svg')
+    if (!allowedImageTypes.includes(file.type) && !isImageExt) {
       throw new Error('Unsupported image format. Allowed formats: JPG, PNG, WebP, SVG.')
     }
     if (file.size > 15 * 1024 * 1024) {
       throw new Error('Image exceeds maximum file size of 15 MB.')
     }
-    if (file.type === 'image/svg+xml') {
+    if (file.type === 'image/svg+xml' || ext.endsWith('.svg')) {
       const svgText = await file.text()
       if (/<script[\s>]|onload=|onerror=|javascript:/i.test(svgText)) {
         throw new Error('SVG contains unsafe script attributes and was rejected.')
@@ -1313,10 +1497,21 @@ export async function uploadAssetToPersistentStorage(
   onProgress?.(20, 'Validating file & reading metadata...')
   const dimensions = kind === 'image' ? await readImageDimensions(file) : undefined
   const formattedSize = formatBytes(file.size)
+  const resolvedMime =
+    file.type ||
+    (kind === 'pdf'
+      ? 'application/pdf'
+      : file.name.toLowerCase().endsWith('.png')
+        ? 'image/png'
+        : file.name.toLowerCase().endsWith('.webp')
+          ? 'image/webp'
+          : file.name.toLowerCase().endsWith('.svg')
+            ? 'image/svg+xml'
+            : 'image/jpeg')
 
-  // Strategy 1: Try /api/storage/upload or /api/upload first (Hostinger PHP, Node.js, Vercel)
+  // Strategy 1: Try /api/storage/upload or /api/upload first
   try {
-    onProgress?.(45, 'Uploading to persistent cloud storage...')
+    onProgress?.(40, 'Uploading to persistent cloud storage...')
     const base64Data = await fileToBase64(file)
     const endpoints = ['/api/storage/upload', '/api/upload']
 
@@ -1327,7 +1522,7 @@ export async function uploadAssetToPersistentStorage(
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             filename: file.name,
-            contentType: file.type || (kind === 'pdf' ? 'application/pdf' : 'image/jpeg'),
+            contentType: resolvedMime,
             dataBase64: base64Data,
           }),
         })
@@ -1338,10 +1533,10 @@ export async function uploadAssetToPersistentStorage(
           if (returnedUrl) {
             onProgress?.(100, 'Upload complete!')
             return {
-              url: returnedUrl,
+              url: normalizeAssetUrl(returnedUrl, kind),
               fileName: json.fileName || file.name,
               fileSize: formattedSize,
-              mimeType: file.type || (kind === 'pdf' ? 'application/pdf' : 'image/jpeg'),
+              mimeType: resolvedMime,
               dimensions,
             }
           }
@@ -1351,15 +1546,54 @@ export async function uploadAssetToPersistentStorage(
       }
     }
   } catch {
-    // Fallback to optimized direct asset encoding
+    // continue to next strategy
   }
 
-  // Strategy 2: Client-side persistent data encoding fallback (Zero third-party dependency)
-  onProgress?.(80, 'Optimizing and encoding asset...')
-  let finalAssetUrl = await fileToBase64(file)
-  
-  // For images, if larger than 200KB, optimize using HTML5 canvas to keep size tiny
-  if (kind === 'image' && file.size > 200 * 1024) {
+  // Strategy 2: For PDFs (or large images > 350 KB), try Direct Bytebin Cloud CDN so we get a clean HTTPS URL that never hits localStorage limits
+  if (kind === 'pdf' || file.size > 350 * 1024) {
+    try {
+      onProgress?.(65, 'Syncing to Cloud CDN...')
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 6000)
+      const bytebinRes = await fetch('https://bytebin.lucko.me/post', {
+        method: 'POST',
+        headers: {
+          'Content-Type': resolvedMime,
+        },
+        body: file,
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
+      if (bytebinRes.ok) {
+        const json = await bytebinRes.json()
+        if (json?.key) {
+          const cdnUrl = `https://bytebin.lucko.me/${json.key}`
+          onProgress?.(100, 'Upload complete!')
+          return {
+            url: cdnUrl,
+            fileName: file.name,
+            fileSize: formattedSize,
+            mimeType: resolvedMime,
+            dimensions,
+          }
+        }
+      }
+    } catch {
+      // fall back to optimized Data URL below
+    }
+  }
+
+  // Strategy 3: Client-side persistent Data URL with HTML5 canvas compression for images
+  onProgress?.(85, 'Optimizing and encoding asset...')
+  let finalAssetUrl = await fileToDataUrl(file)
+
+  // Ensure valid data: prefix
+  if (!finalAssetUrl.startsWith('data:')) {
+    finalAssetUrl = `data:${resolvedMime};base64,${finalAssetUrl}`
+  }
+
+  // For raster images, optimize using HTML5 canvas so it fits comfortably in localStorage & Cloud Gist
+  if (kind === 'image' && resolvedMime !== 'image/svg+xml') {
     try {
       const img = new Image()
       const loadPromise = new Promise<HTMLImageElement>((resolve, reject) => {
@@ -1369,7 +1603,7 @@ export async function uploadAssetToPersistentStorage(
       })
       await loadPromise
 
-      const maxDim = 1600
+      const maxDim = 1200
       let { width, height } = img
       if (width > maxDim || height > maxDim) {
         if (width > height) {
@@ -1387,20 +1621,25 @@ export async function uploadAssetToPersistentStorage(
       const ctx = canvas.getContext('2d')
       if (ctx) {
         ctx.drawImage(img, 0, 0, width, height)
-        finalAssetUrl = canvas.toDataURL('image/jpeg', 0.85)
+        // Preserve transparency for PNG/WebP product renders using WebP (or PNG fallback)
+        const isTransparentType = resolvedMime === 'image/png' || resolvedMime === 'image/webp'
+        const encoded = canvas.toDataURL(isTransparentType ? 'image/webp' : 'image/jpeg', 0.84)
+        if (encoded && encoded.startsWith('data:image/')) {
+          finalAssetUrl = encoded
+        }
       }
     } catch {
-      // keep original base64
+      // keep valid data URL
     }
   }
 
   onProgress?.(100, 'Upload complete!')
 
   return {
-    url: finalAssetUrl,
+    url: normalizeAssetUrl(finalAssetUrl, kind),
     fileName: file.name,
     fileSize: formattedSize,
-    mimeType: file.type || (kind === 'pdf' ? 'application/pdf' : 'image/jpeg'),
+    mimeType: resolvedMime,
     dimensions,
   }
 }
@@ -1440,20 +1679,26 @@ export function useActiveCadVisualPayload(productKey: string): {
 } {
   const editorCtx = useContext(CadVisualEditorContext)
   const [publishedPayload, setPublishedPayload] = useState<CadVisualPagePayload>(() => {
-    return getPublishedVisualPayload(productKey) || getDefaultVisualPayload(productKey)
+    return getPublishedVisualPayload(productKey) || getDraftVisualPayload(productKey) || getDefaultVisualPayload(productKey)
   })
 
   useEffect(() => {
     if (editorCtx && editorCtx.productKey === productKey) return
     const refresh = () => {
-      setPublishedPayload(getPublishedVisualPayload(productKey) || getDefaultVisualPayload(productKey))
+      setPublishedPayload(
+        getPublishedVisualPayload(productKey) ||
+          getDraftVisualPayload(productKey) ||
+          getDefaultVisualPayload(productKey)
+      )
     }
     refresh()
     window.addEventListener('leniva_cad_visual_updated', refresh)
+    window.addEventListener('leniva_cad_visual_draft_updated', refresh)
     window.addEventListener('leniva_cloud_cms_synced', refresh)
     window.addEventListener('storage', refresh)
     return () => {
       window.removeEventListener('leniva_cad_visual_updated', refresh)
+      window.removeEventListener('leniva_cad_visual_draft_updated', refresh)
       window.removeEventListener('leniva_cloud_cms_synced', refresh)
       window.removeEventListener('storage', refresh)
     }
@@ -1487,6 +1732,17 @@ export function stampDeterministicCadKeys(root: HTMLElement) {
       sec.setAttribute('data-cad-section', secId)
     }
   })
+
+  // Also stamp deterministic data-cad-key on standard elements so keys never shift when content is edited
+  const tagsToStamp = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'img', 'a', 'button', 'li', 'td', 'th']
+  for (const tag of tagsToStamp) {
+    const els = Array.from(root.querySelectorAll<HTMLElement>(tag))
+    els.forEach((el, idx) => {
+      if (!el.hasAttribute('data-cad-key') && !el.hasAttribute('data-cad-path')) {
+        el.setAttribute('data-cad-key', `auto:${tag}:${idx}`)
+      }
+    })
+  }
 }
 
 export interface DiscoveredDomPdfLink {
@@ -1610,12 +1866,41 @@ export function discoverLiveDomInventory(
   return { sections, imageSlots, pdfLinks }
 }
 
+function bindVisualDownloadClickHandler(el: HTMLElement) {
+  if (el.hasAttribute('data-visual-href-bound')) return
+  el.setAttribute('data-visual-href-bound', 'true')
+  el.addEventListener(
+    'click',
+    ev => {
+      const inEditorEditMode = Boolean(
+        el.closest('[data-cad-editor-canvas="true"][data-preview-mode="false"]')
+      )
+      if (inEditorEditMode) return
+      const overrideHref =
+        el.getAttribute('data-visual-override-href') ||
+        (el instanceof HTMLAnchorElement ? el.getAttribute('href') : '') ||
+        ''
+      if (!overrideHref) return
+      if (
+        overrideHref.startsWith('data:application/pdf') ||
+        overrideHref.startsWith('JVBERi') ||
+        el instanceof HTMLButtonElement
+      ) {
+        ev.preventDefault()
+        ev.stopPropagation()
+        openPdfOrUrlSafely(overrideHref)
+      }
+    },
+    true
+  )
+}
+
 export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVisualPagePayload) {
   if (!root || !payload) return
 
   stampDeterministicCadKeys(root)
 
-  // 0. If this is a custom 3D Printer created from a template, apply its initial customPrinterMeta branding to the template DOM
+  // 0. If this is a custom 3D Printer or 3D Scanner created from a template, apply its initial customPrinterMeta branding to the template DOM
   const customPrinterMeta = payload.dataOverrides?.customPrinterMeta
   if (customPrinterMeta && typeof customPrinterMeta === 'object' && customPrinterMeta.name) {
     const newName = String(customPrinterMeta.name).trim()
@@ -1645,10 +1930,15 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
       'EKA GT Max',
       'EKA GT MAX',
       'EKA F1 16K',
+      '3DeVOK MT',
+      '3DEVOK MT',
       'Devok MT',
       'DEVOK MT',
+      '3DeVOK MQ',
+      '3DEVOK MQ',
       'Devok MQ',
       'DEVOK MQ',
+      'EINSTAR',
       'EinScan Series',
       'EINSCAN SERIES',
       'EinScan',
@@ -1660,7 +1950,8 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
       let currentNode = walker.nextNode()
       while (currentNode) {
         const parentEl = currentNode.parentElement
-        const elKey = parentEl?.getAttribute('data-cad-key') || ''
+        const closestKeyEl = parentEl?.closest<HTMLElement>('[data-cad-key]')
+        const elKey = parentEl?.getAttribute('data-cad-key') || closestKeyEl?.getAttribute('data-cad-key') || ''
         if (!elKey || !payload.elementOverrides?.[elKey]) {
           let txt = currentNode.nodeValue || ''
           let changed = false
@@ -1692,7 +1983,7 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
               }
             }
           }
-          if (changed) {
+          if (changed && currentNode.nodeValue !== txt) {
             currentNode.nodeValue = txt
           }
         }
@@ -1704,7 +1995,10 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
       const h1El = root.querySelector<HTMLElement>('h1')
       const h1Key = h1El?.getAttribute('data-cad-key') || 'auto:h1:0'
       if (h1El && !payload.elementOverrides?.[h1Key]) {
-        h1El.textContent = String(customPrinterMeta.headline)
+        const targetHeadline = String(customPrinterMeta.headline)
+        if (h1El.textContent !== targetHeadline) {
+          h1El.textContent = targetHeadline
+        }
       }
     }
     if (customPrinterMeta.shortDescription) {
@@ -1712,7 +2006,10 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
       const descEl = pEls.find(p => (p.textContent || '').trim().length > 45)
       const descKey = descEl?.getAttribute('data-cad-key') || ''
       if (descEl && (!descKey || !payload.elementOverrides?.[descKey])) {
-        descEl.textContent = String(customPrinterMeta.shortDescription)
+        const targetDesc = String(customPrinterMeta.shortDescription)
+        if (descEl.textContent !== targetDesc) {
+          descEl.textContent = targetDesc
+        }
       }
     }
     if (newBrand) {
@@ -1722,7 +2019,7 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
 
   // 1. Apply SEO title & description when on public product page
   if (typeof document !== 'undefined' && !window.location.pathname.startsWith('/admin')) {
-    if (payload.seo?.title) {
+    if (payload.seo?.title && document.title !== payload.seo.title) {
       document.title = payload.seo.title
     }
     if (payload.seo?.description) {
@@ -1732,7 +2029,9 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
         metaDesc.setAttribute('name', 'description')
         document.head.appendChild(metaDesc)
       }
-      metaDesc.setAttribute('content', payload.seo.description)
+      if (metaDesc.getAttribute('content') !== payload.seo.description) {
+        metaDesc.setAttribute('content', payload.seo.description)
+      }
     }
   }
 
@@ -1751,13 +2050,17 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
     const isHidden = Boolean(hiddenMap[secId] || hiddenMap[fallbackOldId])
 
     if (isHidden) {
-      sec.style.setProperty('display', 'none', 'important')
-      sec.setAttribute('data-cad-section-hidden', 'true')
-    } else {
+      if (sec.style.display !== 'none') {
+        sec.style.setProperty('display', 'none', 'important')
+        sec.setAttribute('data-cad-section-hidden', 'true')
+      }
+    } else if (sec.hasAttribute('data-cad-section-hidden')) {
       sec.style.removeProperty('display')
       sec.removeAttribute('data-cad-section-hidden')
     }
-    sec.style.width = '100%'
+    if (sec.style.width !== '100%') {
+      sec.style.width = '100%'
+    }
 
     if (isCustomOrder) {
       const orderIdx = orderList.indexOf(secId) !== -1 ? orderList.indexOf(secId) : orderList.indexOf(fallbackOldId)
@@ -1767,20 +2070,47 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
         sec.parentElement.style.width = '100%'
         sec.style.order = String(orderIdx + 1)
       }
-    } else {
+    } else if (sec.style.order) {
       sec.style.order = ''
     }
   }
 
-  // 3. Apply primary PDF Brochure replacement to any /brochures/ links on the page if updated in pdfResources
+  // 3. Apply primary PDF Brochure replacement to any brochure/download links & buttons on the page
   const primaryPdf = payload.pdfResources?.[0]
   if (primaryPdf && primaryPdf.fileUrl && primaryPdf.fileUrl !== primaryPdf.originalFileUrl) {
-    const brochureAnchors = Array.from(root.querySelectorAll<HTMLAnchorElement>('a[href*="/brochures/"], a[download]'))
-    for (const a of brochureAnchors) {
-      if (!a.hasAttribute('data-original-href')) {
-        a.setAttribute('data-original-href', a.getAttribute('href') || '')
+    const normalizedPrimaryPdfUrl = normalizeAssetUrl(primaryPdf.fileUrl, 'pdf')
+    const allActionEls = Array.from(root.querySelectorAll<HTMLElement>('a, button'))
+    for (const el of allActionEls) {
+      const elKey = el.getAttribute('data-cad-key') || ''
+      // Don't overwrite if this element has its own explicit pdfUrl/href override
+      if (elKey && (payload.elementOverrides?.[elKey]?.pdfUrl || payload.elementOverrides?.[elKey]?.href)) {
+        continue
       }
-      a.href = primaryPdf.fileUrl
+      const origHref = el.getAttribute('data-original-href') || (el instanceof HTMLAnchorElement ? el.getAttribute('href') || '' : '')
+      const text = (el.textContent || '').trim().toLowerCase()
+      const isBrochureEl =
+        origHref.includes('/brochures/') ||
+        origHref.toLowerCase().endsWith('.pdf') ||
+        el.hasAttribute('download') ||
+        text.includes('brochure') ||
+        text.includes('datasheet') ||
+        text.includes('spec sheet')
+
+      if (isBrochureEl && normalizedPrimaryPdfUrl) {
+        if (el instanceof HTMLAnchorElement) {
+          if (!el.hasAttribute('data-original-href')) {
+            el.setAttribute('data-original-href', el.getAttribute('href') || '')
+          }
+          if (el.getAttribute('href') !== normalizedPrimaryPdfUrl) {
+            el.setAttribute('href', normalizedPrimaryPdfUrl)
+          }
+          el.setAttribute('data-visual-override-href', normalizedPrimaryPdfUrl)
+          bindVisualDownloadClickHandler(el)
+        } else if (el instanceof HTMLButtonElement) {
+          el.setAttribute('data-visual-override-href', normalizedPrimaryPdfUrl)
+          bindVisualDownloadClickHandler(el)
+        }
+      }
     }
   }
 
@@ -1792,19 +2122,28 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
     if (!target) continue
 
     if (ov.hidden !== undefined) {
-      target.style.display = ov.hidden ? 'none' : ''
+      const wantDisplay = ov.hidden ? 'none' : ''
+      if (target.style.display !== wantDisplay) {
+        target.style.display = wantDisplay
+      }
     }
     if (target instanceof HTMLImageElement) {
       if (!target.hasAttribute('data-original-src')) {
         target.setAttribute('data-original-src', target.getAttribute('src') || target.src || '')
       }
       if (ov.src) {
-        target.src = ov.src
+        const normSrc = normalizeAssetUrl(ov.src, 'image')
+        if (target.getAttribute('src') !== normSrc) {
+          target.setAttribute('src', normSrc)
+        }
       } else if (target.hasAttribute('data-original-src')) {
-        target.src = target.getAttribute('data-original-src') || target.src
+        const orig = target.getAttribute('data-original-src') || ''
+        if (orig && target.getAttribute('src') !== orig) {
+          target.setAttribute('src', orig)
+        }
       }
-      if (ov.alt !== undefined) target.alt = ov.alt
-      if (ov.objectFit) target.style.objectFit = ov.objectFit
+      if (ov.alt !== undefined && target.alt !== ov.alt) target.alt = ov.alt
+      if (ov.objectFit && target.style.objectFit !== ov.objectFit) target.style.objectFit = ov.objectFit
     } else {
       if (!target.hasAttribute('data-original-text')) {
         target.setAttribute('data-original-text', target.textContent || '')
@@ -1816,8 +2155,14 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
             ? ov.text
             : target.getAttribute('data-original-text') ?? undefined
       if (newText !== undefined) {
-        if (target.childElementCount === 0 || target.hasAttribute('data-cad-text-leaf')) {
-          target.textContent = newText
+        const isButtonOrLinkWithIcon =
+          (target.tagName.toLowerCase() === 'a' || target.tagName.toLowerCase() === 'button') &&
+          Boolean(target.querySelector('svg'))
+
+        if (!isButtonOrLinkWithIcon && (target.childElementCount === 0 || target.hasAttribute('data-cad-text-leaf') || /^h[1-6]|p|li|td|th$/i.test(target.tagName))) {
+          if (target.textContent !== newText) {
+            target.textContent = newText
+          }
         } else {
           // Preserve child SVG icons inside buttons or links by updating the inner span or text node
           const textSpan =
@@ -1826,42 +2171,40 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
               s => s.childElementCount === 0 && (s.textContent || '').trim().length > 0
             )
           if (textSpan) {
-            textSpan.textContent = newText
+            if (textSpan.textContent !== newText) {
+              textSpan.textContent = newText
+            }
           } else {
             const textNode = Array.from(target.childNodes).find(
               n => n.nodeType === Node.TEXT_NODE && (n.textContent || '').trim().length > 0
             )
             if (textNode) {
-              textNode.textContent = ` ${newText} `
+              const formatted = ` ${newText} `
+              if (textNode.textContent !== formatted) {
+                textNode.textContent = formatted
+              }
+            } else if (target.textContent !== newText) {
+              target.textContent = newText
             }
           }
         }
       }
 
-      const targetUrl = ov.pdfUrl || ov.href
-      if (target instanceof HTMLAnchorElement) {
-        if (targetUrl) {
+      const rawTargetUrl = ov.pdfUrl || ov.href
+      if (rawTargetUrl) {
+        const targetUrl = normalizeAssetUrl(rawTargetUrl, ov.pdfUrl ? 'pdf' : 'image')
+        if (target instanceof HTMLAnchorElement) {
           if (!target.hasAttribute('data-original-href')) {
             target.setAttribute('data-original-href', target.getAttribute('href') || '')
           }
-          target.href = targetUrl
-        }
-      } else if (target instanceof HTMLButtonElement && targetUrl) {
-        target.setAttribute('data-visual-override-href', targetUrl)
-        if (!target.hasAttribute('data-visual-href-bound')) {
-          target.setAttribute('data-visual-href-bound', 'true')
-          target.addEventListener('click', ev => {
-            const inEditorEditMode = Boolean(
-              target.closest('[data-cad-editor-canvas="true"][data-preview-mode="false"]')
-            )
-            if (inEditorEditMode) return
-            const url = target.getAttribute('data-visual-override-href')
-            if (url) {
-              ev.preventDefault()
-              ev.stopPropagation()
-              window.open(url, '_blank', 'noopener,noreferrer')
-            }
-          })
+          if (target.getAttribute('href') !== targetUrl) {
+            target.setAttribute('href', targetUrl)
+          }
+          target.setAttribute('data-visual-override-href', targetUrl)
+          bindVisualDownloadClickHandler(target)
+        } else if (target instanceof HTMLButtonElement) {
+          target.setAttribute('data-visual-override-href', targetUrl)
+          bindVisualDownloadClickHandler(target)
         }
       }
     }
@@ -1904,40 +2247,47 @@ export function useApplyGlobalCadVisualOverrides(productKey: string) {
 }
 
 /**
- * Global Route-Aware Applier for all 38 Product & Category Pages (CAD Software, 3D Printers, Filaments, 3D Scanners).
- * Mounted in `src/App.tsx` so any published visual edits apply automatically on the live public website!
+ * Global Route-Aware Applier for all 38+ Product & Category Pages (CAD Software, 3D Printers, Filaments, 3D Scanners).
+ * Mounted in `src/App.tsx` so any published or draft visual edits apply automatically on the live public website!
  */
 export const GlobalVisualPageOverridesApplier: React.FC<{ pathname: string }> = ({ pathname }) => {
-  const productKey = resolveVisualProductKeyFromPath(pathname)
   const [tick, setTick] = useState(0)
+  const productKey = resolveVisualProductKeyFromPath(pathname)
 
   useEffect(() => {
     const onUpdate = () => setTick(t => t + 1)
     window.addEventListener('leniva_cad_visual_updated', onUpdate)
+    window.addEventListener('leniva_cad_visual_draft_updated', onUpdate)
+    window.addEventListener('leniva_products_catalog_updated', onUpdate)
     window.addEventListener('leniva_cloud_cms_synced', onUpdate)
     window.addEventListener('storage', onUpdate)
     return () => {
       window.removeEventListener('leniva_cad_visual_updated', onUpdate)
+      window.removeEventListener('leniva_cad_visual_draft_updated', onUpdate)
+      window.removeEventListener('leniva_products_catalog_updated', onUpdate)
       window.removeEventListener('leniva_cloud_cms_synced', onUpdate)
       window.removeEventListener('storage', onUpdate)
     }
   }, [])
 
   useEffect(() => {
-    if (!productKey || typeof document === 'undefined' || pathname.startsWith('/admin')) return
-    const published = getPublishedVisualPayload(productKey)
-    if (!published) return
+    if (typeof document === 'undefined' || pathname.startsWith('/admin')) return
+    const resolvedKey = productKey || resolveVisualProductKeyFromPath(pathname)
+    if (!resolvedKey) return
 
     const applyNow = () => {
+      const activePayload = getPublishedVisualPayload(resolvedKey) || getDraftVisualPayload(resolvedKey)
+      if (!activePayload) return
       const mainEl = document.querySelector<HTMLElement>('main')
       if (mainEl) {
-        applyCadVisualOverridesToRoot(mainEl, published)
+        applyCadVisualOverridesToRoot(mainEl, activePayload)
       }
     }
 
     const t1 = setTimeout(applyNow, 40)
     const t2 = setTimeout(applyNow, 250)
     const t3 = setTimeout(applyNow, 700)
+    const t4 = setTimeout(applyNow, 1500)
 
     const mainEl = document.querySelector<HTMLElement>('main')
     let observer: MutationObserver | null = null
@@ -1946,7 +2296,7 @@ export const GlobalVisualPageOverridesApplier: React.FC<{ pathname: string }> = 
     if (mainEl && typeof MutationObserver !== 'undefined') {
       observer = new MutationObserver(() => {
         if (debounceTimer) clearTimeout(debounceTimer)
-        debounceTimer = setTimeout(applyNow, 60)
+        debounceTimer = setTimeout(applyNow, 80)
       })
       observer.observe(mainEl, { childList: true, subtree: true })
     }
@@ -1955,6 +2305,7 @@ export const GlobalVisualPageOverridesApplier: React.FC<{ pathname: string }> = 
       clearTimeout(t1)
       clearTimeout(t2)
       clearTimeout(t3)
+      clearTimeout(t4)
       if (debounceTimer) clearTimeout(debounceTimer)
       observer?.disconnect()
     }

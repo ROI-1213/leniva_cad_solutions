@@ -329,12 +329,164 @@ export const CAD_SLUG_TO_KEY_MAP: Record<string, string> = {
 
 const applyCadEditsToCatalog = (items: ProductItem[]): ProductItem[] => {
   try {
-    const raw = localStorage.getItem('leniva_cad_software_edits')
-    if (!raw) return items
-    const cadEdits = JSON.parse(raw)
-    if (!cadEdits || typeof cadEdits !== 'object') return items
+    let working = [...items]
 
-    return items.map(item => {
+    // 1. Append any custom products from leniva_custom_printer_products, leniva_custom_cad_products, leniva_custom_scanner_products if not already present
+    const existingSlugs = new Set(working.map(i => (i.slug || i.id || '').toLowerCase()))
+    const customLists: { key: string; defaultCatSlug: string; defaultTech: string }[] = [
+      { key: 'leniva_custom_printer_products', defaultCatSlug: 'fdm-3d-printers', defaultTech: 'FDM' },
+      { key: 'leniva_custom_cad_products', defaultCatSlug: 'cad-software', defaultTech: 'CAD Software' },
+      { key: 'leniva_custom_scanner_products', defaultCatSlug: '3d-scanners', defaultTech: '3D Scanner' },
+    ]
+
+    for (const cfg of customLists) {
+      try {
+        const list = JSON.parse(localStorage.getItem(cfg.key) || '[]')
+        if (Array.isArray(list)) {
+          for (const cp of list) {
+            if (!cp || !cp.key) continue
+            const slug = (cp.route || '')
+              .replace(/^\/products\/?/, '')
+              .trim()
+              .toLowerCase() || cp.key.replace(/^(printer_|cad_|scanner_)/, '').replace(/_/g, '-').toLowerCase()
+            if (!slug || existingSlugs.has(slug)) continue
+            existingSlugs.add(slug)
+            const catStr = String(cp.category || '')
+            const catSlug =
+              cfg.key === 'leniva_custom_printer_products'
+                ? catStr.includes('DLP')
+                  ? 'dlp-3d-printers'
+                  : catStr.includes('LCD')
+                    ? 'industrial-lcd-3d-printers'
+                    : catStr.includes('Filament')
+                      ? 'filaments'
+                      : 'fdm-3d-printers'
+                : cfg.defaultCatSlug
+            working.push({
+              id: slug,
+              slug,
+              name: cp.label || cp.name || slug,
+              brand: cp.brand || 'Leniva',
+              category: cp.category || 'FDM 3D Printers',
+              category_slug: catSlug,
+              technology: cfg.defaultTech,
+              tagline: cp.headline || `${cp.label || cp.name} — ${cp.brand || 'Leniva'}`,
+              hero_heading: cp.headline || cp.label || cp.name,
+              hero_subtitle: cp.shortDescription || '',
+              short_description: cp.shortDescription || '',
+              description: cp.shortDescription || '',
+              hero_image: cp.heroImage || '/images/products/pratham-mini.png',
+              images: [cp.heroImage || '/images/products/pratham-mini.png'],
+              brochure_url: cp.defaultBrochureUrl || '',
+              price: 0,
+              in_stock: true,
+              is_featured: true,
+              is_quote_based: true,
+              is_new: true,
+              is_admin_customized: true,
+            })
+          }
+        }
+      } catch {}
+    }
+
+    // 2. Filter out any deleted keys from leniva_deleted_cad_keys, leniva_deleted_printer_keys, leniva_deleted_scanner_keys
+    const deletedKeys = new Set<string>()
+    for (const delStorageKey of ['leniva_deleted_cad_keys', 'leniva_deleted_printer_keys', 'leniva_deleted_scanner_keys']) {
+      try {
+        const arr = JSON.parse(localStorage.getItem(delStorageKey) || '[]')
+        if (Array.isArray(arr)) {
+          arr.forEach((k: string) => {
+            if (!k) return
+            deletedKeys.add(k.toLowerCase())
+            deletedKeys.add(k.replace(/^(printer_|cad_|scanner_)/, '').replace(/_/g, '-').toLowerCase())
+          })
+        }
+      } catch {}
+    }
+    if (deletedKeys.size > 0) {
+      working = working.filter(item => {
+        const s = (item.slug || item.id || '').toLowerCase()
+        const mappedCadKey = CAD_SLUG_TO_KEY_MAP[s] || s.replace(/-/g, '_')
+        return !deletedKeys.has(s) && !deletedKeys.has(mappedCadKey)
+      })
+    }
+
+    // 3. Apply visual editor overrides (leniva_cad_visual_published_v1 & leniva_cad_visual_drafts_v1)
+    let visualPublished: Record<string, any> = {}
+    let visualDrafts: Record<string, any> = {}
+    try {
+      visualPublished = JSON.parse(localStorage.getItem('leniva_cad_visual_published_v1') || '{}') || {}
+    } catch {}
+    try {
+      visualDrafts = JSON.parse(localStorage.getItem('leniva_cad_visual_drafts_v1') || '{}') || {}
+    } catch {}
+
+    working = working.map(item => {
+      const s = (item.slug || item.id || '').toLowerCase()
+      const candidateKeys = [
+        CAD_SLUG_TO_KEY_MAP[s],
+        s.replace(/-/g, '_'),
+        `printer_${s}`,
+        `cad_${s}`,
+        `scanner_${s}`,
+        s === 'pratham-3-0' ? 'pratham_3' : '',
+        s === 'pratham-5-0' ? 'pratham_5' : '',
+        s === 'pratham-6-0' ? 'pratham_6' : '',
+        s === 'pratham-x-1000' ? 'pratham_x' : '',
+        s === '3devok-mt' ? 'devok_mt' : '',
+        s === '3devok-mq' ? 'devok_mq' : '',
+        s === 'einscan' ? 'einscan_series' : '',
+      ].filter(Boolean)
+
+      let vPayload: any = null
+      for (const ck of candidateKeys) {
+        if (visualDrafts[ck] || visualPublished[ck]) {
+          vPayload = visualDrafts[ck] || visualPublished[ck]
+          break
+        }
+      }
+      if (!vPayload) return item
+
+      const ov = vPayload.dataOverrides || {}
+      const elOv = vPayload.elementOverrides || {}
+      const heroImg =
+        ov.hero?.image ||
+        elOv['hero.image']?.src ||
+        elOv['auto:img:0']?.src ||
+        item.hero_image
+      const brochureUrl =
+        vPayload.pdfResources?.[0]?.fileUrl ||
+        item.brochure_url
+      const headline =
+        ov.hero?.headline ||
+        elOv['hero.headline']?.text ||
+        elOv['auto:h1:0']?.text ||
+        ov.customPrinterMeta?.headline ||
+        item.hero_heading
+      const shortDesc =
+        ov.hero?.shortDescription ||
+        elOv['auto:p:0']?.text ||
+        ov.customPrinterMeta?.shortDescription ||
+        item.short_description
+
+      return {
+        ...item,
+        hero_image: heroImg || item.hero_image,
+        images: heroImg ? [heroImg, ...(item.images || []).slice(1)] : item.images,
+        brochure_url: brochureUrl || item.brochure_url,
+        hero_heading: headline || item.hero_heading,
+        short_description: shortDesc || item.short_description,
+      }
+    })
+
+    // 4. Apply leniva_cad_software_edits
+    const raw = localStorage.getItem('leniva_cad_software_edits')
+    if (!raw) return working
+    const cadEdits = JSON.parse(raw)
+    if (!cadEdits || typeof cadEdits !== 'object') return working
+
+    return working.map(item => {
       const cadKey = CAD_SLUG_TO_KEY_MAP[item.slug] || CAD_SLUG_TO_KEY_MAP[item.id]
       const edit = cadKey ? cadEdits[cadKey] : null
       if (!edit) return item

@@ -59,6 +59,7 @@ import {
   computeDeterministicCadKey,
   applyCadVisualOverridesToRoot,
   discoverLiveDomInventory,
+  normalizeAssetUrl,
 } from '../../utils/cadVisualEditorStore'
 import { CAD_DEFAULTS } from '../../utils/cadSoftwareConfig'
 import { pushCmsStateToCloud } from '../../utils/cloudSync'
@@ -1333,12 +1334,21 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
     }
   }, [initialCategory, initialProductKey])
 
-  // Apply payload mutations and record in Undo/Redo stack
+  const cloudSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Apply payload mutations, auto-persist to local & published store so Frontend updates immediately, and record in Undo/Redo stack
   const updatePayload = useCallback(
     (updater: (prev: CadVisualPagePayload) => CadVisualPagePayload) => {
       setPayload(prev => {
         const next = updater(structuredCloneSafe(prev))
         next.updatedAt = new Date().toISOString()
+        try {
+          saveVisualDraft(activeProductKey, next)
+        } catch {}
+        if (cloudSyncTimerRef.current) clearTimeout(cloudSyncTimerRef.current)
+        cloudSyncTimerRef.current = setTimeout(() => {
+          pushCmsStateToCloud({ isEnquirySubmission: false }).catch(() => null)
+        }, 1200)
         setHistory(hPrev => {
           const sliced = hPrev.slice(0, historyIndex + 1)
           const updatedStack = [...sliced, structuredCloneSafe(next)].slice(-40)
@@ -1349,7 +1359,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
         return next
       })
     },
-    [historyIndex]
+    [historyIndex, activeProductKey]
   )
 
   const handleUndo = useCallback(() => {
@@ -1586,7 +1596,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
       return
     }
 
-    // 2. Check if user clicked an Image (<img>) or its immediate wrapper
+    // 2. Check if user clicked an Image (<img>) or its immediate wrapper / overlay
     let imgEl: HTMLImageElement | null = null
     if (target instanceof HTMLImageElement) {
       imgEl = target
@@ -1594,6 +1604,12 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
       const childImg = target.querySelector('img')
       if (childImg && (target.tagName === 'DIV' || target.tagName === 'SPAN') && target.clientHeight > 30) {
         imgEl = childImg
+      } else if (
+        target.parentElement &&
+        (target.textContent || '').trim().length === 0 &&
+        target.parentElement.querySelector('img')
+      ) {
+        imgEl = target.parentElement.querySelector('img')
       }
     }
 
@@ -1610,7 +1626,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
         label: imgEl.alt || dataPath || 'Product Image',
         dataPath,
         sectionId,
-        currentSrc: ov?.src || imgEl.getAttribute('src') || imgEl.src,
+        currentSrc: normalizeAssetUrl(ov?.src || imgEl.getAttribute('src') || imgEl.src, 'image'),
         currentAlt: ov?.alt !== undefined ? ov.alt : imgEl.alt,
         currentObjectFit: ov?.objectFit || 'cover',
       })
@@ -1676,13 +1692,25 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
 
     // 4. Check if user clicked an editable text node or element with data-cad-path
     const closestPathNode = target.closest<HTMLElement>('[data-cad-path]')
-    const editableTarget = closestPathNode || target
+    const closestHeading = target.closest<HTMLElement>('h1, h2, h3, h4, h5, h6')
+    const editableTarget =
+      closestPathNode ||
+      (closestHeading && root.contains(closestHeading) && target.tagName.toLowerCase() !== 'span'
+        ? closestHeading
+        : target)
     const tag = editableTarget.tagName.toLowerCase()
     const allowedTextTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'li', 'td', 'th', 'button', 'div']
 
     if (allowedTextTags.includes(tag)) {
       const dataPath = editableTarget.getAttribute('data-cad-path') || undefined
-      const isLeafText = editableTarget.childElementCount === 0 || Boolean(dataPath)
+      const hasComplexChildren = Boolean(
+        editableTarget.querySelector('section, table, ul, ol, img, button, a, input, select, textarea')
+      )
+      const isHeadingOrParagraph = /^h[1-6]|p|li|td|th$/i.test(tag)
+      const isLeafText =
+        editableTarget.childElementCount === 0 ||
+        Boolean(dataPath) ||
+        (isHeadingOrParagraph && !hasComplexChildren)
       if (!isLeafText) return
 
       const elKey = computeDeterministicCadKey(root, editableTarget)
@@ -1718,10 +1746,15 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
         setUploadState({ active: true, targetId, progress, statusText })
       })
 
+      const normalizedUrl = normalizeAssetUrl(res.url, 'image')
+
       updatePayload(prev => {
         const next = { ...prev }
         if (options.dataPath) {
-          next.dataOverrides = setByPath(next.dataOverrides || {}, options.dataPath, res.url)
+          next.dataOverrides = setByPath(next.dataOverrides || {}, options.dataPath, normalizedUrl)
+        }
+        if (options.elementKey === 'auto:img:0' || options.dataPath === 'hero.image') {
+          next.dataOverrides = setByPath(next.dataOverrides || {}, 'hero.image', normalizedUrl)
         }
         if (options.elementKey) {
           const existing = next.elementOverrides?.[options.elementKey] || { key: options.elementKey }
@@ -1729,7 +1762,7 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
             ...(next.elementOverrides || {}),
             [options.elementKey]: {
               ...existing,
-              src: res.url,
+              src: normalizedUrl,
               originalSrc: existing.originalSrc || options.defaultSrc,
               fileName: res.fileName,
               dimensions: res.dimensions,
@@ -1739,11 +1772,25 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
         return next
       })
 
-      if (selectedElement && (selectedElement.dataPath === options.dataPath || selectedElement.key === options.elementKey)) {
-        setSelectedElement(prev => (prev ? { ...prev, currentSrc: res.url } : null))
+      // If hero image was uploaded, also refresh local custom product arrays so list cards update immediately
+      if (options.elementKey === 'auto:img:0' || options.dataPath === 'hero.image') {
+        setCustomPrinterProducts(prev =>
+          prev.map(p => (p && p.key === activeProductKey ? { ...p, heroImage: normalizedUrl } : p))
+        )
+        setCustomCadProducts(prev =>
+          prev.map(p => (p && p.key === activeProductKey ? { ...p, heroImage: normalizedUrl } : p))
+        )
+        setCustomScannerProducts(prev =>
+          prev.map(p => (p && p.key === activeProductKey ? { ...p, heroImage: normalizedUrl } : p))
+        )
       }
 
-      showToast('success', `Uploaded "${res.fileName}" (${res.fileSize}) to persistent cloud storage!`)
+      if (selectedElement && (selectedElement.dataPath === options.dataPath || selectedElement.key === options.elementKey)) {
+        setSelectedElement(prev => (prev ? { ...prev, currentSrc: normalizedUrl } : null))
+      }
+
+      pushCmsStateToCloud({ isEnquirySubmission: false }).catch(() => null)
+      showToast('success', `✓ Image "${res.fileName}" (${res.fileSize}) uploaded & live on frontend!`)
     } catch (err: any) {
       showToast('error', err?.message || 'Image upload failed.')
     } finally {
@@ -1759,23 +1806,47 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
         setUploadState({ active: true, targetId: pdfId, progress, statusText })
       })
 
-      updatePayload(prev => ({
-        ...prev,
-        pdfResources: prev.pdfResources.map(item =>
-          item.id === pdfId
-            ? {
-                ...item,
-                previousFileUrl: item.fileUrl,
-                fileUrl: res.url,
+      const normalizedPdfUrl = normalizeAssetUrl(res.url, 'pdf')
+
+      updatePayload(prev => {
+        const hasMatch = prev.pdfResources.some(item => item.id === pdfId)
+        const updatedResources = hasMatch
+          ? prev.pdfResources.map(item =>
+              item.id === pdfId
+                ? {
+                    ...item,
+                    previousFileUrl: item.fileUrl,
+                    fileUrl: normalizedPdfUrl,
+                    fileName: res.fileName,
+                    fileSize: res.fileSize,
+                    visible: true,
+                  }
+                : item
+            )
+          : [
+              {
+                id: pdfId || `${activeProductKey}-brochure`,
+                title: `${activeProductMeta.label} Official Brochure (PDF)`,
+                description: `Official technical brochure and specifications for ${activeProductMeta.label}.`,
+                badge: 'Product Brochure',
+                buttonLabel: 'Download Brochure PDF',
+                fileUrl: normalizedPdfUrl,
+                originalFileUrl: activeProductMeta.defaultBrochureUrl || '/brochures/brochure.pdf',
                 fileName: res.fileName,
                 fileSize: res.fileSize,
                 visible: true,
-              }
-            : item
-        ),
-      }))
+                behavior: 'new_tab' as const,
+              },
+              ...prev.pdfResources,
+            ]
+        return {
+          ...prev,
+          pdfResources: updatedResources,
+        }
+      })
 
-      showToast('success', `PDF "${res.fileName}" (${res.fileSize}) uploaded to persistent storage!`)
+      pushCmsStateToCloud({ isEnquirySubmission: false }).catch(() => null)
+      showToast('success', `✓ Brochure PDF "${res.fileName}" (${res.fileSize}) uploaded & live on frontend!`)
     } catch (err: any) {
       showToast('error', err?.message || 'PDF upload failed.')
     } finally {
@@ -3749,6 +3820,38 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
               <span>Images</span>
             </button>
 
+            <label
+              title="Directly upload or replace the Hero / Selected Product Image"
+              className="px-2.5 py-1 rounded-md bg-blue-600/20 hover:bg-blue-600 border border-blue-500/40 text-blue-300 hover:text-white text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>Upload Image</span>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/svg+xml"
+                className="hidden"
+                onChange={e => {
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  e.target.value = ''
+                  const firstSlot = activeImageSlotsBase[0]
+                  const targetKey =
+                    selectedElement?.kind === 'image'
+                      ? selectedElement.key
+                      : firstSlot?.dataPath || firstSlot?.id || 'auto:img:0'
+                  const targetDataPath =
+                    selectedElement?.kind === 'image'
+                      ? selectedElement.dataPath
+                      : firstSlot?.dataPath || (activeProductKey === 'ares_commander' ? 'hero.image' : undefined)
+                  handleImageFileUpload(file, {
+                    dataPath: targetDataPath,
+                    elementKey: targetKey,
+                    defaultSrc: firstSlot?.defaultSrc,
+                  })
+                }}
+              />
+            </label>
+
             <button
               onClick={() => {
                 if (inspectorOpen && inspectorTab === 'pdfs') {
@@ -3767,6 +3870,26 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
               <FileText className="w-3.5 h-3.5" />
               <span>PDFs</span>
             </button>
+
+            <label
+              title="Directly upload or replace the Product Brochure PDF"
+              className="px-2.5 py-1 rounded-md bg-emerald-600/20 hover:bg-emerald-600 border border-emerald-500/40 text-emerald-300 hover:text-white text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>Upload Brochure</span>
+              <input
+                type="file"
+                accept=".pdf,application/pdf"
+                className="hidden"
+                onChange={e => {
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  e.target.value = ''
+                  const firstPdfId = payload.pdfResources?.[0]?.id || `${activeProductKey}-brochure`
+                  handlePdfFileUpload(file, firstPdfId)
+                }}
+              />
+            </label>
 
             <button
               onClick={() => {
