@@ -303,10 +303,12 @@ export const HomePage: React.FC = () => {
           {/* Dynamic Headline & Quick CTAs below the banner based on active slide */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-2">
             <div className="lg:col-span-8 space-y-3">
-              <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-red-50 border border-red-200/80 text-red-600 text-xs font-bold uppercase tracking-wider">
-                <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-                <span>{activeSlide?.tag}</span>
-              </div>
+              {activeSlide?.tag && (
+                <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-red-50 border border-red-200/80 text-red-600 text-xs font-bold uppercase tracking-wider">
+                  <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+                  <span>{activeSlide.tag}</span>
+                </div>
+              )}
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-950 tracking-tight leading-snug">
                 {homeContent.hero.headlinePrefix}
                 <span className="text-red-600">{homeContent.hero.headlineHighlight}</span>

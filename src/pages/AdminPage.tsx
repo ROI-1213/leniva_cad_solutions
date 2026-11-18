@@ -7272,14 +7272,14 @@ export default function AdminPage() {
                               id: newId,
                               image: '/hero-banner-1.png',
                               alt: 'New Hero Banner',
-                              title: 'New Additive Manufacturing Solution',
-                              subtitle: 'Empowering Next Generation Production',
-                              tag: 'Advanced Engineering',
-                              badge: 'New Technology',
-                              primaryBtnText: 'Explore Solutions',
-                              primaryBtnLink: '/products',
-                              secondaryBtnText: 'Request Quote',
-                              quoteSubject: 'Hero Banner Consultation',
+                              title: '',
+                              subtitle: '',
+                              tag: '',
+                              badge: '',
+                              primaryBtnText: '',
+                              primaryBtnLink: '',
+                              secondaryBtnText: '',
+                              quoteSubject: '',
                             }
                             setHomeContentData({
                               ...homeContentData,
@@ -7309,7 +7309,7 @@ export default function AdminPage() {
                                 : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                             }`}
                           >
-                            <span>Slide {idx + 1}: {s.title.substring(0, 20)}...</span>
+                            <span>Slide {idx + 1}{s.alt ? `: ${s.alt.substring(0, 24)}...` : ''}</span>
                           </button>
                         ))}
                       </div>
@@ -7425,114 +7425,6 @@ export default function AdminPage() {
                                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl"
                                 />
                               </div>
-                            </div>
-                          </div>
-
-                          {/* Text Fields */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                            <div>
-                              <label className="block font-bold text-slate-700 mb-1">Slide Title</label>
-                              <input
-                                type="text"
-                                value={currentHeroSlide.title}
-                                onChange={(e) => {
-                                  const updated = [...homeContentData.hero.slides]
-                                  updated[activeHeroSlideIdx] = { ...currentHeroSlide, title: e.target.value }
-                                  setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
-                                }}
-                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl"
-                              />
-                            </div>
-                            <div>
-                              <label className="block font-bold text-slate-700 mb-1">Subtitle / Tagline</label>
-                              <input
-                                type="text"
-                                value={currentHeroSlide.subtitle}
-                                onChange={(e) => {
-                                  const updated = [...homeContentData.hero.slides]
-                                  updated[activeHeroSlideIdx] = { ...currentHeroSlide, subtitle: e.target.value }
-                                  setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
-                                }}
-                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl"
-                              />
-                            </div>
-                            <div>
-                              <label className="block font-bold text-slate-700 mb-1">Pill Tag (Top Pill)</label>
-                              <input
-                                type="text"
-                                value={currentHeroSlide.tag}
-                                onChange={(e) => {
-                                  const updated = [...homeContentData.hero.slides]
-                                  updated[activeHeroSlideIdx] = { ...currentHeroSlide, tag: e.target.value }
-                                  setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
-                                }}
-                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl"
-                              />
-                            </div>
-                            <div>
-                              <label className="block font-bold text-slate-700 mb-1">Badge Description</label>
-                              <input
-                                type="text"
-                                value={currentHeroSlide.badge}
-                                onChange={(e) => {
-                                  const updated = [...homeContentData.hero.slides]
-                                  updated[activeHeroSlideIdx] = { ...currentHeroSlide, badge: e.target.value }
-                                  setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
-                                }}
-                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl"
-                              />
-                            </div>
-                            <div>
-                              <label className="block font-bold text-slate-700 mb-1">Primary Button Text</label>
-                              <input
-                                type="text"
-                                value={currentHeroSlide.primaryBtnText}
-                                onChange={(e) => {
-                                  const updated = [...homeContentData.hero.slides]
-                                  updated[activeHeroSlideIdx] = { ...currentHeroSlide, primaryBtnText: e.target.value }
-                                  setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
-                                }}
-                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl"
-                              />
-                            </div>
-                            <div>
-                              <label className="block font-bold text-slate-700 mb-1">Primary Button Link URL</label>
-                              <input
-                                type="text"
-                                value={currentHeroSlide.primaryBtnLink}
-                                onChange={(e) => {
-                                  const updated = [...homeContentData.hero.slides]
-                                  updated[activeHeroSlideIdx] = { ...currentHeroSlide, primaryBtnLink: e.target.value }
-                                  setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
-                                }}
-                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl"
-                              />
-                            </div>
-                            <div>
-                              <label className="block font-bold text-slate-700 mb-1">Secondary Button Text</label>
-                              <input
-                                type="text"
-                                value={currentHeroSlide.secondaryBtnText}
-                                onChange={(e) => {
-                                  const updated = [...homeContentData.hero.slides]
-                                  updated[activeHeroSlideIdx] = { ...currentHeroSlide, secondaryBtnText: e.target.value }
-                                  setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
-                                }}
-                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl"
-                              />
-                            </div>
-                            <div>
-                              <label className="block font-bold text-slate-700 mb-1">Quote Inquiry Pre-filled Subject</label>
-                              <input
-                                type="text"
-                                value={currentHeroSlide.quoteSubject}
-                                onChange={(e) => {
-                                  const updated = [...homeContentData.hero.slides]
-                                  updated[activeHeroSlideIdx] = { ...currentHeroSlide, quoteSubject: e.target.value }
-                                  setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
-                                }}
-                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl"
-                              />
                             </div>
                           </div>
                         </div>
