@@ -1001,12 +1001,21 @@ async function fetchCloudCandidates(): Promise<
       })
       if (res.ok) {
         const gist = await res.json()
-        const content = gist.files?.['leniva_cms_data.json']?.content
+        const fileObj = gist.files?.['leniva_cms_data.json']
+        let content = fileObj?.content
+        if (fileObj?.truncated && fileObj?.raw_url) {
+          try {
+            const rawRes = await fetch(fileObj.raw_url)
+            if (rawRes.ok) content = await rawRes.text()
+          } catch {}
+        }
         if (content) {
-          const json = JSON.parse(content)
-          if (json && typeof json.updatedAt === 'number' && json.keys) {
-            candidates.push(json)
-          }
+          try {
+            const json = JSON.parse(content)
+            if (json && typeof json.updatedAt === 'number' && json.keys) {
+              candidates.push(json)
+            }
+          } catch {}
         }
       }
     } catch {
@@ -1016,9 +1025,7 @@ async function fetchCloudCandidates(): Promise<
 
   const fetchGistRaw = async () => {
     try {
-      const res = await fetch(`${GIST_RAW_URL}?t=${Date.now()}`, {
-        headers: { Accept: 'application/json', 'Cache-Control': 'no-cache, no-store' },
-      })
+      const res = await fetch(`${GIST_RAW_URL}?t=${Date.now()}`)
       if (res.ok) {
         const json = await res.json()
         if (json && typeof json.updatedAt === 'number' && json.keys) {

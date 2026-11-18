@@ -41,13 +41,28 @@ async function fetchFromGist() {
     })
     if (apiRes.ok) {
       const gist = await apiRes.json()
-      const content = gist.files?.['leniva_cms_data.json']?.content
+      const fileObj = gist.files?.['leniva_cms_data.json']
+      let content = fileObj?.content
+      if (fileObj?.truncated && fileObj?.raw_url) {
+        try {
+          const rawFetch = await fetch(fileObj.raw_url, {
+            headers: { 'User-Agent': 'Leniva-CAD-CMS' },
+          })
+          if (rawFetch.ok) {
+            content = await rawFetch.text()
+          }
+        } catch {}
+      }
       if (content) {
-        const data = JSON.parse(content)
-        if (data && typeof data.updatedAt === 'number') {
-          memoryCache = data
-          lastFetchTime = Date.now()
-          return data
+        try {
+          const data = JSON.parse(content)
+          if (data && typeof data.updatedAt === 'number') {
+            memoryCache = data
+            lastFetchTime = Date.now()
+            return data
+          }
+        } catch (jsonErr) {
+          console.warn('[CMS] Truncated or invalid JSON in Gist file:', jsonErr.message)
         }
       }
     }

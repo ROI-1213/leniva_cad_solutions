@@ -101,6 +101,8 @@ interface ErrorBoundaryProps {
 interface ErrorBoundaryState {
   hasError: boolean
   retryCount: number
+  isChunkError?: boolean
+  errorMessage?: string
 }
 
 class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -109,13 +111,20 @@ class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
     this.state = { hasError: false, retryCount: 0 }
   }
 
-  static getDerivedStateFromError(): Partial<ErrorBoundaryState> {
-    return { hasError: true }
+  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
+    const msg = error?.message || ''
+    const isChunk =
+      msg.includes('Failed to fetch dynamically imported module') ||
+      msg.includes('Importing a module script failed') ||
+      msg.includes('Unable to preload CSS') ||
+      msg.includes('dynamically imported module') ||
+      error?.name === 'ChunkLoadError'
+    return { hasError: true, isChunkError: isChunk, errorMessage: msg }
   }
 
   componentDidUpdate(prevProps: ErrorBoundaryProps) {
     if (prevProps.pathname !== this.props.pathname && this.state.hasError) {
-      this.setState({ hasError: false, retryCount: 0 })
+      this.setState({ hasError: false, retryCount: 0, isChunkError: false, errorMessage: undefined })
     }
   }
 
@@ -139,6 +148,8 @@ class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
       msg.includes('dynamically imported module') ||
       error.name === 'ChunkLoadError'
 
+    this.setState({ isChunkError, errorMessage: msg })
+
     const storageKey = 'leniva_chunk_reload_' + (this.props.pathname || '')
     const lastReload = sessionStorage.getItem(storageKey)
     const now = Date.now()
@@ -155,6 +166,7 @@ class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
 
   render() {
     if (this.state.hasError) {
+      const isChunk = this.state.isChunkError
       return (
         <div className="min-h-screen flex items-center justify-center bg-white px-4">
           <div className="max-w-md text-center space-y-4">
@@ -163,18 +175,35 @@ class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-slate-900">Application Update Detected</h2>
+            <h2 className="text-xl font-bold text-slate-900">
+              {isChunk ? 'Application Update Detected' : 'Notice: Display Recovery'}
+            </h2>
             <p className="text-sm text-slate-600">
-              A new update was deployed. Please refresh to load the latest version.
+              {isChunk
+                ? 'A new update was deployed. Please refresh to load the latest version.'
+                : 'A display hiccup occurred while rendering this section. Click below to recover.'}
             </p>
+            {this.state.errorMessage && (
+              <div className="text-[11px] font-mono text-slate-500 bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-left overflow-x-auto max-h-24">
+                {this.state.errorMessage}
+              </div>
+            )}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-2">
+              <button
+                onClick={() => {
+                  this.setState({ hasError: false, retryCount: 0 })
+                }}
+                className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-md hover:bg-blue-700 transition-all cursor-pointer"
+              >
+                Retry Loading
+              </button>
               <button
                 onClick={() => {
                   sessionStorage.clear()
                   const freshUrl = window.location.pathname + (window.location.search ? window.location.search + '&' : '?') + '_v=' + Date.now()
                   window.location.replace(freshUrl)
                 }}
-                className="w-full sm:w-auto px-6 py-2.5 bg-red-600 text-white text-sm font-bold rounded-xl shadow-md hover:bg-red-700 transition-all cursor-pointer"
+                className="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-white text-xs font-bold rounded-xl shadow-md hover:bg-red-700 transition-all cursor-pointer"
               >
                 Refresh Page
               </button>
