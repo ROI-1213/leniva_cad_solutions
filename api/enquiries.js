@@ -138,10 +138,10 @@ function createTransporter(customConfig = {}) {
 
 async function sendMailWithFallback(mailOptions, customPass, preferredPort = DEFAULT_SMTP_PORT) {
   let lastErr = null
-  const primaryPort = Number(preferredPort) || 587
-  const secondaryPort = primaryPort === 587 ? 465 : 587
+  const primaryPort = Number(preferredPort) || 465
+  const secondaryPort = primaryPort === 465 ? 587 : 465
 
-  // 1. Primary Port Dispatch (Port 587 with STARTTLS)
+  // 1. Primary Port Dispatch (Port 465 with SSL)
   try {
     const transporter = createTransporter({
       host: DEFAULT_SMTP_HOST,
@@ -153,7 +153,7 @@ async function sendMailWithFallback(mailOptions, customPass, preferredPort = DEF
   } catch (err) {
     lastErr = err
     console.warn(`[SMTP] Port ${primaryPort} dispatch warning, trying port ${secondaryPort} fallback:`, err.message)
-    // 2. Secondary Port Fallback (Port 465 with SSL)
+    // 2. Secondary Port Fallback (Port 587 with STARTTLS)
     try {
       const fallbackTransporter = createTransporter({
         host: DEFAULT_SMTP_HOST,
