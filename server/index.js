@@ -839,12 +839,18 @@ app.post('/api/enquiries', async (req, res) => {
       const info = await transporter.sendMail({
         from: `"${SMTP_CONFIG.fromName}" <${SMTP_CONFIG.fromEmail}>`,
         to: 'viju@leniva3d.com, viju@leniva.com',
+        replyTo: email || undefined,
         subject: emailSubject,
         text: emailPlain,
       })
 
-      emailStatus = 'sent'; if (savedEnquiry) { savedEnquiry.email_notification_status = 'sent'; savedEnquiry.email_sent_at = new Date().toISOString(); savedEnquiry.email_message_id = messageId; }
       messageId = info.messageId
+      emailStatus = 'sent'
+      if (savedEnquiry) {
+        savedEnquiry.email_notification_status = 'sent'
+        savedEnquiry.email_sent_at = new Date().toISOString()
+        savedEnquiry.email_message_id = messageId
+      }
 
       if (savedEnquiry?.id) {
         await pool.query(`
@@ -856,20 +862,75 @@ app.post('/api/enquiries', async (req, res) => {
         `, [messageId, savedEnquiry.id]).catch(() => null)
       }
     } catch (err) {
-      // Graceful handling: Enquiry is 100% saved in PostgreSQL. Status set to 'pending' (Database Saved) so it never shows alarming red "Failed" badge.
-      emailStatus = 'pending'
-      emailError = err.message
-      if (savedEnquiry) {
-        savedEnquiry.email_notification_status = 'pending'
-        savedEnquiry.email_error = emailError
+      // Automatic fallback relay to viju@leniva3d.com via FormSubmit AJAX if SMTP fails
+      let relaySucceeded = false
+      try {
+        const siteOrigin = `${req.protocol || 'https'}://${req.get('host') || 'www.leniva3d.com'}`
+        const relayRes = await fetch('https://formsubmit.co/ajax/viju@leniva3d.com', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Origin: siteOrigin,
+            Referer: `${siteOrigin}/`,
+          },
+          body: JSON.stringify({
+            'Enquiry ID': enquiryNumber,
+            'Customer Name': name,
+            'Email Address': email || 'Not provided',
+            'Mobile Number': phone || 'Not provided',
+            'Company Name': company || 'Individual',
+            'City': city || 'Not specified',
+            'Enquiry Type': type,
+            'Product / Service': product,
+            'Subject': subject,
+            'Message': message || 'No additional message.',
+            'Submitted From': sourcePage,
+            '_subject': `New Customer Enquiry – ${product} – Leniva 3D`,
+            '_cc': 'viju@leniva.com',
+            '_replyto': email || undefined,
+            '_template': 'table',
+            '_captcha': 'false',
+          }),
+        })
+        if (relayRes.ok) {
+          const relayJson = await relayRes.json().catch(() => null)
+          if (relayJson && (relayJson.success === 'true' || relayJson.success === true)) {
+            relaySucceeded = true
+          }
+        }
+      } catch (relayErr) {
+        console.warn('[Server Enquiries] FormSubmit fallback relay error:', relayErr.message)
       }
+
+      if (relaySucceeded) {
+        emailStatus = 'sent'
+        messageId = `relay-${Date.now()}`
+        emailError = null
+        if (savedEnquiry) {
+          savedEnquiry.email_notification_status = 'sent'
+          savedEnquiry.email_sent_at = new Date().toISOString()
+          savedEnquiry.email_message_id = messageId
+          savedEnquiry.email_error = null
+        }
+      } else {
+        emailStatus = 'pending'
+        emailError = err.message
+        if (savedEnquiry) {
+          savedEnquiry.email_notification_status = 'pending'
+          savedEnquiry.email_error = emailError
+        }
+      }
+
       if (savedEnquiry?.id) {
         await pool.query(`
           UPDATE enquiries SET
-            email_notification_status = 'pending',
-            email_error = $1
-          WHERE id = $2;
-        `, [emailError, savedEnquiry.id]).catch(() => null)
+            email_notification_status = $1,
+            email_sent_at = CASE WHEN $1 = 'sent' THEN CURRENT_TIMESTAMP ELSE email_sent_at END,
+            email_message_id = COALESCE($2, email_message_id),
+            email_error = $3
+          WHERE id = $4;
+        `, [emailStatus, messageId, emailError, savedEnquiry.id]).catch(() => null)
       }
     }
 

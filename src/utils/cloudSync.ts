@@ -850,19 +850,21 @@ export async function submitCentralizedEnquiry(payload: {
         saveStoredEnquiries(refreshed)
       }
     }
-  } catch (err) {
+  } catch (err: any) {
     console.warn('API enquiry dispatch error:', err)
     const refreshed = getStoredEnquiries()
     const match = refreshed.find(e => e.id === uniqueId)
     if (match) {
       match.email_notification_status = 'pending'
-      match.email_error = err.message || 'Offline'
+      match.email_error = err?.message || 'Offline'
       saveStoredEnquiries(refreshed)
     }
+  }
 
-    // Direct fallback relay if /api/enquiries was unreachable
+  // Direct client-side fallback relay to viju@leniva3d.com whenever backend SMTP did not confirm 'sent'
+  if (newEnquiry.email_notification_status !== 'sent') {
     try {
-      await fetch('https://formsubmit.co/ajax/viju@leniva3d.com', {
+      const relayRes = await fetch('https://formsubmit.co/ajax/viju@leniva3d.com', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -882,11 +884,32 @@ export async function submitCentralizedEnquiry(payload: {
           'Date & Time': `${dateStr} at ${timeStr}`,
           'Enquiry ID': enquiryNumber,
           '_subject': `New Customer Enquiry – ${productName} – Leniva 3D`,
+          '_cc': 'viju@leniva.com',
           '_replyto': email || undefined,
           '_template': 'table',
           '_captcha': 'false',
         }),
-      }).catch(() => null)
+      })
+      if (relayRes.ok) {
+        const relayJson = await relayRes.json().catch(() => null)
+        if (relayJson && (relayJson.success === 'true' || relayJson.success === true)) {
+          newEnquiry.email_notification_status = 'sent'
+          newEnquiry.email_sent_at = new Date().toISOString()
+          newEnquiry.email_message_id = `relay-${Date.now()}`
+          newEnquiry.email_error = null
+          const refreshed = getStoredEnquiries()
+          const match = refreshed.find(e => e.id === uniqueId)
+          if (match) {
+            match.email_notification_status = 'sent'
+            match.email_sent_at = newEnquiry.email_sent_at
+            match.email_message_id = newEnquiry.email_message_id
+            match.email_error = null
+            saveStoredEnquiries(refreshed)
+            dispatchAllCmsUpdatedEvents()
+            pushCmsStateToCloud({ isEnquirySubmission: true }).catch(() => null)
+          }
+        }
+      }
     } catch {}
   }
 

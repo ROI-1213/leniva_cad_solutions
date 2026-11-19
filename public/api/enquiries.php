@@ -450,21 +450,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } catch (Throwable $e) {}
         }
     } catch (Exception $e) {
-        $emailStatus = 'failed';
-        $emailError = $e->getMessage();
-        $enquiryRecord['email_notification_status'] = 'failed';
-        $enquiryRecord['email_error'] = $emailError;
+        // Fallback 1: Native PHP mail() on cPanel / Hostinger Apache hosting
+        $toHeader = 'viju@leniva3d.com, viju@leniva.com';
+        $mailSubject = "New Customer Enquiry – {$productService} – Leniva 3D";
+        $headers = "MIME-Version: 1.0\r\n"
+            . "Content-type: text/html; charset=UTF-8\r\n"
+            . "From: {$SMTP_FROM_NAME} <{$SMTP_FROM_EMAIL}>\r\n";
+        if (!empty($email)) {
+            $headers .= "Reply-To: {$email}\r\n";
+        }
+        $nativeSent = @mail($toHeader, $mailSubject, $htmlEmail, $headers);
+
+        if ($nativeSent) {
+            $emailStatus = 'sent';
+            $messageId = 'php-mail-' . time();
+            $emailError = null;
+            $enquiryRecord['email_notification_status'] = 'sent';
+            $enquiryRecord['email_sent_at'] = $now->format(DateTime::ATOM);
+            $enquiryRecord['email_message_id'] = $messageId;
+            $enquiryRecord['email_error'] = null;
+        } else {
+            $emailStatus = 'pending';
+            $emailError = $e->getMessage();
+            $enquiryRecord['email_notification_status'] = 'pending';
+            $enquiryRecord['email_error'] = $emailError;
+        }
 
         if ($pdo) {
             try {
                 $upStmt = $pdo->prepare("
                     UPDATE enquiries SET
-                        email_notification_status = 'failed',
+                        email_notification_status = ?,
+                        email_message_id = ?,
                         email_error = ?
                     WHERE enquiry_number = ?
                 ");
-                $upStmt->execute([$emailError, $enquiryNumber]);
-            } catch (Throwable $e) {}
+                $upStmt->execute([$emailStatus, $messageId, $emailError, $enquiryNumber]);
+            } catch (Throwable $dbErr) {}
         }
     }
 

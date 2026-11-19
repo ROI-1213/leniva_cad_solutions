@@ -635,6 +635,7 @@ export default async function handler(req, res) {
           const mailInfo = await sendMailWithFallback({
             from: `"${SMTP_FROM_NAME}" <${SMTP_FROM_EMAIL}>`,
             to: activeReceiver,
+            replyTo: email || undefined,
             subject: emailSubject,
             text: emailPlain,
             html: emailHtml,
@@ -659,21 +660,74 @@ export default async function handler(req, res) {
             }
           } catch {}
         } catch (mailErr) {
-          // Graceful handling: Database storage is 100% verified. Keep status as 'pending' so it never shows scary "Failed" badge.
-          emailStatus = 'pending'
-          emailError = mailErr.message
-          enquiryRecord.email_notification_status = 'pending'
-          enquiryRecord.email_error = mailErr.message
+          // Automatic fallback relay to viju@leniva3d.com via FormSubmit AJAX if SMTP auth/connection fails
+          let relaySucceeded = false
+          try {
+            const relayRes = await fetch('https://formsubmit.co/ajax/viju@leniva3d.com', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+                Origin: siteOrigin,
+                Referer: `${siteOrigin}/`,
+              },
+              body: JSON.stringify({
+                'Enquiry ID': enquiryNumber,
+                'Customer Name': customerName,
+                'Email Address': email || 'Not provided',
+                'Mobile Number': phone || 'Not provided',
+                'Company Name': company || 'Individual',
+                'City': city || 'Not specified',
+                'Enquiry Type': enquiryType,
+                'Product / Service': productService,
+                'Subject': subject,
+                'Message': message || 'No additional message.',
+                'Submitted From': sourcePage,
+                'Date & Time': `${submittedDate} at ${submittedTime}`,
+                '_subject': `New Customer Enquiry – ${sanitizeHeader(productService)} – Leniva 3D`,
+                '_cc': 'viju@leniva.com',
+                '_replyto': email || undefined,
+                '_template': 'table',
+                '_captcha': 'false',
+              }),
+            })
+            if (relayRes.ok) {
+              const relayJson = await relayRes.json().catch(() => null)
+              if (relayJson && (relayJson.success === 'true' || relayJson.success === true)) {
+                relaySucceeded = true
+              }
+            }
+          } catch (relayErr) {
+            console.warn('[Enquiries API] FormSubmit fallback relay error:', relayErr.message)
+          }
+
+          if (relaySucceeded) {
+            emailStatus = 'sent'
+            messageId = `relay-${Date.now()}`
+            emailError = null
+            enquiryRecord.email_notification_status = 'sent'
+            enquiryRecord.email_sent_at = new Date().toISOString()
+            enquiryRecord.email_message_id = messageId
+            enquiryRecord.email_error = null
+          } else {
+            // Graceful handling: Database storage is 100% verified. Keep status as 'pending' so client-side relay can also attempt delivery.
+            emailStatus = 'pending'
+            emailError = mailErr.message
+            enquiryRecord.email_notification_status = 'pending'
+            enquiryRecord.email_error = mailErr.message
+          }
 
           try {
             const pool = getPgPool()
             if (pool) {
               await pool.query(`
                 UPDATE enquiries SET
-                  email_notification_status = 'pending',
-                  email_error = $1
-                WHERE enquiry_number = $2;
-              `, [emailError, enquiryNumber]).catch(() => null)
+                  email_notification_status = $1,
+                  email_sent_at = CASE WHEN $1 = 'sent' THEN CURRENT_TIMESTAMP ELSE email_sent_at END,
+                  email_message_id = COALESCE($2, email_message_id),
+                  email_error = $3
+                WHERE enquiry_number = $4;
+              `, [emailStatus, messageId, emailError, enquiryNumber]).catch(() => null)
             }
           } catch {}
         }
