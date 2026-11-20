@@ -62,6 +62,7 @@ import { ShopAndNavigationEditor } from '../components/admin/ShopAndNavigationEd
 import { CadVisualPageEditor } from '../components/admin/CadVisualPageEditor'
 import {
   resolveVisualProductKeyFromCatalogProduct,
+  uploadAssetToPersistentStorage,
   VisualEditorCategory,
 } from '../utils/cadVisualEditorStore'
 import { getProductTemplate, ProductTemplateType } from '../utils/productTemplates'
@@ -1350,6 +1351,46 @@ export default function AdminPage() {
       } catch {
         // ignore
       }
+    }
+
+    // Also sync hero_image into the Visual Page Editor published map so dedicated product pages (e.g. SketchUp Pro, ARES, Pratham) reflect it immediately
+    try {
+      const visualKey = cadKey || resolveVisualProductKeyFromCatalogProduct(productToSave)
+      if (visualKey && productToSave.hero_image) {
+        const pubMap = JSON.parse(localStorage.getItem('leniva_cad_visual_published_v1') || '{}')
+        const existingPayload = pubMap[visualKey] || {
+          productKey: visualKey,
+          dataOverrides: {},
+          elementOverrides: {},
+          pdfResources: [],
+          sectionOrder: [],
+          hiddenSections: {},
+          seo: {},
+        }
+        pubMap[visualKey] = {
+          ...existingPayload,
+          dataOverrides: {
+            ...(existingPayload.dataOverrides || {}),
+            hero: {
+              ...((existingPayload.dataOverrides || {}).hero || {}),
+              image: productToSave.hero_image,
+            },
+          },
+          elementOverrides: {
+            ...(existingPayload.elementOverrides || {}),
+            'hero.image': {
+              ...((existingPayload.elementOverrides || {})['hero.image'] || { key: 'hero.image' }),
+              src: productToSave.hero_image,
+              objectFit: 'contain',
+            },
+          },
+          updatedAt: new Date().toISOString(),
+        }
+        localStorage.setItem('leniva_cad_visual_published_v1', JSON.stringify(pubMap))
+        window.dispatchEvent(new Event('leniva_cad_visual_updated'))
+      }
+    } catch {
+      // ignore quota/parse
     }
 
     pushCmsStateToCloud().catch(() => false)
@@ -7366,19 +7407,19 @@ export default function AdminPage() {
                                     type="file"
                                     accept="image/*"
                                     className="hidden"
-                                    onChange={(e) => {
+                                    onChange={async (e) => {
                                       const file = e.target.files?.[0]
-                                      if (file) {
-                                        const reader = new FileReader()
-                                        reader.onload = (re) => {
-                                          const result = re.target?.result as string
-                                          if (result) {
-                                            const updated = [...homeContentData.hero.slides]
-                                            updated[activeHeroSlideIdx] = { ...currentHeroSlide, image: result }
-                                            setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
-                                          }
+                                      e.target.value = ''
+                                      if (!file) return
+                                      try {
+                                        const res = await uploadAssetToPersistentStorage(file, 'image')
+                                        if (res?.url) {
+                                          const updated = [...homeContentData.hero.slides]
+                                          updated[activeHeroSlideIdx] = { ...currentHeroSlide, image: res.url }
+                                          setHomeContentData({ ...homeContentData, hero: { ...homeContentData.hero, slides: updated } })
                                         }
-                                        reader.readAsDataURL(file)
+                                      } catch (err: any) {
+                                        alert(err?.message || 'Failed to upload banner image')
                                       }
                                     }}
                                   />

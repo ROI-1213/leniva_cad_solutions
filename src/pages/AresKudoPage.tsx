@@ -437,9 +437,10 @@ export const AresKudoPage: React.FC = () => {
                 <div className="relative h-80 sm:h-96 bg-[#0a0f1d] overflow-hidden p-4">
                   {(data.hero as any).image && (data.hero as any).image !== '/images/ares-kudo/ares-kudo-hero.jpg' && (
                     <img
+                      data-cad-path="hero.image"
                       src={(data.hero as any).image}
                       alt={data.hero.headline || 'ARES Kudo'}
-                      className="absolute inset-0 w-full h-full object-cover z-20"
+                      className="absolute inset-0 w-full h-full object-contain bg-[#0a0f1d] p-2 z-20"
                     />
                   )}
                   {/* Blueprint Grid Lines */}

@@ -264,6 +264,7 @@ export const AresElectricalPage: React.FC = () => {
             >
               <div className="relative rounded-2xl overflow-hidden border border-slate-700/70 shadow-2xl bg-slate-900/80 backdrop-blur-sm group flex items-center justify-center p-3 sm:p-4 min-h-[300px] sm:min-h-[360px]">
                 <img
+                  data-cad-path="hero.image"
                   src={data.hero.image}
                   alt="ARES Electrical CAD Workspace"
                   className="w-full max-h-[360px] object-contain transition-transform duration-700 group-hover:scale-102"

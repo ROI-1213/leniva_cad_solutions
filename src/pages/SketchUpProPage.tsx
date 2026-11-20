@@ -296,35 +296,36 @@ export const SketchUpProPage: React.FC = () => {
           </div>
 
           {/* Right Visual Column */}
-          <div className="lg:col-span-6 relative">
-            <div className="relative rounded-3xl overflow-hidden border border-slate-200 bg-slate-900 shadow-2xl">
+          <div className="lg:col-span-6 relative flex flex-col gap-3">
+            <div className="relative rounded-3xl overflow-hidden border border-slate-200 bg-slate-900 shadow-2xl flex items-center justify-center p-3 sm:p-4 min-h-[300px] sm:min-h-[360px]">
               <img
+                data-cad-path="hero.image"
                 src={(sketchupProData.hero as any).image || '/images/software/sketchup-pro.jpg'}
                 alt="SketchUp Pro Desktop 3D Architectural Workspace"
-                className="w-full h-auto object-cover opacity-90 hover:opacity-100 transition-opacity"
+                className="w-full max-h-[380px] object-contain transition-transform duration-500 hover:scale-[1.02]"
               />
 
               {/* Floating UI Badges */}
-              <div className="absolute top-4 left-4 bg-slate-950/85 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/10 text-white text-xs font-semibold flex items-center space-x-2 shadow-lg">
+              <div className="absolute top-3 left-3 bg-slate-950/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-white text-xs font-semibold flex items-center space-x-2 shadow-lg">
                 <Box className="w-3.5 h-3.5 text-blue-400" />
                 <span>3D Desktop Modeler</span>
               </div>
 
-              <div className="absolute top-4 right-4 bg-slate-950/85 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/10 text-white text-xs font-semibold flex items-center space-x-2 shadow-lg">
+              <div className="absolute top-3 right-3 bg-slate-950/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-white text-xs font-semibold flex items-center space-x-2 shadow-lg">
                 <FileText className="w-3.5 h-3.5 text-emerald-400" />
                 <span>LayOut Included</span>
               </div>
+            </div>
 
-              <div className="absolute bottom-4 left-4 right-4 bg-slate-950/85 backdrop-blur-md p-3.5 rounded-2xl border border-white/10 text-white text-xs flex items-center justify-between shadow-xl">
-                <div className="flex items-center space-x-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="font-bold text-slate-100">Multi-Platform Ecosystem</span>
-                  <span className="text-slate-400 hidden sm:inline">• Desktop, Web, iPad &amp; Cloud</span>
-                </div>
-                <span className="text-[11px] font-mono text-cyan-300 font-bold bg-cyan-950/60 px-2.5 py-0.5 rounded-md border border-cyan-800/60">
-                  Unlimited Cloud
-                </span>
+            <div className="bg-slate-950/95 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 text-white text-xs flex items-center justify-between shadow-lg">
+              <div className="flex items-center space-x-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="font-bold text-slate-100">Multi-Platform Ecosystem</span>
+                <span className="text-slate-400 hidden sm:inline">• Desktop, Web, iPad &amp; Cloud</span>
               </div>
+              <span className="text-[11px] font-mono text-cyan-300 font-bold bg-cyan-950/60 px-2.5 py-0.5 rounded-md border border-cyan-800/60">
+                Unlimited Cloud
+              </span>
             </div>
           </div>
         </div>

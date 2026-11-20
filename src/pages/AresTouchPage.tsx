@@ -380,9 +380,10 @@ export const AresTouchPage: React.FC = () => {
                   {/* CAD Screen Simulation */}
                   <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-800 bg-[#0d1624]">
                     <img
+                      data-cad-path="hero.image"
                       src={(data.hero as any).image || '/images/software/sections/aec-construction.jpg'}
                       alt="ARES Touch CAD drawing on tablet"
-                      className="w-full h-full object-cover opacity-85"
+                      className="w-full h-full object-contain"
                     />
 
                     {/* Touch CAD Overlays */}

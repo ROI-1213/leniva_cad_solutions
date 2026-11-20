@@ -290,6 +290,7 @@ export const SketchUpProScanPage: React.FC = () => {
             <div className="lg:col-span-5 relative flex flex-col gap-3">
               <div className="relative rounded-2xl overflow-hidden border border-slate-700 shadow-2xl bg-slate-900 group flex items-center justify-center p-3 sm:p-4 min-h-[300px] sm:min-h-[360px]">
                 <img
+                  data-cad-path="hero.image"
                   src={proScanData.hero.image}
                   alt="SketchUp Pro Scan Reality Capture to 3D"
                   className="w-full max-h-[360px] object-contain transition-transform duration-700 group-hover:scale-102"

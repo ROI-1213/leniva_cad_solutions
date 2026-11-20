@@ -1753,8 +1753,9 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
         if (options.dataPath) {
           next.dataOverrides = setByPath(next.dataOverrides || {}, options.dataPath, normalizedUrl)
         }
-        if (options.elementKey === 'auto:img:0' || options.dataPath === 'hero.image') {
+        if (options.elementKey === 'auto:img:0' || options.elementKey === 'hero.image' || options.dataPath === 'hero.image') {
           next.dataOverrides = setByPath(next.dataOverrides || {}, 'hero.image', normalizedUrl)
+          next.dataOverrides = setByPath(next.dataOverrides || {}, 'hero.heroImage', normalizedUrl)
         }
         if (options.elementKey) {
           const existing = next.elementOverrides?.[options.elementKey] || { key: options.elementKey }
@@ -3835,19 +3836,22 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                   const file = e.target.files?.[0]
                   if (!file) return
                   e.target.value = ''
-                  const firstSlot = activeImageSlotsBase[0]
+                  const heroSlot =
+                    activeImageSlotsBase.find(s => s.dataPath === 'hero.image' || s.id === 'hero.image') ||
+                    activeImageSlotsBase.find(s => !(s.defaultSrc || '').includes('/images/brands/')) ||
+                    activeImageSlotsBase[0]
                   const targetKey =
                     selectedElement?.kind === 'image'
                       ? selectedElement.key
-                      : firstSlot?.dataPath || firstSlot?.id || 'auto:img:0'
+                      : heroSlot?.dataPath || heroSlot?.id || 'hero.image'
                   const targetDataPath =
                     selectedElement?.kind === 'image'
-                      ? selectedElement.dataPath
-                      : firstSlot?.dataPath || (activeProductKey === 'ares_commander' ? 'hero.image' : undefined)
+                      ? selectedElement.dataPath || (selectedElement.key === 'hero.image' ? 'hero.image' : undefined)
+                      : heroSlot?.dataPath || 'hero.image'
                   handleImageFileUpload(file, {
                     dataPath: targetDataPath,
                     elementKey: targetKey,
-                    defaultSrc: firstSlot?.defaultSrc,
+                    defaultSrc: heroSlot?.defaultSrc,
                   })
                 }}
               />

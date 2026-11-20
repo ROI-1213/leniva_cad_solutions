@@ -394,11 +394,12 @@ export const EnscapePage: React.FC = () => {
             transition={{ duration: 0.6, delay: 0.15 }}
             className="lg:col-span-6 relative"
           >
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200 group">
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200 bg-slate-900 group flex items-center justify-center p-2">
               <img
-                src={enscapeData.hero.heroImage}
+                data-cad-path="hero.image"
+                src={(enscapeData.hero as any).image || enscapeData.hero.heroImage}
                 alt="Chaos Enscape photorealistic architectural rendering"
-                className="w-full h-[420px] sm:h-[480px] object-cover transition-transform duration-700 group-hover:scale-102"
+                className="w-full h-[420px] sm:h-[480px] object-contain transition-transform duration-700 group-hover:scale-102"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent pointer-events-none" />
 

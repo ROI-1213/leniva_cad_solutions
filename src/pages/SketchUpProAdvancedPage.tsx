@@ -231,9 +231,10 @@ export default function SketchUpProAdvancedPage() {
               {/* Main workspace card */}
               <div className="relative rounded-2xl overflow-hidden bg-white/5 border border-white/20 backdrop-blur-sm p-6 shadow-2xl">
                 <img
+                  data-cad-path="hero.image"
                   src={(d.hero as any).image || '/images/software/sketchup-advanced.jpg'}
                   alt="SketchUp Pro Advanced Workflows — Revit and Point Cloud"
-                  className="w-full aspect-video object-cover rounded-xl"
+                  className="w-full aspect-video object-contain rounded-xl bg-slate-900/50"
                   loading="eager"
                 />
                 {/* Data flow overlay */}

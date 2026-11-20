@@ -1048,12 +1048,34 @@ function readJsonMap<T>(storageKey: string): Record<string, T> {
   }
 }
 
-function writeJsonMap<T>(storageKey: string, map: Record<string, T>) {
-  if (typeof window === 'undefined') return
+function writeJsonMap<T>(storageKey: string, map: Record<string, T>): boolean {
+  if (typeof window === 'undefined') return false
+  const serialized = JSON.stringify(map)
   try {
-    window.localStorage.setItem(storageKey, JSON.stringify(map))
+    window.localStorage.setItem(storageKey, serialized)
+    return true
   } catch (err) {
-    console.error(`Failed writing ${storageKey}:`, err)
+    console.warn(`Storage quota pressure writing ${storageKey}, pruning old revisions & retrying...`, err)
+    try {
+      // 1. Prune heavy revision history first
+      if (storageKey !== CAD_VISUAL_REVISIONS_KEY) {
+        window.localStorage.removeItem(CAD_VISUAL_REVISIONS_KEY)
+      }
+      window.localStorage.setItem(storageKey, serialized)
+      return true
+    } catch {
+      // 2. If writing the primary published map, also clear redundant drafts so published data always persists
+      try {
+        if (storageKey === CAD_VISUAL_PUBLISHED_KEY) {
+          window.localStorage.removeItem(CAD_VISUAL_DRAFT_KEY)
+          window.localStorage.setItem(storageKey, serialized)
+          return true
+        }
+      } catch (retryErr) {
+        console.error(`Failed writing ${storageKey} even after pruning:`, retryErr)
+      }
+    }
+    return false
   }
 }
 
@@ -1347,17 +1369,26 @@ export async function publishVisualPayload(
   delete allDrafts[productKey]
   writeJsonMap(CAD_VISUAL_DRAFT_KEY, allDrafts)
 
-  // 3. Push Revision Snapshot (keep up to 10 revisions per product)
-  const allRevisions = readJsonMap<CadVisualRevision[]>(CAD_VISUAL_REVISIONS_KEY)
-  const productRevisions = Array.isArray(allRevisions[productKey]) ? allRevisions[productKey] : []
-  const newRevision: CadVisualRevision = {
-    id: `rev_${Date.now()}`,
-    timestamp: now,
-    label: revisionLabel,
-    payload: structuredCloneSafe(stamped),
+  // 3. Push lightweight Revision Snapshot (keep up to 3 revisions per product, without duplicating huge base64 images)
+  try {
+    const allRevisions = readJsonMap<CadVisualRevision[]>(CAD_VISUAL_REVISIONS_KEY)
+    const productRevisions = Array.isArray(allRevisions[productKey]) ? allRevisions[productKey] : []
+    const leanSnapshot = JSON.parse(
+      JSON.stringify(stamped, (_k, v) =>
+        typeof v === 'string' && v.startsWith('data:image/') && v.length > 50000 ? v.slice(0, 64) + '...[inline-image]' : v
+      )
+    )
+    const newRevision: CadVisualRevision = {
+      id: `rev_${Date.now()}`,
+      timestamp: now,
+      label: revisionLabel,
+      payload: leanSnapshot,
+    }
+    allRevisions[productKey] = [newRevision, ...productRevisions].slice(0, 3)
+    writeJsonMap(CAD_VISUAL_REVISIONS_KEY, allRevisions)
+  } catch {
+    // Non-critical if revisions cannot be saved
   }
-  allRevisions[productKey] = [newRevision, ...productRevisions].slice(0, 10)
-  writeJsonMap(CAD_VISUAL_REVISIONS_KEY, allRevisions)
 
   // 4. Sync Hero / Image / Brochure / Identity fields across all catalogs
   syncVisualPayloadToCatalogs(productKey, stamped)
@@ -1549,42 +1580,8 @@ export async function uploadAssetToPersistentStorage(
     // continue to next strategy
   }
 
-  // Strategy 2: For PDFs (or large images > 350 KB), try Direct Bytebin Cloud CDN so we get a clean HTTPS URL that never hits localStorage limits
-  if (kind === 'pdf' || file.size > 350 * 1024) {
-    try {
-      onProgress?.(65, 'Syncing to Cloud CDN...')
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 6000)
-      const bytebinRes = await fetch('https://bytebin.lucko.me/post', {
-        method: 'POST',
-        headers: {
-          'Content-Type': resolvedMime,
-        },
-        body: file,
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-      if (bytebinRes.ok) {
-        const json = await bytebinRes.json()
-        if (json?.key) {
-          const cdnUrl = `https://bytebin.lucko.me/${json.key}`
-          onProgress?.(100, 'Upload complete!')
-          return {
-            url: cdnUrl,
-            fileName: file.name,
-            fileSize: formattedSize,
-            mimeType: resolvedMime,
-            dimensions,
-          }
-        }
-      }
-    } catch {
-      // fall back to optimized Data URL below
-    }
-  }
-
-  // Strategy 3: Client-side persistent Data URL
-  onProgress?.(85, 'Processing and encoding asset...')
+  // Strategy 2: Client-side persistent Data URL (crisp & quota-safe for localStorage + Cloud Gist sync)
+  onProgress?.(75, 'Processing and encoding asset...')
   let finalAssetUrl = await fileToDataUrl(file)
 
   // Ensure valid data: prefix
@@ -1592,10 +1589,12 @@ export async function uploadAssetToPersistentStorage(
     finalAssetUrl = `data:${resolvedMime};base64,${finalAssetUrl}`
   }
 
-  // Preserve 100% original pixel clarity without lossy compression for reasonable file sizes (< 3MB)
-  // Only resize huge images (> 3MB) to maintain fast cloud sync while preserving crisp high-definition lines
-  const MAX_RAW_SIZE_BYTES = 3 * 1024 * 1024
-  if (kind === 'image' && resolvedMime !== 'image/svg+xml' && file.size > MAX_RAW_SIZE_BYTES) {
+  // Keep small images (<= 220 KB) 100% raw & untouched.
+  // For larger images (> 220 KB), encode crisply (up to 1600px, high-quality WebP/JPEG) so they stay razor-sharp
+  // while never overflowing browser localStorage (5 MB total quota) or Cloud Gist payload limits.
+  const MAX_RAW_SIZE_BYTES = 220 * 1024
+  const TARGET_MAX_DATA_URL_LEN = 360 * 1024 // ~270 KB binary
+  if (kind === 'image' && resolvedMime !== 'image/svg+xml' && (file.size > MAX_RAW_SIZE_BYTES || finalAssetUrl.length > TARGET_MAX_DATA_URL_LEN)) {
     try {
       const img = new Image()
       const loadPromise = new Promise<HTMLImageElement>((resolve, reject) => {
@@ -1605,8 +1604,7 @@ export async function uploadAssetToPersistentStorage(
       })
       await loadPromise
 
-      // Ultra-HD 2048px bounding box ensures crisp text and detailed CAD graphics
-      const maxDim = 2048
+      const maxDim = 1600
       let { width, height } = img
       if (width > maxDim || height > maxDim) {
         if (width > height) {
@@ -1627,7 +1625,14 @@ export async function uploadAssetToPersistentStorage(
         ctx.imageSmoothingQuality = 'high'
         ctx.drawImage(img, 0, 0, width, height)
         const isTransparentType = resolvedMime === 'image/png' || resolvedMime === 'image/webp'
-        const encoded = canvas.toDataURL(isTransparentType ? 'image/webp' : 'image/jpeg', 0.92)
+        const targetMime = isTransparentType ? 'image/webp' : 'image/jpeg'
+        let encoded = canvas.toDataURL(targetMime, 0.90)
+        if (encoded.length > TARGET_MAX_DATA_URL_LEN) {
+          encoded = canvas.toDataURL(targetMime, 0.82)
+        }
+        if (encoded.length > TARGET_MAX_DATA_URL_LEN) {
+          encoded = canvas.toDataURL('image/jpeg', 0.78)
+        }
         if (encoded && encoded.startsWith('data:image/') && encoded.length < finalAssetUrl.length) {
           finalAssetUrl = encoded
         }

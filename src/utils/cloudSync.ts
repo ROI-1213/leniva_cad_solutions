@@ -137,11 +137,22 @@ function installStorageInterceptor() {
 
   window.localStorage.setItem = function (key: string, value: string) {
     const prev = rawGetItem(key)
-    rawSetItem(key, value)
+    try {
+      rawSetItem(key, value)
+    } catch {
+      // Automatically free non-critical caches (old revisions / stale drafts) on QuotaExceededError and retry
+      if (key !== 'leniva_cad_visual_revisions_v1') {
+        try { rawRemoveItem('leniva_cad_visual_revisions_v1') } catch {}
+      }
+      if (key !== 'leniva_cad_visual_drafts_v1' && key !== 'leniva_cad_visual_revisions_v1') {
+        try { rawRemoveItem('leniva_cad_visual_drafts_v1') } catch {}
+      }
+      rawSetItem(key, value)
+    }
     if (!isApplyingRemoteSync && SYNCED_KEY_SET.has(key) && prev !== value) {
       explicitlyResetKeys.delete(key)
       const now = Date.now()
-      rawSetItem(UPDATED_AT_KEY, String(now))
+      try { rawSetItem(UPDATED_AT_KEY, String(now)) } catch {}
       scheduleCloudPush()
     }
   }
@@ -265,7 +276,16 @@ export async function pushCmsStateToCloud(options?: { isEnquirySubmission?: bool
             })
             if (gistGetRes.ok) {
               const gistData = await gistGetRes.json()
-              const content = gistData.files?.['leniva_cms_data.json']?.content
+              const fileObj = gistData.files?.['leniva_cms_data.json']
+              let content = fileObj?.content
+              if (fileObj?.truncated && fileObj?.raw_url) {
+                try {
+                  const rawRes = await fetch(fileObj.raw_url)
+                  if (rawRes.ok) content = await rawRes.text()
+                } catch {
+                  // keep fallback
+                }
+              }
               if (content) {
                 const parsed = JSON.parse(content)
                 if (parsed && parsed.keys) {
