@@ -152,7 +152,10 @@ function installStorageInterceptor() {
     if (!isApplyingRemoteSync && SYNCED_KEY_SET.has(key) && prev !== value) {
       explicitlyResetKeys.delete(key)
       const now = Date.now()
-      try { rawSetItem(UPDATED_AT_KEY, String(now)) } catch {}
+      try {
+        rawSetItem(UPDATED_AT_KEY, String(now))
+        rawSetItem('leniva_cms_dirty_ts_v1', String(now))
+      } catch {}
       scheduleCloudPush()
     }
   }
@@ -162,7 +165,10 @@ function installStorageInterceptor() {
     if (!isApplyingRemoteSync && SYNCED_KEY_SET.has(key)) {
       explicitlyResetKeys.add(key)
       const now = Date.now()
-      rawSetItem(UPDATED_AT_KEY, String(now))
+      try {
+        rawSetItem(UPDATED_AT_KEY, String(now))
+        rawSetItem('leniva_cms_dirty_ts_v1', String(now))
+      } catch {}
       scheduleCloudPush()
     }
   }
@@ -327,6 +333,7 @@ export async function pushCmsStateToCloud(options?: { isEnquirySubmission?: bool
 
       if (isSuccess) {
         try {
+          rawRemoveItem('leniva_cms_dirty_ts_v1')
           syncBroadcastChannel?.postMessage({ type: 'SYNC_NOW', updatedAt })
         } catch {
           // ignore
@@ -1118,9 +1125,13 @@ export async function pullCmsStateFromCloud(forceApply = false): Promise<boolean
     }
     lastKnownCloudKeys = { ...cleanCloudKeys }
 
-    // Check if this browser has local admin customizations that are missing in the cloud
-    let hasUnpushedLocalKeys = false
-    if (rawGetItem('leniva_admin_auth') === 'true') {
+    // Check if this browser has newer or unsynced local edits that have not landed in cloud yet
+    const localUpdatedAt = Number(rawGetItem(UPDATED_AT_KEY) || 0)
+    const dirtyTs = Number(rawGetItem('leniva_cms_dirty_ts_v1') || 0)
+    const localIsNewer = dirtyTs > 0 || (localUpdatedAt > 0 && localUpdatedAt > winner.updatedAt)
+
+    let hasUnpushedLocalKeys = localIsNewer
+    if (!hasUnpushedLocalKeys && rawGetItem('leniva_admin_auth') === 'true') {
       for (const k of ADMIN_CONTENT_CHECK_KEYS) {
         const localVal = rawGetItem(k)
         if (localVal && !cleanCloudKeys[k]) {
@@ -1206,13 +1217,15 @@ export async function pullCmsStateFromCloud(forceApply = false): Promise<boolean
             }
           }
 
-          if (localVal !== remoteVal) {
+          if (!localIsNewer && localVal !== remoteVal) {
             rawSetItem(k, remoteVal)
             changedAnyKey = true
           }
         }
       }
-      rawSetItem(UPDATED_AT_KEY, String(winner.updatedAt))
+      if (!localIsNewer) {
+        rawSetItem(UPDATED_AT_KEY, String(winner.updatedAt))
+      }
     } finally {
       isApplyingRemoteSync = false
     }

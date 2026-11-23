@@ -1540,44 +1540,46 @@ export async function uploadAssetToPersistentStorage(
             ? 'image/svg+xml'
             : 'image/jpeg')
 
-  // Strategy 1: Try /api/storage/upload or /api/upload first
-  try {
-    onProgress?.(40, 'Uploading to persistent cloud storage...')
-    const base64Data = await fileToBase64(file)
-    const endpoints = ['/api/storage/upload', '/api/upload']
+  // Strategy 1: For PDFs, try /api/storage/upload or /api/upload first (skip for images so they sync cleanly across all browsers via Cloud Gist)
+  if (kind === 'pdf') {
+    try {
+      onProgress?.(40, 'Uploading to persistent cloud storage...')
+      const base64Data = await fileToBase64(file)
+      const endpoints = ['/api/storage/upload', '/api/upload']
 
-    for (const endpoint of endpoints) {
-      try {
-        const apiRes = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            filename: file.name,
-            contentType: resolvedMime,
-            dataBase64: base64Data,
-          }),
-        })
-        const ct = apiRes.headers.get('content-type') || ''
-        if (apiRes.ok && ct.includes('application/json')) {
-          const json = await apiRes.json()
-          const returnedUrl = json?.url || json?.absoluteUrl
-          if (returnedUrl) {
-            onProgress?.(100, 'Upload complete!')
-            return {
-              url: normalizeAssetUrl(returnedUrl, kind),
-              fileName: json.fileName || file.name,
-              fileSize: formattedSize,
-              mimeType: resolvedMime,
-              dimensions,
+      for (const endpoint of endpoints) {
+        try {
+          const apiRes = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              filename: file.name,
+              contentType: resolvedMime,
+              dataBase64: base64Data,
+            }),
+          })
+          const ct = apiRes.headers.get('content-type') || ''
+          if (apiRes.ok && ct.includes('application/json')) {
+            const json = await apiRes.json()
+            const returnedUrl = json?.url || json?.absoluteUrl
+            if (returnedUrl) {
+              onProgress?.(100, 'Upload complete!')
+              return {
+                url: normalizeAssetUrl(returnedUrl, kind),
+                fileName: json.fileName || file.name,
+                fileSize: formattedSize,
+                mimeType: resolvedMime,
+                dimensions,
+              }
             }
           }
+        } catch {
+          // try next endpoint
         }
-      } catch {
-        // try next endpoint
       }
+    } catch {
+      // continue to next strategy
     }
-  } catch {
-    // continue to next strategy
   }
 
   // Strategy 2: Client-side persistent Data URL (crisp & quota-safe for localStorage + Cloud Gist sync)
@@ -2374,6 +2376,21 @@ export function findElementByCadKey(root: HTMLElement, elKey: string): HTMLEleme
 
   const byPath = root.querySelector<HTMLElement>(`[data-cad-path="${CSS.escape(elKey)}"]`)
   if (byPath) return byPath
+
+  // Fallback for hero.image on pages without explicit data-cad-path: pick first non-brand-logo product <img>
+  if (elKey === 'hero.image') {
+    const imgs = Array.from(root.querySelectorAll<HTMLImageElement>('img'))
+    const heroCandidate = imgs.find(img => {
+      if (img.closest('header') || img.closest('footer')) return false
+      const src = (img.getAttribute('src') || '').toLowerCase()
+      const orig = (img.getAttribute('data-original-src') || '').toLowerCase()
+      if (src.includes('/images/brands/') || orig.includes('/images/brands/') || src.includes('/logo') || orig.includes('/logo')) {
+        return false
+      }
+      return true
+    })
+    if (heroCandidate) return heroCandidate
+  }
 
   // Fallback deterministic tag:index lookup (e.g. "auto:h2:3" or "auto:img:2")
   if (elKey.startsWith('auto:')) {

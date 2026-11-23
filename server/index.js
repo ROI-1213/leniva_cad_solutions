@@ -1128,7 +1128,12 @@ app.post(['/api/storage/upload', '/api/upload'], upload.single('file'), async (r
         fileRecord = result.rows[0]
       }
     } catch (dbErr) {
-      console.warn('DB file storage notice (serving in-memory/fallback):', dbErr.message)
+      console.warn('DB file storage unavailable:', dbErr.message)
+      return res.status(503).json({
+        ok: false,
+        success: false,
+        error: 'Database storage unavailable; use client-side persistent encoding.',
+      })
     }
 
     res.status(201).json({

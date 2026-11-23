@@ -1559,78 +1559,16 @@ export default function AdminPage() {
     setTimeout(() => setBlogSuccessMsg(''), 4000)
   }
 
-  // Direct image upload helper for all edit modals (supports Hostinger PHP, Node.js backend, and optimized DataURL fallback)
+  // Direct image upload helper for all edit modals (crisp, quota-safe persistent Data URL that syncs across all browsers & deployments)
   const handleDirectImageUpload = async (file: File, callback: (url: string) => void) => {
     try {
       setUploadingField(file.name)
-      // 1. Try server storage first (/api/storage/upload and /api/upload)
-      const uploadEndpoints = ['/api/storage/upload', '/api/upload']
-      for (const endpoint of uploadEndpoints) {
-        try {
-          const formData = new FormData()
-          formData.append('file', file)
-          formData.append('bucket', 'media')
-          formData.append('description', file.name)
-          const res = await fetch(endpoint, {
-            method: 'POST',
-            body: formData,
-          })
-          const ct = res.headers.get('content-type') || ''
-          if (res.ok && ct.includes('application/json')) {
-            const data = await res.json()
-            const finalUrl = data?.url || data?.absoluteUrl
-            if (finalUrl) {
-              callback(finalUrl)
-              return
-            }
-          }
-        } catch {
-          // try next endpoint
-        }
+      const res = await uploadAssetToPersistentStorage(file, 'image')
+      if (res?.url) {
+        callback(res.url)
       }
-
-      // 2. High-performance Canvas-optimized data URL fallback (Zero third-party failures)
-      const reader = new FileReader()
-      reader.onload = async () => {
-        if (typeof reader.result === 'string') {
-          let dataUrl = reader.result
-          if (file.type.startsWith('image/') && file.size > 250 * 1024) {
-            try {
-              const img = new Image()
-              await new Promise((resolve, reject) => {
-                img.onload = () => resolve()
-                img.onerror = reject
-                img.src = dataUrl
-              })
-              const maxDim = 1400
-              let { width, height } = img
-              if (width > maxDim || height > maxDim) {
-                if (width > height) {
-                  height = Math.round((height * maxDim) / width)
-                  width = maxDim
-                } else {
-                  width = Math.round((width * maxDim) / height)
-                  height = maxDim
-                }
-              }
-              const canvas = document.createElement('canvas')
-              canvas.width = width
-              canvas.height = height
-              const ctx = canvas.getContext('2d')
-              if (ctx) {
-                ctx.drawImage(img, 0, 0, width, height)
-                dataUrl = canvas.toDataURL('image/jpeg', 0.85)
-              }
-            } catch {
-              // keep original
-            }
-          }
-          callback(dataUrl)
-        }
-      }
-      reader.readAsDataURL(file)
     } catch (err: any) {
-      alert('Error uploading image: ' + err.message)
+      alert('Error uploading image: ' + (err?.message || 'Upload failed'))
     } finally {
       setUploadingField(null)
     }
