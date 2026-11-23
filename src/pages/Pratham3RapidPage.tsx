@@ -428,6 +428,7 @@ export const Pratham3RapidPage: React.FC = () => {
               {/* Main Machine Image */}
               <div className="relative z-0 flex items-center justify-center py-4">
                 <img
+                  data-cad-path="hero.image"
                   src="/images/products/pratham-3-rapid.png"
                   alt="Make3D Pratham 3 Rapid High-Speed Industrial FDM 3D Printer"
                   className="w-full max-w-md h-auto object-contain drop-shadow-2xl transition-transform duration-700 group-hover:scale-105"

@@ -296,6 +296,7 @@ export const PrathamX600Page: React.FC = () => {
               <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
               
               <img
+                data-cad-path="hero.image"
                 src="/images/products/pratham-x.png"
                 alt="Pratham X (600) Jumbo 3D Printer"
                 className="w-full h-auto object-contain drop-shadow-2xl transition-transform duration-500 group-hover:scale-105"

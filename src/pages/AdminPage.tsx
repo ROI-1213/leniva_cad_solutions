@@ -1353,9 +1353,11 @@ export default function AdminPage() {
       }
     }
 
-    // Also sync hero_image into the Visual Page Editor published map so dedicated product pages (e.g. SketchUp Pro, ARES, Pratham) reflect it immediately
+    // Also sync hero_image & hero text into the Visual Page Editor published map so dedicated product pages (Pratham, Filaments, SketchUp Pro, ARES) reflect it immediately
     try {
-      const visualKey = cadKey || resolveVisualProductKeyFromCatalogProduct(productToSave)
+      const slugOrId = productToSave.slug || productToSave.id || ''
+      const resolvedItem = slugOrId ? resolveVisualProductKeyFromCatalogProduct(slugOrId) : null
+      const visualKey = cadKey || (resolvedItem && resolvedItem.key !== 'ares_commander' ? resolvedItem.key : null)
       if (visualKey && productToSave.hero_image) {
         const pubMap = JSON.parse(localStorage.getItem('leniva_cad_visual_published_v1') || '{}')
         const existingPayload = pubMap[visualKey] || {
@@ -1374,6 +1376,7 @@ export default function AdminPage() {
             hero: {
               ...((existingPayload.dataOverrides || {}).hero || {}),
               image: productToSave.hero_image,
+              heroImage: productToSave.hero_image,
             },
           },
           elementOverrides: {

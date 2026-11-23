@@ -257,6 +257,7 @@ export const PrathamMiniPage: React.FC = () => {
             <div className="order-1 lg:order-2 lg:col-span-5 relative flex justify-center">
               <div className="relative w-full max-w-md aspect-square rounded-3xl bg-gradient-to-b from-slate-100/70 to-slate-200/50 border border-slate-200 flex items-center justify-center p-8 group">
                 <img
+                  data-cad-path="hero.image"
                   src="/images/products/pratham-mini.png"
                   alt="Pratham Mini 3D Printer - Entry Level Precision FDM"
                   className="w-full h-full object-contain drop-shadow-2xl transition-transform duration-700 group-hover:scale-105"

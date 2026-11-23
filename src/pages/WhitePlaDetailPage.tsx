@@ -189,6 +189,7 @@ export const WhitePlaDetailPage: React.FC<{ customData?: Partial<WhitePlaProduct
                 className="relative aspect-square rounded-2xl bg-gradient-to-b from-slate-50 to-slate-100/60 border border-slate-200/80 overflow-hidden flex items-center justify-center p-6 cursor-zoom-in group shadow-inner"
               >
                 <img
+                  data-cad-path="hero.image"
                   src={activeImage.src}
                   alt={activeImage.alt}
                   className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"

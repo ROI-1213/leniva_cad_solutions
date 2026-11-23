@@ -612,6 +612,7 @@ export const Pratham3Page: React.FC = () => {
               {/* Main Machine Product Image */}
               <div className="relative z-10 w-full max-w-[420px] aspect-square flex items-center justify-center transition-transform duration-700 hover:scale-[1.03]">
                 <img
+                  data-cad-path="hero.image"
                   src="/images/products/pratham-3-0.png"
                   alt="Pratham 3.0 Industrial FDM 3D Printer - 300 x 300 x 300 mm"
                   className="w-full h-full object-contain drop-shadow-[0_25px_35px_rgba(0,0,0,0.18)]"

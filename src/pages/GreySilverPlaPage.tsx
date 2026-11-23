@@ -334,6 +334,7 @@ export const GreySilverPlaPage: React.FC<GreySilverPageProps> = ({ customData })
                 className="relative aspect-square rounded-2xl bg-gradient-to-b from-slate-50 to-slate-100/70 border border-slate-200/90 overflow-hidden flex items-center justify-center p-6 cursor-zoom-in group shadow-inner"
               >
                 <img
+                  data-cad-path="hero.image"
                   src={currentDisplayImage.src}
                   alt={currentDisplayImage.alt}
                   onError={(e) => {

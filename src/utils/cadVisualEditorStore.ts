@@ -845,8 +845,9 @@ export function resolveVisualProductKeyFromPath(pathname: string): string | null
   return null
 }
 
-export function resolveVisualProductKeyFromCatalogProduct(slugOrId: string): VisualPageCatalogItem {
-  const s = (slugOrId || '').trim().toLowerCase()
+export function resolveVisualProductKeyFromCatalogProduct(slugOrId: string | { slug?: string; id?: string }): VisualPageCatalogItem {
+  const raw = typeof slugOrId === 'string' ? slugOrId : slugOrId?.slug || slugOrId?.id || ''
+  const s = raw.trim().toLowerCase()
   const directByRoute =
     resolveVisualProductKeyFromPath(`/products/${s}`) ||
     resolveVisualProductKeyFromPath(`/product/${s}`) ||
@@ -2165,7 +2166,11 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
   }
 
   // 4. Apply elementOverrides (text, href, src, alt, objectFit, hidden, pdfUrl, buttonLabel)
-  const overrides = payload.elementOverrides || {}
+  const overrides: Record<string, any> = { ...(payload.elementOverrides || {}) }
+  const dataHeroImg = payload.dataOverrides?.hero?.image || payload.dataOverrides?.hero?.heroImage
+  if (dataHeroImg && !overrides['hero.image']) {
+    overrides['hero.image'] = { key: 'hero.image', src: dataHeroImg, objectFit: 'contain' }
+  }
   for (const [elKey, ov] of Object.entries(overrides)) {
     if (!ov) continue
     const target = findElementByCadKey(root, elKey)

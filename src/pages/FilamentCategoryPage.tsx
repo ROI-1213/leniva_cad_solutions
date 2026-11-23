@@ -205,6 +205,7 @@ export const FilamentDetailPage: React.FC<{ forcedSlug?: string }> = ({ forcedSl
             {/* Image */}
             <div className="relative bg-slate-50 flex items-center justify-center p-10 min-h-80">
               <img
+                data-cad-path="hero.image"
                 src={product.image}
                 alt={product.name}
                 className="w-full max-w-xs mx-auto object-contain"

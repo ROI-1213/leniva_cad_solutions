@@ -487,6 +487,7 @@ export const PrathamDesktopPage: React.FC = () => {
                 {/* Printer Render */}
                 <div className="relative z-10 w-full h-full flex items-center justify-center group">
                   <img
+                    data-cad-path="hero.image"
                     src="/images/products/pratham-desktop.png"
                     alt="Pratham Desktop Industrial FDM 3D Printer"
                     className="max-h-[380px] w-auto object-contain drop-shadow-2xl transition-transform duration-500 group-hover:scale-105"

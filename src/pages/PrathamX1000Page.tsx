@@ -419,6 +419,7 @@ export const PrathamX1000Page: React.FC = () => {
               {/* Main Machine Image */}
               <div className="relative z-0 flex items-center justify-center py-4">
                 <img
+                  data-cad-path="hero.image"
                   src="/images/products/pratham-x.png"
                   alt="Make3D Pratham X 1000 JUMBO Industrial 3D Printer (1000 × 1000 × 1000 mm)"
                   className="w-full max-w-md h-auto object-contain drop-shadow-2xl transition-transform duration-700 group-hover:scale-105"
