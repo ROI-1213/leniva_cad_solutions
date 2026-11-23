@@ -1,8 +1,26 @@
 import pg from 'pg'
 const { Pool } = pg
 
+const GIST_ID = '5b4168cd6d9b9418ecb0e29f0f7b0282'
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN || ['ghp', 'q7ImIkHHK0hUvVEAsjVGJ0l1oVTO8K1jkiLQ'].join('_')
+const GIST_RAW_URL = `https://gist.githubusercontent.com/ROI-1213/${GIST_ID}/raw/leniva_cms_data.json`
+
 let pgPool = null
+let memoryCache = null
+let lastFetchTime = 0
+let pgDisabledUntil = 0
+
+function isPgAllowed() {
+  if (Date.now() < pgDisabledUntil) return false
+  // On Vercel serverless without an external DATABASE_URL, skip 127.0.0.1 Postgres immediately
+  if (process.env.VERCEL && !process.env.DATABASE_URL && (!process.env.PGHOST || process.env.PGHOST === '127.0.0.1')) {
+    return false
+  }
+  return true
+}
+
 function getPgPool() {
+  if (!isPgAllowed()) return null
   if (!pgPool) {
     try {
       pgPool = new Pool({
@@ -12,7 +30,7 @@ function getPgPool() {
         password: process.env.PGPASSWORD || 'hhvu1A8IrRupKLdfEDhnsx9LQ',
         database: process.env.PGDATABASE || 'leniv698',
         ssl: false,
-        connectionTimeoutMillis: 2000,
+        connectionTimeoutMillis: 800,
       })
       pgPool.on('error', () => {})
     } catch {
@@ -21,13 +39,6 @@ function getPgPool() {
   }
   return pgPool
 }
-
-const GIST_ID = '5b4168cd6d9b9418ecb0e29f0f7b0282'
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN || ['ghp', 'q7ImIkHHK0hUvVEAsjVGJ0l1oVTO8K1jkiLQ'].join('_')
-const GIST_RAW_URL = `https://gist.githubusercontent.com/ROI-1213/${GIST_ID}/raw/leniva_cms_data.json`
-
-let memoryCache = null
-let lastFetchTime = 0
 
 async function fetchFromGist() {
   // 1. Fetch directly from GitHub API first for real-time consistency (0ms delay)
@@ -159,7 +170,7 @@ export default async function handler(req, res) {
             })
           }
         } catch (dbErr) {
-          // PostgreSQL table not yet populated or starting up
+          pgDisabledUntil = Date.now() + 120000
         }
       }
 
@@ -189,8 +200,11 @@ export default async function handler(req, res) {
       const updatedAt = Number(body.updatedAt) || Date.now()
       const incomingKeys = body.keys && typeof body.keys === 'object' ? body.keys : {}
 
-      // Get latest state to merge cleanly
-      const existing = await fetchFromGist()
+      // Use warm memoryCache when recent (< 15s), otherwise fetch latest Gist state
+      const existing =
+        memoryCache && memoryCache.keys && Date.now() - lastFetchTime < 15000
+          ? memoryCache
+          : await fetchFromGist()
       const mergedKeys = { ...(existing.keys || {}) }
 
       for (const [k, v] of Object.entries(incomingKeys)) {
@@ -232,7 +246,8 @@ export default async function handler(req, res) {
         keys: mergedKeys,
       }
 
-      // Persist to connected PostgreSQL site_settings table as primary authoritative storage
+      // Persist to connected PostgreSQL site_settings table if available (fail-fast: never block 34s on offline DB)
+      let pgSaved = false
       try {
         const pool = getPgPool()
         if (pool) {
@@ -242,27 +257,33 @@ export default async function handler(req, res) {
               value JSONB NOT NULL,
               updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
-          `).catch(() => null)
+          `)
 
-          for (const [k, v] of Object.entries(mergedKeys)) {
-            let jsonVal = v
-            try { jsonVal = JSON.parse(v) } catch { jsonVal = v }
-            await pool.query(`
-              INSERT INTO site_settings (key, value, updated_at)
-              VALUES ($1, $2::jsonb, CURRENT_TIMESTAMP)
-              ON CONFLICT (key) DO UPDATE
-              SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP;
-            `, [k, JSON.stringify(jsonVal)]).catch(() => null)
-          }
+          await Promise.all(
+            Object.entries(mergedKeys).map(([k, v]) => {
+              let jsonVal = v
+              try { jsonVal = JSON.parse(v) } catch { jsonVal = v }
+              return pool.query(
+                `INSERT INTO site_settings (key, value, updated_at)
+                 VALUES ($1, $2::jsonb, CURRENT_TIMESTAMP)
+                 ON CONFLICT (key) DO UPDATE
+                 SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP;`,
+                [k, JSON.stringify(jsonVal)]
+              )
+            })
+          )
+          pgSaved = true
         }
       } catch (err) {
-        console.warn('[CMS API] PostgreSQL write notice:', err.message)
+        pgDisabledUntil = Date.now() + 120000
       }
 
-      await saveToGist(newState)
+      const gistSaved = await saveToGist(newState)
 
       return res.status(200).json({
         success: true,
+        pgSaved,
+        gistSaved,
         updatedAt,
         keys: mergedKeys,
       })

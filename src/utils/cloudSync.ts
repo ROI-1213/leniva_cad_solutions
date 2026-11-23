@@ -231,13 +231,25 @@ export async function pushCmsStateToCloud(options?: { isEnquirySubmission?: bool
 
       const { keys } = collectLocalCmsSnapshot()
 
+      // Immediately notify any open tabs/windows on the same browser in 0ms
+      try {
+        syncBroadcastChannel?.postMessage({ type: 'SYNC_NOW', updatedAt })
+      } catch {}
+
       // Clean out __RESET__ for Bytebin/Restful storage while keeping it for /api/cms merge
       const cleanMergedKeys: Record<string, string> = {}
+      const deltaKeys: Record<string, string> = {}
       for (const [k, v] of Object.entries(keys)) {
         if (v !== '__RESET__' && typeof v === 'string' && v.length > 0) {
           cleanMergedKeys[k] = v
+          if (lastKnownCloudKeys[k] !== v) {
+            deltaKeys[k] = v
+          }
+        } else if (v === '__RESET__') {
+          deltaKeys[k] = '__RESET__'
         }
       }
+      const keysToSend = Object.keys(deltaKeys).length > 0 ? deltaKeys : keys
       lastKnownCloudKeys = { ...cleanMergedKeys }
       explicitlyResetKeys.clear()
 
@@ -247,9 +259,10 @@ export async function pushCmsStateToCloud(options?: { isEnquirySubmission?: bool
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           updatedAt,
-          keys,
+          keys: keysToSend,
           isEnquirySubmission: !!options?.isEnquirySubmission,
         }),
+        signal: AbortSignal.timeout(12000),
       }).catch(() => null)
 
       let isSuccess = false
@@ -1026,6 +1039,7 @@ async function fetchCloudCandidates(): Promise<
     try {
       const res = await fetch('/api/cms', {
         headers: { Accept: 'application/json', 'Cache-Control': 'no-cache, no-store' },
+        signal: AbortSignal.timeout(4500),
       })
       const ct = res.headers.get('content-type') || ''
       if (res.ok && ct.includes('application/json')) {
