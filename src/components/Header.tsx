@@ -38,7 +38,12 @@ export const Header: React.FC = () => {
   const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null)
   const [activeMegaCategory, setActiveMegaCategory] = useState<'fdm' | 'dlp' | 'lcd' | 'scanners' | 'filaments'>('fdm')
   const [activeCADCategory, setActiveCADCategory] = useState<'ares' | 'sketchup' | 'chaos'>('ares')
+  const [showAllMegaProducts, setShowAllMegaProducts] = useState(false)
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null)
+
+  useEffect(() => {
+    setShowAllMegaProducts(false)
+  }, [activeMegaCategory, activeMegaMenu])
 
   const [navConfig, setNavConfig] = useState<MasterNavigationConfig>(getStoredNavigationConfig)
 
@@ -543,11 +548,12 @@ export const Header: React.FC = () => {
                                 </Link>
                               </div>
 
-                              <div className="grid grid-cols-2 gap-3">
-                                {currentCat.products.map(prod => (
+                              <div className={`grid grid-cols-2 gap-3 ${showAllMegaProducts ? 'max-h-[340px] overflow-y-auto pr-1' : ''}`}>
+                                {(showAllMegaProducts ? currentCat.products : currentCat.products.slice(0, 6)).map(prod => (
                                   <Link
                                     key={prod.slug}
                                     to={normalizeProductUrl(prod.slug)}
+                                    onClick={() => setActiveMegaMenu(null)}
                                     className="p-2.5 rounded-lg border border-slate-100 hover:border-red-200 hover:bg-red-50/40 transition-all group"
                                   >
                                     <div className="flex items-center justify-between">
@@ -564,6 +570,24 @@ export const Header: React.FC = () => {
                                   </Link>
                                 ))}
                               </div>
+                              {currentCat.products.length > 6 && (
+                                <div className="mt-3 flex items-center justify-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowAllMegaProducts(prev => !prev)}
+                                    className="px-4 py-1.5 rounded-lg bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-600 border border-slate-200 hover:border-red-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                                  >
+                                    <span>
+                                      {showAllMegaProducts
+                                        ? 'Show Less'
+                                        : `View More (+${currentCat.products.length - 6})`}
+                                    </span>
+                                    <ChevronDown
+                                      className={`w-3.5 h-3.5 transition-transform ${showAllMegaProducts ? 'rotate-180' : ''}`}
+                                    />
+                                  </button>
+                                </div>
+                              )}
                             </>
                           )
                         })()}
