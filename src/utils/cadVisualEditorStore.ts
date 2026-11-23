@@ -2191,6 +2191,11 @@ export function applyCadVisualOverridesToRoot(root: HTMLElement, payload: CadVis
         if (target.getAttribute('src') !== normSrc) {
           target.setAttribute('src', normSrc)
         }
+        // Keep any sibling hover magnifier / zoom lens in sync with the uploaded image
+        const siblingLens = target.parentElement?.querySelector<HTMLElement>('[data-cad-zoom-lens]')
+        if (siblingLens) {
+          siblingLens.style.backgroundImage = `url("${normSrc}")`
+        }
         // When a custom image is uploaded, display it cleanly in its full natural proportions without zooming or cropping
         const effectiveFit = (ov.objectFit === 'fill' || ov.objectFit === 'scale-down') ? ov.objectFit : 'contain'
         target.style.objectFit = effectiveFit

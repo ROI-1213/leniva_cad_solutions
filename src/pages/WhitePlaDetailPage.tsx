@@ -198,10 +198,11 @@ export const WhitePlaDetailPage: React.FC<{ customData?: Partial<WhitePlaProduct
 
                 {/* Desktop Magnifier Lens overlay */}
                 <div
+                  data-cad-zoom-lens="true"
                   className="hidden lg:block absolute inset-0 pointer-events-none rounded-2xl border border-slate-300 shadow-2xl transition-opacity duration-200"
                   style={{
                     display: zoomStyle.display,
-                    backgroundImage: `url(${activeImage.src})`,
+                    backgroundImage: `url("${(selectedImageIdx === 0 && mainImageRef.current?.querySelector('img')?.getAttribute('src')) || activeImage.src}")`,
                     backgroundRepeat: 'no-repeat',
                     backgroundSize: '220%',
                     backgroundPosition: zoomStyle.backgroundPosition,

@@ -332,10 +332,11 @@ export const GoldPlaPage: React.FC<GoldPageProps> = ({ customData }) => {
 
                 {/* Magnifier Lens for Desktop */}
                 <div
+                  data-cad-zoom-lens="true"
                   className="hidden lg:block absolute inset-0 pointer-events-none rounded-2xl border border-slate-300 shadow-2xl transition-opacity duration-200"
                   style={{
                     display: zoomStyle.display,
-                    backgroundImage: `url(${currentDisplayImage.src})`,
+                    backgroundImage: `url("${(selectedImageIdx === 0 && mainImageRef.current?.querySelector('img')?.getAttribute('src')) || currentDisplayImage.src}")`,
                     backgroundRepeat: 'no-repeat',
                     backgroundSize: '220%',
                     backgroundPosition: zoomStyle.backgroundPosition,
