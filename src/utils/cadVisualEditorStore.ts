@@ -1284,15 +1284,23 @@ export function syncVisualPayloadToCatalogs(productKey: string, stamped: CadVisu
       .replace(/_/g, '-')
       .toLowerCase()
     const catalogItem = VISUAL_PAGE_CATALOG.find(i => i.key === productKey)
-    const routeSlug = catalogItem?.route.replace(/^\/products\/?/, '').toLowerCase() || cleanSlug
+    const candidateSlugs = new Set<string>([cleanSlug, productKey.toLowerCase()])
+    if (catalogItem) {
+      const allRoutes = [catalogItem.route, ...(catalogItem.routeAliases || [])]
+      for (const r of allRoutes) {
+        const seg = (r || '').split('/').filter(Boolean).pop()?.toLowerCase()
+        if (seg) candidateSlugs.add(seg)
+      }
+    }
 
     const storedCat = JSON.parse(window.localStorage.getItem('leniva_admin_products_catalog') || '[]')
     if (Array.isArray(storedCat) && storedCat.length > 0) {
       let changed = false
       const updatedCat = storedCat.map((item: any) => {
         if (!item) return item
-        const itemSlug = (item.slug || item.id || '').toLowerCase()
-        if (itemSlug === cleanSlug || itemSlug === routeSlug || item.id === productKey) {
+        const itemSlug = (item.slug || '').toLowerCase()
+        const itemId = (item.id || '').toLowerCase()
+        if (candidateSlugs.has(itemSlug) || candidateSlugs.has(itemId)) {
           changed = true
           return {
             ...item,

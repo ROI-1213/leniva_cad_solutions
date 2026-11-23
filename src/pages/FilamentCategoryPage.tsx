@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ChevronRight,
@@ -24,19 +24,61 @@ import { useApp } from '../context/AppContext'
 import WhitePlaDetailPage from './WhitePlaDetailPage'
 import GreySilverPlaPage from './GreySilverPlaPage'
 import GoldPlaPage from './GoldPlaPage'
+import { resolveVisualProductKeyFromCatalogProduct } from '../utils/cadVisualEditorStore'
 
+function getResolvedFilamentImage(product: FilamentProduct): string {
+  if (typeof window === 'undefined') return product.image
+  try {
+    const visualItem = resolveVisualProductKeyFromCatalogProduct(product.slug || product.id)
+    const pubMap = JSON.parse(window.localStorage.getItem('leniva_cad_visual_published_v1') || '{}')
+    const draftMap = JSON.parse(window.localStorage.getItem('leniva_cad_visual_drafts_v1') || '{}')
+    const payload = (visualItem?.key && (pubMap[visualItem.key] || draftMap[visualItem.key])) || null
+    const visualImg =
+      payload?.elementOverrides?.['hero.image']?.src ||
+      payload?.elementOverrides?.['auto:img:0']?.src ||
+      payload?.dataOverrides?.hero?.image
+    if (visualImg) return visualImg
+
+    const catalog = JSON.parse(window.localStorage.getItem('leniva_admin_products_catalog') || '[]')
+    if (Array.isArray(catalog)) {
+      const s = (product.slug || '').toLowerCase()
+      const match = catalog.find((c: any) => {
+        const cs = (c?.slug || c?.id || '').toLowerCase()
+        return cs === s || cs === (product.id || '').toLowerCase() || (s.includes('white') && cs.includes('white')) || (s.includes('gold') && cs.includes('gold')) || ((s.includes('grey') || s.includes('silver')) && (cs.includes('grey') || cs.includes('silver')))
+      })
+      if (match?.hero_image) return match.hero_image
+    }
+  } catch {}
+  return product.image
+}
 
 // ─── FilamentCard Component ──────────────────────────────────────────────────
 const FilamentCard: React.FC<{ product: FilamentProduct }> = ({ product }) => {
   const { toggleWishlist, isInWishlist, openQuoteModal } = useApp()
   const inWishlist = isInWishlist(product.id)
+  const [liveImage, setLiveImage] = useState<string>(() => getResolvedFilamentImage(product))
+
+  useEffect(() => {
+    const refresh = () => setLiveImage(getResolvedFilamentImage(product))
+    refresh()
+    window.addEventListener('leniva_cad_visual_updated', refresh)
+    window.addEventListener('leniva_products_catalog_updated', refresh)
+    window.addEventListener('leniva_cloud_cms_synced', refresh)
+    window.addEventListener('storage', refresh)
+    return () => {
+      window.removeEventListener('leniva_cad_visual_updated', refresh)
+      window.removeEventListener('leniva_products_catalog_updated', refresh)
+      window.removeEventListener('leniva_cloud_cms_synced', refresh)
+      window.removeEventListener('storage', refresh)
+    }
+  }, [product])
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 hover:border-red-300 hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden group">
       {/* Product Image with Color Overlay */}
       <div className="relative aspect-square bg-slate-50 overflow-hidden flex items-center justify-center">
         <img
-          src={product.image}
+          src={liveImage}
           alt={`${product.color} ${product.material} 3D Printer Filament Spool`}
           className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
