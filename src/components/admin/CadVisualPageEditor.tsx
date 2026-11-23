@@ -1715,8 +1715,9 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
 
       const elKey = computeDeterministicCadKey(root, editableTarget)
       const currentText =
-        (dataPath ? getByPath(mergedAresData, dataPath) : undefined) ??
         payload.elementOverrides?.[elKey]?.text ??
+        (dataPath ? getByPath(payload.dataOverrides, dataPath) : undefined) ??
+        (activeProductKey === 'ares_commander' && dataPath ? getByPath(mergedAresData, dataPath) : undefined) ??
         editableTarget.textContent ??
         ''
 
@@ -4240,10 +4241,11 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                           <textarea
                             rows={5}
                             value={
-                              (selectedElement.dataPath
+                              payload.elementOverrides?.[selectedElement.key]?.text ??
+                              (selectedElement.dataPath ? getByPath(payload.dataOverrides, selectedElement.dataPath) : undefined) ??
+                              (activeProductKey === 'ares_commander' && selectedElement.dataPath
                                 ? getByPath(mergedAresData, selectedElement.dataPath)
                                 : undefined) ??
-                              payload.elementOverrides?.[selectedElement.key]?.text ??
                               selectedElement.currentText ??
                               ''
                             }
@@ -4289,7 +4291,10 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                               value={
                                 payload.elementOverrides?.[selectedElement.key]?.buttonLabel ??
                                 (selectedElement.dataPath && !selectedElement.dataPath.toLowerCase().includes('url')
-                                  ? getByPath(mergedAresData, selectedElement.dataPath)
+                                  ? getByPath(payload.dataOverrides, selectedElement.dataPath) ??
+                                    (activeProductKey === 'ares_commander'
+                                      ? getByPath(mergedAresData, selectedElement.dataPath)
+                                      : undefined)
                                   : undefined) ??
                                 selectedElement.currentText ??
                                 ''
@@ -4313,7 +4318,10 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                               value={
                                 payload.elementOverrides?.[selectedElement.key]?.href ??
                                 (selectedElement.dataPath && selectedElement.dataPath.toLowerCase().includes('url')
-                                  ? getByPath(mergedAresData, selectedElement.dataPath)
+                                  ? getByPath(payload.dataOverrides, selectedElement.dataPath) ??
+                                    (activeProductKey === 'ares_commander'
+                                      ? getByPath(mergedAresData, selectedElement.dataPath)
+                                      : undefined)
                                   : undefined) ??
                                 selectedElement.currentHref ??
                                 ''
@@ -4390,10 +4398,13 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                           <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-900 aspect-16/10 relative">
                             <img
                               src={
-                                (selectedElement.dataPath
-                                  ? getByPath(mergedAresData, selectedElement.dataPath)
-                                  : undefined) ||
                                 payload.elementOverrides?.[selectedElement.key]?.src ||
+                                (selectedElement.dataPath
+                                  ? getByPath(payload.dataOverrides, selectedElement.dataPath) ||
+                                    (activeProductKey === 'ares_commander'
+                                      ? getByPath(mergedAresData, selectedElement.dataPath)
+                                      : undefined)
+                                  : undefined) ||
                                 selectedElement.currentSrc
                               }
                               alt={selectedElement.currentAlt || 'Selected Image'}
@@ -4426,10 +4437,13 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                             <input
                               type="text"
                               value={
-                                (selectedElement.dataPath
-                                  ? getByPath(mergedAresData, selectedElement.dataPath)
-                                  : undefined) ||
                                 payload.elementOverrides?.[selectedElement.key]?.src ||
+                                (selectedElement.dataPath
+                                  ? getByPath(payload.dataOverrides, selectedElement.dataPath) ||
+                                    (activeProductKey === 'ares_commander'
+                                      ? getByPath(mergedAresData, selectedElement.dataPath)
+                                      : undefined)
+                                  : undefined) ||
                                 selectedElement.currentSrc ||
                                 ''
                               }
@@ -4904,8 +4918,12 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                   <div className="space-y-3">
                     {activeImageSlotsBase.map(slot => {
                       const currentSrc =
-                        (slot.dataPath ? getByPath(mergedAresData, slot.dataPath) : undefined) ||
                         payload.elementOverrides?.[slot.dataPath || slot.id]?.src ||
+                        payload.elementOverrides?.[slot.id]?.src ||
+                        (slot.dataPath
+                          ? getByPath(payload.dataOverrides, slot.dataPath) ||
+                            (activeProductKey === 'ares_commander' ? getByPath(mergedAresData, slot.dataPath) : undefined)
+                          : undefined) ||
                         slot.defaultSrc
                       const currentAlt =
                         payload.elementOverrides?.[slot.dataPath || slot.id]?.alt ?? slot.defaultAlt
