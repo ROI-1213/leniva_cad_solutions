@@ -16,6 +16,7 @@ import {
   ekaF116kData,
   lcdCategoryData,
 } from '../data/industrialLcdData'
+import { getLiveVisualHeroImage } from '../utils/cadVisualEditorStore'
 
 export const IndustrialLcdCategoryPage: React.FC = () => {
   const { openQuoteModal } = useApp()
@@ -116,7 +117,7 @@ export const IndustrialLcdCategoryPage: React.FC = () => {
 
               <div className="aspect-16/10 rounded-2xl bg-slate-50 bg-gradient-to-b from-blue-50/40 to-slate-100/60 p-6 flex items-center justify-center overflow-hidden border border-slate-200/80">
                 <img
-                  src={ekaGtMaxData.heroImage}
+                  src={getLiveVisualHeroImage('eka_gt_max', ekaGtMaxData.heroImage)}
                   alt={ekaGtMaxData.name}
                   className="h-56 object-contain group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
@@ -194,7 +195,7 @@ export const IndustrialLcdCategoryPage: React.FC = () => {
 
               <div className="aspect-16/10 rounded-2xl bg-slate-50 bg-gradient-to-b from-amber-50/40 to-slate-100/60 p-6 flex items-center justify-center overflow-hidden border border-slate-200/80">
                 <img
-                  src={ekaF116kData.heroImage}
+                  src={getLiveVisualHeroImage('eka_f1_16k', ekaF116kData.heroImage)}
                   alt={ekaF116kData.name}
                   className="h-56 object-contain group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"

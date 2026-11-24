@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { ekaHtData, ekaXlData, ekaXleData } from '../data/ekaProductsData'
+import { getLiveVisualHeroImage } from '../utils/cadVisualEditorStore'
 
 export const DlpCategoryPage: React.FC = () => {
   const { openQuoteModal } = useApp()
@@ -118,7 +119,7 @@ export const DlpCategoryPage: React.FC = () => {
 
               <div className="aspect-square rounded-2xl bg-amber-50/50 p-6 flex items-center justify-center overflow-hidden border border-amber-100">
                 <img
-                  src={ekaHtData.heroImage}
+                  src={getLiveVisualHeroImage('eka_ht', ekaHtData.heroImage)}
                   alt={ekaHtData.name}
                   className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
@@ -171,7 +172,7 @@ export const DlpCategoryPage: React.FC = () => {
 
               <div className="aspect-square rounded-2xl bg-amber-50/50 p-6 flex items-center justify-center overflow-hidden border border-amber-100">
                 <img
-                  src={ekaXlData.heroImage}
+                  src={getLiveVisualHeroImage('eka_xl', ekaXlData.heroImage)}
                   alt={ekaXlData.name}
                   className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
@@ -224,7 +225,7 @@ export const DlpCategoryPage: React.FC = () => {
 
               <div className="aspect-square rounded-2xl bg-blue-50/50 p-6 flex items-center justify-center overflow-hidden border border-blue-100">
                 <img
-                  src={ekaXleData.heroImage}
+                  src={getLiveVisualHeroImage('eka_xle', ekaXleData.heroImage)}
                   alt={ekaXleData.name}
                   className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"

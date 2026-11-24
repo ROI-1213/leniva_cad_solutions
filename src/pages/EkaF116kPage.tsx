@@ -358,6 +358,7 @@ export const EkaF116kPage: React.FC = () => {
                 </div>
 
                 <img
+                  data-cad-path="hero.image"
                   src={ekaF116kData.heroImage}
                   alt={ekaF116kData.name}
                   className="max-h-[380px] w-auto object-contain transition-transform duration-500 group-hover:scale-105 drop-shadow-2xl"

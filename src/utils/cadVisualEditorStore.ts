@@ -1080,6 +1080,22 @@ function writeJsonMap<T>(storageKey: string, map: Record<string, T>): boolean {
   }
 }
 
+export function getLiveVisualHeroImage(productKey: string, fallbackSrc: string): string {
+  if (typeof window === 'undefined') return fallbackSrc
+  try {
+    const pub = getPublishedVisualPayload(productKey)
+    const draft = getDraftVisualPayload(productKey)
+    const payload = draft || pub
+    const img =
+      payload?.elementOverrides?.['hero.image']?.src ||
+      payload?.elementOverrides?.['auto:img:0']?.src ||
+      payload?.dataOverrides?.hero?.image ||
+      payload?.dataOverrides?.hero?.heroImage
+    if (img) return img
+  } catch {}
+  return fallbackSrc
+}
+
 export function getPublishedVisualPayload(productKey: string): CadVisualPagePayload | null {
   const all = readJsonMap<CadVisualPagePayload>(CAD_VISUAL_PUBLISHED_KEY)
   const found = all[productKey]

@@ -341,6 +341,7 @@ export const EkaGtMaxPage: React.FC = () => {
                 </div>
 
                 <img
+                  data-cad-path="hero.image"
                   src={ekaGtMaxData.heroImage}
                   alt={ekaGtMaxData.name}
                   className="max-h-[380px] w-auto object-contain transition-transform duration-500 group-hover:scale-105 drop-shadow-2xl"

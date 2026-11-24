@@ -243,6 +243,7 @@ export const EkaHtPage: React.FC = () => {
               {/* Product Machine Render */}
               <div className="relative z-10 w-full max-w-[380px] aspect-square flex items-center justify-center transition-transform duration-700 hover:scale-[1.03]">
                 <img
+                  data-cad-path="hero.image"
                   src={ekaHtData.heroImage}
                   alt="EKA HT Jewelry DLP 3D Printer"
                   className="w-full h-full object-contain drop-shadow-[0_25px_35px_rgba(217,119,6,0.15)]"
