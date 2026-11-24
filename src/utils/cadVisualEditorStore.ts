@@ -1296,7 +1296,7 @@ export function syncVisualPayloadToCatalogs(productKey: string, stamped: CadVisu
   // 3. Sync into leniva_admin_products_catalog so /products & category pages show the uploaded image, brochure, and edited text
   try {
     const cleanSlug = productKey
-      .replace(/^(printer_|cad_|scanner_)/, '')
+      .replace(/^(printer_|cad_|scanner_|filament_)/, '')
       .replace(/_/g, '-')
       .toLowerCase()
     const catalogItem = VISUAL_PAGE_CATALOG.find(i => i.key === productKey)
@@ -1330,7 +1330,14 @@ export function syncVisualPayloadToCatalogs(productKey: string, stamped: CadVisu
         return item
       })
       if (changed) {
-        window.localStorage.setItem('leniva_admin_products_catalog', JSON.stringify(updatedCat))
+        const serializedCat = JSON.stringify(updatedCat)
+        try {
+          window.localStorage.setItem('leniva_admin_products_catalog', serializedCat)
+        } catch {
+          window.localStorage.removeItem(CAD_VISUAL_REVISIONS_KEY)
+          window.localStorage.removeItem(CAD_VISUAL_DRAFT_KEY)
+          window.localStorage.setItem('leniva_admin_products_catalog', serializedCat)
+        }
       }
     }
   } catch {}
@@ -1616,11 +1623,11 @@ export async function uploadAssetToPersistentStorage(
     finalAssetUrl = `data:${resolvedMime};base64,${finalAssetUrl}`
   }
 
-  // Keep small images (<= 220 KB) 100% raw & untouched.
-  // For larger images (> 220 KB), encode crisply (up to 1600px, high-quality WebP/JPEG) so they stay razor-sharp
+  // Keep small images (<= 110 KB) 100% raw & untouched.
+  // For larger images (> 110 KB), encode crisply (up to 1000px, high-quality WebP/JPEG) so they stay sharp
   // while never overflowing browser localStorage (5 MB total quota) or Cloud Gist payload limits.
-  const MAX_RAW_SIZE_BYTES = 220 * 1024
-  const TARGET_MAX_DATA_URL_LEN = 360 * 1024 // ~270 KB binary
+  const MAX_RAW_SIZE_BYTES = 110 * 1024
+  const TARGET_MAX_DATA_URL_LEN = 120 * 1024 // ~90 KB binary
   if (kind === 'image' && resolvedMime !== 'image/svg+xml' && (file.size > MAX_RAW_SIZE_BYTES || finalAssetUrl.length > TARGET_MAX_DATA_URL_LEN)) {
     try {
       const img = new Image()
@@ -1631,7 +1638,7 @@ export async function uploadAssetToPersistentStorage(
       })
       await loadPromise
 
-      const maxDim = 1600
+      const maxDim = 1000
       let { width, height } = img
       if (width > maxDim || height > maxDim) {
         if (width > height) {

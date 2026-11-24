@@ -1,5 +1,28 @@
+import fs from 'fs'
+import os from 'os'
+import path from 'path'
 import pg from 'pg'
 const { Pool } = pg
+
+const LOCAL_CACHE_FILE = path.join(os.tmpdir(), 'leniva_cms_local_cache.json')
+
+function readLocalCache() {
+  if (process.env.VERCEL) return null
+  try {
+    if (fs.existsSync(LOCAL_CACHE_FILE)) {
+      const parsed = JSON.parse(fs.readFileSync(LOCAL_CACHE_FILE, 'utf8'))
+      if (parsed && typeof parsed.updatedAt === 'number') return parsed
+    }
+  } catch {}
+  return null
+}
+
+function writeLocalCache(state) {
+  if (process.env.VERCEL) return
+  try {
+    fs.writeFileSync(LOCAL_CACHE_FILE, JSON.stringify(state), 'utf8')
+  } catch {}
+}
 
 const GIST_ID = '5b4168cd6d9b9418ecb0e29f0f7b0282'
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || ['ghp', 'q7ImIkHHK0hUvVEAsjVGJ0l1oVTO8K1jkiLQ'].join('_')
@@ -193,9 +216,14 @@ export default async function handler(req, res) {
 
       // 2. Fallback cache/Gist
       if (!memoryCache || Date.now() - lastFetchTime > 2000) {
-        await fetchFromGist()
+        const gistData = await fetchFromGist()
+        const localData = readLocalCache()
+        if (localData && (!gistData || (localData.updatedAt || 0) > (gistData.updatedAt || 0))) {
+          memoryCache = localData
+          lastFetchTime = Date.now()
+        }
       }
-      const state = memoryCache || { updatedAt: 0, keys: {} }
+      const state = memoryCache || readLocalCache() || { updatedAt: 0, keys: {} }
       return res.status(200).json({
         success: true,
         updatedAt: state.updatedAt || 0,
@@ -295,6 +323,7 @@ export default async function handler(req, res) {
         pgDisabledUntil = Date.now() + 120000
       }
 
+      writeLocalCache(newState)
       const gistSaved = await saveToGist(newState)
 
       return res.status(200).json({

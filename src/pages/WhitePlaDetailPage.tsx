@@ -34,6 +34,25 @@ import {
 } from 'lucide-react'
 import { initialWhitePlaData, WhitePlaProductData } from '../data/whitePlaProductData'
 import { useApp } from '../context/AppContext'
+import { getLiveVisualHeroImage } from '../utils/cadVisualEditorStore'
+import { getStoredProductsCatalog } from '../utils/productCatalog'
+
+function resolveWhitePlaHeroImage(fallback: string): string {
+  const visualHero = getLiveVisualHeroImage('filament_white_pla', '')
+  if (visualHero) return visualHero
+  try {
+    const cat = getStoredProductsCatalog()
+    const match = cat.find(
+      c =>
+        c.slug === 'pla-white-1kg-175mm' ||
+        c.slug === 'pla-3d-printer-filament-white' ||
+        c.id === 'filament-pla-white'
+    )
+    if (match?.hero_image) return match.hero_image
+    if (match?.images?.[0]) return match.images[0]
+  } catch {}
+  return fallback
+}
 
 export const WhitePlaDetailPage: React.FC<{ customData?: Partial<WhitePlaProductData> }> = ({
   customData,
@@ -46,6 +65,26 @@ export const WhitePlaDetailPage: React.FC<{ customData?: Partial<WhitePlaProduct
 
   const { toggleWishlist, isInWishlist, openQuoteModal } = useApp()
   const inWishlist = isInWishlist(product.id)
+
+  const [liveHeroImg, setLiveHeroImg] = useState<string>(() =>
+    resolveWhitePlaHeroImage(product.images[0]?.src || '')
+  )
+
+  useEffect(() => {
+    const refresh = () => {
+      setLiveHeroImg(resolveWhitePlaHeroImage(product.images[0]?.src || ''))
+    }
+    refresh()
+    const events = [
+      'cad_visual_overrides_updated',
+      'leniva_cad_visual_updated',
+      'leniva_cad_visual_draft_updated',
+      'leniva_products_catalog_updated',
+      'storage',
+    ]
+    events.forEach(ev => window.addEventListener(ev, refresh))
+    return () => events.forEach(ev => window.removeEventListener(ev, refresh))
+  }, [product.images])
 
   // Interactive States
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
@@ -143,7 +182,11 @@ export const WhitePlaDetailPage: React.FC<{ customData?: Partial<WhitePlaProduct
     }
   }
 
-  const activeImage = product.images[selectedImageIndex] || product.images[0]
+  const baseActiveImage = product.images[selectedImageIndex] || product.images[0]
+  const activeImage =
+    selectedImageIndex === 0 && liveHeroImg
+      ? { ...baseActiveImage, src: liveHeroImg }
+      : baseActiveImage
 
   return (
     <div className="bg-slate-50 min-h-screen font-sans text-slate-800 antialiased pb-20 md:pb-16 selection:bg-red-500 selection:text-white">

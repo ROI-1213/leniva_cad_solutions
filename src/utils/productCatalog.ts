@@ -681,14 +681,26 @@ export const getStoredProductsCatalog = (): ProductItem[] => {
 }
 
 export const saveStoredProductsCatalog = (items: ProductItem[]) => {
+  const serialized = JSON.stringify(items)
   try {
     localStorage.setItem(STORAGE_KEY_CATALOG_VERSION, 'v3')
-    localStorage.setItem(STORAGE_KEY_PRODUCTS_CATALOG, JSON.stringify(items))
+    localStorage.setItem(STORAGE_KEY_PRODUCTS_CATALOG, serialized)
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('leniva_products_catalog_updated'))
     }
   } catch (err) {
-    console.error('Failed to save products catalog to localStorage', err)
+    console.warn('Quota pressure saving products catalog, pruning drafts/revisions and retrying...', err)
+    try {
+      localStorage.removeItem('leniva_cad_visual_revisions_v1')
+      localStorage.removeItem('leniva_cad_visual_drafts_v1')
+      localStorage.setItem(STORAGE_KEY_CATALOG_VERSION, 'v3')
+      localStorage.setItem(STORAGE_KEY_PRODUCTS_CATALOG, serialized)
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('leniva_products_catalog_updated'))
+      }
+    } catch (retryErr) {
+      console.error('Failed to save products catalog to localStorage even after pruning', retryErr)
+    }
   }
 }
 

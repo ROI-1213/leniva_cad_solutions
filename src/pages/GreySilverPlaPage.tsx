@@ -33,6 +33,25 @@ import {
 } from 'lucide-react'
 import { initialGreySilverData, GreySilverProductData, FilamentVariant } from '../data/greySilverPlaData'
 import { useApp } from '../context/AppContext'
+import { getLiveVisualHeroImage } from '../utils/cadVisualEditorStore'
+import { getStoredProductsCatalog } from '../utils/productCatalog'
+
+function resolveGreySilverHeroImage(fallback: string): string {
+  const visualHero = getLiveVisualHeroImage('filament_grey_silver_pla', '')
+  if (visualHero) return visualHero
+  try {
+    const cat = getStoredProductsCatalog()
+    const match = cat.find(
+      c =>
+        c.slug === 'plaplus-grey-silver-1kg-175mm' ||
+        c.slug === 'pla-plus-3d-printer-filament-grey-silver' ||
+        c.id === 'filament-plaplus-grey'
+    )
+    if (match?.hero_image) return match.hero_image
+    if (match?.images?.[0]) return match.images[0]
+  } catch {}
+  return fallback
+}
 
 interface GreySilverPageProps {
   customData?: Partial<GreySilverProductData>
@@ -288,7 +307,31 @@ export const GreySilverPlaPage: React.FC<GreySilverPageProps> = ({ customData })
     }
   }
 
-  const currentDisplayImage = productData.images[activeImageIndex] || productData.images[0]
+  const [liveHeroImg, setLiveHeroImg] = useState<string>(() =>
+    resolveGreySilverHeroImage(productData.images[0]?.src || '')
+  )
+
+  useEffect(() => {
+    const refresh = () => {
+      setLiveHeroImg(resolveGreySilverHeroImage(productData.images[0]?.src || ''))
+    }
+    refresh()
+    const events = [
+      'cad_visual_overrides_updated',
+      'leniva_cad_visual_updated',
+      'leniva_cad_visual_draft_updated',
+      'leniva_products_catalog_updated',
+      'storage',
+    ]
+    events.forEach(ev => window.addEventListener(ev, refresh))
+    return () => events.forEach(ev => window.removeEventListener(ev, refresh))
+  }, [productData.images])
+
+  const baseDisplayImage = productData.images[activeImageIndex] || productData.images[0]
+  const currentDisplayImage =
+    activeImageIndex === 0 && liveHeroImg
+      ? { ...baseDisplayImage, src: liveHeroImg }
+      : baseDisplayImage
 
   return (
     <div className="bg-slate-50 min-h-screen text-slate-800 antialiased selection:bg-red-500 selection:text-white pb-20 md:pb-16">

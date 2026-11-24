@@ -186,6 +186,26 @@ const FilamentCard: React.FC<{ product: FilamentProduct }> = ({ product }) => {
 export const FilamentDetailPage: React.FC<{ forcedSlug?: string }> = ({ forcedSlug }) => {
   const pathParts = window.location.pathname.split('/').filter(Boolean)
   const slug = forcedSlug || pathParts[pathParts.length - 1]
+  const product = filamentProducts.find(p => p.slug === slug)
+  const { openQuoteModal } = useApp()
+  const [liveDetailImage, setLiveDetailImage] = useState<string>(() =>
+    product ? getResolvedFilamentImage(product) : ''
+  )
+
+  useEffect(() => {
+    if (!product) return
+    const refresh = () => setLiveDetailImage(getResolvedFilamentImage(product))
+    refresh()
+    const events = [
+      'cad_visual_overrides_updated',
+      'leniva_cad_visual_updated',
+      'leniva_cad_visual_draft_updated',
+      'leniva_products_catalog_updated',
+      'storage',
+    ]
+    events.forEach(ev => window.addEventListener(ev, refresh))
+    return () => events.forEach(ev => window.removeEventListener(ev, refresh))
+  }, [product])
 
   if (slug === 'pla-white-1kg-175mm' || slug === 'pla-3d-printer-filament-white' || slug === 'pla-white') {
     return <WhitePlaDetailPage />
@@ -209,8 +229,6 @@ export const FilamentDetailPage: React.FC<{ forcedSlug?: string }> = ({ forcedSl
     return <GoldPlaPage />
   }
 
-  const product = filamentProducts.find(p => p.slug === slug)
-
   if (!product) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -223,9 +241,6 @@ export const FilamentDetailPage: React.FC<{ forcedSlug?: string }> = ({ forcedSl
       </div>
     )
   }
-
-  const { openQuoteModal } = useApp()
-  // const discount calculated if needed
 
   return (
     <div className="bg-slate-50 min-h-screen py-10">
@@ -248,7 +263,7 @@ export const FilamentDetailPage: React.FC<{ forcedSlug?: string }> = ({ forcedSl
             <div className="relative bg-slate-50 flex items-center justify-center p-10 min-h-80">
               <img
                 data-cad-path="hero.image"
-                src={product.image}
+                src={liveDetailImage}
                 alt={product.name}
                 className="w-full max-w-xs mx-auto object-contain"
               />
