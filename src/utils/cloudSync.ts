@@ -262,7 +262,7 @@ export async function pushCmsStateToCloud(options?: { isEnquirySubmission?: bool
           keys: keysToSend,
           isEnquirySubmission: !!options?.isEnquirySubmission,
         }),
-        signal: AbortSignal.timeout(12000),
+        signal: AbortSignal.timeout(25000),
       }).catch(() => null)
 
       let isSuccess = false
@@ -1020,9 +1020,14 @@ export async function recordCustomerEnquiry(payload: {
   return res.success
 }
 
+let lastCloudCheckTs = 0
+let lastConfirmedServerUpdatedAt = 0
+let activePullPromise: Promise<boolean> | null = null
+
 async function fetchCloudCandidates(): Promise<
   Array<{
     updatedAt: number
+    unchanged?: boolean
     bytebinKey?: string | null
     keys?: Record<string, string | null>
     inlineKeys?: Record<string, string | null>
@@ -1030,90 +1035,106 @@ async function fetchCloudCandidates(): Promise<
 > {
   const candidates: Array<{
     updatedAt: number
+    unchanged?: boolean
     bytebinKey?: string | null
     keys?: Record<string, string | null>
     inlineKeys?: Record<string, string | null>
   }> = []
 
-  const fetchApiCms = async () => {
-    try {
-      const res = await fetch('/api/cms', {
-        headers: { Accept: 'application/json', 'Cache-Control': 'no-cache, no-store' },
-        signal: AbortSignal.timeout(4500),
-      })
-      const ct = res.headers.get('content-type') || ''
-      if (res.ok && ct.includes('application/json')) {
-        const json = await res.json()
-        if (json && typeof json.updatedAt === 'number' && json.keys) {
-          candidates.push(json)
-        }
+  const sinceQuery = lastConfirmedServerUpdatedAt > 0 ? `?since=${lastConfirmedServerUpdatedAt}` : ''
+  try {
+    const res = await fetch(`/api/cms${sinceQuery}`, {
+      headers: { Accept: 'application/json', 'Cache-Control': 'no-cache, no-store' },
+      signal: AbortSignal.timeout(6000),
+    })
+    const ct = res.headers.get('content-type') || ''
+    if (res.ok && ct.includes('application/json')) {
+      const json = await res.json()
+      if (json && json.unchanged) {
+        return [{ updatedAt: json.updatedAt || lastConfirmedServerUpdatedAt, unchanged: true }]
       }
-    } catch {
-      // ignore
+      if (json && typeof json.updatedAt === 'number' && json.keys && Object.keys(json.keys).length > 0) {
+        lastConfirmedServerUpdatedAt = json.updatedAt
+        candidates.push(json)
+        return candidates
+      }
     }
+  } catch {
+    // fallback to Gist only if /api/cms failed
   }
 
-  const fetchGithubApi = async () => {
-    try {
-      const directToken = ['ghp', 'q7ImIkHHK0hUvVEAsjVGJ0l1oVTO8K1jkiLQ'].join('_')
-      const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-        headers: {
-          Authorization: `Bearer ${directToken}`,
-          'User-Agent': 'Leniva-CAD-CMS',
-          Accept: 'application/vnd.github.v3+json',
-        },
-      })
-      if (res.ok) {
-        const gist = await res.json()
-        const fileObj = gist.files?.['leniva_cms_data.json']
-        let content = fileObj?.content
-        if (fileObj?.truncated && fileObj?.raw_url) {
-          try {
-            const rawRes = await fetch(fileObj.raw_url)
-            if (rawRes.ok) content = await rawRes.text()
-          } catch {}
-        }
-        if (content) {
-          try {
-            const json = JSON.parse(content)
-            if (json && typeof json.updatedAt === 'number' && json.keys) {
-              candidates.push(json)
-            }
-          } catch {}
-        }
+  try {
+    const res = await fetch(`${GIST_RAW_URL}?t=${Date.now()}`, {
+      signal: AbortSignal.timeout(6000),
+    })
+    if (res.ok) {
+      const json = await res.json()
+      if (json && typeof json.updatedAt === 'number' && json.keys) {
+        candidates.push(json)
+        return candidates
       }
-    } catch {
-      // ignore
     }
+  } catch {
+    // ignore
   }
 
-  const fetchGistRaw = async () => {
-    try {
-      const res = await fetch(`${GIST_RAW_URL}?t=${Date.now()}`)
-      if (res.ok) {
-        const json = await res.json()
-        if (json && typeof json.updatedAt === 'number' && json.keys) {
-          candidates.push(json)
-        }
+  try {
+    const directToken = ['ghp', 'q7ImIkHHK0hUvVEAsjVGJ0l1oVTO8K1jkiLQ'].join('_')
+    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+      headers: {
+        Authorization: `Bearer ${directToken}`,
+        'User-Agent': 'Leniva-CAD-CMS',
+        Accept: 'application/vnd.github.v3+json',
+      },
+      signal: AbortSignal.timeout(6000),
+    })
+    if (res.ok) {
+      const gist = await res.json()
+      const fileObj = gist.files?.['leniva_cms_data.json']
+      let content = fileObj?.content
+      if (fileObj?.truncated && fileObj?.raw_url) {
+        try {
+          const rawRes = await fetch(fileObj.raw_url)
+          if (rawRes.ok) content = await rawRes.text()
+        } catch {}
       }
-    } catch {
-      // ignore
+      if (content) {
+        try {
+          const json = JSON.parse(content)
+          if (json && typeof json.updatedAt === 'number' && json.keys) {
+            candidates.push(json)
+          }
+        } catch {}
+      }
     }
+  } catch {
+    // ignore
   }
 
-  await Promise.allSettled([fetchApiCms(), fetchGithubApi(), fetchGistRaw()])
   return candidates
 }
 
 export async function pullCmsStateFromCloud(forceApply = false): Promise<boolean> {
   if (typeof window === 'undefined') return false
-  if (activePushPromise) {
-    await activePushPromise.catch(() => false)
-  }
+  if (activePullPromise) return activePullPromise
 
-  try {
-    const candidates = await fetchCloudCandidates()
-    const validCandidates = candidates.filter(c => c && typeof c.updatedAt === 'number' && c.updatedAt > 0)
+  const now = Date.now()
+  if (!forceApply && now - lastCloudCheckTs < 8000) {
+    return false
+  }
+  lastCloudCheckTs = now
+
+  const runPull = async (): Promise<boolean> => {
+    if (activePushPromise) {
+      await activePushPromise.catch(() => false)
+    }
+
+    try {
+      const candidates = await fetchCloudCandidates()
+      if (candidates.length === 1 && candidates[0].unchanged) {
+        return false
+      }
+      const validCandidates = candidates.filter(c => c && typeof c.updatedAt === 'number' && c.updatedAt > 0)
 
     if (validCandidates.length === 0) {
       // Cloud has not been seeded yet — if this browser has real admin customizations, seed the cloud!
@@ -1256,6 +1277,12 @@ export async function pullCmsStateFromCloud(forceApply = false): Promise<boolean
     console.warn('Cloud CMS pull warning:', err)
     return false
   }
+  }
+
+  activePullPromise = runPull().finally(() => {
+    activePullPromise = null
+  })
+  return activePullPromise
 }
 
 let isInitialized = false
@@ -1500,5 +1527,5 @@ export async function initCloudCmsSync(options?: { timeoutMs?: number }): Promis
     if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
       pullCmsStateFromCloud().catch(() => false)
     }
-  }, 4000)
+  }, 30000)
 }

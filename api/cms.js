@@ -126,6 +126,7 @@ async function fetchFromGist() {
 
 let gistWriteChain = Promise.resolve(true)
 let lastGistPatchTime = 0
+let gistBlockedUntil = 0
 
 async function saveToGist(state) {
   memoryCache = state
@@ -133,7 +134,10 @@ async function saveToGist(state) {
 
   // Serialize Gist PATCH calls to prevent 409 concurrent update conflicts and 403 rate limits
   const runPatch = async () => {
-    const waitMs = Math.max(0, 1500 - (Date.now() - lastGistPatchTime))
+    if (Date.now() < gistBlockedUntil) {
+      return false
+    }
+    const waitMs = Math.max(0, 3000 - (Date.now() - lastGistPatchTime))
     if (waitMs > 0) {
       await new Promise(r => setTimeout(r, waitMs))
     }
@@ -157,14 +161,19 @@ async function saveToGist(state) {
             },
           },
         }),
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(25000),
       })
 
       if (!res.ok) {
         const errText = await res.text()
+        if (res.status === 403 || res.status === 429) {
+          const retryAfter = Number(res.headers.get('retry-after') || '0')
+          gistBlockedUntil = Date.now() + Math.max(60000, retryAfter * 1000)
+        }
         console.warn('GitHub Gist PATCH notice:', res.status, errText.slice(0, 180))
         return false
       }
+      gistBlockedUntil = 0
       return true
     } catch (err) {
       console.warn('saveToGist network notice:', err?.message || err)
@@ -214,8 +223,9 @@ export default async function handler(req, res) {
         }
       }
 
-      // 2. Fallback cache/Gist
-      if (!memoryCache || Date.now() - lastFetchTime > 2000) {
+      // 2. Fallback cache/Gist (15s memory cache TTL; supports ?since= for 50-byte unchanged responses)
+      const sinceParam = Number((req.query && req.query.since) || new URL(req.url || '/', 'http://localhost').searchParams.get('since') || '0')
+      if (!memoryCache || Date.now() - lastFetchTime > 15000) {
         const gistData = await fetchFromGist()
         const localData = readLocalCache()
         if (localData && (!gistData || (localData.updatedAt || 0) > (gistData.updatedAt || 0))) {
@@ -224,6 +234,13 @@ export default async function handler(req, res) {
         }
       }
       const state = memoryCache || readLocalCache() || { updatedAt: 0, keys: {} }
+      if (sinceParam > 0 && (state.updatedAt || 0) > 0 && state.updatedAt <= sinceParam) {
+        return res.status(200).json({
+          success: true,
+          unchanged: true,
+          updatedAt: state.updatedAt,
+        })
+      }
       return res.status(200).json({
         success: true,
         updatedAt: state.updatedAt || 0,
