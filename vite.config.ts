@@ -124,10 +124,20 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-            'framer-motion': ['framer-motion'],
-            'icons': ['lucide-react'],
+          manualChunks(id) {
+            if (
+              id.includes('node_modules/react/') ||
+              id.includes('node_modules/react-dom/') ||
+              id.includes('node_modules/react-router')
+            ) {
+              return 'react-vendor'
+            }
+            if (id.includes('node_modules/framer-motion/')) {
+              return 'framer-motion'
+            }
+            if (id.includes('node_modules/lucide-react/')) {
+              return 'icons'
+            }
           },
         },
       },
