@@ -273,17 +273,48 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
   initialProductKey,
   onExitToDashboard,
 }) => {
+  const storageStateKey = `leniva_visual_editor_state_${initialCategory}`
+  const savedEditorState = useMemo(() => {
+    try {
+      const raw =
+        (typeof window !== 'undefined' &&
+          (window.sessionStorage.getItem(storageStateKey) ||
+            window.localStorage.getItem(storageStateKey))) ||
+        ''
+      return raw ? JSON.parse(raw) : null
+    } catch {
+      return null
+    }
+  }, [storageStateKey])
+
   const resolvedStartKey = useMemo(() => {
     if (initialProductKey) return initialProductKey
+    if (savedEditorState?.activeProductKey) return savedEditorState.activeProductKey as string
     if (initialCategory === 'printers') return 'pratham_mini'
     if (initialCategory === 'scanners') return 'devok_mt'
     return 'ares_commander'
-  }, [initialCategory, initialProductKey])
+  }, [initialCategory, initialProductKey, savedEditorState])
 
   // Open directly in full-page visual editor mode so it displays the complete live page immediately
-  const [viewMode, setViewMode] = useState<'list' | 'editor'>('editor')
-  const [categoryFilter, setCategoryFilter] = useState<VisualEditorCategory>(initialCategory)
+  const [viewMode, setViewMode] = useState<'list' | 'editor'>(
+    savedEditorState?.viewMode === 'list' ? 'list' : 'editor'
+  )
+  const [categoryFilter, setCategoryFilter] = useState<VisualEditorCategory>(
+    savedEditorState?.categoryFilter || initialCategory
+  )
   const [activeProductKey, setActiveProductKey] = useState<string>(resolvedStartKey)
+
+  useEffect(() => {
+    try {
+      const serialized = JSON.stringify({
+        activeProductKey,
+        categoryFilter,
+        viewMode,
+      })
+      window.sessionStorage.setItem(storageStateKey, serialized)
+      window.localStorage.setItem(storageStateKey, serialized)
+    } catch {}
+  }, [storageStateKey, activeProductKey, categoryFilter, viewMode])
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [showAuditModal, setShowAuditModal] = useState<boolean>(false)
   const [showSectionVisibilityModal, setShowSectionVisibilityModal] = useState<boolean>(false)

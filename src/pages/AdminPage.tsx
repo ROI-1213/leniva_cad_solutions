@@ -256,7 +256,41 @@ export default function AdminPage() {
     | 'printers_visual_edit'
     | 'scanners_visual_edit'
 
-  const [activeTab, setActiveTab] = useState<AdminTab>('enquiries')
+  const [activeTab, setActiveTab] = useState<AdminTab>(() => {
+    try {
+      const saved =
+        (typeof window !== 'undefined' &&
+          (window.sessionStorage.getItem('leniva_admin_active_tab') ||
+            window.localStorage.getItem('leniva_admin_active_tab'))) ||
+        ''
+      const allowedTabs: AdminTab[] = [
+        'dashboard',
+        'enquiries',
+        'quotes',
+        'contacts',
+        'products',
+        'cad_software',
+        'cad_visual_edit',
+        'printers_visual_edit',
+        'scanners_visual_edit',
+        'blogs',
+        'home_editor',
+        'about_editor',
+        'shop_and_dropdown',
+        'settings',
+        'users',
+      ]
+      if (allowedTabs.includes(saved as AdminTab)) return saved as AdminTab
+    } catch {}
+    return 'enquiries'
+  })
+
+  useEffect(() => {
+    try {
+      window.sessionStorage.setItem('leniva_admin_active_tab', activeTab)
+      window.localStorage.setItem('leniva_admin_active_tab', activeTab)
+    } catch {}
+  }, [activeTab])
   const [isEnquiryFullPage, setIsEnquiryFullPage] = useState(true)
   const [visualEditorTarget, setVisualEditorTarget] = useState<{
     category: VisualEditorCategory
