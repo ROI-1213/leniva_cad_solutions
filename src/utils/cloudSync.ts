@@ -180,7 +180,7 @@ function scheduleCloudPush() {
     pushCmsStateToCloud().catch(err => {
       console.warn('Background cloud CMS push warning:', err)
     })
-  }, 150)
+  }, 1200)
 }
 
 export function collectLocalCmsSnapshot(): {

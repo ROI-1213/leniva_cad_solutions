@@ -101,39 +101,56 @@ async function fetchFromGist() {
   return memoryCache || { updatedAt: 0, keys: {} }
 }
 
+let gistWriteChain = Promise.resolve(true)
+let lastGistPatchTime = 0
+
 async function saveToGist(state) {
   memoryCache = state
   lastFetchTime = Date.now()
 
-  try {
-    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${GITHUB_TOKEN}`,
-        'User-Agent': 'Leniva-CAD-CMS',
-        'Content-Type': 'application/json',
-        Accept: 'application/vnd.github.v3+json',
-      },
-      body: JSON.stringify({
-        description: 'Leniva CAD Solutions - Global CMS Database (Live Sync)',
-        files: {
-          'leniva_cms_data.json': {
-            content: JSON.stringify(state),
-          },
+  // Serialize Gist PATCH calls to prevent 409 concurrent update conflicts and 403 rate limits
+  const runPatch = async () => {
+    const waitMs = Math.max(0, 1500 - (Date.now() - lastGistPatchTime))
+    if (waitMs > 0) {
+      await new Promise(r => setTimeout(r, waitMs))
+    }
+    // Always write the latest memoryCache state
+    const latestState = memoryCache || state
+    lastGistPatchTime = Date.now()
+    try {
+      const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${GITHUB_TOKEN}`,
+          'User-Agent': 'Leniva-CAD-CMS',
+          'Content-Type': 'application/json',
+          Accept: 'application/vnd.github.v3+json',
         },
-      }),
-    })
+        body: JSON.stringify({
+          description: 'Leniva CAD Solutions - Global CMS Database (Live Sync)',
+          files: {
+            'leniva_cms_data.json': {
+              content: JSON.stringify(latestState),
+            },
+          },
+        }),
+        signal: AbortSignal.timeout(10000),
+      })
 
-    if (!res.ok) {
-      const errText = await res.text()
-      console.error('GitHub Gist PATCH error:', res.status, errText)
+      if (!res.ok) {
+        const errText = await res.text()
+        console.warn('GitHub Gist PATCH notice:', res.status, errText.slice(0, 180))
+        return false
+      }
+      return true
+    } catch (err) {
+      console.warn('saveToGist network notice:', err?.message || err)
       return false
     }
-    return true
-  } catch (err) {
-    console.error('saveToGist network error:', err)
-    return false
   }
+
+  gistWriteChain = gistWriteChain.then(runPatch, runPatch)
+  return gistWriteChain
 }
 
 export default async function handler(req, res) {
