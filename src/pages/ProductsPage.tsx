@@ -182,7 +182,15 @@ export const ProductsPage: React.FC = () => {
       }
     }
     window.addEventListener('leniva_products_catalog_updated', handleUpdate)
-    return () => window.removeEventListener('leniva_products_catalog_updated', handleUpdate)
+    window.addEventListener('leniva_cad_visual_updated', handleUpdate)
+    window.addEventListener('leniva_cloud_cms_synced', handleUpdate)
+    window.addEventListener('storage', handleUpdate)
+    return () => {
+      window.removeEventListener('leniva_products_catalog_updated', handleUpdate)
+      window.removeEventListener('leniva_cad_visual_updated', handleUpdate)
+      window.removeEventListener('leniva_cloud_cms_synced', handleUpdate)
+      window.removeEventListener('storage', handleUpdate)
+    }
   }, [])
 
   // Filter 3D printer products only (strictly no CAD software or 3D scanners)

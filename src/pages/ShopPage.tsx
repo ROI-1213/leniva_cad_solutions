@@ -83,11 +83,13 @@ export const ShopPage: React.FC<ShopPageProps> = ({ forcedCategory }) => {
     }
     window.addEventListener('leniva_products_catalog_updated', handleUpdate)
     window.addEventListener('leniva_cad_edits_updated', handleUpdate)
+    window.addEventListener('leniva_cad_visual_updated', handleUpdate)
     window.addEventListener('leniva_cloud_cms_synced', handleUpdate)
     window.addEventListener('storage', handleUpdate)
     return () => {
       window.removeEventListener('leniva_products_catalog_updated', handleUpdate)
       window.removeEventListener('leniva_cad_edits_updated', handleUpdate)
+      window.removeEventListener('leniva_cad_visual_updated', handleUpdate)
       window.removeEventListener('leniva_cloud_cms_synced', handleUpdate)
       window.removeEventListener('storage', handleUpdate)
     }

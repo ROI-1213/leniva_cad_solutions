@@ -482,16 +482,15 @@ const applyCadEditsToCatalog = (items: ProductItem[]): ProductItem[] => {
 
     // 4. Apply leniva_cad_software_edits
     const raw = localStorage.getItem('leniva_cad_software_edits')
-    if (!raw) return working
-    const cadEdits = JSON.parse(raw)
-    if (!cadEdits || typeof cadEdits !== 'object') return working
+    const cadEdits = raw ? JSON.parse(raw) : null
+    const afterEdits =
+      cadEdits && typeof cadEdits === 'object'
+        ? working.map(item => {
+            const cadKey = CAD_SLUG_TO_KEY_MAP[item.slug] || CAD_SLUG_TO_KEY_MAP[item.id]
+            const edit = cadKey ? cadEdits[cadKey] : null
+            if (!edit) return item
 
-    return working.map(item => {
-      const cadKey = CAD_SLUG_TO_KEY_MAP[item.slug] || CAD_SLUG_TO_KEY_MAP[item.id]
-      const edit = cadKey ? cadEdits[cadKey] : null
-      if (!edit) return item
-
-      return {
+            return {
         ...item,
         name: edit.productName || item.name,
         brand: edit.brand || item.brand,
@@ -541,6 +540,52 @@ const applyCadEditsToCatalog = (items: ProductItem[]): ProductItem[] => {
           : item.licensing_plans,
       }
     })
+        : working
+
+    // Also overlay published Visual Page Editor hero images so Shop/Products/Category cards reflect uploaded images immediately
+    const rawVisualPub = localStorage.getItem('leniva_cad_visual_published_v1')
+    const rawVisualDraft = localStorage.getItem('leniva_cad_visual_drafts_v1')
+    if (rawVisualPub || rawVisualDraft) {
+      const pubMap = rawVisualPub ? JSON.parse(rawVisualPub) : {}
+      const draftMap = rawVisualDraft ? JSON.parse(rawVisualDraft) : {}
+      const visualMap = { ...pubMap, ...draftMap }
+      const slugToVisualKey = (slugOrId: string): string | null => {
+        const s = (slugOrId || '').toLowerCase()
+        if (visualMap[s]) return s
+        const underscored = s.replace(/-/g, '_')
+        if (visualMap[underscored]) return underscored
+        if (s === 'sketchup') return 'sketchup_pro'
+        if (s === 'pratham-3-0') return 'pratham_3'
+        if (s === 'pratham-5-0') return 'pratham_5'
+        if (s === 'pratham-6-0') return 'pratham_6'
+        if (s === 'pratham-x-1000') return 'pratham_x'
+        if (s.includes('white') && s.includes('pla')) return 'filament_white_pla'
+        if ((s.includes('grey') || s.includes('silver')) && s.includes('pla')) return 'filament_grey_silver_pla'
+        if (s.includes('gold') && s.includes('pla')) return 'filament_gold_pla'
+        if (s.includes('orange') && s.includes('pla')) return 'filament_orange_pla'
+        if (s.includes('yellow') && s.includes('pla')) return 'filament_yellow_pla'
+        if (s.includes('blue') && s.includes('pla')) return 'filament_blue_pla'
+        if (s.includes('black') && s.includes('pla')) return 'filament_black_pla'
+        if (s.includes('red') && s.includes('pla')) return 'filament_red_pla'
+        return null
+      }
+      return afterEdits.map(item => {
+        const vKey = slugToVisualKey(item.slug) || slugToVisualKey(item.id)
+        const vPayload = vKey ? visualMap[vKey] : null
+        const vImg =
+          vPayload?.elementOverrides?.['hero.image']?.src ||
+          vPayload?.elementOverrides?.['auto:img:0']?.src ||
+          vPayload?.dataOverrides?.hero?.image ||
+          vPayload?.dataOverrides?.hero?.heroImage
+        if (!vImg) return item
+        return {
+          ...item,
+          hero_image: vImg,
+          images: [vImg, ...(Array.isArray(item.images) ? item.images.slice(1) : [])],
+        }
+      })
+    }
+    return afterEdits
   } catch {
     return items
   }
