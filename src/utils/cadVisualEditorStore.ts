@@ -11,6 +11,7 @@ export interface CadElementOverride {
   href?: string
   src?: string
   originalSrc?: string
+  previousSrc?: string
   alt?: string
   fileName?: string
   dimensions?: string

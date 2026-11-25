@@ -1791,12 +1791,17 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
         }
         if (options.elementKey) {
           const existing = next.elementOverrides?.[options.elementKey] || { key: options.elementKey }
+          const prevDisplayed =
+            existing.src ||
+            (options.dataPath ? getByPath(next.dataOverrides || {}, options.dataPath) : undefined) ||
+            options.defaultSrc
           next.elementOverrides = {
             ...(next.elementOverrides || {}),
             [options.elementKey]: {
               ...existing,
               src: normalizedUrl,
-              originalSrc: existing.originalSrc || options.defaultSrc,
+              originalSrc: existing.originalSrc || options.defaultSrc || prevDisplayed,
+              previousSrc: prevDisplayed && prevDisplayed !== normalizedUrl ? prevDisplayed : existing.previousSrc,
               fileName: res.fileName,
               dimensions: res.dimensions,
               objectFit: existing.objectFit || 'contain',
@@ -4546,12 +4551,14 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                               const slot = activeImageSlotsBase.find(
                                 s => s.dataPath === selectedElement.dataPath || s.id === selectedElement.key
                               )
-                              const fallbackOrig =
+                              const curOv = payload.elementOverrides?.[selectedElement.key]
+                              const restoreSrc =
+                                (curOv?.previousSrc && curOv.previousSrc !== curOv.src ? curOv.previousSrc : undefined) ||
+                                curOv?.originalSrc ||
                                 slot?.defaultSrc ||
                                 (activeProductKey === 'ares_commander' && selectedElement.dataPath
                                   ? getByPath(aresCommanderData, selectedElement.dataPath)
                                   : undefined) ||
-                                payload.elementOverrides?.[selectedElement.key]?.originalSrc ||
                                 ''
 
                               const isHeroTarget =
@@ -4563,39 +4570,66 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                               updatePayload(prev => {
                                 const next = { ...prev }
                                 const nextElOv = { ...(next.elementOverrides || {}) }
-                                delete nextElOv[selectedElement.key]
-                                if (isHeroTarget) {
-                                  delete nextElOv['hero.image']
-                                  delete nextElOv['auto:img:0']
+                                if (restoreSrc) {
+                                  nextElOv[selectedElement.key] = {
+                                    ...(nextElOv[selectedElement.key] || { key: selectedElement.key }),
+                                    src: restoreSrc,
+                                    previousSrc: nextElOv[selectedElement.key]?.originalSrc || slot?.defaultSrc,
+                                    hidden: false,
+                                  }
+                                  if (isHeroTarget) {
+                                    nextElOv['hero.image'] = {
+                                      ...(nextElOv['hero.image'] || { key: 'hero.image' }),
+                                      src: restoreSrc,
+                                      hidden: false,
+                                    }
+                                    nextElOv['auto:img:0'] = {
+                                      ...(nextElOv['auto:img:0'] || { key: 'auto:img:0' }),
+                                      src: restoreSrc,
+                                      hidden: false,
+                                    }
+                                  }
+                                } else {
+                                  delete nextElOv[selectedElement.key]
+                                  if (isHeroTarget) {
+                                    delete nextElOv['hero.image']
+                                    delete nextElOv['auto:img:0']
+                                  }
                                 }
                                 next.elementOverrides = nextElOv
 
-                                const nextDataOv = { ...(next.dataOverrides || {}) }
-                                if (isHeroTarget && nextDataOv.hero) {
-                                  const nextHero = { ...nextDataOv.hero }
+                                if (restoreSrc) {
+                                  if (selectedElement.dataPath) {
+                                    next.dataOverrides = setByPath(next.dataOverrides || {}, selectedElement.dataPath, restoreSrc)
+                                  }
+                                  if (isHeroTarget) {
+                                    next.dataOverrides = setByPath(next.dataOverrides || {}, 'hero.image', restoreSrc)
+                                    next.dataOverrides = setByPath(next.dataOverrides || {}, 'hero.heroImage', restoreSrc)
+                                  }
+                                } else if (isHeroTarget && next.dataOverrides?.hero) {
+                                  const nextHero = { ...next.dataOverrides.hero }
                                   delete nextHero.image
                                   delete nextHero.heroImage
-                                  nextDataOv.hero = nextHero
+                                  next.dataOverrides = { ...next.dataOverrides, hero: nextHero }
                                 }
-                                next.dataOverrides = nextDataOv
                                 return next
                               })
 
-                              if (isHeroTarget && fallbackOrig) {
+                              if (isHeroTarget && restoreSrc) {
                                 setCustomPrinterProducts(prev =>
-                                  prev.map(p => (p && p.key === activeProductKey ? { ...p, heroImage: fallbackOrig } : p))
+                                  prev.map(p => (p && p.key === activeProductKey ? { ...p, heroImage: restoreSrc } : p))
                                 )
                                 setCustomCadProducts(prev =>
-                                  prev.map(p => (p && p.key === activeProductKey ? { ...p, heroImage: fallbackOrig } : p))
+                                  prev.map(p => (p && p.key === activeProductKey ? { ...p, heroImage: restoreSrc } : p))
                                 )
                                 setCustomScannerProducts(prev =>
-                                  prev.map(p => (p && p.key === activeProductKey ? { ...p, heroImage: fallbackOrig } : p))
+                                  prev.map(p => (p && p.key === activeProductKey ? { ...p, heroImage: restoreSrc } : p))
                                 )
                               }
 
-                              setSelectedElement(prev => (prev ? { ...prev, currentSrc: fallbackOrig } : null))
+                              setSelectedElement(prev => (prev ? { ...prev, currentSrc: restoreSrc } : null))
                               setRefreshTick(t => t + 1)
-                              showToast('info', 'Restored original image! Click "Publish Changes" to make it live.')
+                              showToast('info', 'Restored previous image! Click "Publish Changes" to make it live.')
                             }}
                             className="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
                           >
@@ -5068,26 +5102,47 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                               <button
                                 onClick={() => {
                                   const isHeroSlot = slot.dataPath === 'hero.image' || slot.dataPath === 'hero.heroImage' || slot.id === 'hero.image'
+                                  const existingOv = payload.elementOverrides?.[slot.dataPath || slot.id] || payload.elementOverrides?.[slot.id]
+                                  const restoreSrc =
+                                    (existingOv?.previousSrc && existingOv.previousSrc !== existingOv.src ? existingOv.previousSrc : undefined) ||
+                                    existingOv?.originalSrc ||
+                                    slot.defaultSrc ||
+                                    ''
                                   updatePayload(prev => {
                                     const next = { ...prev }
                                     const nextElOv = { ...(next.elementOverrides || {}) }
-                                    delete nextElOv[slot.id]
-                                    if (slot.dataPath) delete nextElOv[slot.dataPath]
-                                    if (isHeroSlot) {
-                                      delete nextElOv['hero.image']
-                                      delete nextElOv['auto:img:0']
+                                    if (restoreSrc) {
+                                      const k = slot.dataPath || slot.id
+                                      nextElOv[k] = {
+                                        ...(nextElOv[k] || { key: k }),
+                                        src: restoreSrc,
+                                        previousSrc: existingOv?.originalSrc || slot.defaultSrc,
+                                        hidden: false,
+                                      }
+                                      if (isHeroSlot) {
+                                        nextElOv['hero.image'] = { ...(nextElOv['hero.image'] || { key: 'hero.image' }), src: restoreSrc, hidden: false }
+                                        nextElOv['auto:img:0'] = { ...(nextElOv['auto:img:0'] || { key: 'auto:img:0' }), src: restoreSrc, hidden: false }
+                                      }
+                                      if (slot.dataPath) {
+                                        next.dataOverrides = setByPath(next.dataOverrides || {}, slot.dataPath, restoreSrc)
+                                      }
+                                      if (isHeroSlot) {
+                                        next.dataOverrides = setByPath(next.dataOverrides || {}, 'hero.image', restoreSrc)
+                                        next.dataOverrides = setByPath(next.dataOverrides || {}, 'hero.heroImage', restoreSrc)
+                                      }
+                                    } else {
+                                      delete nextElOv[slot.id]
+                                      if (slot.dataPath) delete nextElOv[slot.dataPath]
+                                      if (isHeroSlot) {
+                                        delete nextElOv['hero.image']
+                                        delete nextElOv['auto:img:0']
+                                      }
                                     }
                                     next.elementOverrides = nextElOv
-                                    if (isHeroSlot && next.dataOverrides?.hero) {
-                                      const nextHero = { ...next.dataOverrides.hero }
-                                      delete nextHero.image
-                                      delete nextHero.heroImage
-                                      next.dataOverrides = { ...next.dataOverrides, hero: nextHero }
-                                    }
                                     return next
                                   })
                                   setRefreshTick(t => t + 1)
-                                  showToast('info', `Restored original image for ${slot.label}. Click "Publish Changes" to make it live.`)
+                                  showToast('info', `Restored previous image for ${slot.label}. Click "Publish Changes" to make it live.`)
                                 }}
                                 title="Restore Original Image"
                                 className="py-2 px-2.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs cursor-pointer"
