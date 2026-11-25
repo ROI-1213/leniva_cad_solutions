@@ -1066,10 +1066,30 @@ function writeJsonMap<T>(storageKey: string, map: Record<string, T>): boolean {
       window.localStorage.setItem(storageKey, serialized)
       return true
     } catch {
-      // 2. If writing the primary published map, also clear redundant drafts so published data always persists
+      // 2. If writing the primary published map, also clear redundant drafts & duplicate data:image strings in catalog
       try {
         if (storageKey === CAD_VISUAL_PUBLISHED_KEY) {
           window.localStorage.removeItem(CAD_VISUAL_DRAFT_KEY)
+          try {
+            const rawCat = window.localStorage.getItem('leniva_admin_products_catalog')
+            if (rawCat && rawCat.length > 300000) {
+              const parsedCat = JSON.parse(rawCat)
+              if (Array.isArray(parsedCat)) {
+                const compacted = parsedCat.map((item: any) => {
+                  if (!item) return item
+                  const next = { ...item }
+                  if (typeof next.hero_image === 'string' && next.hero_image.startsWith('data:image/') && next.hero_image.length > 4000) {
+                    delete next.hero_image
+                  }
+                  if (Array.isArray(next.images)) {
+                    next.images = next.images.filter((img: any) => !(typeof img === 'string' && img.startsWith('data:image/') && img.length > 4000))
+                  }
+                  return next
+                })
+                window.localStorage.setItem('leniva_admin_products_catalog', JSON.stringify(compacted))
+              }
+            }
+          } catch {}
           window.localStorage.setItem(storageKey, serialized)
           return true
         }
@@ -1335,18 +1355,21 @@ export function syncVisualPayloadToCatalogs(productKey: string, stamped: CadVisu
         const itemId = (item.id || '').toLowerCase()
         if (candidateSlugs.has(itemSlug) || candidateSlugs.has(itemId)) {
           changed = true
+          // Do not duplicate large data:image/ base64 blobs into leniva_admin_products_catalog
+          // (productCatalog.ts already overlays leniva_cad_visual_published_v1 directly, avoiding 5MB quota overflow)
+          const isLargeDataImg = typeof heroImg === 'string' && heroImg.startsWith('data:image/') && heroImg.length > 4000
           const nextItem: any = {
             ...item,
             is_admin_customized: true,
-            ...(heroImg ? { hero_image: heroImg, images: [heroImg, ...(Array.isArray(item.images) ? item.images.slice(1) : [])] } : {}),
+            ...(heroImg && !isLargeDataImg ? { hero_image: heroImg, images: [heroImg, ...(Array.isArray(item.images) ? item.images.slice(1) : [])] } : {}),
             ...(brochureUrl ? { brochure_url: brochureUrl } : {}),
             ...(headline ? { hero_heading: headline, tagline: headline } : {}),
             ...(shortDesc ? { short_description: shortDesc, description: shortDesc } : {}),
           }
-          if (!heroImg && typeof nextItem.hero_image === 'string' && nextItem.hero_image.startsWith('data:')) {
+          if ((!heroImg || isLargeDataImg) && typeof nextItem.hero_image === 'string' && nextItem.hero_image.startsWith('data:')) {
             delete nextItem.hero_image
-            if (Array.isArray(nextItem.images) && typeof nextItem.images[0] === 'string' && nextItem.images[0].startsWith('data:')) {
-              nextItem.images = nextItem.images.slice(1)
+            if (Array.isArray(nextItem.images)) {
+              nextItem.images = nextItem.images.filter((img: any) => !(typeof img === 'string' && img.startsWith('data:image/') && img.length > 4000))
             }
           }
           return nextItem

@@ -140,14 +140,40 @@ function installStorageInterceptor() {
     try {
       rawSetItem(key, value)
     } catch {
-      // Automatically free non-critical caches (old revisions / stale drafts) on QuotaExceededError and retry
+      // Automatically free non-critical caches (old revisions / stale drafts / duplicate catalog base64) on QuotaExceededError and retry
       if (key !== 'leniva_cad_visual_revisions_v1') {
         try { rawRemoveItem('leniva_cad_visual_revisions_v1') } catch {}
       }
       if (key !== 'leniva_cad_visual_drafts_v1' && key !== 'leniva_cad_visual_revisions_v1') {
         try { rawRemoveItem('leniva_cad_visual_drafts_v1') } catch {}
       }
-      rawSetItem(key, value)
+      try {
+        rawSetItem(key, value)
+      } catch {
+        if (key !== 'leniva_admin_products_catalog') {
+          try {
+            const rawCat = rawGetItem('leniva_admin_products_catalog')
+            if (rawCat) {
+              const parsedCat = JSON.parse(rawCat)
+              if (Array.isArray(parsedCat)) {
+                const compacted = parsedCat.map((item: any) => {
+                  if (!item) return item
+                  const next = { ...item }
+                  if (typeof next.hero_image === 'string' && next.hero_image.startsWith('data:image/') && next.hero_image.length > 4000) {
+                    delete next.hero_image
+                  }
+                  if (Array.isArray(next.images)) {
+                    next.images = next.images.filter((img: any) => !(typeof img === 'string' && img.startsWith('data:image/') && img.length > 4000))
+                  }
+                  return next
+                })
+                rawSetItem('leniva_admin_products_catalog', JSON.stringify(compacted))
+              }
+            }
+          } catch {}
+        }
+        rawSetItem(key, value)
+      }
     }
     if (!isApplyingRemoteSync && SYNCED_KEY_SET.has(key) && prev !== value) {
       explicitlyResetKeys.delete(key)
