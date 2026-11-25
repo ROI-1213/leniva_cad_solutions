@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ChevronRight,
@@ -23,6 +23,7 @@ import {
 import { useApp } from '../context/AppContext'
 import { devokMQData as defaultDevokMQData } from '../data/scannersData'
 import { mergeCatalogWithHardwareData } from '../utils/productCatalog'
+import { getLiveVisualGalleryImage } from '../utils/cadVisualEditorStore'
 import { AdvancedScanningTechCinematic } from '../components/AdvancedScanningTechCinematic'
 
 export const DevokMQPage: React.FC = () => {
@@ -30,11 +31,34 @@ export const DevokMQPage: React.FC = () => {
   const devokMQData = mergeCatalogWithHardwareData('3devok-mq', defaultDevokMQData)
   const [selectedGalleryImg, setSelectedGalleryImg] = useState<string | null>(null)
 
+  const [visualTick, setVisualTick] = useState(0)
+  useEffect(() => {
+    const refresh = () => setVisualTick(t => t + 1)
+    const onSelectIdx = (e: Event) => {
+      const idx = Number((e as CustomEvent)?.detail?.index)
+      if (!Number.isNaN(idx) && idx >= 0 && idx < 3) setActiveHeroIndex(idx)
+    }
+    const events = [
+      'cad_visual_overrides_updated',
+      'leniva_cad_visual_updated',
+      'leniva_cad_visual_draft_updated',
+      'leniva_products_catalog_updated',
+      'storage',
+    ]
+    events.forEach(ev => window.addEventListener(ev, refresh))
+    window.addEventListener('leniva_select_gallery_index', onSelectIdx)
+    return () => {
+      events.forEach(ev => window.removeEventListener(ev, refresh))
+      window.removeEventListener('leniva_select_gallery_index', onSelectIdx)
+    }
+  }, [])
+
+  void visualTick
   const heroViews = [
     {
       id: 'hardware-kit',
       label: '3DeVOK MQ Kit',
-      src: '/images/scanners/3devok-mq-hardware-kit.png',
+      src: getLiveVisualGalleryImage('devok_mq', 0, '/images/scanners/3devok-mq-hardware-kit.png'),
       badge: 'Full-Color 3D Kit',
       subBadge: 'Wireless Handle & True Color',
       desc: '3DeVOK MQ scanner with wireless power handle, mobile mount, and photorealistic 24-bit color scanning.',
@@ -42,7 +66,7 @@ export const DevokMQPage: React.FC = () => {
     {
       id: 'architecture',
       label: 'Sensor Architecture',
-      src: '/images/scanners/3devok-sensor-architecture.png',
+      src: getLiveVisualGalleryImage('devok_mq', 1, '/images/scanners/3devok-sensor-architecture.png'),
       badge: 'Sensor Architecture',
       subBadge: 'Multi-Laser & Sensor Callouts',
       desc: 'Complete optical array: dual B&W cameras, RGB color sensor, infrared fill lights, laser & VCSEL emitters, and touch screen.',
@@ -50,7 +74,7 @@ export const DevokMQPage: React.FC = () => {
     {
       id: 'action',
       label: 'In-Hand Operation',
-      src: '/images/scanners/3devok-in-hand-action.png',
+      src: getLiveVisualGalleryImage('devok_mq', 2, '/images/scanners/3devok-in-hand-action.png'),
       badge: 'In-Hand Operation',
       subBadge: 'Field & Studio Ergonomics',
       desc: 'Real-world handheld operation with ultra-lightweight 550 g housing.',
@@ -130,7 +154,8 @@ export const DevokMQPage: React.FC = () => {
                 {activeHeroIndex === 0 && (
                   <div className="w-full h-80 sm:h-96 md:h-[400px] flex items-center justify-center p-2">
                     <img
-                      src="/images/scanners/3devok-mq-hardware-kit.png"
+                      data-cad-path="hero.image"
+                      src={heroViews[0].src}
                       alt="3DeVOK MQ Hardware Kit and Color 3D Scanning"
                       className="max-h-full max-w-full object-contain select-none transition-transform duration-500 group-hover:scale-105 drop-shadow-md"
                     />
@@ -140,7 +165,9 @@ export const DevokMQPage: React.FC = () => {
                 {activeHeroIndex === 1 && (
                   <div className="w-full h-80 sm:h-96 md:h-[400px] flex items-center justify-center p-2">
                     <img
-                      src="/images/scanners/3devok-sensor-architecture.png"
+                      data-cad-path="gallery.1"
+                      data-cad-skip-hero="true"
+                      src={heroViews[1].src}
                       alt="3DeVOK Sensor Architecture Callouts"
                       className="max-h-full max-w-full object-contain select-none transition-transform duration-500 group-hover:scale-105"
                     />
@@ -149,7 +176,9 @@ export const DevokMQPage: React.FC = () => {
 
                 {activeHeroIndex === 2 && (
                   <img
-                    src="/images/scanners/3devok-in-hand-action.png"
+                    data-cad-path="gallery.2"
+                    data-cad-skip-hero="true"
+                    src={heroViews[2].src}
                     alt="3DeVOK Scanner In-Hand Operation"
                     className="w-full h-80 sm:h-96 md:h-[400px] object-cover rounded-2xl select-none transition-transform duration-700 group-hover:scale-105 drop-shadow-md"
                   />
@@ -191,6 +220,7 @@ export const DevokMQPage: React.FC = () => {
                     }`}
                   >
                     <img
+                      data-cad-path={idx === 0 ? 'hero.image' : `gallery.${idx}`}
                       src={view.src}
                       alt={view.label}
                       className="w-12 h-10 object-contain p-0.5 rounded-lg shrink-0 bg-white"

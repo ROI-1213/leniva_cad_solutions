@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ChevronRight,
@@ -20,6 +20,7 @@ import {
 import { useApp } from '../context/AppContext'
 import { devokMTData as defaultDevokMTData } from '../data/scannersData'
 import { mergeCatalogWithHardwareData } from '../utils/productCatalog'
+import { getLiveVisualGalleryImage } from '../utils/cadVisualEditorStore'
 
 export const DevokMTPage: React.FC = () => {
   const { openQuoteModal } = useApp()
@@ -27,11 +28,34 @@ export const DevokMTPage: React.FC = () => {
   const [selectedGalleryImg, setSelectedGalleryImg] = useState<string | null>(null)
   const [activeTechIndex, setActiveTechIndex] = useState(0)
 
+  const [visualTick, setVisualTick] = useState(0)
+  useEffect(() => {
+    const refresh = () => setVisualTick(t => t + 1)
+    const onSelectIdx = (e: Event) => {
+      const idx = Number((e as CustomEvent)?.detail?.index)
+      if (!Number.isNaN(idx) && idx >= 0 && idx < 3) setActiveHeroIndex(idx)
+    }
+    const events = [
+      'cad_visual_overrides_updated',
+      'leniva_cad_visual_updated',
+      'leniva_cad_visual_draft_updated',
+      'leniva_products_catalog_updated',
+      'storage',
+    ]
+    events.forEach(ev => window.addEventListener(ev, refresh))
+    window.addEventListener('leniva_select_gallery_index', onSelectIdx)
+    return () => {
+      events.forEach(ev => window.removeEventListener(ev, refresh))
+      window.removeEventListener('leniva_select_gallery_index', onSelectIdx)
+    }
+  }, [])
+
+  void visualTick
   const heroViews = [
     {
       id: 'action',
       label: 'In-Hand Operation',
-      src: '/images/scanners/3devok-in-hand-action.png',
+      src: getLiveVisualGalleryImage('devok_mt', 0, '/images/scanners/3devok-in-hand-action.png'),
       badge: 'In-Hand Operation',
       subBadge: 'Industrial Ergonomics',
       desc: 'Real-world shop-floor operation with dual-grip balanced handling.',
@@ -39,7 +63,7 @@ export const DevokMTPage: React.FC = () => {
     {
       id: 'architecture',
       label: 'Sensor Architecture',
-      src: '/images/scanners/3devok-sensor-architecture.png',
+      src: getLiveVisualGalleryImage('devok_mt', 1, '/images/scanners/3devok-sensor-architecture.png'),
       badge: 'Optical Architecture',
       subBadge: 'Multi-Laser & Sensor Callouts',
       desc: 'Complete optical array: dual B&W cameras, RGB color sensor, 34 blue + 22 IR laser lines, and touch display.',
@@ -47,7 +71,7 @@ export const DevokMTPage: React.FC = () => {
     {
       id: 'render',
       label: '3D Studio Model',
-      src: devokMTData.heroImage,
+      src: getLiveVisualGalleryImage('devok_mt', 2, devokMTData.heroImage),
       badge: 'Industrial Grade',
       subBadge: '34 Blue + 22 IR Lasers',
       desc: 'Precision laser scanning with VDI/VDE 2634 compliant accuracy.',
@@ -126,7 +150,8 @@ export const DevokMTPage: React.FC = () => {
                 {/* Active Image Display */}
                 {activeHeroIndex === 0 && (
                   <img
-                    src="/images/scanners/3devok-in-hand-action.png"
+                    data-cad-path="hero.image"
+                    src={heroViews[0].src}
                     alt="3DeVOK Scanner In-Hand Operation"
                     className="w-full h-80 sm:h-96 md:h-[400px] object-cover rounded-2xl select-none transition-transform duration-700 group-hover:scale-105 drop-shadow-2xl"
                   />
@@ -135,7 +160,9 @@ export const DevokMTPage: React.FC = () => {
                 {activeHeroIndex === 1 && (
                   <div className="w-full h-80 sm:h-96 md:h-[400px] bg-white rounded-2xl p-3 flex items-center justify-center shadow-inner overflow-hidden">
                     <img
-                      src="/images/scanners/3devok-sensor-architecture.png"
+                      data-cad-path="gallery.1"
+                      data-cad-skip-hero="true"
+                      src={heroViews[1].src}
                       alt="3DeVOK Sensor Architecture Callouts"
                       className="w-full h-full object-contain select-none transition-transform duration-500 group-hover:scale-105"
                     />
@@ -144,7 +171,9 @@ export const DevokMTPage: React.FC = () => {
 
                 {activeHeroIndex === 2 && (
                   <img
-                    src={devokMTData.heroImage}
+                    data-cad-path="gallery.2"
+                    data-cad-skip-hero="true"
+                    src={heroViews[2].src}
                     alt={devokMTData.name}
                     className="w-full max-h-[380px] object-contain select-none transition-transform duration-700 group-hover:scale-105 drop-shadow-2xl"
                   />
@@ -186,6 +215,7 @@ export const DevokMTPage: React.FC = () => {
                     }`}
                   >
                     <img
+                      data-cad-path={idx === 0 ? 'hero.image' : `gallery.${idx}`}
                       src={view.src}
                       alt={view.label}
                       className="w-12 h-10 object-cover rounded-lg shrink-0 bg-slate-950"
