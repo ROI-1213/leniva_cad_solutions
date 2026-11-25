@@ -310,7 +310,17 @@ export const GoldPlaPage: React.FC<GoldPageProps> = ({ customData }) => {
       'storage',
     ]
     events.forEach(ev => window.addEventListener(ev, refresh))
-    return () => events.forEach(ev => window.removeEventListener(ev, refresh))
+    const onSelectIdx = (e: Event) => {
+      const idx = Number((e as CustomEvent)?.detail?.index)
+      if (!Number.isNaN(idx) && idx >= 0 && idx < productData.images.length) {
+        setActiveImageIndex(idx)
+      }
+    }
+    window.addEventListener('leniva_select_gallery_index', onSelectIdx)
+    return () => {
+      events.forEach(ev => window.removeEventListener(ev, refresh))
+      window.removeEventListener('leniva_select_gallery_index', onSelectIdx)
+    }
   }, [productData.images])
 
   const displayImages = productData.images.map((img, i) => ({

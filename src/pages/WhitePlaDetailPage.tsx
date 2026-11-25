@@ -83,7 +83,17 @@ export const WhitePlaDetailPage: React.FC<{ customData?: Partial<WhitePlaProduct
       'storage',
     ]
     events.forEach(ev => window.addEventListener(ev, refresh))
-    return () => events.forEach(ev => window.removeEventListener(ev, refresh))
+    const onSelectIdx = (e: Event) => {
+      const idx = Number((e as CustomEvent)?.detail?.index)
+      if (!Number.isNaN(idx) && idx >= 0 && idx < product.images.length) {
+        setSelectedImageIndex(idx)
+      }
+    }
+    window.addEventListener('leniva_select_gallery_index', onSelectIdx)
+    return () => {
+      events.forEach(ev => window.removeEventListener(ev, refresh))
+      window.removeEventListener('leniva_select_gallery_index', onSelectIdx)
+    }
   }, [product.images])
 
   // Interactive States

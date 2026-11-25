@@ -1780,36 +1780,46 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
 
       const normalizedUrl = normalizeAssetUrl(res.url, 'image')
 
-      updatePayload(prev => {
-        const next = { ...prev }
-        if (options.dataPath) {
-          next.dataOverrides = setByPath(next.dataOverrides || {}, options.dataPath, normalizedUrl)
+      const nextPayload: CadVisualPagePayload = structuredCloneSafe(payload)
+      if (options.dataPath) {
+        nextPayload.dataOverrides = setByPath(nextPayload.dataOverrides || {}, options.dataPath, normalizedUrl)
+      }
+      if (options.elementKey === 'auto:img:0' || options.elementKey === 'hero.image' || options.dataPath === 'hero.image') {
+        nextPayload.dataOverrides = setByPath(nextPayload.dataOverrides || {}, 'hero.image', normalizedUrl)
+        nextPayload.dataOverrides = setByPath(nextPayload.dataOverrides || {}, 'hero.heroImage', normalizedUrl)
+      }
+      if (options.elementKey) {
+        const existing = nextPayload.elementOverrides?.[options.elementKey] || { key: options.elementKey }
+        const prevDisplayed =
+          existing.src ||
+          (options.dataPath ? getByPath(nextPayload.dataOverrides || {}, options.dataPath) : undefined) ||
+          options.defaultSrc
+        nextPayload.elementOverrides = {
+          ...(nextPayload.elementOverrides || {}),
+          [options.elementKey]: {
+            ...existing,
+            src: normalizedUrl,
+            originalSrc: existing.originalSrc || options.defaultSrc || prevDisplayed,
+            previousSrc: prevDisplayed && prevDisplayed !== normalizedUrl ? prevDisplayed : existing.previousSrc,
+            fileName: res.fileName,
+            dimensions: res.dimensions,
+            objectFit: existing.objectFit || 'contain',
+          },
         }
-        if (options.elementKey === 'auto:img:0' || options.elementKey === 'hero.image' || options.dataPath === 'hero.image') {
-          next.dataOverrides = setByPath(next.dataOverrides || {}, 'hero.image', normalizedUrl)
-          next.dataOverrides = setByPath(next.dataOverrides || {}, 'hero.heroImage', normalizedUrl)
-        }
-        if (options.elementKey) {
-          const existing = next.elementOverrides?.[options.elementKey] || { key: options.elementKey }
-          const prevDisplayed =
-            existing.src ||
-            (options.dataPath ? getByPath(next.dataOverrides || {}, options.dataPath) : undefined) ||
-            options.defaultSrc
-          next.elementOverrides = {
-            ...(next.elementOverrides || {}),
-            [options.elementKey]: {
-              ...existing,
-              src: normalizedUrl,
-              originalSrc: existing.originalSrc || options.defaultSrc || prevDisplayed,
-              previousSrc: prevDisplayed && prevDisplayed !== normalizedUrl ? prevDisplayed : existing.previousSrc,
-              fileName: res.fileName,
-              dimensions: res.dimensions,
-              objectFit: existing.objectFit || 'contain',
-            },
-          }
-        }
-        return next
-      })
+      }
+
+      // Persist immediately to published & drafts BEFORE pushing to Cloud CMS so other browsers get the new image right away
+      const savedNow = saveVisualDraft(activeProductKey, nextPayload)
+      setPayload(savedNow)
+      setHasUnsavedChanges(false)
+
+      // If a gallery thumbnail (gallery.N) was uploaded, switch the preview gallery to that index so the big image shows it too
+      const galleryMatch = (options.dataPath || options.elementKey || '').match(/^gallery\.(\d+)$/)
+      if (galleryMatch && typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('leniva_select_gallery_index', { detail: { index: Number(galleryMatch[1]) } }))
+      } else if ((options.elementKey === 'hero.image' || options.dataPath === 'hero.image') && typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('leniva_select_gallery_index', { detail: { index: 0 } }))
+      }
 
       // If hero image was uploaded, also refresh local custom product arrays so list cards update immediately
       if (options.elementKey === 'auto:img:0' || options.dataPath === 'hero.image') {

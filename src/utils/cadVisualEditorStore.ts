@@ -1368,16 +1368,15 @@ export function syncVisualPayloadToCatalogs(productKey: string, stamped: CadVisu
 }
 
 export function saveVisualDraft(productKey: string, payload: CadVisualPagePayload): CadVisualPagePayload {
-  const allDrafts = readJsonMap<CadVisualPagePayload>(CAD_VISUAL_DRAFT_KEY)
   const stamped: CadVisualPagePayload = {
     ...structuredCloneSafe(payload),
     productKey,
     updatedAt: new Date().toISOString(),
   }
-  allDrafts[productKey] = stamped
-  writeJsonMap(CAD_VISUAL_DRAFT_KEY, allDrafts)
+  // Keep drafts map lean (only store the active productKey draft to avoid 2x localStorage quota bloat)
+  writeJsonMap(CAD_VISUAL_DRAFT_KEY, { [productKey]: stamped })
 
-  // Also keep published map & catalogs synced locally so the frontend reflects admin edits/uploads immediately
+  // Keep published map & catalogs synced locally so the frontend reflects admin edits/uploads immediately
   const allPublished = readJsonMap<CadVisualPagePayload>(CAD_VISUAL_PUBLISHED_KEY)
   allPublished[productKey] = stamped
   writeJsonMap(CAD_VISUAL_PUBLISHED_KEY, allPublished)
