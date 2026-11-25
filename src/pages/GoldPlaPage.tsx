@@ -363,7 +363,7 @@ export const GoldPlaPage: React.FC<GoldPageProps> = ({ customData }) => {
                 className="relative aspect-square rounded-2xl bg-gradient-to-b from-amber-50/40 via-slate-50 to-slate-100/70 border border-slate-200/90 overflow-hidden flex items-center justify-center p-6 cursor-zoom-in group shadow-inner"
               >
                 <img
-                  data-cad-path="hero.image"
+                  data-cad-path={activeImageIndex === 0 ? 'hero.image' : undefined}
                   src={currentDisplayImage.src}
                   alt={currentDisplayImage.alt}
                   onError={(e) => {
@@ -375,11 +375,11 @@ export const GoldPlaPage: React.FC<GoldPageProps> = ({ customData }) => {
 
                 {/* Magnifier Lens for Desktop */}
                 <div
-                  data-cad-zoom-lens="true"
+                  data-cad-zoom-lens={activeImageIndex === 0 ? 'true' : undefined}
                   className="hidden lg:block absolute inset-0 pointer-events-none rounded-2xl border border-slate-300 shadow-2xl transition-opacity duration-200"
                   style={{
                     display: zoomStyle.display,
-                    backgroundImage: `url("${mainImageRef.current?.querySelector('img')?.getAttribute('src') || currentDisplayImage.src}")`,
+                    backgroundImage: `url("${currentDisplayImage.src}")`,
                     backgroundRepeat: 'no-repeat',
                     backgroundSize: '220%',
                     backgroundPosition: zoomStyle.backgroundPosition,
@@ -430,6 +430,7 @@ export const GoldPlaPage: React.FC<GoldPageProps> = ({ customData }) => {
               <div className="grid grid-cols-6 gap-2 sm:gap-2.5">
                 {productData.images.map((img, i) => {
                   const isSelected = i === activeImageIndex
+                  const thumbSrc = i === 0 && liveHeroImg ? liveHeroImg : img.src
                   return (
                     <button
                       key={img.id}
@@ -441,7 +442,7 @@ export const GoldPlaPage: React.FC<GoldPageProps> = ({ customData }) => {
                       }`}
                     >
                       <img
-                        src={img.src}
+                        src={thumbSrc}
                         alt={img.alt}
                         onError={(e) => {
                           ;(e.target as HTMLImageElement).src = initialGoldData.images[0].src

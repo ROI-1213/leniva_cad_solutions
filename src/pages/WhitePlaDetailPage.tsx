@@ -232,7 +232,7 @@ export const WhitePlaDetailPage: React.FC<{ customData?: Partial<WhitePlaProduct
                 className="relative aspect-square rounded-2xl bg-gradient-to-b from-slate-50 to-slate-100/60 border border-slate-200/80 overflow-hidden flex items-center justify-center p-6 cursor-zoom-in group shadow-inner"
               >
                 <img
-                  data-cad-path="hero.image"
+                  data-cad-path={selectedImageIndex === 0 ? 'hero.image' : undefined}
                   src={activeImage.src}
                   alt={activeImage.alt}
                   className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
@@ -241,11 +241,11 @@ export const WhitePlaDetailPage: React.FC<{ customData?: Partial<WhitePlaProduct
 
                 {/* Desktop Magnifier Lens overlay */}
                 <div
-                  data-cad-zoom-lens="true"
+                  data-cad-zoom-lens={selectedImageIndex === 0 ? 'true' : undefined}
                   className="hidden lg:block absolute inset-0 pointer-events-none rounded-2xl border border-slate-300 shadow-2xl transition-opacity duration-200"
                   style={{
                     display: zoomStyle.display,
-                    backgroundImage: `url("${mainImageRef.current?.querySelector('img')?.getAttribute('src') || activeImage.src}")`,
+                    backgroundImage: `url("${activeImage.src}")`,
                     backgroundRepeat: 'no-repeat',
                     backgroundSize: '220%',
                     backgroundPosition: zoomStyle.backgroundPosition,
@@ -296,6 +296,7 @@ export const WhitePlaDetailPage: React.FC<{ customData?: Partial<WhitePlaProduct
               <div className="grid grid-cols-5 gap-2.5 sm:gap-3">
                 {product.images.map((img, idx) => {
                   const isSelected = idx === selectedImageIndex
+                  const thumbSrc = idx === 0 && liveHeroImg ? liveHeroImg : img.src
                   return (
                     <button
                       key={img.id}
@@ -307,7 +308,7 @@ export const WhitePlaDetailPage: React.FC<{ customData?: Partial<WhitePlaProduct
                       }`}
                     >
                       <img
-                        src={img.src}
+                        src={thumbSrc}
                         alt={img.alt}
                         className="w-full h-full object-contain rounded-md"
                       />
