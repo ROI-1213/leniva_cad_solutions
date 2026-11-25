@@ -1004,18 +1004,43 @@ export default function AdminPage() {
         setBlogsList(storedBlogs)
       }
 
-      // Load Quotes from Cloud CMS / localStorage (+ merge any DB rows if present)
+      const makeInquirySig = (item: {
+        email?: string
+        phone?: string
+        product?: string
+        created_at?: string
+      }) => {
+        const em = (item.email || '').trim().toLowerCase()
+        const ph = (item.phone || '').replace(/\D/g, '').slice(-10)
+        const pr = (item.product || '').trim().toLowerCase().replace(/\s+/g, ' ')
+        const ts = item.created_at ? new Date(item.created_at).getTime() : 0
+        const bucket = ts > 0 ? Math.floor(ts / 180000) : 0 // 3-minute dedup window
+        return `${em}|${ph}|${pr}|${bucket}`
+      }
+
+      // Load Quotes from Cloud CMS / localStorage (+ merge any DB rows if present, deduplicating by ID & submission signature)
       const storedQuotes = getStoredQuotes()
-      if (Array.isArray(quotesVal) && quotesVal.length > 0) {
-        const quoteMap = new Map<number, QuoteRequest>()
-        for (const q of [...storedQuotes, ...quotesVal]) {
-          if (q && q.id != null) quoteMap.set(Number(q.id), q)
+      const quoteSigMap = new Map<string, QuoteRequest>()
+      const rawQuotesPool = [
+        ...storedQuotes,
+        ...(Array.isArray(quotesVal) ? quotesVal : []),
+      ]
+      for (const q of rawQuotesPool) {
+        if (!q || q.id == null) continue
+        const sig = makeInquirySig({
+          email: q.email,
+          phone: q.phone,
+          product: q.service_or_product,
+          created_at: q.created_at,
+        })
+        if (!quoteSigMap.has(sig)) {
+          quoteSigMap.set(sig, q)
         }
-        const mergedQuotes = Array.from(quoteMap.values()).sort((a, b) => Number(b.id) - Number(a.id))
-        setQuotes(mergedQuotes)
-        saveStoredQuotes(mergedQuotes)
-      } else {
-        setQuotes(storedQuotes)
+      }
+      const initialMergedQuotes = Array.from(quoteSigMap.values()).sort((a, b) => Number(b.id) - Number(a.id))
+      setQuotes(initialMergedQuotes)
+      if (Array.isArray(quotesVal) && quotesVal.length > 0) {
+        saveStoredQuotes(initialMergedQuotes)
       }
 
       // Load and automatically unify any Contact messages directly into Enquiries and Quotes
@@ -1107,18 +1132,25 @@ export default function AdminPage() {
         const curEnqs = getStoredEnquiries()
         const curQts = getStoredQuotes()
 
-        // Authoritative merge by enquiry_number / id
+        // Authoritative merge by enquiry_number / id AND submission signature (prevents 2x/3x duplicates)
         const enqMap = new Map<string, StoredEnquiryRecord>()
-        for (const e of curEnqs) {
-          if (e && (e.id != null || e.enquiry_number)) {
-            enqMap.set(String(e.enquiry_number || e.id), e)
-          }
-        }
-        for (const re of remoteEnquiriesList) {
-          if (re && (re.id != null || re.enquiry_number)) {
-            const key = String(re.enquiry_number || re.id)
-            const existing = enqMap.get(key)
-            enqMap.set(key, existing ? { ...existing, ...re } : re)
+        const enqSigToKey = new Map<string, string>()
+        for (const e of [...curEnqs, ...remoteEnquiriesList]) {
+          if (!e || (e.id == null && !e.enquiry_number)) continue
+          const key = String(e.enquiry_number || e.id)
+          const sig = makeInquirySig({
+            email: e.email,
+            phone: e.phone,
+            product: e.product_service_name || e.productOrService,
+            created_at: e.created_at,
+          })
+          const existingKey = enqMap.has(key) ? key : enqSigToKey.get(sig)
+          if (existingKey && enqMap.has(existingKey)) {
+            const existing = enqMap.get(existingKey)!
+            enqMap.set(existingKey, { ...existing, ...e, id: existing.id || e.id })
+          } else {
+            enqMap.set(key, e)
+            enqSigToKey.set(sig, key)
           }
         }
         const mergedEnqs = Array.from(enqMap.values()).sort((a, b) => {
@@ -1129,15 +1161,33 @@ export default function AdminPage() {
         saveStoredEnquiries(mergedEnqs)
         setEnquiries(mergedEnqs)
 
-        // Authoritative merge for quotes
+        // Authoritative merge for quotes (deduped by ID and submission signature)
         const qtMap = new Map<string, QuoteRequest>()
+        const qtSigSet = new Set<string>()
         for (const q of curQts) {
-          if (q && q.id != null) qtMap.set(String(q.id), q)
+          if (!q || q.id == null) continue
+          const sig = makeInquirySig({
+            email: q.email,
+            phone: q.phone,
+            product: q.service_or_product,
+            created_at: q.created_at,
+          })
+          if (!qtSigSet.has(sig)) {
+            qtMap.set(String(q.id), q)
+            qtSigSet.add(sig)
+          }
         }
         for (const re of remoteEnquiriesList) {
           if (re && (re.id != null || re.enquiry_number)) {
             const qKey = String(re.id || re.enquiry_number)
-            if (!qtMap.has(qKey)) {
+            const sig = makeInquirySig({
+              email: re.email,
+              phone: re.phone,
+              product: re.product_service_name || re.productOrService,
+              created_at: re.created_at,
+            })
+            if (!qtMap.has(qKey) && !qtSigSet.has(sig)) {
+              qtSigSet.add(sig)
               qtMap.set(qKey, {
                 id: Number(re.id) || Date.now(),
                 name: re.customer_name || re.name || 'Valued Customer',

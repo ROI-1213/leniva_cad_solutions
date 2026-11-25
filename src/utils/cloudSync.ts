@@ -953,24 +953,8 @@ export async function submitCentralizedEnquiry(payload: {
     } catch {}
   }
 
-  // Also persist to PostgreSQL /api/quotes endpoint
-  fetch('/api/quotes', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      id: uniqueId,
-      name: customerName,
-      email,
-      phone,
-      company,
-      serviceOrProduct: productName,
-      quantity: payload.quantity || '1',
-      timeline: payload.timeline || payload.application || 'Immediate',
-      message: newEnquiry.message,
-    }),
-  }).catch(() => null)
-
   // Trigger cloud sync to propagate enquiry across all admin browsers
+  // (POST /api/enquiries already persists to enquiries, quote_requests, and contact_messages tables)
   pushCmsStateToCloud({ isEnquirySubmission: true }).catch(() => false)
 
   const mailtoSubject = encodeURIComponent(`New Customer Enquiry – ${productName} – Leniva 3D`)
