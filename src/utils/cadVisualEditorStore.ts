@@ -2482,6 +2482,7 @@ export function findElementByCadKey(root: HTMLElement, elKey: string): HTMLEleme
 
   // Fallback deterministic tag:index lookup (e.g. "auto:h2:3" or "auto:img:2")
   if (elKey.startsWith('auto:')) {
+    if (elKey === 'auto:img:0' && root.querySelector('[data-cad-skip-hero="true"]')) return null
     const [, tag, idxStr] = elKey.split(':')
     const idx = Number(idxStr)
     if (tag && !Number.isNaN(idx)) {

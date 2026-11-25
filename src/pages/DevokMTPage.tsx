@@ -71,7 +71,7 @@ export const DevokMTPage: React.FC = () => {
     {
       id: 'render',
       label: '3D Studio Model',
-      src: getLiveVisualGalleryImage('devok_mt', 2, devokMTData.heroImage),
+      src: getLiveVisualGalleryImage('devok_mt', 2, defaultDevokMTData.heroImage),
       badge: 'Industrial Grade',
       subBadge: '34 Blue + 22 IR Lasers',
       desc: 'Precision laser scanning with VDI/VDE 2634 compliant accuracy.',
