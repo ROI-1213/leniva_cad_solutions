@@ -4546,23 +4546,56 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                               const slot = activeImageSlotsBase.find(
                                 s => s.dataPath === selectedElement.dataPath || s.id === selectedElement.key
                               )
-                              const origSrc =
+                              const fallbackOrig =
                                 slot?.defaultSrc ||
-                                (selectedElement.dataPath
+                                (activeProductKey === 'ares_commander' && selectedElement.dataPath
                                   ? getByPath(aresCommanderData, selectedElement.dataPath)
                                   : undefined) ||
-                                payload.elementOverrides?.[selectedElement.key]?.originalSrc
-                              if (origSrc) {
-                                if (selectedElement.dataPath) {
-                                  setDataPathValue(selectedElement.dataPath, origSrc)
+                                payload.elementOverrides?.[selectedElement.key]?.originalSrc ||
+                                ''
+
+                              const isHeroTarget =
+                                selectedElement.key === 'hero.image' ||
+                                selectedElement.key === 'auto:img:0' ||
+                                selectedElement.dataPath === 'hero.image' ||
+                                selectedElement.dataPath === 'hero.heroImage'
+
+                              updatePayload(prev => {
+                                const next = { ...prev }
+                                const nextElOv = { ...(next.elementOverrides || {}) }
+                                delete nextElOv[selectedElement.key]
+                                if (isHeroTarget) {
+                                  delete nextElOv['hero.image']
+                                  delete nextElOv['auto:img:0']
                                 }
-                                setElementOverrideValue(selectedElement.key, {
-                                  src: origSrc,
-                                  hidden: false,
-                                })
-                                setSelectedElement(prev => (prev ? { ...prev, currentSrc: origSrc } : null))
-                                showToast('info', 'Restored original image!')
+                                next.elementOverrides = nextElOv
+
+                                const nextDataOv = { ...(next.dataOverrides || {}) }
+                                if (isHeroTarget && nextDataOv.hero) {
+                                  const nextHero = { ...nextDataOv.hero }
+                                  delete nextHero.image
+                                  delete nextHero.heroImage
+                                  nextDataOv.hero = nextHero
+                                }
+                                next.dataOverrides = nextDataOv
+                                return next
+                              })
+
+                              if (isHeroTarget && fallbackOrig) {
+                                setCustomPrinterProducts(prev =>
+                                  prev.map(p => (p && p.key === activeProductKey ? { ...p, heroImage: fallbackOrig } : p))
+                                )
+                                setCustomCadProducts(prev =>
+                                  prev.map(p => (p && p.key === activeProductKey ? { ...p, heroImage: fallbackOrig } : p))
+                                )
+                                setCustomScannerProducts(prev =>
+                                  prev.map(p => (p && p.key === activeProductKey ? { ...p, heroImage: fallbackOrig } : p))
+                                )
                               }
+
+                              setSelectedElement(prev => (prev ? { ...prev, currentSrc: fallbackOrig } : null))
+                              setRefreshTick(t => t + 1)
+                              showToast('info', 'Restored original image! Click "Publish Changes" to make it live.')
                             }}
                             className="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
                           >
@@ -5034,12 +5067,27 @@ export const CadVisualPageEditor: React.FC<CadVisualPageEditorProps> = ({
                             {isModified && (
                               <button
                                 onClick={() => {
-                                  if (slot.dataPath) setDataPathValue(slot.dataPath, slot.defaultSrc)
-                                  setElementOverrideValue(slot.dataPath || slot.id, {
-                                    src: slot.defaultSrc,
-                                    hidden: false,
+                                  const isHeroSlot = slot.dataPath === 'hero.image' || slot.dataPath === 'hero.heroImage' || slot.id === 'hero.image'
+                                  updatePayload(prev => {
+                                    const next = { ...prev }
+                                    const nextElOv = { ...(next.elementOverrides || {}) }
+                                    delete nextElOv[slot.id]
+                                    if (slot.dataPath) delete nextElOv[slot.dataPath]
+                                    if (isHeroSlot) {
+                                      delete nextElOv['hero.image']
+                                      delete nextElOv['auto:img:0']
+                                    }
+                                    next.elementOverrides = nextElOv
+                                    if (isHeroSlot && next.dataOverrides?.hero) {
+                                      const nextHero = { ...next.dataOverrides.hero }
+                                      delete nextHero.image
+                                      delete nextHero.heroImage
+                                      next.dataOverrides = { ...next.dataOverrides, hero: nextHero }
+                                    }
+                                    return next
                                   })
-                                  showToast('info', `Restored original image for ${slot.label}`)
+                                  setRefreshTick(t => t + 1)
+                                  showToast('info', `Restored original image for ${slot.label}. Click "Publish Changes" to make it live.`)
                                 }}
                                 title="Restore Original Image"
                                 className="py-2 px-2.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs cursor-pointer"

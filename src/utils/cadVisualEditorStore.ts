@@ -1318,7 +1318,7 @@ export function syncVisualPayloadToCatalogs(productKey: string, stamped: CadVisu
         const itemId = (item.id || '').toLowerCase()
         if (candidateSlugs.has(itemSlug) || candidateSlugs.has(itemId)) {
           changed = true
-          return {
+          const nextItem: any = {
             ...item,
             is_admin_customized: true,
             ...(heroImg ? { hero_image: heroImg, images: [heroImg, ...(Array.isArray(item.images) ? item.images.slice(1) : [])] } : {}),
@@ -1326,6 +1326,13 @@ export function syncVisualPayloadToCatalogs(productKey: string, stamped: CadVisu
             ...(headline ? { hero_heading: headline, tagline: headline } : {}),
             ...(shortDesc ? { short_description: shortDesc, description: shortDesc } : {}),
           }
+          if (!heroImg && typeof nextItem.hero_image === 'string' && nextItem.hero_image.startsWith('data:')) {
+            delete nextItem.hero_image
+            if (Array.isArray(nextItem.images) && typeof nextItem.images[0] === 'string' && nextItem.images[0].startsWith('data:')) {
+              nextItem.images = nextItem.images.slice(1)
+            }
+          }
+          return nextItem
         }
         return item
       })
