@@ -233,6 +233,7 @@ export const WhitePlaDetailPage: React.FC<{ customData?: Partial<WhitePlaProduct
               >
                 <img
                   data-cad-path={selectedImageIndex === 0 ? 'hero.image' : undefined}
+                  data-cad-skip-hero={selectedImageIndex !== 0 ? 'true' : undefined}
                   src={activeImage.src}
                   alt={activeImage.alt}
                   className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"

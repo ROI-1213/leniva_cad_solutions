@@ -378,6 +378,7 @@ export const GreySilverPlaPage: React.FC<GreySilverPageProps> = ({ customData })
               >
                 <img
                   data-cad-path={activeImageIndex === 0 ? 'hero.image' : undefined}
+                  data-cad-skip-hero={activeImageIndex !== 0 ? 'true' : undefined}
                   src={currentDisplayImage.src}
                   alt={currentDisplayImage.alt}
                   onError={(e) => {

@@ -2420,6 +2420,7 @@ export function findElementByCadKey(root: HTMLElement, elKey: string): HTMLEleme
 
   // Fallback for hero.image on pages without explicit data-cad-path: pick first non-brand-logo product <img>
   if (elKey === 'hero.image') {
+    if (root.querySelector('[data-cad-skip-hero="true"]')) return null
     const imgs = Array.from(root.querySelectorAll<HTMLImageElement>('img'))
     const heroCandidate = imgs.find(img => {
       if (img.closest('header') || img.closest('footer')) return false
