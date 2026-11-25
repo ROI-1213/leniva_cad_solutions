@@ -1096,6 +1096,22 @@ export function getLiveVisualHeroImage(productKey: string, fallbackSrc: string):
   return fallbackSrc
 }
 
+export function getLiveVisualGalleryImage(productKey: string, index: number, fallbackSrc: string): string {
+  if (index === 0) return getLiveVisualHeroImage(productKey, fallbackSrc)
+  if (typeof window === 'undefined') return fallbackSrc
+  try {
+    const pub = getPublishedVisualPayload(productKey)
+    const draft = getDraftVisualPayload(productKey)
+    const payload = draft || pub
+    const img =
+      payload?.elementOverrides?.[`gallery.${index}`]?.src ||
+      payload?.dataOverrides?.gallery?.[index] ||
+      payload?.elementOverrides?.[`auto:img:${index + 1}`]?.src
+    if (img) return img
+  } catch {}
+  return fallbackSrc
+}
+
 export function getPublishedVisualPayload(productKey: string): CadVisualPagePayload | null {
   const all = readJsonMap<CadVisualPagePayload>(CAD_VISUAL_PUBLISHED_KEY)
   const found = all[productKey]

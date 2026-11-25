@@ -32,7 +32,7 @@ import {
 } from 'lucide-react'
 import { initialGoldData, GoldProductData, FilamentVariant } from '../data/goldPlaData'
 import { useApp } from '../context/AppContext'
-import { getLiveVisualHeroImage } from '../utils/cadVisualEditorStore'
+import { getLiveVisualHeroImage, getLiveVisualGalleryImage } from '../utils/cadVisualEditorStore'
 import { getStoredProductsCatalog } from '../utils/productCatalog'
 
 function resolveGoldPlaHeroImage(fallback: string): string {
@@ -313,11 +313,15 @@ export const GoldPlaPage: React.FC<GoldPageProps> = ({ customData }) => {
     return () => events.forEach(ev => window.removeEventListener(ev, refresh))
   }, [productData.images])
 
-  const baseDisplayImage = productData.images[activeImageIndex] || productData.images[0]
-  const currentDisplayImage =
-    activeImageIndex === 0 && liveHeroImg
-      ? { ...baseDisplayImage, src: liveHeroImg }
-      : baseDisplayImage
+  const displayImages = productData.images.map((img, i) => ({
+    ...img,
+    src: getLiveVisualGalleryImage(
+      'filament_gold_pla',
+      i,
+      i === 0 && liveHeroImg ? liveHeroImg : img.src
+    ),
+  }))
+  const currentDisplayImage = displayImages[activeImageIndex] || displayImages[0]
 
   return (
     <div className="bg-slate-50 min-h-screen text-slate-800 antialiased selection:bg-amber-500 selection:text-white pb-20 md:pb-16">
@@ -363,7 +367,7 @@ export const GoldPlaPage: React.FC<GoldPageProps> = ({ customData }) => {
                 className="relative aspect-square rounded-2xl bg-gradient-to-b from-amber-50/40 via-slate-50 to-slate-100/70 border border-slate-200/90 overflow-hidden flex items-center justify-center p-6 cursor-zoom-in group shadow-inner"
               >
                 <img
-                  data-cad-path={activeImageIndex === 0 ? 'hero.image' : undefined}
+                  data-cad-path={activeImageIndex === 0 ? 'hero.image' : `gallery.${activeImageIndex}`}
                   data-cad-skip-hero={activeImageIndex !== 0 ? 'true' : undefined}
                   src={currentDisplayImage.src}
                   alt={currentDisplayImage.alt}
@@ -429,9 +433,8 @@ export const GoldPlaPage: React.FC<GoldPageProps> = ({ customData }) => {
 
               {/* 6 Thumbnails */}
               <div className="grid grid-cols-6 gap-2 sm:gap-2.5">
-                {productData.images.map((img, i) => {
+                {displayImages.map((img, i) => {
                   const isSelected = i === activeImageIndex
-                  const thumbSrc = i === 0 && liveHeroImg ? liveHeroImg : img.src
                   return (
                     <button
                       key={img.id}
@@ -443,7 +446,8 @@ export const GoldPlaPage: React.FC<GoldPageProps> = ({ customData }) => {
                       }`}
                     >
                       <img
-                        src={thumbSrc}
+                        data-cad-path={i === 0 ? 'hero.image' : `gallery.${i}`}
+                        src={img.src}
                         alt={img.alt}
                         onError={(e) => {
                           ;(e.target as HTMLImageElement).src = initialGoldData.images[0].src

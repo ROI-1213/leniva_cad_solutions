@@ -34,7 +34,7 @@ import {
 } from 'lucide-react'
 import { initialWhitePlaData, WhitePlaProductData } from '../data/whitePlaProductData'
 import { useApp } from '../context/AppContext'
-import { getLiveVisualHeroImage } from '../utils/cadVisualEditorStore'
+import { getLiveVisualHeroImage, getLiveVisualGalleryImage } from '../utils/cadVisualEditorStore'
 import { getStoredProductsCatalog } from '../utils/productCatalog'
 
 function resolveWhitePlaHeroImage(fallback: string): string {
@@ -182,11 +182,15 @@ export const WhitePlaDetailPage: React.FC<{ customData?: Partial<WhitePlaProduct
     }
   }
 
-  const baseActiveImage = product.images[selectedImageIndex] || product.images[0]
-  const activeImage =
-    selectedImageIndex === 0 && liveHeroImg
-      ? { ...baseActiveImage, src: liveHeroImg }
-      : baseActiveImage
+  const displayImages = product.images.map((img, idx) => ({
+    ...img,
+    src: getLiveVisualGalleryImage(
+      'filament_white_pla',
+      idx,
+      idx === 0 && liveHeroImg ? liveHeroImg : img.src
+    ),
+  }))
+  const activeImage = displayImages[selectedImageIndex] || displayImages[0]
 
   return (
     <div className="bg-slate-50 min-h-screen font-sans text-slate-800 antialiased pb-20 md:pb-16 selection:bg-red-500 selection:text-white">
@@ -232,7 +236,7 @@ export const WhitePlaDetailPage: React.FC<{ customData?: Partial<WhitePlaProduct
                 className="relative aspect-square rounded-2xl bg-gradient-to-b from-slate-50 to-slate-100/60 border border-slate-200/80 overflow-hidden flex items-center justify-center p-6 cursor-zoom-in group shadow-inner"
               >
                 <img
-                  data-cad-path={selectedImageIndex === 0 ? 'hero.image' : undefined}
+                  data-cad-path={selectedImageIndex === 0 ? 'hero.image' : `gallery.${selectedImageIndex}`}
                   data-cad-skip-hero={selectedImageIndex !== 0 ? 'true' : undefined}
                   src={activeImage.src}
                   alt={activeImage.alt}
@@ -295,9 +299,8 @@ export const WhitePlaDetailPage: React.FC<{ customData?: Partial<WhitePlaProduct
 
               {/* Thumbnails Gallery (5 Views as requested) */}
               <div className="grid grid-cols-5 gap-2.5 sm:gap-3">
-                {product.images.map((img, idx) => {
+                {displayImages.map((img, idx) => {
                   const isSelected = idx === selectedImageIndex
-                  const thumbSrc = idx === 0 && liveHeroImg ? liveHeroImg : img.src
                   return (
                     <button
                       key={img.id}
@@ -309,7 +312,8 @@ export const WhitePlaDetailPage: React.FC<{ customData?: Partial<WhitePlaProduct
                       }`}
                     >
                       <img
-                        src={thumbSrc}
+                        data-cad-path={idx === 0 ? 'hero.image' : `gallery.${idx}`}
+                        src={img.src}
                         alt={img.alt}
                         className="w-full h-full object-contain rounded-md"
                       />
